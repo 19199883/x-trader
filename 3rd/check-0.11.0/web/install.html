@@ -1,0 +1,499 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<!--
+Copyright: Darren Hester 2006, http://www.designsbydarren.com
+License: Released Under the "Creative Commons License",
+http://creativecommons.org/licenses/by-nc/2.5/
+-->
+
+<head>
+
+<!-- Meta Data -->
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta name="description" content="Check unit testing framework for C" />
+<meta name="keywords" content="check, unit test, c" />
+
+<!-- Site Title -->
+<title>Check | Users of Check</title>
+
+<!-- Link to Style External Sheet -->
+<link href="css/style.css" type="text/css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+<div id="page_wrapper">
+
+<div id="header_wrapper">
+
+<div id="header">
+
+<h1>Check</h1>
+<h2>Unit Testing Framework for C</h2>
+
+</div>
+
+<div id="navcontainer">
+
+<ul id="navlist">
+<li><a href="../index.html">Home</a></li>
+<li><a href="../NEWS">NEWS</a></li>
+<li id="active"><a href="#" id="current">Install</a></li>
+<li><a href="../doc/doxygen/html/check_8h.html">API</a></li>
+<li><a href="../doc/check_html/check_3.html">Tutorial</a></li>
+<li><a href="../doc/check_html/index.html">Reference</a></li>
+<li><a href="http://sourceforge.net/projects/check/files/latest/download">Download</a></li>
+</ul>
+</div>
+
+</div>
+
+
+<div id="content">
+
+<h3>Installing Check</h3>
+
+<p>
+The following instructions show how one can either install Check from
+a package manager or compile from source on one's platform.
+</p>
+
+<ul>
+    <li>GNU/Linux</li>
+    <ul>
+        <li><a href="#aptitude">Ubuntu/Debian via Aptitude</a></li>
+        <li><a href="#yum">Fedora via Yum</a></li>
+        <li><a href="#pacman">Arch Linux via Pacman</a></li>
+        <li><a href="#linuxsource">From Source</a></li>
+    </ul>
+    <li>GNU/Hurd</li>
+    <ul>
+        <li><a href="#hurdsource">Debian GNU/Hurd From Source</a></li>
+    </ul>
+    <li>OSX</li>
+    <ul>
+        <li><a href="#osxmacports">MacPorts</a></li>
+        <li><a href="#osxhomebrew">Homebrew</a></li>
+        <li><a href="#osxsource">From Source</a></li>
+    </ul>
+    <li>BSD</li>
+    <ul>
+        <li><a href="#openbsd">OpenBSD via Packages</a></li>
+        <li><a href="#bsdsource">From Source</a></li>
+    </ul>
+    <li>Windows</li>
+    <ul>
+        <li><a href="#cygwinpackage">Cygwin via Package Manager</a></li>
+        <li><a href="#cygwinsource">Cygwin From Source</a></li>
+        <li><a href="#mingwsource">MinGW/MinGW-w64 From Source</a></li>
+        <li><a href="#visualstudios">Visual Studios From Source</a></li>
+        <li><a href="#msvc">MSVC From Source</a></li>
+    </ul>
+    <li>Solaris</li>
+    <ul>
+        <li><a href="#solaris">From Source</a></li>
+    </ul>
+</ul>
+
+<hr></hr>
+
+<a name="aptitude"></a>
+<h3>Ubuntu/Debian via Aptitude</h3>
+<p>
+Ubuntu and Debian both provide a Check package that can be installed.
+To install, in a terminal, type:
+
+<div id="code"><pre class="command">
+$ sudo apt-get install check
+</pre></div>
+</p>
+<br></br>
+
+
+<a name="yum"></a>
+<h3>Fedora via Yum</h3>
+<p>
+Fedora provides a Check package that can be installed. To install,
+in a terminal, type:
+
+<div id="code"><pre class="command">
+$ sudo yum install check
+</pre></div>
+</p>
+<br></br>
+
+
+<a name="pacman"></a>
+<h3>Arch Linux via Pacman</h3>
+<p>
+Arch Linux provides a Check package that can be installed. To install,
+in a terminal, type:
+
+<div id="code"><pre class="command">
+$ sudo pacman -S check
+</pre></div>
+</p>
+
+
+<a name="linuxsource"></a>
+<h3>GNU/Linux From Source</h3>
+<p>
+Check uses autotools as a build system, and the default steps
+work on GNU/Linux systems. After the
+<a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open a terminal in the unpacked
+directory, then:
+</p>
+<div id="code"><pre class="command">
+$ ./configure
+$ make
+$ make check
+$ sudo make install
+</pre></div>
+<p>
+If the "make check" step fails, please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<br></br>
+
+
+<a name="hurdsource"></a>
+<h3>Debian GNU/Hurd From Source</h3>
+<p>
+Debian GNU/Hurd does not yet provide a package for Check, so it must
+be compiled from source. Check uses autotools as a build system, and the
+default steps work on Debian GNU/Hurd systems. After the
+<a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open a terminal in the unpacked
+directory, then:
+</p>
+<div id="code"><pre class="command">
+$ ./configure
+$ make
+$ make check
+$ sudo make install
+</pre></div>
+<p>
+If the "make check" step fails, please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<br></br>
+
+
+<a name="osxmacports"></a>
+<h3>OSX via MacPorts</h3>
+<p>
+MacPorts provides a Check package that can be installed. First,
+<a href="www.macports.org/install.php">install MacPorts</a>
+if not done already. Then, in a terminal, type:
+
+<div id="code"><pre class="command">
+$ sudo port install check
+</pre></div>
+</p>
+<br></br>
+
+
+<a name="osxhomebrew"></a>
+<h3>OSX via Homebrew</h3>
+<p>
+Homebrew provides a Check package that can be installed. First,
+<a href="brew.sh">install Homebrew</a>
+if not done already. Then, in a terminal, type:
+
+<div id="code"><pre class="command">
+$ brew install check
+</pre></div>
+</p>
+<br></br>
+
+
+<a name="osxsource"></a>
+<h3>OSX From Source</h3>
+<p>
+Check uses autotools as a build system, and the default steps
+work on OSX systems. You must have Xcode installed. After the
+<a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open a terminal in the unpacked
+directory, then:
+</p>
+<div id="code"><pre class="command">
+$ ./configure
+$ make
+$ make check
+$ sudo make install
+</pre></div>
+<p>
+If the "make check" step fails, please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<br></br>
+
+
+<a name="openbsd"></a>
+<h3>OpenBSD via Packages</h3>
+<p>
+OpenBSD provides a Check package that can be installed. To install,
+in a terminal, type:
+
+<div id="code"><pre class="command">
+$ sudo pkg_add check
+</pre></div>
+</p>
+<br></br>
+
+
+<a name="bsdsource"></a>
+<h3>BSD From Source</h3>
+<p>
+Check uses autotools as a build system, and the default steps
+work when building on the BSD system. Special care is required when
+cross compiling, which is described below.
+<br></br>
+After the <a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open a terminal in the unpacked
+directory. To compile on the BSD system directly, type:
+</p>
+<div id="code"><pre class="command">
+$ ./configure
+$ make
+$ make check
+$ sudo make install
+</pre></div>
+<p>
+If the "make check" step fails, please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<p>
+Cross compiling for BSD may require an additional configure argument:
+<em>--enable-timer-replacement</em> .
+Check attempts to use high resolution timers via the timer_create(),
+timer_settime(), and timer_delete() functions. For some BSD systems
+(e.g. OpenBSD), these functions exist but are non-functional stubs.
+If the functions are available, when compiling on the target system the
+configure script will verify that the calls are not stubs. If they are
+valid, Check will use them. When cross compiling, the validity check
+cannot be performed. To prevent Check from using these when cross
+compiling for affected BSD systems, add the <em>--enable-timer-replacement</em>
+configure option.
+</p>
+<br></br>
+
+
+<a name="cygwinpackage"></a>
+<h3>Cygwin on Windows via Package Manager</h3>
+<p>
+Cygwin provides a Check package that can be installed. To install,
+launch the Cygwin setup program, locate the Check package under
+the Devel folder, then install.
+</p>
+<br></br>
+
+
+<a name="cygwinsource"></a>
+<h3>Cygwin on Windows From Source</h3>
+<p>
+Check uses autotools as a build system, and the default steps
+work on Cygwin. You must have gcc, and make installed. After the
+<a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open a Cygwin terminal in the unpacked
+directory, then:
+</p>
+<div id="code"><pre class="command">
+$ ./configure
+$ make
+$ make check
+$ sudo make install
+</pre></div>
+<p>
+If the "make check" step fails, please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<br></br>
+
+
+<a name="mingwsource"></a>
+<h3>MinGW/MinGW-w64 on Windows From Source</h3>
+<p>
+MinGW and MinGW-w64 do not provide a package for Check, so it must be
+compiled from source. Check uses autotools as a build system, and the
+default steps work on both MinGW and MinGW-w64. Note that because both
+MinGW and MinGW-w64 do not provide a fork() alternative, Check's fork
+mode will be disabled. After the
+<a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open a MSYS terminal in the unpacked
+directory, then:
+</p>
+<div id="code"><pre class="command">
+$ ./configure
+$ make
+$ make check
+$ make install
+</pre></div>
+<p>
+If the "make check" step fails, please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<br></br>
+
+
+<a name="visualstudios"></a>
+<h3>Visual Studios on Windows From Source</h3>
+<p>
+Check must be compiled from source for Windows. Note that no fork()
+call is available, and Check's fork mode will be disabled. The CMake build system
+is supported for compiling Check with Visual Studios, so download
+<a href="http://www.cmake.org/cmake/resources/software.html">CMake</a> first.
+</p>
+<p>
+After the
+<a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open the CMake GUI program. Fill in the
+"Where is the source code" and "Where to build the binaries" fields to
+point to the unpacked location of the Check source, and press the
+Configure button. Select the version of Visual Studios to use, and click
+"OK". Once the configuration completes, CMake will highlight two settings,
+CMAKE_CONFIGURATION_TYPES and CMAKE_INSTALL_PREFIX. You may leave them as
+their defaults or modify them. Finally, click "Generate" to create the
+Visual Studio project files.
+</p>
+<p>
+Open Visual Studios and load the generated project files. The following
+is a summary of the important build targets:
+<ul>
+    <li><b>ALL_BUILD</b>: Build Check and all unit tests</li>
+    <li><b>RUN_TESTS</b>: Execute Check's unit tests</li>
+    <li><b>INSTALL</b>: Install Check to the CMAKE_INSTALL_PREFIX location
+                        listed from the CMake GUI</li>
+</ul>
+</p>
+<p>
+To compile, validate, and install Check, run these three targets from
+Visual Studios. Note that the RUN_TESTS target only runs Check's unit
+tests which do not require a shell interpreter. The remaining tests must
+be run in a MSYS or comparable environment.
+</p>
+<p>
+If any of the build targets fail, including the RUN_TESTS target, 
+please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<br></br>
+
+
+
+<a name="msvc"></a>
+<h3>MSVC on Windows From Source</h3>
+<p>
+Check must be compiled from source for Windows. Note that no fork()
+call is available, and Check's fork mode will be disabled. The CMake build system
+is supported for compiling Check with Visual Studios, so download
+<a href="http://www.cmake.org/cmake/resources/software.html">CMake</a> first.
+</p>
+<p>
+After the
+<a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open a terminal (cmd.exe). If MSVC
+is not in the path, execute the bat file in the MSVC install directory
+to load it into the path. For example, with Visual Studios 10:
+</p>
+<div id="code"><pre class="command">
+> C:\Program Files\Microsoft Visual Studios 10.0\VC\vcvarsall.bat
+</pre></div>
+<p>
+Navigate to the unpacked location of the Check source, then:
+</p>
+<div id="code"><pre class="command">
+> cmake -G "NMake Makefiles" .
+> nmake
+> nmake test
+> nmake install
+</pre></div>
+<p>
+Note that the "nmake test" step only runs Check's unit tests which
+do not require a shell interpreter. The remaining tests must be
+run in a MSYS or comparable environment.
+</p>
+<p>
+If the "make test" step fails, please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<br></br>
+
+
+
+<a name="solaris"></a>
+<h3>Solaris From Source</h3>
+<p>
+Check uses autotools as a build system. The PATH must be setup such that
+POSIX versions of tools are found before legacy once.
+(see also standards(5) for more details). If the compiler is GCC, setup
+the PATH as follows:
+</p>
+<div id="code"><pre class="command">
+PATH=/usr/xpg6/bin:/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/sbin:/usr/sbin:/opt/csw/bin
+</pre></div>
+<p>
+Otherwise, for Solaris Studio use the following PATH:
+</p>
+<div id="code"><pre class="command">
+PATH=/opt/solarisstudio12.3/bin:/usr/xpg6/bin:/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/sbin:/usr/sbin:/opt/csw/bin
+</pre></div>
+<p>
+Further, ensure that the environment variables LD_LIBRARY_PATH and
+LD_LIBRARY_PATH_64 are unset. It is recommended to use OpenCSW packages
+(/opt/csw/bin) to get recent versions of required programs.
+The configure script will likely find gcc by default; to use Solaris
+Studio also set the following environment variable:
+</p>
+<div id="code"><pre class="command">
+CC=cc
+</pre></div>
+<p>
+After the
+<a href="http://sourceforge.net/projects/check/files/latest/download">latest Check source</a>
+has been downloaded and unpacked, open a terminal in the unpacked
+directory, then:
+</p>
+<div id="code"><pre class="command">
+$ ./configure CFLAGS=-m64 LDFLAGS=-m64
+$ gmake
+$ gmake check
+$ gmake install
+</pre></div>
+<p>
+If the "gmake check" step fails, please send an email to Check's
+<a href="https://lists.sourceforge.net/lists/listinfo/check-devel">mailing list</a>
+and give details as to the failure so it may be investigated and fixed.
+</p>
+<br></br>
+
+
+
+
+
+</div>
+
+<div id="footer">
+<a href="http://sourceforge.net">Sourceforge</a>
+| <a href="http://www.cloudbees.com/foss/index.cb">Cloudbees</a>
+<br />
+Template provided by:
+<a href="http://www.designsbydarren.com" target="_blank">DesignsByDarren.com</a>
+</div>
+
+</div>
+
+</body>
+
+</html>
