@@ -1,0 +1,10 @@
+- git://github.com/redjack/check.git
+- !git-env
+  url: git://github.com/redjack/libcork.git
+  commit: develop
+- !git-env
+  url: git://github.com/redjack/clogger.git
+  commit: develop
+- !git-env
+  url: git://github.com/redjack/bowsprit.git
+  commit: develop
