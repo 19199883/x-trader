@@ -13,11 +13,13 @@
  * 10 power of 2
  */
 #define MD_BUFFER_SIZE 32768 
+#define CLOG_MODULE "MDProducer" 
 
 class MDProducer
 {
 	public:
 		MDProducer(struct vrt_queue  *queue);
+		~MDProducer();
 
 	private:
 		MYQuoteData* build_quote_provider(SubscribeContracts &subscription);
