@@ -57,7 +57,6 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		///报价操作请求
 		int ReqQuoteAction(CX1FtdcCancelOrderField *p);
 
-
 	private:
 		/*
 		 * things relating to X1 API
@@ -146,87 +145,19 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		 */
 		virtual void OnRtnForQuote(struct CX1FtdcForQuoteRtnField* pf);
 
-
 private:
     bool ParseConfig();
     void ReqLogin();
 
-public:
-    X1TradeContext xspeed_trade_context_;
-    std::mutex client_sync;
-    // 外部接口对象使用，为避免修改接口，新增对象放到此处
-    std::mutex rsp_sync;
-    std::condition_variable rsp_con;
+	struct vrt_producer  *producer_;
+	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
 
-private:
-    x1ftdcapi::CX1FtdcTraderApi *api_;
-    long session_id_;
-    long max_order_ref_;
-    TX1FtdcDateType trade_day;
+	/*
+	 * things relating to counter API
+	 */
+	int32_t push(const TunnRpt& rpt);
 
-    Tunnel_Info tunnel_info_;
-    std::string pswd_;
-    std::string quote_addr_;
-    std::string exchange_code_;
-
-    std::function<void(const T_OrderRespond *)> OrderRespond_call_back_handler_;
-    std::function<void(const T_CancelRespond *)> CancelRespond_call_back_handler_;
-    std::function<void(const T_OrderReturn *)> OrderReturn_call_back_handler_;
-    std::function<void(const T_TradeReturn *)> TradeReturn_call_back_handler_;
-
-    std::function<void(const T_PositionReturn *)> QryPosReturnHandler_;
-    std::function<void(const T_OrderDetailReturn *)> QryOrderDetailReturnHandler_;
-    std::function<void(const T_TradeDetailReturn *)> QryTradeDetailReturnHandler_;
-    std::function<void(const T_ContractInfoReturn *)> QryContractInfoHandler_;
-
-    // added for support market making interface
-    std::function<void(const T_RspOfReqForQuote *)> RspOfReqForQuoteHandler_;
-    std::function<void(const T_RtnForQuote *)> RtnForQuoteHandler_;
-    std::function<void(const T_InsertQuoteRespond *)> InsertQuoteRespondHandler_;
-    std::function<void(const T_CancelQuoteRespond *)> CancelQuoteRespondHandler_;
-    std::function<void(const T_QuoteReturn *)> QuoteReturnHandler_;
-    std::function<void(const T_QuoteTrade *)> QuoteTradeHandler_;
-
-    // 配置数据对象
-    TunnelConfigData cfg_;
-    volatile bool connected_;
-    std::atomic_bool logoned_;
-    QueryInfo query_info_;
-
-    void CheckAndSaveYestodayPosition();
-    void LoadYestodayPositionFromFile(const std::string &file);
-    void SaveYestodayPositionToFile(const std::string &file);
-
-    // variables and functions for cancel all unterminated orders automatically
-    std::atomic_bool have_handled_unterminated_orders_;
-    std::mutex cancel_sync_;
-    std::condition_variable qry_order_finish_cond_;
-    std::thread *cancel_t_;
-    //void CancelUnterminatedOrders(){};
-
-    volatile bool is_ready_;
-    volatile bool query_is_ready_;
-    struct timeval timer_start_, timer_end_;
-
-    std::mutex cancel_times_sync_;
-    std::map<std::string, int> cancel_times_of_contract;
-
-    void CalcCancelTimes(const struct CX1FtdcRspOrderField* const pf, const struct CX1FtdcRspErrorField* const pe, const bool bIsLast);
-    void QueryAllBeforeReady();
-    void ReportErrorState(int api_error_no, const std::string &error_msg);
-
-    volatile bool in_init_state_; // clear after login
-		struct Tunnconfig config_;
-		void ParseConfig();
-
-
-		struct vrt_producer  *producer_;
-		std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
-
-		/*
-		 * things relating to counter API
-		 */
-		x1ftdcapi::CX1FtdcTraderApi *api_;
+	x1ftdcapi::CX1FtdcTraderApi *api_;
 };
 
 #endif
