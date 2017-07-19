@@ -29,7 +29,7 @@ TunnRptProducer::~TunnRptProducer()
 	if (this->producer_ != NULL){
 		vrt_producer_free(this->producer_);
 		this->producer_ = NULL;
-		clog_info("[%s] release tunnrpt_provider.", CLOG_MODULE);
+		clog_info("[%s] release tunnrpt_producer.", CLOG_MODULE);
 	}
 
     if (api_) {

@@ -1,4 +1,5 @@
-
+#ifndef __VRT_VALUE_OBJ_H_
+#define __VRT_VALUE_OBJ_H_
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -50,3 +51,5 @@ vrt_hybrid_value_type(void)
 {
 	return &_vrt_hybrid_value_type;
 }
+
+#endif

@@ -25,7 +25,7 @@ MDProducer::~MDProducer(){
 	if (this->producer_ != NULL){
 		vrt_producer_free(this->producer_);
 		this->producer_ = NULL;
-		clog_info("[%s] release md_provider.", CLOG_MODULE);
+		clog_info("[%s] release md_producer.", CLOG_MODULE);
 	}
 }
 
