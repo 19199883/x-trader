@@ -13,12 +13,6 @@ using namespace std;
 
 namespace strategy_manager
 {
-	/**
-	(1) 根据合约查找模型，转发信息
-	（2）管理模型
-	TO LEARN:
-	（1）对于虚函数，在子类的虚函数中如何调用基类的函数？
-	*/
 	template<typename SPIFQuoteT,typename CFQuoteT,typename StockQuoteT,typename FullDepthQuoteT,typename QuoteT5>
 	class model_manager
 	{
@@ -26,17 +20,11 @@ namespace strategy_manager
 		typedef list<shared_ptr<ModelAdapterT> > ModelAdapterListT;
 
 	public:
-		/**
-		该字段存储MyExchange中所有模型列表
-		*/
 		ModelAdapterListT models;
 
 		CLoadLibraryProxy *_pproxy;
 
 	private:
-		/**
-		该字段存储sm模块的配置信息
-		*/
 		sm_settings setting;
 
 	public:

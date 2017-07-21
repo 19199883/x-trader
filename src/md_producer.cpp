@@ -4,6 +4,7 @@ MDProducer::MDProducer(struct vrt_queue  *queue){
 	clog_info("[%s] MD_BUFFER_SIZE: %d;", CLOG_MODULE, MD_BUFFER_SIZE);
 
 	rip_check(this->procucer_ = vrt_producer_new("md_producer", 1, queue));
+	this->procucer_ ->yield = vrt_yield_strategy_threaded();
 
 	md_provider_ = build_quote_provider(subs_);
 

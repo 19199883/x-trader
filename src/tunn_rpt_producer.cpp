@@ -8,6 +8,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", CLOG_MODULE, RPT_BUFFER_SIZE);
 	rip_check(this->procucer_ = vrt_producer_new("tunnrpt_producer", 1, queue));
+	this->procucer_ ->yield = vrt_yield_strategy_threaded();
 
 	// create X1 object
 	char addr[2048];
@@ -27,7 +28,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 TunnRptProducer::~TunnRptProducer()
 {
 	if (this->producer_ != NULL){
-		vrt_producer_free(this->producer_);
+		vrt_producer_.free(this->producer_);
 		this->producer_ = NULL;
 		clog_info("[%s] release tunnrpt_producer.", CLOG_MODULE);
 	}

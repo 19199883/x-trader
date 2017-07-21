@@ -14,6 +14,9 @@
 
 using namespace std;
 
+
+#define CLOG_MODULE "Strategy" 
+
 #define STRATEGY_METHOD_INIT "st_init_"
 #define STRATEGY_METHOD_FEED_MD_BESTANDDEEP "st_feed_marketinfo_1_"
 #define STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS "st_feed_marketinfo_3_"
@@ -21,8 +24,21 @@ using namespace std;
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION "st_feed_init_position_"
 
+struct StrategySetting
+{
+public:
+	// the configuration to tell model
+	st_config_t config;
+	string account;
+	string name;
+	int id;
+	string file;
+};
+
 class Strategy	
 {
+public:
+
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code);
 	typedef void ( *FeedBestAndDeep_ptr)(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);	
 	typedef void ( *FeedOrderStatistic_ptr)(OrderStatistic* md, int *sig_cnt, signal_t* signals);
@@ -36,30 +52,13 @@ public:
 
 	 void init();
 	 void feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sig_out);
-	void FeedMd(MDBestAndDeep_MY &md, signal_t* signals, int &sig_cnt);
-	void FeedMd(MDOrderStatistic_MY &md, signal_t* signals,int &sig_cnt);
-	void feed_sig_response(signal_resp_t* rpt,symbol_pos_t *pos,
-			pending_order_t *pending_ord,signal_t* sigs,int &sig_cnt);
+	void FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);
+	void FeedMd(OrderStatistic* md, int *sig_cnt, signal_t* signals);
+	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
 
 	void finalize(void);
 
 private:
-	/*
-	* feed configuration to model.
-	*/
-	 void init_imp(st_config_t *config, int *ret_code);
-	 void feed_init_position_imp(strategy_init_pos_t *data, int *sig_cnt, signal_t *sig_out);
-	void feed_spif_quote_imp(SPIFQuoteT &quote_ptr, signal_t* signals,int &signals_size);
-	void feed_cf_quote_imp(CFQuoteT &quote_ptr,signal_t* signals,int &signals_size);
-	void feed_sig_response_imp(signal_resp_t* rpt,symbol_pos_t *pos, pending_order_t *pending_ord,signal_t* sigs,int &sigs_len);
-
-	void trace(string title,signal_t* signals,const int &signals_size);
-	void trace(pending_order_t *ords);
-	void trace(string title,symbol_pos_t *pos);
-	void trace(const SPIFQuoteT &data);
-	void trace(signal_resp_t* rpt);
-	void trace(strategy_init_pos_t *data);
-
 	string generate_log_name(char * log_path);
 
 	Init_ptr pfn_init_;
@@ -70,6 +69,6 @@ private:
 	FeedInitPosition_ptr pfn_feedinitposition_;
 
 	CLoadLibraryProxy *pproxy_;
-	model_setting setting_;
+	Setting setting_;
 };
 

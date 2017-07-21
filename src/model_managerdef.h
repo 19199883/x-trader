@@ -20,17 +20,11 @@ model_manager<SPIFQuoteT,CFQuoteT,StockQuoteT,FullDepthQuoteT,QuoteT5>::~model_m
 template<typename SPIFQuoteT,typename CFQuoteT,typename StockQuoteT,typename FullDepthQuoteT,typename QuoteT5>
 void model_manager<SPIFQuoteT,CFQuoteT,StockQuoteT,FullDepthQuoteT,QuoteT5>::initialize(void)
 {
-	// 加载初始化函数接口
-
-	// 初始化配置信息
 	setting.initialize();
-
-	// 遍历每个模型配置，创建模型实例
 	BOOST_FOREACH(model_setting setting, this->setting.models)
 	{
 		ModelAdapterT *model = new ModelAdapterT(setting);
 		this->models.push_back(shared_ptr<ModelAdapterT>(model));
-		// 初始化模型
 		model->initialize();
 	}
 }
@@ -38,7 +32,6 @@ void model_manager<SPIFQuoteT,CFQuoteT,StockQuoteT,FullDepthQuoteT,QuoteT5>::ini
 template<typename SPIFQuoteT,typename CFQuoteT,typename StockQuoteT,typename FullDepthQuoteT,typename QuoteT5>
 void model_manager<SPIFQuoteT,CFQuoteT,StockQuoteT,FullDepthQuoteT,QuoteT5>::finalize(void)
 {
-	// 遍历每个模型配置，创建模型实例
 	for (typename ModelAdapterListT::iterator it=models.begin();it!=models.end();++it)
 	{
 		(*it)->finalize();
