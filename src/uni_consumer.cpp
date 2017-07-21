@@ -84,4 +84,13 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 
 void UniConsumer::CreateStrategies()
 {
+	int i = 0;
+	for (auto &setting : this->strategy_settings_){
+		stra_table_[i].init(setting);
+		// mapping table
+		straid_straidx_map_table_.insert(std::make_pair<int32_t, int32_t>(setting.id, i));
+		// only support one contract for one strategy
+		cont_straidx_map_table_.emplace(setting.config_.symbols[0].name, i);
+		i++;
+	}
 }

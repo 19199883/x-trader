@@ -25,8 +25,8 @@ class UniConsumer
 		struct vrt_consumer *consumer_;
 
 		std::array<Strategy, STRA_TABLE_SIZE> stra_table_;
-		// key: contract; value: index of strategy in stra_table_
-		std::unordered_map<std::string, int32_t> cont_straidx_map_table_;
+		// key: contract; value: indices of strategies in stra_table_
+		std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
 		// key: strategy id; value: index of strategy in stra_table_
 		std::unordered_map<int32_t, int32_t> straid_straidx_map_table_;
 
