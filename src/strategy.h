@@ -4,7 +4,7 @@
 #include <string>
 #include <dlfcn.h>
 #include <memory>
-#include "signal_entity.h"
+#include "signal.h"
 #include "model_setting.h"
 #include "model_config.h"
 #include "model_adapter.h"
@@ -23,6 +23,9 @@ using namespace std;
 #define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION "st_feed_init_position_"
+
+#define SIGANDRPT_TABLE_SIZE 2048
+#define SIGRPT_TABLE_SIZE 2048
 
 struct StrategySetting
 {
@@ -61,12 +64,21 @@ public:
 private:
 	string generate_log_name(char * log_path);
 
+	// things relating to strategy interface
 	Init_ptr pfn_init_;
 	FeedBestAndDeep_ptr pfn_feedbestanddeep_;
 	FeedOrderStatistic_ptr pfn_feedorderstatistic_;
 	FeedSignalResponse_ptr pfn_feedsignalresponse_;
 	Destroy_ptr pfn_destroy_;
 	FeedInitPosition_ptr pfn_feedinitposition_;
+
+	
+	std::array<signal_t, SIGANDRPT_TABLE_SIZE> sig_table_;
+	std::array<signal_resp_t, SIGANDRPT_TABLE_SIZE> sigrpt_table_;
+	// key: signal id; value: signal or report index in sig_table_ or sigrpt_table_
+	std::unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table;
+	// key: LocalOrderID; value: signal or report index in sig_table_ or sigrpt_table_
+	std::unordered_map<int32_t, int32_t> straid_straidx_map_table_;
 
 	CLoadLibraryProxy *pproxy_;
 	Setting setting_;

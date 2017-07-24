@@ -1,5 +1,6 @@
 #include <sstream>
 #include <stdio.h>
+#include "strategy.h"
 
 using namespace std;
 

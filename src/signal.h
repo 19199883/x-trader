@@ -1,10 +1,42 @@
 #pragma once
 
 #include <string>
-#include "exchange_names.h"
 
 using namespace std;
-using namespace quote_agent;
+
+enum exchange_names
+{
+	// SHANGHAI FUTURES EXCHANGE
+	XSGE = 'A',
+
+	// CHINA FINANCIAL FUTURES EXCHANGE
+	CCFX = 'G',
+
+	// DALIAN COMMODITY EXCHANGE
+	XDCE = 'B',
+
+	// ZHENGZHOU COMMODITY EXCHANGE
+	XZCE = 'C',
+
+	/*
+	 * Shanghai Gold Exchange
+	 */
+	XGE = 'D',
+
+	// SHENZHEN STOCK EXCHANGE
+	XSHE = '0',
+
+	// SHANGHAI STOCK EXCHANGE
+	XSHG = '1',
+
+	//HONG KONG STOCK EXCHANGE
+	XHKE = '2',
+
+	EXCHG_SGX = 'S',
+	
+	undefined = 'u'
+
+};
 
 enum if_sig_state_t {
 	SIG_STATUS_SUCCESS = 0,
