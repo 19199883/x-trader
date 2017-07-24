@@ -2,8 +2,8 @@
 #include <tinystr.h>
 #include "uni_consumer.h"
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue)
-: module_name_("uni_consumer")
+UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
+: module_name_("uni_consumer"),running_(true), md_producer_(md_producer)
 {
 	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
@@ -17,6 +17,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue)
 
 ~UniConsumer::UniConsumer()
 {
+	running_ = false;
+
 	if (this->consumer_ != NULL){
 		vrt_consumer_free(this->consumer_);
 		this->consumer_ = NULL;
@@ -93,4 +95,62 @@ void UniConsumer::CreateStrategies()
 		cont_straidx_map_table_.emplace(setting.config_.symbols[0].name, i);
 		i++;
 	}
+}
+
+void UniConsumer::start()
+{
+	struct vrt_value  *vvalue;
+	while (running_ &&
+		   (rc = vrt_consumer_next(c->c, &vvalue)) != VRT_QUEUE_EOF) {
+		if (rc == 0) {
+			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
+			switch (ivalue){
+				case BESTANDDEEP:
+					ProcBestAndDeep(ivalue->index);
+					break;
+				case ORDERSTATICS:
+					ProcOrderStatistic(ivalue->index);
+					break;
+				case PENDING_SIGNAL:
+					ProcPendingSig(ivalue->index);
+					break;
+				case TUNN_RPT:
+					ProcTunnRpt(ivalue->index);
+					break;
+				default:
+					// TODO: log
+					break;
+			}
+		}
+	} // end while (running_ &&
+}
+void UniConsumer::ProcBestAndDeep(int32_t index)
+{
+	MDBestAndDeep_MY* md = md_producer->GetBestAnddeep(index);
+	auto range = myumm.equal_range(md->Contract);
+	for_each (
+		range.first,
+		range.second,
+		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+			stra_table[x.second].;
+			// TODO: here
+		}
+	);
+}
+
+void UniConsumer::FeedBestAndDeep()
+{
+	const MDBestAndDeep_MY* md
+}
+
+void UniConsumer::ProcOrderStatistic(int32_t index)
+{
+	const MDOrderStatistic_MY* md = GetOrderStatistic(index);
+}
+void UniConsumer::ProcPendingSig(int32_t index)
+{
+}
+
+void UniConsumer::ProcTunnRpt(int32_t)
+{
 }

@@ -73,6 +73,11 @@ int32_t MDProducer::push(const MDBestAndDeep_MY& md){
 	return bestanddeep_cursor;
 }
 
+MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
+{
+	return &bestanddeep_buffer_[index];
+}
+
 void MDProducer::OnGTAQuoteData(const MDOrderStatistic_MY* md){
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -100,4 +105,9 @@ int32_t MDProducer::push(const MDOrderStatistic_MY& md){
 				CLOG_MODULE, orderstatics_cursor, md->Contract, "");
 
 	return orderstatics_cursor;
+}
+
+MDOrderStatistic_MY* MDProducer::GetOrderStatistic(int32_t index)
+{
+	return &orderstatics_buffer_[index];
 }

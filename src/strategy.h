@@ -72,13 +72,12 @@ private:
 	Destroy_ptr pfn_destroy_;
 	FeedInitPosition_ptr pfn_feedinitposition_;
 
-	
 	std::array<signal_t, SIGANDRPT_TABLE_SIZE> sig_table_;
 	std::array<signal_resp_t, SIGANDRPT_TABLE_SIZE> sigrpt_table_;
 	// key: signal id; value: signal or report index in sig_table_ or sigrpt_table_
-	std::unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table;
+	std::unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table_;
 	// key: LocalOrderID; value: signal or report index in sig_table_ or sigrpt_table_
-	std::unordered_map<int32_t, int32_t> straid_straidx_map_table_;
+	std::unordered_map<int32_t, int32_t> localorderid_sigandrptidx_map_table_;
 
 	CLoadLibraryProxy *pproxy_;
 	Setting setting_;

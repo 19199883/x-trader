@@ -11,18 +11,23 @@
 #include <vrt.h>
 #include "vrt_value_obj.h"
 #include "strategy.h"
+#include "md_producer.h"
 
 #define STRA_TABLE_SIZE 512 
 
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue);
+		UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer);
 		~UniConsumer();
 
+		void start();
+
 	private:
+		bool runniing_;
 		const std::string module_name_;  
 		struct vrt_consumer *consumer_;
+		MDProducer *md_producer_;
 
 		std::array<Strategy, STRA_TABLE_SIZE> stra_table_;
 		// key: contract; value: indices of strategies in stra_table_
@@ -34,6 +39,13 @@ class UniConsumer
 		StrategySetting CreateStrategySetting(const TiXmlElement *ele);
 		void ParseConfig();
 		void CreateStrategies();
+
+		// business logic
+		void ProcBestAndDeep(int32_t index);
+		void FeedBestAndDeep(int32_t straidx);
+		void ProcOrderStatistic(int32_t index);
+		void ProcPendingSig(int32_t index);
+		void ProcTunnRpt(int32_t index);
 };
 
 #endif

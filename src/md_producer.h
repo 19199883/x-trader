@@ -21,6 +21,9 @@ class MDProducer
 		MDProducer(struct vrt_queue  *queue);
 		~MDProducer();
 
+		MDBestAndDeep_MY* GetBestAnddeep(int32_t index);
+		MDOrderStatistic_MY* GetOrderStatistic(int32_t index);
+
 	private:
 		MYQuoteData* build_quote_provider(SubscribeContracts &subscription);
 		
