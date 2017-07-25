@@ -47,30 +47,27 @@ void UniConsumer::ParseConfig()
 StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 {
 	StrategySetting setting;
-	strcpy(setting.config_.st_name, ele->Attribute("model_file"));
-	setting.config_.st_id = stoi(ele->Attribute("id"));
-	// T29
-	setting.id = stol(ele->Attribute("id"));
+	strcpy(setting.config.st_name, ele->Attribute("model_file"));
+	setting.config.st_id = stoi(ele->Attribute("id"));
 	setting.file = ele->Attribute("model_file");
-
 	// log_id
-	setting.config_.log_id = setting.id *10 + 0;
+	setting.config.log_id = setting.config.st_id *10 + 0;
 	// log_name
-	strcpy(setting.config_.log_name, ele->Attribute("log_name"));
+	strcpy(setting.config.log_name, ele->Attribute("log_name"));
 	// iv_id
-	setting.config_.iv_id = setting.id *10 + 1;
+	setting.config.iv_id = setting.config.st_id *10 + 1;
 	// iv_name
-	strcpy(setting.config_.iv_name ,ele->Attribute("iv_name"));
+	strcpy(setting.config.iv_name ,ele->Attribute("iv_name"));
 	// ev_id
-	setting.config_.ev_id = setting.id*10 + 2;
+	setting.config.ev_id = setting.config.st_id *10 + 2;
 	// ev_name
 	const char * name = ele->Attribute("ev_name");
-	strcpy(setting.config_.ev_name, ele->Attribute("ev_name"));
+	strcpy(setting.config.ev_name, ele->Attribute("ev_name"));
 
 	int counter = 0;
 	TiXmlElement* symbol_ele = ele->FirstChildElement();		
 	while (symbol_ele != 0)	{		
-		symbol_t &tmp = setting.config_.symbols[counter];
+		symbol_t &tmp = setting.config.symbols[counter];
 
 		symbol_ele->QueryIntAttribute("max_pos", &tmp.max_pos);
 		strcpy(tmp.name, symbol_ele->Attribute("name"));
@@ -79,7 +76,7 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 		symbol_ele = symbol_ele->NextSiblingElement();
 		counter++;
 	}	//end while (symbol_ele != 0)
-	setting.config_.symbols_cnt = counter;
+	setting.config.symbols_cnt = counter;
 	   
 	return setting;
 }
@@ -90,9 +87,13 @@ void UniConsumer::CreateStrategies()
 	for (auto &setting : this->strategy_settings_){
 		stra_table_[i].init(setting);
 		// mapping table
-		straid_straidx_map_table_.insert(std::make_pair<int32_t, int32_t>(setting.id, i));
+		straid_straidx_map_table_.insert(std::make_pair<int32_t, int32_t>(setting.confit.st_id, i));
 		// only support one contract for one strategy
-		cont_straidx_map_table_.emplace(setting.config_.symbols[0].name, i);
+		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, i);
+
+		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", module_name_, stra_table_[i].GetId(),
+					GetContract(), GetMaxPosition(), GetSoFile());
+
 		i++;
 	}
 }
@@ -119,6 +120,7 @@ void UniConsumer::start()
 					break;
 				default:
 					// TODO: log
+					clog_info("[%s] [start] unexpected index: %d", ivalue->index);
 					break;
 			}
 		}
@@ -126,26 +128,38 @@ void UniConsumer::start()
 }
 void UniConsumer::ProcBestAndDeep(int32_t index)
 {
+	int sig_cnt = 0;
 	MDBestAndDeep_MY* md = md_producer->GetBestAnddeep(index);
+
+	clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", index, md->Contract);
+
 	auto range = myumm.equal_range(md->Contract);
 	for_each (
 		range.first,
 		range.second,
 		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			stra_table[x.second].;
-			// TODO: here
+			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer.data());
+			ProcSigs(sig_cnt, sig_buffer.data());
 		}
 	);
 }
 
-void UniConsumer::FeedBestAndDeep()
-{
-	const MDBestAndDeep_MY* md
-}
-
 void UniConsumer::ProcOrderStatistic(int32_t index)
 {
-	const MDOrderStatistic_MY* md = GetOrderStatistic(index);
+	int sig_cnt = 0;
+	MDOrderStatistic_MY* md = GetOrderStatistic(index);
+
+	clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", index, md->Contract);
+
+	auto range = myumm.equal_range(md->Contract);
+	for_each (
+		range.first,
+		range.second,
+		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer.data());
+			ProcSigs(sig_cnt, sig_buffer.data());
+		}
+	);
 }
 void UniConsumer::ProcPendingSig(int32_t index)
 {
@@ -153,4 +167,9 @@ void UniConsumer::ProcPendingSig(int32_t index)
 
 void UniConsumer::ProcTunnRpt(int32_t)
 {
+}
+
+void UniConsumer::ProcSigs(int32_t sig_cnt, signal_t *sigs)
+{
+	// clog_info("[%s] [ProcSigs] index: %d; contract: %s", index, md->Contract);
 }

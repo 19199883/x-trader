@@ -14,6 +14,7 @@
 #include "md_producer.h"
 
 #define STRA_TABLE_SIZE 512 
+#define SIG_BUFFER_SIZE 32 
 
 class UniConsumer
 {
@@ -24,7 +25,7 @@ class UniConsumer
 		void start();
 
 	private:
-		bool runniing_;
+		bool running_;
 		const std::string module_name_;  
 		struct vrt_consumer *consumer_;
 		MDProducer *md_producer_;
@@ -45,7 +46,10 @@ class UniConsumer
 		void FeedBestAndDeep(int32_t straidx);
 		void ProcOrderStatistic(int32_t index);
 		void ProcPendingSig(int32_t index);
+		void ProcSigs(int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
+		std::array<signal_t, SIG_BUFFER_SIZE> sig_buffer_;
+		
 };
 
 #endif

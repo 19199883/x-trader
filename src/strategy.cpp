@@ -127,7 +127,7 @@ void Strategy::FeedMd(OrderStatistic* md, int *sig_cnt, signal_t* sigs)
 	}
 }
 
-void Strategy ::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs)
+void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
 	this->pfn_feedsignalresponse_(rpt, pos, pending_ord, sig_cnt, sigs);
@@ -137,3 +137,22 @@ void Strategy ::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending
 }
 
 
+int32_t Strategy::GetId()
+{
+	return this->setting_.config.st_id;
+}
+
+const char* Strategy::GetContract()
+{
+	return this->setting_.config.symbols[0].name;
+}
+
+int32_t Strategy::GetMaxPosition()
+{
+	return this->setting_.config.symbols[0].max_pos;
+}
+
+const char* Strategy::GetSoFile()
+{
+	return this->setting_.file.c_str();
+}

@@ -32,9 +32,6 @@ struct StrategySetting
 public:
 	// the configuration to tell model
 	st_config_t config;
-	string account;
-	string name;
-	int id;
 	string file;
 };
 
@@ -60,6 +57,10 @@ public:
 	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
 
 	void finalize(void);
+	int32_t GetId();
+	const char* GetContract();
+	int32_t GetMaxPosition();
+	const char* GetSoFile();
 
 private:
 	string generate_log_name(char * log_path);
