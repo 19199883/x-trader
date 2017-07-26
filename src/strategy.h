@@ -50,17 +50,23 @@ public:
 	Strategy();
 	virtual ~Strategy(void);
 
-	 void init();
-	 void feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sig_out);
+	// things relating to strategy interface
+	void init();
+	void feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sig_out);
 	void FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);
 	void FeedMd(OrderStatistic* md, int *sig_cnt, signal_t* signals);
 	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
 
+	// things relating to x-trader internal logic
 	void finalize(void);
 	int32_t GetId();
 	const char* GetContract();
 	int32_t GetMaxPosition();
 	const char* GetSoFile();
+	long GetLocalOrderID(int32_t sig_id);
+	bool HasFrozenPosition();
+	void PrepareForExecutingSig(long localorderid, signal_t &sig);
+	void strategy.UpdateVol(signal_t &sig);
 
 private:
 	string generate_log_name(char * log_path);
@@ -78,7 +84,7 @@ private:
 	// key: signal id; value: signal or report index in sig_table_ or sigrpt_table_
 	std::unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table_;
 	// key: LocalOrderID; value: signal or report index in sig_table_ or sigrpt_table_
-	std::unordered_map<int32_t, int32_t> localorderid_sigandrptidx_map_table_;
+	std::unordered_map<long, int32_t> localorderid_sigandrptidx_map_table_;
 
 	CLoadLibraryProxy *pproxy_;
 	Setting setting_;

@@ -156,3 +156,23 @@ const char* Strategy::GetSoFile()
 {
 	return this->setting_.file.c_str();
 }
+
+long Strategy::GetLocalOrderID(int32_t sig_id)
+{
+	// TODO:
+}
+
+bool Strategy::HasFrozenPosition()
+{
+	// TODO:
+}
+
+void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig)
+{
+	// TODO:
+}
+
+void Strategy::strategy.UpdateVol(signal_t &sig)
+{
+	// TODO: update volume field of signal according to current position
+}

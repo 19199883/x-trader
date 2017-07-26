@@ -343,5 +343,17 @@ void TunnRptProducer::OnRtnExchangeStatus(struct CX1FtdcExchangeStatusRtnField* 
     clog_info("[%s] OnRtnExchangeStatus:  \n%s", CLOG_MODULE, X1DatatypeFormater::ToString(pf).c_str());
 }
 
+long TunnRptProducer::NewLocalOrderID()
+{
+	// TODO:
+}
 
+void TunnRptProducer::CancelOrder(CX1FtdcCancelOrderField &field)
+{
+	// TODO:
+}
 
+const char* TunnRptProducer::GetAccount()
+{
+	return config_.userid.c_str();
+}

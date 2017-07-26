@@ -57,6 +57,13 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		///报价操作请求
 		int ReqQuoteAction(CX1FtdcCancelOrderField *p);
 
+		/*
+		 * things relating to x-trader internal logic
+		 */
+		long NewLocalOrderID();
+		void CancelOrder(CX1FtdcCancelOrderField &field);
+		const char* GetAccount();
+
 	private:
 		/*
 		 * things relating to X1 API
@@ -151,6 +158,7 @@ private:
 
 	struct vrt_producer  *producer_;
 	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
+	Tunnconfig config_;
 
 	/*
 	 * things relating to counter API

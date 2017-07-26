@@ -3,7 +3,8 @@
 #include "uni_consumer.h"
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
-: module_name_("uni_consumer"),running_(true), md_producer_(md_producer)
+: module_name_("uni_consumer"),running_(true), md_producer_(md_producer),
+	tunn_rpt_producer_(tunn_rpt_producer)
 {
 	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
@@ -157,7 +158,7 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 		range.second,
 		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
 			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer.data());
-			ProcSigs(sig_cnt, sig_buffer.data());
+			ProcSigs(stra_table[x.second], sig_cnt, sig_buffer.data());
 		}
 	);
 }
@@ -169,7 +170,48 @@ void UniConsumer::ProcTunnRpt(int32_t)
 {
 }
 
-void UniConsumer::ProcSigs(int32_t sig_cnt, signal_t *sigs)
+void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 {
-	// clog_info("[%s] [ProcSigs] index: %d; contract: %s", index, md->Contract);
+	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", sig_cnt);
+
+	for (int i = 0; i < sig_cnt; i++){
+		if (sigs[i].sig_act == signal_act_t::cancel){
+			CancelOrder(strategy, sigs[i]);
+		}
+		else{
+			PlaceOrder(strategy, sigs[i]);
+		}
+	}
+}
+
+void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
+{
+    CX1FtdcCancelOrderField cancel_order_field;
+    memset(&cancel_order_field, 0, sizeof(CX1FtdcCancelOrderField));
+	// get LocalOrderID by signal ID
+	cancle_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
+	// only use LocalOrderID to cancel order
+    cancle_order.X1OrderID = 0; 
+
+	this->tunn_rpt_producer_->CancelOrder(cancel_order_field);
+}
+
+void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
+{
+	// TODO: here
+	if(strategy.HasFrozenPosition()){
+		// place signal into disruptor queue
+		// TODO:
+	}
+	else {
+		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID();
+		strategy.PrepareForExecutingSig(localorderid, sig)
+		strategy.UpdateVol(sig);
+
+		CX1FtdcInsertOrderField insert_order;
+		memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
+		X1FieldConverter::Convert(sig, tunn_rpt_producer_.GetAccount(), localorderid, insert_order);
+
+		tunn_rpt_producer_->PlaceOrder(insert_order);
+	}
 }
