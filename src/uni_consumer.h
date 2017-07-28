@@ -83,8 +83,11 @@ class UniConsumer
 
 		std::array<Strategy, STRA_TABLE_SIZE> stra_table_;
 		// key: contract; value: indices of strategies in stra_table_
+		// TODO:过将合约的每个字符加起来作为数据索引(合约index)，
+		// array[合约index]=策略索引数组。array是2维数组
 		std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
 		// key: strategy id; value: index of strategy in stra_table_
+		// TODO: 过规则，将策略ID变换成从0开始递增，可以：array[策略 id]=策略索引
 		std::unordered_map<int32_t, int32_t> straid_straidx_map_table_;
 
 		std::list<StrategySetting> strategy_settings_;

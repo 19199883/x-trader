@@ -27,10 +27,8 @@ struct StrategyPosition
 {
 	// long position
 	int32_t cur_long;
-
 	// short position
 	int32_t cur_short;
-
 	int32_t frozen_close_long;
 	int32_t frozen_close_short;
 	int32_t frozen_open_long;
@@ -94,13 +92,17 @@ private:
 
 	// key: signal id; value: signal or report index in sig_table_ or sigrpt_table_
 	// TODO: replace map with array in the future. get original id value according to logic
+	// 如果信号ID从0开始递增，可以：array[signal id]=LocalOrderID
 	std::unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table_;
 
 	// key: LocalOrderID; value: signal or report index in sig_table_ or sigrpt_table_
 	// TODO: replace map with array in the future. get original id value according to logic
+	// 根据规则，将LOcalOrderID拆分，得到核心的从0开始递增ID（core_LocalOrderID）值，
+	// 则可以：array[核心ID]= 信号或信号报告索引
 	std::unordered_map<long, int32_t> localorderid_sigandrptidx_map_table_;
 
 	// TODO: replace map with array in the future
+	// 如果信号ID从0开始递增，可以：array[signal id]=LocalOrderID
 	std::unordered_map<int32_t,long > sigid_localorderid_map_table_;
 	position_t pos_cache_;
 	pending_order_t pending_order_cache_;

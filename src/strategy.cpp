@@ -175,27 +175,27 @@ bool Strategy::Deferred(unsigned short sig_openclose, unsigned short int sig_act
 {
 	updated_vol = 0;
 
-	if (sig_openclose == alloc_position_effect_t::open_&& sig_act == signal_act_t::buy){
-		if ((position_.cur_long + position_.frozen_open_long) < GetMaxPosition()){
+	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
+		if (position_.frozen_open_long==0 && position_.cur_long<GetMaxPosition()){
 			updated_vol = GetMaxPosition() - position_.cur_long - position_.frozen_open_long;
 			return false;
 		} else { return true; }
 	}
-	else if (sig_openclose == alloc_position_effect_t::open_&& sig_act == signal_act_t::sell){
-		if ((position_.cur_short + position_.frozen_open_short) < GetMaxPosition()){
+	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
+		if (position_.frozen_open_short==0 && position_.cur_short< GetMaxPosition()){
 			updated_vol = GetMaxPosition() - position_.cur_short - position_.frozen_open_short;
 			return false;
 		} else { return true; }
 	} else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_.c_str(), sig.st_id, sig_act); }
 
-	if (sig_openclose == alloc_position_effect_t::close_&& sig_act == signal_act_t::buy){
-		if ((position_.cur_short > position_.frozen_close_short)){
+	if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
+		if (position_.frozen_close_short==0 && position_.cur_short>0){
 			updated_vol = position_.cur_short - position_.frozen_close_short;
 			return false;
 		} else { return true; }
 	}
-	else if (sig_openclose == alloc_position_effect_t::close_&& sig_act == signal_act_t::sell){
-		if ((position_.cur_long > position_.frozen_open_long)){
+	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
+		if (position_.frozen_open_long==0 && position_.cur_long>0){
 			updated_vol = position_.cur_long - position_.frozen_close_long;
 			return false;
 		} else { return true; }
@@ -264,26 +264,43 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 
 void Strategy::UpdatePosition(const TunnRpt& rpt, const signal_t& sig)
 {
-	// TODO: here
 	if (rpt.MatchedAmount > 0){
-		if (sig.sig_openclose==alloc_position_effect_t::open_ &&
-			sig.sig_act==signal_act_t::buy){
+		if (sig.sig_openclose==alloc_position_effect_t::open_ && sig.sig_act==signal_act_t::buy){
+			position_.cur_long += rpt.MatchedAmount;
+			position_.frozen_open_long -= rpt.MatchedAmount;
 		}
-		else if (sig.sig_openclose==alloc_position_effect_t::open_ &&
-			sig.sig_act==signal_act_t::sell){
+		else if (sig.sig_openclose==alloc_position_effect_t::open_ && sig.sig_act==signal_act_t::sell){
+			position_.cur_short += rpt.MatchedAmount;
+			position_.frozen_open_short -= rpt.MatchedAmount;
 		}
-		else if (sig.sig_openclose==alloc_position_effect_t::close_ &&
-			sig.sig_act==signal_act_t::buy){
+		else if (sig.sig_openclose==alloc_position_effect_t::close_ && sig.sig_act==signal_act_t::buy){
+			position_.cur_short -= rpt.MatchedAmount;
+			position_.frozen_open_short -= rpt.MatchedAmount;
 		}
-		else if (sig.sig_openclose==alloc_position_effect_t::close_ &&
-			sig.sig_act==signal_act_t::sell){
-		}
-
-	}
-	else{
-		if (rpt.OrderStatus ){
+		else if (sig.sig_openclose==alloc_position_effect_t::close_ && sig.sig_act==signal_act_t::sell){
+			position_.cur_long -= rpt.MatchedAmount;
+			position_.frozen_open_long -= rpt.MatchedAmount;
 		}
 	} //end if (rpt.MatchedAmount > 0)
+
+	if (rpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
+		rpt.OrderStatus==X1_FTDC_SPD_FILLED ||
+		rpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
+		rpt.OrderStatus==X1_FTDC_SPD_ERROR ||
+		rpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+		if (sig.sig_openclose==alloc_position_effect_t::open_ && sig.sig_act==signal_act_t::buy){
+			position_.frozen_open_long = 0;
+		}
+		else if (sig.sig_openclose==alloc_position_effect_t::open_ && sig.sig_act==signal_act_t::sell){
+			position_.frozen_open_short = 0;
+		}
+		else if (sig.sig_openclose==alloc_position_effect_t::close_ && sig.sig_act==signal_act_t::buy){
+			position_.frozen_open_short = 0;
+		}
+		else if (sig.sig_openclose==alloc_position_effect_t::close_ && sig.sig_act==signal_act_t::sell){
+			position_.frozen_open_long = 0;
+		}
+	}
 }
 
 void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
@@ -296,7 +313,43 @@ void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
 }
 void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
 {
-	// TODO:
+	sigrpt.exec_volume = tunnrpt.MatchedAmount;
+	sigrpt.acc_volume += tunnrpt.MatchedAmount;
+
+	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
+		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
+		tunnrpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
+	}else{ sigrpt.killed = 0; }
+
+	if (tunnrpt.OrderStatus==X1_FTDC_SPD_ERROR) sigrpt.rejected = sigrpt.order_volume;
+	else sigrpt.rejected = 0; 
+
+	sigrpt.error_no = tunnrpt.ErrorID;
+
+	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
+		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
+		tunnrpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+		sigrpt.status = if_sig_state_t::SIG_STATUS_CANCEL;
+	}
+	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_FILLED){
+		sigrpt.status = if_sig_state_t::SIG_STATUS_SUCCESS;
+	}
+	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL){
+		sigrpt.status = if_sig_state_t::SIG_STATUS_PARTED;
+	}
+	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_ERROR){
+		sigrpt.status = if_sig_state_t::SIG_STATUS_REJECTED;
+	}
+	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_IN_QUEUE || 
+			tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL ||
+			tunnrpt.OrderStatus==X1_FTDC_SPD_PLACED ||
+			tunnrpt.OrderStatus==X1_FTDC_SPD_TRIGGERED){
+		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
+	}
+	else{
+		// log error
+	}
 }
 
 void Strategy::LoadPosition()
