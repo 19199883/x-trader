@@ -1,8 +1,9 @@
 #include "pending_sig_producer.h"
 
 PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
+:module_name_("PendingSigProducer")
 {
-	clog_info("[%s] PENDING_SIG_BUFFER_SIZE: %d;", CLOG_MODULE, SIG_BUFFER_SIZE);
+	clog_info("[%s] PENDING_SIG_BUFFER_SIZE: %d;", module_name_, SIG_BUFFER_SIZE);
 
 	rip_check(this->procucer_ = vrt_producer_new("pendingsig_producer", 1, queue));
 }
@@ -12,11 +13,11 @@ PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
 	if (this->producer_ != NULL){
 		vrt_producer_free(this->producer_);
 		this->producer_ = NULL;
-		clog_info("[%s] release pendingsig_producer.", CLOG_MODULE);
+		clog_info("[%s] release pendingsig_producer.", module_name_);
 	}
 }
 
-int32_t PendingSigProducer::push(const signal_t& sig)
+int32_t PendingSigProducer::Push(const signal_t& sig)
 {
 	static int32_t cursor = SIG_BUFFER_SIZE - 1;
 	cursor++;
@@ -26,7 +27,12 @@ int32_t PendingSigProducer::push(const signal_t& sig)
 	sig_buffer_[cursor] = sig;
 
 	clog_debug("[%s] push Pending Sig: cursor,%d; Sig Id:%d;",
-				CLOG_MODULE, cursor, sig->sig_id);
+				module_name_, cursor, sig->sig_id);
 
 	return cursor;
+}
+
+signal_t* PendingSigProducer::GetSignal(int32_t index)
+{
+	return &(sig_buffer_[index]);
 }

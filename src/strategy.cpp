@@ -5,14 +5,17 @@
 using namespace std;
 
 Strategy::Strategy()
+: module_name_("Strategy")
 {
 }
 
 Strategy::~Strategy(void)
 {
+	SavePosition();
+
 	if (this->pfn_destroy_ != NULL){
 		pfn_destroy_ ();
-		clog_info("[%s] strategy(id:%d) destroyed", CLOG_MODULE, this->setting_.id);
+		clog_info("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
 	}
 
 	if (pproxy_ != NULL){
@@ -21,7 +24,7 @@ Strategy::~Strategy(void)
 		pproxy_ = NULL;
 	}
 
-	clog_info("[%s] strategy(id:%d) released", CLOG_MODULE, this->setting_.id);
+	clog_info("[%s] strategy(id:%d) released", module_name_, this->setting_.config.st_id);
 }
 
 string Strategy::generate_log_name(char* log_path)
@@ -59,42 +62,48 @@ void Strategy::init(StrategySetting setting)
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", CLOG_MODULE, this->setting_.file, STRATEGY_METHOD_INIT, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_INIT, errno);
 	}
 
 	pfn_feedbestanddeep = (FeedBestAndDeep_ptr)pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP);
 	if (!pfn_feedbestanddeep){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", CLOG_MODULE, this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
 	}
 
 	pfn_feedorderstatistic_ = (FeedOrderStatistic_ptr)pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS);
 	if (!pfn_feedorderstatistic_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", CLOG_MODULE, this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)_pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", CLOG_MODULE, this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION, errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)_pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", CLOG_MODULE, this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP, errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", CLOG_MODULE, this->setting_.file, STRATEGY_METHOD_FEED_DESTROY, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_DESTROY, errno);
 	}
 
 	string model_log = generate_log_name(setting_.config_.log_name);
 	strcpy(setting_.config_.log_name, model_log.c_str());
 	setting_.config_.log_id = setting_.config_.st_id;
+
+	memset(&position_, 0, sizeof(StrategyPosition);
+	LoadPosition();
+	memset(&pos_cache_.s_pos[0], 0, sizeof(symbol_pos_t));
+	strcpy(pos_cache_.s_pos[0].symbol, GetSymbol());
+	pos.symbol_cnt = 1;
 
 	int err = 0;
 	this->pfn_init_(&this->setting_.config_, &err);
@@ -159,20 +168,154 @@ const char* Strategy::GetSoFile()
 
 long Strategy::GetLocalOrderID(int32_t sig_id)
 {
-	// TODO:
+	return sigid_localorderid_map_table_[sig_id];
 }
 
-bool Strategy::HasFrozenPosition()
+bool Strategy::Deferred(unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, int32_t& updated_vol)
 {
-	// TODO:
-}
+	updated_vol = 0;
+
+	if (sig_openclose == alloc_position_effect_t::open_&& sig_act == signal_act_t::buy){
+		if ((position_.cur_long + position_.frozen_open_long) < GetMaxPosition()){
+			updated_vol = GetMaxPosition() - position_.cur_long - position_.frozen_open_long;
+			return false;
+		} else { return true; }
+	}
+	else if (sig_openclose == alloc_position_effect_t::open_&& sig_act == signal_act_t::sell){
+		if ((position_.cur_short + position_.frozen_open_short) < GetMaxPosition()){
+			updated_vol = GetMaxPosition() - position_.cur_short - position_.frozen_open_short;
+			return false;
+		} else { return true; }
+	} else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_.c_str(), sig.st_id, sig_act); }
+
+	if (sig_openclose == alloc_position_effect_t::close_&& sig_act == signal_act_t::buy){
+		if ((position_.cur_short > position_.frozen_close_short)){
+			updated_vol = position_.cur_short - position_.frozen_close_short;
+			return false;
+		} else { return true; }
+	}
+	else if (sig_openclose == alloc_position_effect_t::close_&& sig_act == signal_act_t::sell){
+		if ((position_.cur_long > position_.frozen_open_long)){
+			updated_vol = position_.cur_long - position_.frozen_close_long;
+			return false;
+		} else { return true; }
+	}
+	else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_.c_str(), sig.st_id, sig_act); }
+
+	if (updated_vol > vol) updated_vol = vol; 
+
+	clog_debug("[%s] Deferred: strategy id:%d; current long:%d; current short:%d; \
+				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
+				frozen_open_short:%d; updated vol:%d",
+				module_name_.c_str(), sig.st_id, position_.cur_long, position_.cur_short,
+				position_.frozen_close_long, position_.frozen_close_short,
+				position_.frozen_open_long, position_.frozen_open_short, updated_vol);
+} 
 
 void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig)
 {
+	// get next cursor
+	static int32_t cursor = SIGANDRPT_TABLE_SIZE - 1;
+	cursor++;
+	if ((cursor % SIGANDRPT_TABLE_SIZE ) == 0){
+		cursor = 0;
+	}
+
+	// signal
+	sig_table_[cursor] = sig;
+	
+	// signal response
+	memset(&(sigrpt_table_[cursor]), 0, sizeof(signal_resp_t));
+	sigrpt_table_[cursor].sig_id = sig.st_id;
+	sigrpt_table_[cursor].sig_act = sig.sig_act;
+	strcpy(sigrpt_table_[cursor].symbol, sig.symbol);
+	sigrpt_table_[cursor].order_volume = sig.order_volume;
+	sigrpt_table_[cursor].order_price = sig.order_price;
+
+	// mapping table
+	sigid_sigandrptidx_map_table_[sig.st_id] = cursor;
+	localorderid_sigandrptidx_map_table_[localorderid] = cursor;
+	sigid_localorderid_map_table_[sig.st_id] = localorderid;
+
+	clog_debug("[%s] PrepareForExecutingSig: sig id: %d; cursor,%d; LocalOrderID:%d;",
+				module_name_.c_str(), sig.st_id, cursor, rpt->LocalOrderID);
+}
+
+void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
+{
+	// get signal report by LocalOrderID
+	int32_t index = localorderid_sigandrptidx_map_table_[rpt.LocalOrderID];
+	signal_resp_t& sigrpt = sigrpt_table_[index];
+	signal_t& sig = sig_table_[index];
+
+	// update strategy's position
+	UpdatePosition(rpt, sig);
+	// fill signal position report by tunnel report
+	if (rpt.MatchedAmount > 0){
+		FillPositionRpt(rpt, pos_cache_);
+	}
+
+	// update signal report
+	UpdateSigrptByTunnrpt(sigrpt, rpt);
+	pending_order_cache_.req_cnt = 0;
+
+	feed_sig_response(&sigrptrpt, &pos_cache_.s_pos[0], &pending_order_cache_, sig_cnt, sigs);
+}
+
+void Strategy::UpdatePosition(const TunnRpt& rpt, const signal_t& sig)
+{
+	// TODO: here
+	if (rpt.MatchedAmount > 0){
+		if (sig.sig_openclose==alloc_position_effect_t::open_ &&
+			sig.sig_act==signal_act_t::buy){
+		}
+		else if (sig.sig_openclose==alloc_position_effect_t::open_ &&
+			sig.sig_act==signal_act_t::sell){
+		}
+		else if (sig.sig_openclose==alloc_position_effect_t::close_ &&
+			sig.sig_act==signal_act_t::buy){
+		}
+		else if (sig.sig_openclose==alloc_position_effect_t::close_ &&
+			sig.sig_act==signal_act_t::sell){
+		}
+
+	}
+	else{
+		if (rpt.OrderStatus ){
+		}
+	} //end if (rpt.MatchedAmount > 0)
+}
+
+void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
+{
+	memset(&pos.s_pos[0], 0, sizeof(symbol_pos_t));
+	pos.symbol_cnt = 1;
+	pos.s_pos[0].long_volume = position_.cur_long;
+	pos.s_pos[0].short_volume = position_.cur_short;
+	pos.s_pos[0].changed = 1;
+}
+void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
+{
 	// TODO:
 }
 
-void Strategy::strategy.UpdateVol(signal_t &sig)
+void Strategy::LoadPosition()
 {
-	// TODO: update volume field of signal according to current position
+	memset(&position_, 0, sizeof(position_);
+	// TODO:
+}
+
+void Strategy::SavePosition()
+{
+	// TODO:
+}
+
+int32_t Strategy::GetMaxPosition()
+{
+	return setting_.config.symbols[0].max_pos;
+}
+
+const char * Strategy::GetSymbol()
+{
+	return setting_.config.symbols[0].name;
 }

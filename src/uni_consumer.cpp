@@ -120,8 +120,7 @@ void UniConsumer::start()
 					ProcTunnRpt(ivalue->index);
 					break;
 				default:
-					// TODO: log
-					clog_info("[%s] [start] unexpected index: %d", ivalue->index);
+					clog_info("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
 					break;
 			}
 		}
@@ -139,8 +138,8 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 		range.first,
 		range.second,
 		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer.data());
-			ProcSigs(sig_cnt, sig_buffer.data());
+			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer_.data());
+			ProcSigs(sig_cnt, sig_buffer_.data());
 		}
 	);
 }
@@ -148,31 +147,48 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 void UniConsumer::ProcOrderStatistic(int32_t index)
 {
 	int sig_cnt = 0;
-	MDOrderStatistic_MY* md = GetOrderStatistic(index);
+	MDOrderStatistic_MY* md = md_producer->GetOrderStatistic(index);
 
-	clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", index, md->Contract);
+	clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->Contract);
 
-	auto range = myumm.equal_range(md->Contract);
+	auto range = cont_straidx_map_table_.equal_range(md->Contract);
 	for_each (
 		range.first,
 		range.second,
 		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer.data());
-			ProcSigs(stra_table[x.second], sig_cnt, sig_buffer.data());
+			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer_.data());
+			ProcSigs(stra_table[x.second], sig_cnt, sig_buffer_.data());
 		}
 	);
 }
+
 void UniConsumer::ProcPendingSig(int32_t index)
 {
+	signal_t* sig = pending_sig_producer_->GetSignal(index);
+
+	clog_info("[%s] [ProcPendingSig] index: %d; sig id: %d", module_name_, index, sig->st_id);
+
+	Strategy& strategy = stra_table[straid_straidx_map_table_[sig->st_id]];
+	PlaceOrder(strategy, *sig);
 }
 
 void UniConsumer::ProcTunnRpt(int32_t)
 {
+	int sig_cnt = 0;
+
+	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
+	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
+
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %d", module_name_, index, rpt->L:ocalOrderID);
+
+	Strategy& strategy = stra_table[straid_straidx_map_table_[strategy_id]];
+	strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_.data());
+	ProcSigs(strategy, sig_cnt, sig_buffer_.data());
 }
 
 void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 {
-	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", sig_cnt);
+	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", module_name_, sig_cnt);
 
 	for (int i = 0; i < sig_cnt; i++){
 		if (sigs[i].sig_act == signal_act_t::cancel){
@@ -193,25 +209,35 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	// only use LocalOrderID to cancel order
     cancle_order.X1OrderID = 0; 
 
-	this->tunn_rpt_producer_->CancelOrder(cancel_order_field);
+	this->tunn_rpt_producer_->ReqOrderAction(cancel_order_field);
 }
 
 void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 {
-	// TODO: here
-	if(strategy.HasFrozenPosition()){
+	int32_t vol = 0;
+	int32_t updated_vol = 0;
+	if (sig.sig_openclose == alloc_position_effect_t::open_){
+		vol = sig.open_volume;
+	}
+	else if (sig.sig_openclose == alloc_position_effect_t::close_){
+		vol = sig.close_volume;
+	}
+	else{
+		// TODO: log info
+	}
+
+	if(strategy.Deferred(sig.sig_openclose, sig_act, vol, updated_vol)){
 		// place signal into disruptor queue
-		// TODO:
+		pending_sig_producer_->Push(sig);
 	}
 	else {
 		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID();
 		strategy.PrepareForExecutingSig(localorderid, sig)
-		strategy.UpdateVol(sig);
 
 		CX1FtdcInsertOrderField insert_order;
 		memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
-		X1FieldConverter::Convert(sig, tunn_rpt_producer_.GetAccount(), localorderid, insert_order);
+		X1FieldConverter::Convert(sig, tunn_rpt_producer_.GetAccount(), localorderid, updated_vol, insert_order);
 
-		tunn_rpt_producer_->PlaceOrder(insert_order);
+		tunn_rpt_producer_->ReqOrderInsert(insert_order);
 	}
 }

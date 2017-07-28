@@ -14,9 +14,6 @@
 
 using namespace std;
 
-
-#define CLOG_MODULE "Strategy" 
-
 #define STRATEGY_METHOD_INIT "st_init_"
 #define STRATEGY_METHOD_FEED_MD_BESTANDDEEP "st_feed_marketinfo_1_"
 #define STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS "st_feed_marketinfo_3_"
@@ -25,7 +22,20 @@ using namespace std;
 #define STRATEGY_METHOD_FEED_INIT_POSITION "st_feed_init_position_"
 
 #define SIGANDRPT_TABLE_SIZE 2048
-#define SIGRPT_TABLE_SIZE 2048
+
+struct StrategyPosition
+{
+	// long position
+	int32_t cur_long;
+
+	// short position
+	int32_t cur_short;
+
+	int32_t frozen_close_long;
+	int32_t frozen_close_short;
+	int32_t frozen_open_long;
+	int32_t frozen_open_short;
+};
 
 struct StrategySetting
 {
@@ -64,9 +74,9 @@ public:
 	int32_t GetMaxPosition();
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);
-	bool HasFrozenPosition();
+	bool Deferred(unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, int32_t& updated_vol);
 	void PrepareForExecutingSig(long localorderid, signal_t &sig);
-	void strategy.UpdateVol(signal_t &sig);
+	void FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
 
 private:
 	string generate_log_name(char * log_path);
@@ -81,12 +91,32 @@ private:
 
 	std::array<signal_t, SIGANDRPT_TABLE_SIZE> sig_table_;
 	std::array<signal_resp_t, SIGANDRPT_TABLE_SIZE> sigrpt_table_;
+
 	// key: signal id; value: signal or report index in sig_table_ or sigrpt_table_
+	// TODO: replace map with array in the future. get original id value according to logic
 	std::unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table_;
+
 	// key: LocalOrderID; value: signal or report index in sig_table_ or sigrpt_table_
+	// TODO: replace map with array in the future. get original id value according to logic
 	std::unordered_map<long, int32_t> localorderid_sigandrptidx_map_table_;
+
+	// TODO: replace map with array in the future
+	std::unordered_map<int32_t,long > sigid_localorderid_map_table_;
+	position_t pos_cache_;
+	pending_order_t pending_order_cache_;
 
 	CLoadLibraryProxy *pproxy_;
 	Setting setting_;
+	const char *module_name_;  
+	StrategyPosition position_;
+	void LoadPosition();
+	void SavePosition();
+	/*
+	 * 
+	 */
+	void UpdateSigrptByTunnrpt(signal_resp_t& sigrpt, const TunnRpt& tunnrpt);
+	void UpdatePosition(const TunnRpt& rpt, const signal_t& sig);
+	void FillPositionRpt(const TunnRpt& rpt, position_t& pos);
+	const char * GetSymbol();
 };
 

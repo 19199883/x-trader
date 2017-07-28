@@ -14,7 +14,6 @@ using namespace std;
  * 10 power of 2
  */
 #define RPT_BUFFER_SIZE 32768 
-#define CLOG_MODULE "TunnRptProducer" 
 
 struct Tunnconfig
 {
@@ -61,8 +60,9 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		 * things relating to x-trader internal logic
 		 */
 		long NewLocalOrderID();
-		void CancelOrder(CX1FtdcCancelOrderField &field);
 		const char* GetAccount();
+		TunnRpt* GetRpt(int32_t index);
+		int32_t GetStrategyID(TunnRpt& rpt);
 
 	private:
 		/*
@@ -159,11 +159,12 @@ private:
 	struct vrt_producer  *producer_;
 	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
 	Tunnconfig config_;
+	string module_name_;  
 
 	/*
 	 * things relating to counter API
 	 */
-	int32_t push(const TunnRpt& rpt);
+	int32_t Push(const TunnRpt& rpt);
 
 	x1ftdcapi::CX1FtdcTraderApi *api_;
 };
