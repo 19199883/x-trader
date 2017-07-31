@@ -1,5 +1,4 @@
-﻿//  TODO: wangying x1 status: done
-
+﻿
 #include "x1_data_formater.h"
 #include <iostream>
 

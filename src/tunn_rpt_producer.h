@@ -59,7 +59,7 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		/*
 		 * things relating to x-trader internal logic
 		 */
-		long NewLocalOrderID();
+		long NewLocalOrderID(int32_t strategyid);
 		const char* GetAccount();
 		TunnRpt* GetRpt(int32_t index);
 		int32_t GetStrategyID(TunnRpt& rpt);

@@ -71,7 +71,8 @@ class UniConsumer
 					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
-		void start();
+		void Start();
+		void Stop();
 
 	private:
 		bool running_;

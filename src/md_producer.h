@@ -13,7 +13,6 @@
  * 10 power of 2
  */
 #define MD_BUFFER_SIZE 32768 
-#define CLOG_MODULE "MDProducer" 
 
 class MDProducer
 {
@@ -35,6 +34,7 @@ class MDProducer
 
 		MYQuoteData *md_provider_;
 		SubscribeContracts subs_;
+		const char *module_name_;  
 
 		struct vrt_producer  *producer_;
 		std::array<MDBestAndDeep_MY, MD_BUFFER_SIZE> bestanddeep_buffer_;

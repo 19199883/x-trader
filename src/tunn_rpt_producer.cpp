@@ -382,9 +382,13 @@ void TunnRptProducer::OnRtnExchangeStatus(struct CX1FtdcExchangeStatusRtnField* 
     clog_info("[%s] OnRtnExchangeStatus:  \n%s", module_name_.c_str(), X1DatatypeFormater::ToString(pf).c_str());
 }
 
-long TunnRptProducer::NewLocalOrderID()
+long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
 {
-	// TODO:
+	static long counter = 0;
+    long localorderid = strategyid+ counter * 100000000;		
+	counter++;
+
+	return localorderid;
 }
 
 const char* TunnRptProducer::GetAccount()
@@ -399,5 +403,5 @@ TunnRpt* TunnRptProducer::GetRpt(int32_t index)
 
 int32_t TunnRptProducer::GetStrategyID(TunnRpt& rpt)
 {
-	// TODO:
+	return rpt.LocalOrderID % 100000000;
 }

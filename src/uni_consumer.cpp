@@ -99,8 +99,10 @@ void UniConsumer::CreateStrategies()
 	}
 }
 
-void UniConsumer::start()
+void UniConsumer::Start()
 {
+	running_  = true;
+
 	struct vrt_value  *vvalue;
 	while (running_ &&
 		   (rc = vrt_consumer_next(c->c, &vvalue)) != VRT_QUEUE_EOF) {
@@ -126,6 +128,12 @@ void UniConsumer::start()
 		}
 	} // end while (running_ &&
 }
+
+void UniConsumer::Stop()
+{
+	running_ = false;
+}
+
 void UniConsumer::ProcBestAndDeep(int32_t index)
 {
 	int sig_cnt = 0;
@@ -223,7 +231,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 		vol = sig.close_volume;
 	}
 	else{
-		// TODO: log info
+		clog_info("[%s] PlaceOrder: do support sig_openclose value:%c;", module_name_, sig.sig_openclose);
 	}
 
 	if(strategy.Deferred(sig.sig_openclose, sig_act, vol, updated_vol)){
@@ -231,7 +239,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 		pending_sig_producer_->Push(sig);
 	}
 	else {
-		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID();
+		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID(strategy.GetID());
 		strategy.PrepareForExecutingSig(localorderid, sig)
 
 		CX1FtdcInsertOrderField insert_order;

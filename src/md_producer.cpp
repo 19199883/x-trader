@@ -1,7 +1,9 @@
 #include "md_producer.h"
 
-MDProducer::MDProducer(struct vrt_queue  *queue){
-	clog_info("[%s] MD_BUFFER_SIZE: %d;", CLOG_MODULE, MD_BUFFER_SIZE);
+MDProducer::MDProducer(struct vrt_queue  *queue)
+:module_name_("MDProducer")
+{
+	clog_info("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
 	rip_check(this->procucer_ = vrt_producer_new("md_producer", 1, queue));
 	this->procucer_ ->yield = vrt_yield_strategy_threaded();
@@ -20,13 +22,13 @@ MDProducer::~MDProducer(){
 		delete md_provider_;
 		md_provider_ = NULL;
 
-		clog_info("[%s] release md_provider.", CLOG_MODULE);
+		clog_info("[%s] release md_provider.", module_name_);
 	}
 
 	if (this->producer_ != NULL){
 		vrt_producer_free(this->producer_);
 		this->producer_ = NULL;
-		clog_info("[%s] release md_producer.", CLOG_MODULE);
+		clog_info("[%s] release md_producer.", module_name_);
 	}
 }
 
@@ -37,11 +39,11 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
 	TiXmlElement* MarketData = RootElement->FirstChildElement("MarketData");
 	if (NULL != MarketData) {
 		md_config = MarketData->Attribute("config");
-		clog_info("[%s] MarketData.config: %s", CLOG_MODULE, md_config);
+		clog_info("[%s] MarketData.config: %s", module_name_, md_config);
 		return new MYQuoteData(&subs_, md_config);
 	}
 	else{
-		clog_error("[%s] can not find 'MarkerData' node.", CLOG_MODULE);
+		clog_error("[%s] can not find 'MarkerData' node.", module_name_);
 		return NULL;
 	}
 }
@@ -54,7 +56,7 @@ void MDProducer::OnGTAQuoteData(const MDBestAndDeep_MY* md){
 	ivalue->data = BESTANDDEEP;
 
 	clog_debug("[%s] rev MDBestAndDeep: index,%d; data,%d; contracr:%s; time: %s",
-				CLOG_MODULE, ivalue->index, ivalue->data, md->Contract, md->GenTime);
+				module_name_, ivalue->index, ivalue->data, md->Contract, md->GenTime);
 
 	rpi_check(vrt_producer_publish(producer_));
 }
@@ -68,7 +70,7 @@ int32_t MDProducer::push(const MDBestAndDeep_MY& md){
 	bestanddeep_buffer_[bestanddeep_cursor] = md;
 
 	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s",
-				CLOG_MODULE, orderstatics_cursor, md->Contract, md->GenTime);
+				module_name_, orderstatics_cursor, md->Contract, md->GenTime);
 
 	return bestanddeep_cursor;
 }
@@ -87,7 +89,7 @@ void MDProducer::OnGTAQuoteData(const MDOrderStatistic_MY* md){
 	ivalue->data = ORDERSTATISTIC;
 
 	clog_debug("[%s] rev MDOrderStatistic: index,%d; data,%d; contracr:%s; time: %s",
-				CLOG_MODULE, ivalue->index, ivalue->data, md->Contract, "");
+				module_name_, ivalue->index, ivalue->data, md->Contract, "");
 
 	rpi_check(vrt_producer_publish(producer_));
 }
@@ -102,7 +104,7 @@ int32_t MDProducer::push(const MDOrderStatistic_MY& md){
 
 
 	clog_debug("[%s] push MDOrderStatistic: cursor,%d; contract:%s; time: %s",
-				CLOG_MODULE, orderstatics_cursor, md->Contract, "");
+				module_name_, orderstatics_cursor, md->Contract, "");
 
 	return orderstatics_cursor;
 }
