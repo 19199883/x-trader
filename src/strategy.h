@@ -5,12 +5,8 @@
 #include <dlfcn.h>
 #include <memory>
 #include "signal.h"
-#include "model_setting.h"
-#include "model_config.h"
-#include "model_adapter.h"
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
-#include "position_entity.h"
 
 using namespace std;
 

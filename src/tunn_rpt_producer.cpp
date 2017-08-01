@@ -1,15 +1,20 @@
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include <clogger.h>
+
 
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
 	this->ParseConfig();
 
-	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_.c_str(), RPT_BUFFER_SIZE);
-	rip_check(this->procucer_ = vrt_producer_new("tunnrpt_producer", 1, queue));
-	this->procucer_ ->yield = vrt_yield_strategy_threaded();
+	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
+
+	this->producer_ = vrt_producer_new("tunnrpt_producer", 1, queue)
+	//rip_check(this->producer_ = vrt_producer_new("tunnrpt_producer", 1, queue));
+
+	this->producer_ ->yield = vrt_yield_strategy_threaded();
 
 	// create X1 object
 	char addr[2048];

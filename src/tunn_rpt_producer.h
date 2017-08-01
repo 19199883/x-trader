@@ -3,9 +3,6 @@
 
 #include <array>
 #include <string>
-#include <libcork/core.h>
-#include <libcork/helpers/errors.h>
-#include <vrt.h>
 #include "vrt_value_obj.h"
 #include "X1FtdcTraderApi.h"
 
@@ -48,7 +45,7 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		// 撤单操作请求
 		int ReqOrderAction(CX1FtdcCancelOrderField *p);
 		int QryPosition(CX1FtdcQryPositionDetailField *p);
-		int QryOrderDetail(CX1FtdcQryOrderField *p)
+		int QryOrderDetail(CX1FtdcQryOrderField *p);
 		int QryTradeDetail(CX1FtdcQryMatchField *p);
 		int ReqForQuoteInsert(CX1FtdcForQuoteField *p);
 		///报价录入请求
@@ -159,7 +156,7 @@ private:
 	struct vrt_producer  *producer_;
 	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
 	Tunnconfig config_;
-	string module_name_;  
+	const char * module_name_;  
 
 	/*
 	 * things relating to counter API

@@ -4,9 +4,6 @@
 #include <functional>
 #include <array>
 #include <string>
-#include <libcork/core.h>
-#include <libcork/helpers/errors.h>
-#include <vrt.h>
 #include "vrt_value_obj.h"
 #include "signal.h"
 

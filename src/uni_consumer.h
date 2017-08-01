@@ -6,9 +6,6 @@
 #include <string>
 #include <list>
 #include <unordered_map>
-#include <libcork/core.h>
-#include <libcork/helpers/errors.h>
-#include <vrt.h>
 #include "vrt_value_obj.h"
 #include "strategy.h"
 #include "md_producer.h"

@@ -1,4 +1,4 @@
-﻿
+﻿#include <stdio.h>
 #include "x1_data_formater.h"
 #include <iostream>
 

@@ -3,10 +3,6 @@
 
 #include <functional>
 #include <array>
-#include <libcork/core.h>
-#include <libcork/helpers/errors.h>
-#include <vrt.h>
-#include "dce_level2/quote_interface_dce_level2.h"
 #include "vrt_value_obj.h"
 
 /*
