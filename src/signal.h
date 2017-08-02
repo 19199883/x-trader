@@ -290,7 +290,6 @@ enum  signal_act_t
 	sell 		= 2,
 	cancel 		= 4,
 	quote 		= 8,
-	undefined 	= -1,
 };
 
 enum instr_t
