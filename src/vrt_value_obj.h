@@ -9,14 +9,17 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
-		 
-	#include <vrt.h>
+	#include <inttypes.h>		 
 	#include <bowsprit.h>
-	#include <clogger.h>
 	#include <libcork/core.h>
 	#include <libcork/ds.h>
 	#include <libcork/helpers/errors.h>
+	#include <clogger.h>
+	#include <vrt.h>
 
+#ifdef __cplusplus
+	};
+#endif /* __cplusplus */
 
 	/* --------------------------------------------------------------
 	 * x-trader varon-t value and type
@@ -61,8 +64,5 @@ extern "C" {
 		return &_vrt_hybrid_value_type;
 	}
 
-#ifdef __cplusplus
-	};
-#endif /* __cplusplus */
 
 #endif

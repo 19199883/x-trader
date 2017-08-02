@@ -7,6 +7,8 @@
 #include "X1FtdcTraderApi.h"
 
 using namespace std;
+using namespace x1ftdcapi;
+
 /*
  * 10 power of 2
  */
@@ -150,7 +152,7 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		virtual void OnRtnForQuote(struct CX1FtdcForQuoteRtnField* pf);
 
 private:
-    bool ParseConfig();
+    void ParseConfig();
     void ReqLogin();
 
 	struct vrt_producer  *producer_;
