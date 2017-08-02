@@ -33,9 +33,9 @@ string Strategy::generate_log_name(char* log_path)
 
 	// parse model name
 	string model_name = "";
-	unsigned found = this->setting.file.find_last_of("/");
-	if(found==string::npos){ model_name = this->setting.file; }
-	else{ model_name = this->setting.file.substr(found+1); }
+	unsigned found = this->setting_.file.find_last_of("/");
+	if(found==string::npos){ model_name = this->setting_.file; }
+	else{ model_name = this->setting_.file.substr(found+1); }
 
 	time_t rawtime;
 	struct tm * timeinfo;
@@ -62,51 +62,57 @@ void Strategy::Init(StrategySetting &setting)
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_INIT, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
 	}
 
-	pfn_feedbestanddeep = (FeedBestAndDeep_ptr)pproxy_->findObject(
+	pfn_feedbestanddeep_ = (FeedBestAndDeep_ptr)pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP);
-	if (!pfn_feedbestanddeep){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
+	if (!pfn_feedbestanddeep_){
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
 	}
 
 	pfn_feedorderstatistic_ = (FeedOrderStatistic_ptr)pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS);
 	if (!pfn_feedorderstatistic_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
 	}
 
-	pfn_feedinitposition_ = (FeedInitPosition_ptr)_pproxy_->findObject(
+	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_INIT_POSITION, errno);
 	}
 
-	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)_pproxy_->findObject(
+	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_SIG_RESP, errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", module_name_, this->setting_.file, STRATEGY_METHOD_FEED_DESTROY, errno);
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_DESTROY, errno);
 	}
 
-	string model_log = generate_log_name(setting_.config_.log_name);
-	strcpy(setting_.config_.log_name, model_log.c_str());
-	setting_.config_.log_id = setting_.config_.st_id;
+	string model_log = generate_log_name(setting_.config.log_name);
+	strcpy(setting_.config.log_name, model_log.c_str());
+	setting_.config.log_id = setting_.config.st_id;
 
-	memset(&position_, 0, sizeof(StrategyPosition);
+	memset(&position_, 0, sizeof(StrategyPosition));
 	LoadPosition();
 	memset(&pos_cache_.s_pos[0], 0, sizeof(symbol_pos_t));
 	strcpy(pos_cache_.s_pos[0].symbol, GetSymbol());
-	pos.symbol_cnt = 1;
+	pos_cache_.symbol_cnt = 1;
 
 	int err = 0;
-	this->pfn_init_(&this->setting_.config_, &err);
+	this->pfn_init_(&this->setting_.config, &err);
 }
 
 void Strategy::feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sigs)
