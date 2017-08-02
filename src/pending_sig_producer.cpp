@@ -3,7 +3,7 @@
 PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
 :module_name_("PendingSigProducer")
 {
-	clog_info("[%s] PENDING_SIG_BUFFER_SIZE: %d;", module_name_, SIG_BUFFER_SIZE);
+	clog_info("[%s] PENDING_SIG_BUFFER_SIZE: %d;", module_name_, PENDINGSIG_BUFFER_SIZE);
 
 	(this->producer_ = vrt_producer_new("pendingsig_producer", 1, queue));
 }
@@ -19,9 +19,9 @@ PendingSigProducer::~PendingSigProducer()
 
 int32_t PendingSigProducer::Push(const signal_t& sig)
 {
-	static int32_t cursor = SIG_BUFFER_SIZE - 1;
+	static int32_t cursor = PENDINGSIG_BUFFER_SIZE - 1;
 	cursor++;
-	if ((cursor % SIG_BUFFER_SIZE) == 0){
+	if ((cursor % PENDINGSIG_BUFFER_SIZE) == 0){
 		cursor = 0;
 	}
 	sig_buffer_[cursor] = sig;

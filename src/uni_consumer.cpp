@@ -109,12 +109,13 @@ void UniConsumer::Start()
 {
 	running_  = true;
 
+	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
-		   (rc = vrt_consumer_next(c->c, &vvalue)) != VRT_QUEUE_EOF) {
+		   (rc = vrt_consumer_next(consumer_, &vvalue)) != VRT_QUEUE_EOF) {
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
-			switch (ivalue){
+			switch (ivalue->data){
 				case BESTANDDEEP:
 					ProcBestAndDeep(ivalue->index);
 					break;
@@ -142,62 +143,62 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcBestAndDeep(int32_t index)
 {
-	int sig_cnt = 0;
-	MDBestAndDeep_MY* md = md_producer->GetBestAnddeep(index);
+	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
 
 	clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", index, md->Contract);
-
-	auto range = myumm.equal_range(md->Contract);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer_.data());
-			ProcSigs(sig_cnt, sig_buffer_.data());
-		}
-	);
-}
-
-void UniConsumer::ProcOrderStatistic(int32_t index)
-{
-	int sig_cnt = 0;
-	MDOrderStatistic_MY* md = md_producer->GetOrderStatistic(index);
-
-	clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->Contract);
 
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
 	for_each (
 		range.first,
 		range.second,
 		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			stra_table[x.second].FeedMd(md, &sig_cnt, sig_buffer_.data());
-			ProcSigs(stra_table[x.second], sig_cnt, sig_buffer_.data());
+			int sig_cnt = 0;
+			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
+			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
+		}
+	);
+}
+
+void UniConsumer::ProcOrderStatistic(int32_t index)
+{
+	MDOrderStatistic_MY* md = md_producer_->GetOrderStatistic(index);
+
+	clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
+
+	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
+	for_each (
+		range.first,
+		range.second,
+		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+			int sig_cnt = 0;
+			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
+			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
 		}
 	);
 }
 
 void UniConsumer::ProcPendingSig(int32_t index)
 {
-	signal_t* sig = pending_sig_producer_->GetSignal(index);
+	signal_t* sig = pendingsig_producer_->GetSignal(index);
 
 	clog_info("[%s] [ProcPendingSig] index: %d; sig id: %d", module_name_, index, sig->st_id);
 
-	Strategy& strategy = stra_table[straid_straidx_map_table_[sig->st_id]];
+	Strategy& strategy = stra_table_[straid_straidx_map_table_[sig->st_id]];
 	PlaceOrder(strategy, *sig);
 }
 
-void UniConsumer::ProcTunnRpt(int32_t)
+void UniConsumer::ProcTunnRpt(int32_t index)
 {
 	int sig_cnt = 0;
 
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %d", module_name_, index, rpt->L:ocalOrderID);
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %d", module_name_, index, rpt->LocalOrderID);
 
-	Strategy& strategy = stra_table[straid_straidx_map_table_[strategy_id]];
-	strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_.data());
-	ProcSigs(strategy, sig_cnt, sig_buffer_.data());
+	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
+	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
+	ProcSigs(strategy, sig_cnt, sig_buffer_);
 }
 
 void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
@@ -216,14 +217,14 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
-    CX1FtdcCancelOrderField cancel_order_field;
-    memset(&cancel_order_field, 0, sizeof(CX1FtdcCancelOrderField));
+    CX1FtdcCancelOrderField cancel_order;
+    memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
 	// get LocalOrderID by signal ID
-	cancle_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
+	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
 	// only use LocalOrderID to cancel order
-    cancle_order.X1OrderID = 0; 
+    cancel_order.X1OrderID = 0; 
 
-	this->tunn_rpt_producer_->ReqOrderAction(cancel_order_field);
+	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
 }
 
 void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
@@ -232,21 +233,16 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 	int32_t updated_vol = 0;
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		vol = sig.open_volume;
-	}
-	else if (sig.sig_openclose == alloc_position_effect_t::close_){
+	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
-	}
-	else{
-		clog_info("[%s] PlaceOrder: do support sig_openclose value:%c;", module_name_, sig.sig_openclose);
-	}
+	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%c;", module_name_, sig.sig_openclose); }
 
-	if(strategy.Deferred(sig.sig_openclose, sig_act, vol, updated_vol)){
+	if(strategy.Deferred(sig.sig_openclose, sig.sig_act, vol, updated_vol)){
 		// place signal into disruptor queue
-		pending_sig_producer_->Push(sig);
-	}
-	else {
-		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID(strategy.GetID());
-		strategy.PrepareForExecutingSig(localorderid, sig)
+		pendingsig_producer_->Push(sig);
+	} else {
+		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+		strategy.PrepareForExecutingSig(localorderid, sig);
 
 		CX1FtdcInsertOrderField insert_order;
 		memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));

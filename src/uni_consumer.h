@@ -104,7 +104,7 @@ class UniConsumer
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
 		void PlaceOrder(Strategy &strategy,signal_t &sig);
-		std::array<signal_t, SIG_BUFFER_SIZE> sig_buffer_;
+		signal_t sig_buffer_[SIG_BUFFER_SIZE];
 		
 };
 

@@ -21,9 +21,9 @@ class PendingSigProducer
 		~PendingSigProducer();
 
 		signal_t* GetSignal(int32_t index);
+		int32_t Push(const signal_t& sig);
 
 	private:
-		int32_t Push(const signal_t& sig);
 		struct vrt_producer  *producer_;
 		std::array<signal_t, PENDINGSIG_BUFFER_SIZE> sig_buffer_;
 
