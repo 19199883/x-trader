@@ -91,7 +91,7 @@ void UniConsumer::CreateStrategies()
 	for (auto &setting : this->strategy_settings_){
 		stra_table_[i].Init(setting);
 		// mapping table
-		straid_straidx_map_table_.insert(setting.config.st_id, i);
+		straid_straidx_map_table_.emplace(setting.config.st_id, i);
 		// only support one contract for one strategy
 		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, i);
 
@@ -246,8 +246,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 
 		CX1FtdcInsertOrderField insert_order;
 		memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
-		X1FieldConverter::Convert(sig, tunn_rpt_producer_.GetAccount(), localorderid, updated_vol, insert_order);
+		X1FieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), localorderid, updated_vol, insert_order);
 
-		tunn_rpt_producer_->ReqOrderInsert(insert_order);
+		tunn_rpt_producer_->ReqOrderInsert(&insert_order);
 	}
 }

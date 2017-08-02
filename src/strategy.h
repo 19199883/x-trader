@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include <list>
 #include <string>
 #include <dlfcn.h>
@@ -91,7 +92,7 @@ private:
 	// key: signal id; value: signal or report index in sig_table_ or sigrpt_table_
 	// TODO: replace map with array in the future. get original id value according to logic
 	// 如果信号ID从0开始递增，可以：array[signal id]=LocalOrderID
-	std::unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table_;
+	unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table_;
 
 	// key: LocalOrderID; value: signal or report index in sig_table_ or sigrpt_table_
 	// TODO: replace map with array in the future. get original id value according to logic
