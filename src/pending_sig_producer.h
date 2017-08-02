@@ -12,7 +12,7 @@ using namespace std;
 /*
  * 10 power of 2
  */
-#define SIG_BUFFER_SIZE 32768 
+#define PENDINGSIG_BUFFER_SIZE 32768 
 
 class PendingSigProducer
 {
@@ -25,9 +25,9 @@ class PendingSigProducer
 	private:
 		int32_t Push(const signal_t& sig);
 		struct vrt_producer  *producer_;
-		std::array<signal_t, SIG_BUFFER_SIZE> sig_buffer_;
+		std::array<signal_t, PENDINGSIG_BUFFER_SIZE> sig_buffer_;
 
-		string module_name_;  
+		const char* module_name_;  
 };
 
 #endif

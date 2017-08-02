@@ -55,7 +55,7 @@ string Strategy::generate_log_name(char* log_path)
 	return log_full_path;
 }
 
-void Strategy::init(StrategySetting setting)
+void Strategy::Init(StrategySetting &setting)
 {
 	this->setting_ = setting;
 	this->pproxy_ = CLoadLibraryProxy::CreateLoadLibraryProxy();
@@ -127,7 +127,7 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 	}
 }
 
-void Strategy::FeedMd(OrderStatistic* md, int *sig_cnt, signal_t* sigs)
+void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs);

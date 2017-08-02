@@ -2,13 +2,17 @@
 #include <tinystr.h>
 #include "uni_consumer.h"
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
-: module_name_("uni_consumer"),running_(true), md_producer_(md_producer),
-	tunn_rpt_producer_(tunn_rpt_producer)
+UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
+			TunnRptProducer *tunn_rpt_producer,
+			PendingSigProducer* pendingsig_producer)
+: module_name_("uni_consumer"),running_(true), 
+  md_producer_(md_producer),
+  tunn_rpt_producer_(tunn_rpt_producer),
+  pendingsig_producer_(pendingsig_producer)
 {
 	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
-	rip_check(this->consumer_ = vrt_consumer_new(module_name_, queue));
+	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 	this->consumer_->yield = vrt_yield_strategy_threaded();
 
 	ParseConfig();
@@ -16,7 +20,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
 	CreateStrategies();
 }
 
-~UniConsumer::UniConsumer()
+UniConsumer::~UniConsumer()
 {
 	running_ = false;
 
@@ -30,10 +34,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer)
 void UniConsumer::ParseConfig()
 {
 	std::string config_file = "trasev.config";
-
 	TiXmlDocument doc = TiXmlDocument(config_file.c_str());
     doc.LoadFile();
-    TiXmlElement *root = config.RootElement();    
+    TiXmlElement *root = doc.RootElement();    
     TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
 	if (strategies_ele != 0){
 		TiXmlElement *strategy_ele = strategies_ele->FirstChildElement();
@@ -66,7 +69,7 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 	strcpy(setting.config.ev_name, ele->Attribute("ev_name"));
 
 	int counter = 0;
-	TiXmlElement* symbol_ele = ele->FirstChildElement();		
+	const TiXmlElement* symbol_ele = ele->FirstChildElement();		
 	while (symbol_ele != 0)	{		
 		symbol_t &tmp = setting.config.symbols[counter];
 
@@ -84,16 +87,19 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 
 void UniConsumer::CreateStrategies()
 {
-	int i = 0;
+	int32_t i = 0;
 	for (auto &setting : this->strategy_settings_){
-		stra_table_[i].init(setting);
+		stra_table_[i].Init(setting);
 		// mapping table
-		straid_straidx_map_table_.insert(std::make_pair<int32_t, int32_t>(setting.confit.st_id, i));
+		straid_straidx_map_table_.insert(setting.config.st_id, i);
 		// only support one contract for one strategy
 		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, i);
 
-		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", module_name_, stra_table_[i].GetId(),
-					GetContract(), GetMaxPosition(), GetSoFile());
+		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
+					module_name_, stra_table_[i].GetId(),
+					stra_table_[i].GetContract(), 
+					stra_table_[i].GetMaxPosition(), 
+					stra_table_[i].GetSoFile());
 
 		i++;
 	}

@@ -7,6 +7,8 @@
 #include "signal.h"
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
+#include "quote_datatype_dce_level2.h"
+#include "tunn_rpt_producer.h"
 
 using namespace std;
 
@@ -45,7 +47,7 @@ public:
 
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code);
 	typedef void ( *FeedBestAndDeep_ptr)(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);	
-	typedef void ( *FeedOrderStatistic_ptr)(OrderStatistic* md, int *sig_cnt, signal_t* signals);
+	typedef void ( *FeedOrderStatistic_ptr)(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals);
 	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
 	typedef void (*Destroy_ptr)();
 	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data, int *sig_cnt,signal_t *sig_out);
@@ -55,10 +57,10 @@ public:
 	virtual ~Strategy(void);
 
 	// things relating to strategy interface
-	void init();
+	void Init(StrategySetting &setting);
 	void feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sig_out);
 	void FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);
-	void FeedMd(OrderStatistic* md, int *sig_cnt, signal_t* signals);
+	void FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals);
 	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
 
 	// things relating to x-trader internal logic
@@ -104,7 +106,7 @@ private:
 	pending_order_t pending_order_cache_;
 
 	CLoadLibraryProxy *pproxy_;
-	Setting setting_;
+	StrategySetting setting_;
 	const char *module_name_;  
 	StrategyPosition position_;
 	void LoadPosition();

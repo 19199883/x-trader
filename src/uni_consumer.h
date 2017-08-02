@@ -10,6 +10,7 @@
 #include "strategy.h"
 #include "md_producer.h"
 #include "tunn_rpt_producer.h"
+#include "pending_sig_producer.h"
 
 #define STRA_TABLE_SIZE 512 
 #define SIG_BUFFER_SIZE 32 
@@ -17,7 +18,7 @@
 class X1FieldConverter
 {
 	public:
-		static Convert(const signal_t& sig,const char *account, long localorderid, int32_t vol, CX1FtdcInsertOrderField& x1field)
+		static void Convert(const signal_t& sig,const char *account, long localorderid, int32_t vol, CX1FtdcInsertOrderField& insert_order)
 		{
 			strncpy(insert_order.AccountID, account, sizeof(TX1FtdcAccountIDType));
 			insert_order.LocalOrderID = localorderid;
@@ -35,10 +36,10 @@ class X1FieldConverter
 				// log
 			}
 
-			if (sig.sig_openclose == alloc_position_effect_t::open){
+			if (sig.sig_openclose == alloc_position_effect_t::open_){
 				insert_order.OpenCloseType = X1_FTDC_SPD_OPEN;
 			}
-			else if (sig.sig_openclose == alloc_position_effect_t::close){
+			else if (sig.sig_openclose == alloc_position_effect_t::close_){
 				insert_order.OpenCloseType = X1_FTDC_SPD_CLOSE;
 			}
 			else{
@@ -65,7 +66,8 @@ class UniConsumer
 {
 	public:
 		UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
-					TunnRptProducer *tunn_rpt_producer);
+					TunnRptProducer *tunn_rpt_producer,
+					PendingSigProducer *pendingsig_producer);
 		~UniConsumer();
 
 		void Start();
@@ -73,11 +75,11 @@ class UniConsumer
 
 	private:
 		bool running_;
-		const std::string module_name_;  
+		const char* module_name_;  
 		struct vrt_consumer *consumer_;
 		MDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
-		PendingSigProducer *pending_sig_producer_;
+		PendingSigProducer *pendingsig_producer_;
 
 		std::array<Strategy, STRA_TABLE_SIZE> stra_table_;
 		// key: contract; value: indices of strategies in stra_table_

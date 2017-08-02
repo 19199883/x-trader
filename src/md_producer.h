@@ -4,6 +4,7 @@
 #include <functional>
 #include <array>
 #include "vrt_value_obj.h"
+#include "quote_interface_dce_level2.h"
 
 /*
  * 10 power of 2
