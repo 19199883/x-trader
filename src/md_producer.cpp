@@ -1,19 +1,23 @@
+#include <functional>   // std::bind
 #include "md_producer.h"
+
+using namespace std::placeholders;
+using namespace std;
 
 MDProducer::MDProducer(struct vrt_queue  *queue)
 :module_name_("MDProducer")
 {
 	clog_info("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
-	rip_check(this->procucer_ = vrt_producer_new("md_producer", 1, queue));
-	this->procucer_ ->yield = vrt_yield_strategy_threaded();
+	(this->producer_ = vrt_producer_new("md_producer", 1, queue));
+	this->producer_ ->yield = vrt_yield_strategy_threaded();
 
 	md_provider_ = build_quote_provider(subs_);
 
-	std::function<void (const MDBestAndDeep_MY*)> f_bestanddeep = std::bind(&MDProducer::OnGTAQuoteData, this, _1);
+	auto f_bestanddeep = std::bind(&MDProducer::OnGTAQuoteData,this,_1);
 	md_provider_->SetQuoteDataHandler(f_bestanddeep);
 
-	std::function<void (const MDOrderStatistic_MY*)> f_orderstatics = std::bind(&MDProducer::OnGTAQuoteData, this, _1);
+	auto f_orderstatics = std::bind(&MDProducer::OnGTAQuoteData, this, _1);
 	md_provider_->SetQuoteDataHandler(f_orderstatics);
 }
 

@@ -13,7 +13,7 @@
 #include "uni_consumer.h"
 
 /* Note that the parameter for queue size is a power of 2. */
-#define  QUEUE_SIZE = 128;
+#define  QUEUE_SIZE  128
 UniConsumer *uniConsumer = NULL;
 
 static void
@@ -45,8 +45,8 @@ int main(/*int argc, const char **argv*/)
 	MDProducer mdproducer(queue);
 	PendingSigProducer pendingSigProducer(queue);
 	TunnRptProducer tunnRptProducer(queue);
-	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
-	uniConsumer->start();
+	uniConsumer = new UniConsumer (queue, &mdproducer, &tunnRptProducer, &pendingSigProducer);
+	uniConsumer->Start();
 
 	// free vrt_queue
 	vrt_queue_free(queue);

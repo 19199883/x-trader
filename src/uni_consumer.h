@@ -11,6 +11,8 @@
 #include "md_producer.h"
 #include "tunn_rpt_producer.h"
 #include "pending_sig_producer.h"
+#include <tinyxml.h>
+#include <tinystr.h>
 
 #define STRA_TABLE_SIZE 512 
 #define SIG_BUFFER_SIZE 32 

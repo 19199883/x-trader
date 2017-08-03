@@ -120,7 +120,7 @@ void Strategy::feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal
 	*sig_cnt = 0;
 	this->pfn_feedinitposition_(data,sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
-		sigs[i].st_id = this->setting_.id;
+		sigs[i].st_id = this->setting_.config.st_id;
 	}
 }
 
@@ -128,8 +128,8 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
 	this->pfn_feedbestanddeep_(md, sig_cnt, sigs);
-	for (int i = 0; i < sig_cnt; i++ ){
-		sigs[i].st_id = this->setting_.id;
+	for (int i = 0; i < *sig_cnt; i++ ){
+		sigs[i].st_id = this->setting_.config.st_id;
 	}
 }
 
@@ -137,8 +137,8 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs);
-	for (int i = 0; i < sig_cnt; i++ ){
-		sigs[i].st_id = this->setting_.id;
+	for (int i = 0; i < *sig_cnt; i++ ){
+		sigs[i].st_id = this->setting_.config.st_id;
 	}
 }
 
@@ -146,8 +146,8 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_
 {
 	*sig_cnt = 0;
 	this->pfn_feedsignalresponse_(rpt, pos, pending_ord, sig_cnt, sigs);
-	for (int i = 0; i < sig_cnt; i++ ){
-		sigs[i].st_id = this->setting_.id;
+	for (int i = 0; i < *sig_cnt; i++ ){
+		sigs[i].st_id = this->setting_.config.st_id;
 	}
 }
 
@@ -192,7 +192,7 @@ bool Strategy::Deferred(unsigned short sig_openclose, unsigned short int sig_act
 			updated_vol = GetMaxPosition() - position_.cur_short - position_.frozen_open_short;
 			return false;
 		} else { return true; }
-	} else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_.c_str(), sig.st_id, sig_act); }
+	} else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_, setting_.config.st_id, sig_act); }
 
 	if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_close_short==0 && position_.cur_short>0){
@@ -206,14 +206,14 @@ bool Strategy::Deferred(unsigned short sig_openclose, unsigned short int sig_act
 			return false;
 		} else { return true; }
 	}
-	else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_.c_str(), sig.st_id, sig_act); }
+	else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_, setting_.config.st_id, sig_act); }
 
 	if (updated_vol > vol) updated_vol = vol; 
 
 	clog_debug("[%s] Deferred: strategy id:%d; current long:%d; current short:%d; \
 				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
 				frozen_open_short:%d; updated vol:%d",
-				module_name_.c_str(), sig.st_id, position_.cur_long, position_.cur_short,
+				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
 				position_.frozen_close_long, position_.frozen_close_short,
 				position_.frozen_open_long, position_.frozen_open_short, updated_vol);
 } 
@@ -235,8 +235,18 @@ void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig)
 	sigrpt_table_[cursor].sig_id = sig.st_id;
 	sigrpt_table_[cursor].sig_act = sig.sig_act;
 	strcpy(sigrpt_table_[cursor].symbol, sig.symbol);
-	sigrpt_table_[cursor].order_volume = sig.order_volume;
-	sigrpt_table_[cursor].order_price = sig.order_price;
+
+	if (alloc_position_effect_t::open_==sig.sig_openclose){
+		sigrpt_table_[cursor].order_volume = sig.open_volume;
+	} else if (alloc_position_effect_t::close_==sig.sig_openclose){
+		sigrpt_table_[cursor].order_volume = sig.close_volume;
+	}
+
+	if (sig.sig_act==signal_act_t::buy){
+		sigrpt_table_[cursor].order_price = sig.buy_price;
+	} else if (sig.sig_act==signal_act_t::sell){
+		sigrpt_table_[cursor].order_price = sig.sell_price;
+	}
 
 	// mapping table
 	sigid_sigandrptidx_map_table_[sig.st_id] = cursor;
@@ -244,7 +254,7 @@ void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig)
 	sigid_localorderid_map_table_[sig.st_id] = localorderid;
 
 	clog_debug("[%s] PrepareForExecutingSig: sig id: %d; cursor,%d; LocalOrderID:%d;",
-				module_name_.c_str(), sig.st_id, cursor, rpt->LocalOrderID);
+				module_name_, sig.st_id, cursor, localorderid);
 }
 
 void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
@@ -265,7 +275,7 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	UpdateSigrptByTunnrpt(sigrpt, rpt);
 	pending_order_cache_.req_cnt = 0;
 
-	feed_sig_response(&sigrptrpt, &pos_cache_.s_pos[0], &pending_order_cache_, sig_cnt, sigs);
+	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], &pending_order_cache_, sig_cnt, sigs);
 }
 
 void Strategy::UpdatePosition(const TunnRpt& rpt, const signal_t& sig)
@@ -360,18 +370,13 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 
 void Strategy::LoadPosition()
 {
-	memset(&position_, 0, sizeof(position_);
+	memset(&position_, 0, sizeof(position_));
 	// TODO:
 }
 
 void Strategy::SavePosition()
 {
 	// TODO:
-}
-
-int32_t Strategy::GetMaxPosition()
-{
-	return setting_.config.symbols[0].max_pos;
 }
 
 const char * Strategy::GetSymbol()

@@ -1,5 +1,3 @@
-#include <tinyxml.h>
-#include <tinystr.h>
 #include "uni_consumer.h"
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
