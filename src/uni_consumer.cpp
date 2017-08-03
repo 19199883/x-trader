@@ -1,3 +1,4 @@
+#include <algorithm>    // std::for_each
 #include "uni_consumer.h"
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
@@ -117,7 +118,7 @@ void UniConsumer::Start()
 				case BESTANDDEEP:
 					ProcBestAndDeep(ivalue->index);
 					break;
-				case ORDERSTATICS:
+				case ORDERSTATISTIC:
 					ProcOrderStatistic(ivalue->index);
 					break;
 				case PENDING_SIGNAL:

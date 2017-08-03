@@ -5,6 +5,8 @@
 #include <array>
 #include "vrt_value_obj.h"
 #include "quote_interface_dce_level2.h"
+#include <tinyxml.h>
+#include <tinystr.h>
 
 /*
  * 10 power of 2
@@ -23,10 +25,10 @@ class MDProducer
 	private:
 		MYQuoteData* build_quote_provider(SubscribeContracts &subscription);
 		
-		void OnGTAQuoteData(const MDBestAndDeep_MY* md);
+		void OnMDBestAndDeep(const MDBestAndDeep_MY* md);
 		int32_t push(const MDBestAndDeep_MY& md);
 
-		void OnGTAQuoteData(const MDOrderStatistic_MY* md);
+		void OnMDOrderStatistic(const MDOrderStatistic_MY* md);
 		int32_t push(const MDOrderStatistic_MY& md);
 
 		MYQuoteData *md_provider_;
@@ -35,7 +37,7 @@ class MDProducer
 
 		struct vrt_producer  *producer_;
 		std::array<MDBestAndDeep_MY, MD_BUFFER_SIZE> bestanddeep_buffer_;
-		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> ordstaticstic_buffer_;
+		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> orderstatistic_buffer_;
 };
 
 #endif

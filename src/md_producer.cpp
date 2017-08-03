@@ -14,10 +14,10 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 
 	md_provider_ = build_quote_provider(subs_);
 
-	auto f_bestanddeep = std::bind(&MDProducer::OnGTAQuoteData,this,_1);
+	auto f_bestanddeep = std::bind(&MDProducer::OnMDBestAndDeep, this,_1);
 	md_provider_->SetQuoteDataHandler(f_bestanddeep);
 
-	auto f_orderstatics = std::bind(&MDProducer::OnGTAQuoteData, this, _1);
+	auto f_orderstatics = std::bind(&MDProducer::OnMDOrderStatistic, this, _1);
 	md_provider_->SetQuoteDataHandler(f_orderstatics);
 }
 
@@ -42,8 +42,8 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
     TiXmlElement *RootElement = config.RootElement();    
 	TiXmlElement* MarketData = RootElement->FirstChildElement("MarketData");
 	if (NULL != MarketData) {
-		md_config = MarketData->Attribute("config");
-		clog_info("[%s] MarketData.config: %s", module_name_, md_config);
+		string md_config = MarketData->Attribute("config");
+		clog_info("[%s] MarketData.config: %s", module_name_, md_config.c_str());
 		return new MYQuoteData(&subs_, md_config);
 	}
 	else{
@@ -51,10 +51,10 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
 		return NULL;
 	}
 }
-void MDProducer::OnGTAQuoteData(const MDBestAndDeep_MY* md){
+void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md){
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
-	rpi_check(vrt_producer_claim(producer_, &vvalue));
+	(vrt_producer_claim(producer_, &vvalue));
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = push(*md);
 	ivalue->data = BESTANDDEEP;
@@ -62,7 +62,7 @@ void MDProducer::OnGTAQuoteData(const MDBestAndDeep_MY* md){
 	clog_debug("[%s] rev MDBestAndDeep: index,%d; data,%d; contracr:%s; time: %s",
 				module_name_, ivalue->index, ivalue->data, md->Contract, md->GenTime);
 
-	rpi_check(vrt_producer_publish(producer_));
+	(vrt_producer_publish(producer_));
 }
 
 int32_t MDProducer::push(const MDBestAndDeep_MY& md){
@@ -74,7 +74,7 @@ int32_t MDProducer::push(const MDBestAndDeep_MY& md){
 	bestanddeep_buffer_[bestanddeep_cursor] = md;
 
 	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s",
-				module_name_, orderstatics_cursor, md->Contract, md->GenTime);
+				module_name_, bestanddeep_cursor, md.Contract, md.GenTime);
 
 	return bestanddeep_cursor;
 }
@@ -84,18 +84,18 @@ MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
 	return &bestanddeep_buffer_[index];
 }
 
-void MDProducer::OnGTAQuoteData(const MDOrderStatistic_MY* md){
+void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md){
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
-	rpi_check(vrt_producer_claim(producer_, &vvalue));
+	(vrt_producer_claim(producer_, &vvalue));
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = push(*md);
 	ivalue->data = ORDERSTATISTIC;
 
 	clog_debug("[%s] rev MDOrderStatistic: index,%d; data,%d; contracr:%s; time: %s",
-				module_name_, ivalue->index, ivalue->data, md->Contract, "");
+				module_name_, ivalue->index, ivalue->data, md->ContractID, "");
 
-	rpi_check(vrt_producer_publish(producer_));
+	(vrt_producer_publish(producer_));
 }
 
 int32_t MDProducer::push(const MDOrderStatistic_MY& md){
@@ -104,16 +104,16 @@ int32_t MDProducer::push(const MDOrderStatistic_MY& md){
 	if (orderstatics_cursor%MD_BUFFER_SIZE == 0){
 		orderstatics_cursor = 0;
 	}
-	orderstatics_buffer_[orderstatics_cursor] = md;
+	orderstatistic_buffer_[orderstatics_cursor] = md;
 
 
 	clog_debug("[%s] push MDOrderStatistic: cursor,%d; contract:%s; time: %s",
-				module_name_, orderstatics_cursor, md->Contract, "");
+				module_name_, orderstatics_cursor, md.ContractID, "");
 
 	return orderstatics_cursor;
 }
 
 MDOrderStatistic_MY* MDProducer::GetOrderStatistic(int32_t index)
 {
-	return &orderstatics_buffer_[index];
+	return &orderstatistic_buffer_[index];
 }

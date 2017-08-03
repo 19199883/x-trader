@@ -27,7 +27,8 @@ extern "C" {
 
 	enum HybridData {
 		BESTANDDEEP = 0, 
-		ORDERSTATICS, 
+		ORDERSTATISTIC,
+		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 
 	};
