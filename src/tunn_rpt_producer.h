@@ -137,19 +137,19 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		 * 批量撤单响应
 		 * @param pRspStripCancelOrderData:指向批量撤单响应地址的指针。
 		 */
-		virtual void OnRspCancelAllOrder(struct CX1FtdcCancelAllOrderRspField*pf, struct CX1FtdcRspErrorField* pe);
+		virtual void OnRspCancelAllOrder(struct CX1FtdcCancelAllOrderRspField*pf, struct CX1FtdcRspErrorField* pe) {};
 		/**
 		 * 询价响应
 		 * @param pRspForQuoteData:询价请求结构地址。
 		 * @return 0 - 请求发送成功 -1 - 请求发送失败  -2 -检测异常。
 		 */
-		virtual void OnRspForQuote(struct CX1FtdcForQuoteRspField* pf, struct CX1FtdcRspErrorField* pe);
+		virtual void OnRspForQuote(struct CX1FtdcForQuoteRspField* pf, struct CX1FtdcRspErrorField* pe) {};
 		/**
 		 * 询价回报
 		 * @param pRspForQuoteData:询价请求结构地址。
 		 * @return 0 - 请求发送成功 -1 - 请求发送失败  -2 -检测异常。
 		 */
-		virtual void OnRtnForQuote(struct CX1FtdcForQuoteRtnField* pf);
+		virtual void OnRtnForQuote(struct CX1FtdcForQuoteRtnField* pf){} ;
 
 private:
     void ParseConfig();
