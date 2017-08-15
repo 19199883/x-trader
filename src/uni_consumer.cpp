@@ -153,7 +153,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 {
 	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
 
-	clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", index, md->Contract);
+	clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
 
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
 	for_each (
