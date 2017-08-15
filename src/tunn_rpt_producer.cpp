@@ -35,11 +35,11 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 TunnRptProducer::~TunnRptProducer()
 {
-	if (this->producer_ != NULL){
-		vrt_producer_free(this->producer_);
-		this->producer_ = NULL;
-		clog_info("[%s] release tunnrpt_producer.", module_name_);
-	}
+//	if (this->producer_ != NULL){
+//		vrt_producer_free(this->producer_);
+//		this->producer_ = NULL;
+//		clog_info("[%s] release tunnrpt_producer.", module_name_);
+//	}
 
     if (api_) {
         api_->Release();

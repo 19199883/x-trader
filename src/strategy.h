@@ -58,7 +58,7 @@ public:
 	virtual ~Strategy(void);
 
 	// things relating to strategy interface
-	void Init(StrategySetting &setting);
+	void Init(StrategySetting &setting, CLoadLibraryProxy *pproxy);
 	void feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sig_out);
 	void FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);
 	void FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals);

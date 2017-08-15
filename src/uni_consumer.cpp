@@ -14,6 +14,10 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 	this->consumer_->yield = vrt_yield_strategy_threaded();
 
+	this->pproxy_ = CLoadLibraryProxy::CreateLoadLibraryProxy();
+	this->pproxy_->setModuleLoadLibrary(new CModuleLoadLibraryLinux());
+	this->pproxy_->setBasePathLibrary(this->pproxy_->getexedir());
+
 	ParseConfig();
 	// create Stratedy objects
 	CreateStrategies();
@@ -23,16 +27,21 @@ UniConsumer::~UniConsumer()
 {
 	running_ = false;
 
-	if (this->consumer_ != NULL){
-		vrt_consumer_free(this->consumer_);
-		this->consumer_ = NULL;
-		clog_info("[%s] release uni_consumer.", module_name_);
+	if (pproxy_ != NULL){
+		pproxy_->DeleteLoadLibraryProxy();
+		pproxy_ = NULL;
 	}
+
+//	if (this->consumer_ != NULL){
+//		vrt_consumer_free(this->consumer_);
+//		this->consumer_ = NULL;
+//		clog_info("[%s] release uni_consumer.", module_name_);
+//	}
 }
 
 void UniConsumer::ParseConfig()
 {
-	std::string config_file = "trasev.config";
+	std::string config_file = "x-trader.config";
 	TiXmlDocument doc = TiXmlDocument(config_file.c_str());
     doc.LoadFile();
     TiXmlElement *root = doc.RootElement();    
@@ -88,7 +97,7 @@ void UniConsumer::CreateStrategies()
 {
 	int32_t i = 0;
 	for (auto &setting : this->strategy_settings_){
-		stra_table_[i].Init(setting);
+		stra_table_[i].Init(setting, this->pproxy_);
 		// mapping table
 		straid_straidx_map_table_.emplace(setting.config.st_id, i);
 		// only support one contract for one strategy

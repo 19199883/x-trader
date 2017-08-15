@@ -12,7 +12,7 @@ using namespace x1ftdcapi;
 /*
  * 10 power of 2
  */
-#define RPT_BUFFER_SIZE 32768 
+#define RPT_BUFFER_SIZE 4096
 
 struct Tunnconfig
 {

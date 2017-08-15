@@ -12,7 +12,7 @@ using namespace std;
 /*
  * 10 power of 2
  */
-#define PENDINGSIG_BUFFER_SIZE 32768 
+#define PENDINGSIG_BUFFER_SIZE 2048 
 
 class PendingSigProducer
 {

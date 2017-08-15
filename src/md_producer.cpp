@@ -26,18 +26,19 @@ MDProducer::~MDProducer(){
 		delete md_provider_;
 		md_provider_ = NULL;
 
+		// TODO:
 		clog_info("[%s] release md_provider.", module_name_);
 	}
 
-	if (this->producer_ != NULL){
-		vrt_producer_free(this->producer_);
-		this->producer_ = NULL;
-		clog_info("[%s] release md_producer.", module_name_);
-	}
+//	if (this->producer_ != NULL){
+//		vrt_producer_free(this->producer_);
+//		this->producer_ = NULL;
+//		clog_info("[%s] release md_producer.", module_name_);
+//	}
 }
 
 MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) {
-	TiXmlDocument config = TiXmlDocument("trasev.config");
+	TiXmlDocument config = TiXmlDocument("x-trader.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
 	TiXmlElement* MarketData = RootElement->FirstChildElement("MarketData");
@@ -51,6 +52,7 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
 		return NULL;
 	}
 }
+
 void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md){
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -81,6 +83,7 @@ int32_t MDProducer::push(const MDBestAndDeep_MY& md){
 
 MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
 {
+	return NULL;
 	return &bestanddeep_buffer_[index];
 }
 

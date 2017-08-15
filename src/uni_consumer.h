@@ -13,6 +13,8 @@
 #include "pending_sig_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "moduleloadlibrarylinux.h"
+#include "loadlibraryproxy.h"
 
 #define STRA_TABLE_SIZE 512 
 #define SIG_BUFFER_SIZE 32 
@@ -82,6 +84,7 @@ class UniConsumer
 		MDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		PendingSigProducer *pendingsig_producer_;
+		CLoadLibraryProxy *pproxy_;
 
 		std::array<Strategy, STRA_TABLE_SIZE> stra_table_;
 		// key: contract; value: indices of strategies in stra_table_

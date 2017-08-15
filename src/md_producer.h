@@ -11,7 +11,7 @@
 /*
  * 10 power of 2
  */
-#define MD_BUFFER_SIZE 32768 
+#define MD_BUFFER_SIZE 2048 
 
 class MDProducer
 {
@@ -36,8 +36,8 @@ class MDProducer
 		const char *module_name_;  
 
 		struct vrt_producer  *producer_;
-		std::array<MDBestAndDeep_MY, MD_BUFFER_SIZE> bestanddeep_buffer_;
 		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> orderstatistic_buffer_;
+		std::array<MDBestAndDeep_MY, MD_BUFFER_SIZE> bestanddeep_buffer_;
 };
 
 #endif

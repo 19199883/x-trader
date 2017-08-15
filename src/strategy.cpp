@@ -7,6 +7,14 @@ using namespace std;
 Strategy::Strategy()
 : module_name_("Strategy")
 {
+	pfn_init_;
+	pfn_feedbestanddeep_ = NULL;
+	pfn_feedorderstatistic_ = NULL;
+	pfn_feedsignalresponse_ = NULL;
+	pfn_destroy_ = NULL;
+	pfn_feedinitposition_ = NULL;
+	this->pfn_destroy_ = NULL;
+	pproxy_ = NULL;
 }
 
 Strategy::~Strategy(void)
@@ -14,17 +22,14 @@ Strategy::~Strategy(void)
 	SavePosition();
 
 	if (this->pfn_destroy_ != NULL){
-		pfn_destroy_ ();
+		// TODO:
+		//pfn_destroy_ ();
 		clog_info("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
 	}
-
 	if (pproxy_ != NULL){
 		pproxy_->deleteObject(this->setting_.file);
-		pproxy_->DeleteLoadLibraryProxy();
 		pproxy_ = NULL;
 	}
-
-	clog_info("[%s] strategy(id:%d) released", module_name_, this->setting_.config.st_id);
 }
 
 string Strategy::generate_log_name(char* log_path)
@@ -55,10 +60,11 @@ string Strategy::generate_log_name(char* log_path)
 	return log_full_path;
 }
 
-void Strategy::Init(StrategySetting &setting)
+void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 {
+	// set breakpoint here
 	this->setting_ = setting;
-	this->pproxy_ = CLoadLibraryProxy::CreateLoadLibraryProxy();
+	this->pproxy_ = pproxy;
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){

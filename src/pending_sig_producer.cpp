@@ -10,11 +10,11 @@ PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
 
 PendingSigProducer::~PendingSigProducer()
 {
-	if (this->producer_ != NULL){
-		vrt_producer_free(this->producer_);
-		this->producer_ = NULL;
-		clog_info("[%s] release pendingsig_producer.", module_name_);
-	}
+//	if (this->producer_ != NULL){
+//		vrt_producer_free(this->producer_);
+//		this->producer_ = NULL;
+//		clog_info("[%s] release pendingsig_producer.", module_name_);
+//	}
 }
 
 int32_t PendingSigProducer::Push(const signal_t& sig)
