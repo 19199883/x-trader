@@ -7,6 +7,8 @@
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
+	ended_ = false;
+
 	this->ParseConfig();
 
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
@@ -168,8 +170,17 @@ void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, 
         X1DatatypeFormater::ToString(pe).c_str());
 }
 
+
+void TunnRptProducer::End()
+{
+	ended_ = true;
+	(vrt_producer_eof(producer_));
+}
+
 void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
 {
+	if (ended_) return;
+
     clog_debug("[%s] OnRspInsertOrder:  \n%s \n%s",
         module_name_,
 		X1DatatypeFormater::ToString(pfield).c_str(),
@@ -225,6 +236,8 @@ int32_t TunnRptProducer::Push(const TunnRpt& rpt)
 
 void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
 {
+	if (ended_) return;
+
     clog_debug("[%s] OnRspCancelOrder:  \n%s \n%s",
         module_name_,
 		X1DatatypeFormater::ToString(pfield).c_str(),
@@ -291,6 +304,8 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pe)
 
 void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfield)
 {
+	if (ended_) return;
+
     clog_debug("[%s] OnRtnMatchedInfo: \n%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
 
 	struct TunnRpt rpt;
@@ -314,6 +329,8 @@ void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfiel
 
 void TunnRptProducer::OnRtnOrder(struct CX1FtdcRspPriOrderField* pfield)
 {
+	if (ended_) return;
+
     clog_debug("[%s] OnRtnOrder:  \n%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
 
 	if (pfield->OrderStatus == X1_FTDC_SPD_ERROR){
@@ -342,6 +359,8 @@ void TunnRptProducer::OnRtnOrder(struct CX1FtdcRspPriOrderField* pfield)
 
 void TunnRptProducer::OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField* pfield)
 {
+	if (ended_) return;
+
     clog_debug("[%s] OnRtnCancelOrder:  \n%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
 
 	if (pfield->OrderStatus == X1_FTDC_SPD_ERROR){

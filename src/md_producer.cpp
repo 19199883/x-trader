@@ -7,6 +7,8 @@ using namespace std;
 MDProducer::MDProducer(struct vrt_queue  *queue)
 :module_name_("MDProducer")
 {
+	ended_ = false;
+
 	clog_info("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
 	(this->producer_ = vrt_producer_new("md_producer", 1, queue));
@@ -53,18 +55,14 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
 
 void MDProducer::End()
 {
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = 0;
-	ivalue->data = TRADER_EOF;
-	(vrt_producer_publish(producer_));
-
-	//(vrt_producer_eof(producer_));
+	ended_ = true;
+	(vrt_producer_eof(producer_));
 }
 
-void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md){
+void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
+{
+	if (ended_) return;
+
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	(vrt_producer_claim(producer_, &vvalue));
@@ -97,7 +95,10 @@ MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
 	return &bestanddeep_buffer_[index];
 }
 
-void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md){
+void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md)
+{
+	if (ended_) return;
+
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	(vrt_producer_claim(producer_, &vvalue));

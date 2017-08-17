@@ -63,6 +63,8 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		TunnRpt* GetRpt(int32_t index);
 		int32_t GetStrategyID(TunnRpt& rpt);
 
+		void End();
+
 	private:
 		/*
 		 * things relating to X1 API
@@ -159,6 +161,7 @@ private:
 	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
 	Tunnconfig config_;
 	const char * module_name_;  
+	bool ended_;
 
 	/*
 	 * things relating to counter API

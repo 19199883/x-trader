@@ -22,7 +22,6 @@ static void
 SIG_handler(int s)
 {
 	uniConsumer->Stop();
-	mdproducer->End();
 	//exit(0);		/* call exit for the signal */
 }
 

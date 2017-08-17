@@ -121,25 +121,37 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err);
-
-	// TODO: feed init position
-	// add log info
-	// add logic relating to init position, for detail to see old codes
-	strategy_init_pos_t data;
-	signal_t sigs[10];
-	int sig_cnt = 0;
-	this->feed_init_position(&data,&sig_cnt, sigs);
+	this->FeedInitPosition();
 }
 
-void Strategy::feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sigs)
+void Strategy::FeedInitPosition(strategy_init_pos_t *data,int *sig_cnt, signal_t *sigs)
 {
-	// TODO: add debug level log
-	
+	// TODO: consider dominant contract change
+	signal_t sigs[10];
+	int sig_cnt = 0;
 	*sig_cnt = 0;
-	this->pfn_feedinitposition_(data,sig_cnt, sigs);
-	for (int i = 0; i < *sig_cnt; i++ ){
-		sigs[i].st_id = this->setting_.config.st_id;
-	}
+	strategy_init_pos_t init_pos;
+
+	init_pos.acc_cnt = 0;
+	position_t &today_pos = init_pos._today_pos;
+	position_t &yesterday_pos = init_pos._yesterday_pos;
+	today_pos.symbol_cnt = 2; 
+	yesterday_pos.symbol_cnt = 0; 
+	symbol_t& first = today_pos.s_pos[0];
+	symbol_t& second = today_pos.s_pos[1];
+
+	strncpy(first.symbol, "#CASH", sizeof(first.symbol));
+
+	strncpy(second.symbol, this->GetContract().c_str(), sizeof(second.symbol));
+	second.long_volume = position_.cur_long;
+	second.short_volume = position_.cur_short;
+	secondsecond.exchg_code = this->GetExchange(); 
+
+	this->pfn_feedinitposition_(init_pos, sig_cnt, sigs);
+
+	clog_debug("[%s] FeedInitPosition contract:%s; exchange:%d; long:%d; short:%d",
+				module_name_, second.symbol.c_str(), second.exchg, 
+				second.long_volume, second.short_volume);
 }
 
 void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
@@ -194,6 +206,11 @@ int32_t Strategy::GetId()
 const char* Strategy::GetContract()
 {
 	return this->setting_.config.symbols[0].name;
+}
+
+exchange_names Strategy::GetExchange()
+{
+	return this->setting_.config.symbols[0].exchange;
 }
 
 int32_t Strategy::GetMaxPosition()
@@ -254,6 +271,8 @@ bool Strategy::Deferred(unsigned short sig_openclose, unsigned short int sig_act
 
 void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig)
 {
+	// TODO:need frozed position before placeing order
+
 	// get next cursor
 	static int32_t cursor = SIGANDRPT_TABLE_SIZE - 1;
 	cursor++;

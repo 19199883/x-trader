@@ -154,6 +154,9 @@ void UniConsumer::Start()
 void UniConsumer::Stop()
 {
 	running_ = false;
+	md_producer_->End();
+	tunn_rpt_producer_->End();
+	pendingsig_producer_->End();
 }
 
 void UniConsumer::ProcBestAndDeep(int32_t index)
@@ -232,6 +235,8 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
+	// TODO: consider that cancel order request will be ignored when there is NOT frozen postion.
+	//
     CX1FtdcCancelOrderField cancel_order;
     memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
 	// get LocalOrderID by signal ID
@@ -257,7 +262,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 		pendingsig_producer_->Push(sig);
 	} else {
 		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
-		// TODO:need frozed position before placeing order
 		strategy.PrepareForExecutingSig(localorderid, sig);
 
 		CX1FtdcInsertOrderField insert_order;

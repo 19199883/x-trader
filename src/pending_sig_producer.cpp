@@ -3,6 +3,7 @@
 PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
 :module_name_("PendingSigProducer")
 {
+	ended_ = false;
 	clog_info("[%s] PENDING_SIG_BUFFER_SIZE: %d;", module_name_, PENDINGSIG_BUFFER_SIZE);
 
 	(this->producer_ = vrt_producer_new("pendingsig_producer", 1, queue));
@@ -15,6 +16,29 @@ PendingSigProducer::~PendingSigProducer()
 //		this->producer_ = NULL;
 //		clog_info("[%s] release pendingsig_producer.", module_name_);
 //	}
+}
+
+void PendingSigProducer::End()
+{
+	ended_ = true;
+	(vrt_producer_eof(producer_));
+}
+
+void PendingSigProducer::Publish(const signal_t& sig)
+{
+	if (ended_) return;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = push(sig);
+	ivalue->data = PENDING_SIGNAL;
+
+	clog_debug("[%s] Publish strategy id:%d signal id:%d",
+				module_name_, ivalue->index, ivalue->data, sig.st_id, sig.sig_id);
+
+	(vrt_producer_publish(producer_));
 }
 
 int32_t PendingSigProducer::Push(const signal_t& sig)

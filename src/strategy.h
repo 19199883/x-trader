@@ -59,7 +59,7 @@ public:
 
 	// things relating to strategy interface
 	void Init(StrategySetting &setting, CLoadLibraryProxy *pproxy);
-	void feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sig_out);
+	void FeedInitPosition();
 	void FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);
 	void FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals);
 	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
@@ -68,6 +68,7 @@ public:
 	void finalize(void);
 	int32_t GetId();
 	const char* GetContract();
+	exchange_names GetExchange();
 	int32_t GetMaxPosition();
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);

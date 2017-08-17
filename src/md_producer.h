@@ -51,6 +51,7 @@ class MDProducer
 		MYQuoteData *md_provider_;
 		SubscribeContracts subs_;
 		const char *module_name_;  
+		bool ended_;
 
 		struct vrt_producer  *producer_;
 		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> orderstatistic_buffer_;

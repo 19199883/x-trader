@@ -21,13 +21,18 @@ class PendingSigProducer
 		~PendingSigProducer();
 
 		signal_t* GetSignal(int32_t index);
-		int32_t Push(const signal_t& sig);
+
+		void End();
+		void Publish(const signal_t& sig);
 
 	private:
+		int32_t Push(const signal_t& sig);
+
 		struct vrt_producer  *producer_;
 		std::array<signal_t, PENDINGSIG_BUFFER_SIZE> sig_buffer_;
 
 		const char* module_name_;  
+		bool ended_;
 };
 
 #endif
