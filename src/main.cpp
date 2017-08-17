@@ -19,22 +19,23 @@ PendingSigProducer *pendingSigProducer = NULL;
 TunnRptProducer *tunnRptProducer = NULL;
 
 static void
-SIGINT_handler(int s)
+SIG_handler(int s)
 {
 	uniConsumer->Stop();
+	mdproducer->End();
 	//exit(0);		/* call exit for the signal */
 }
 
 int main(/*int argc, const char **argv*/)
 {
 	struct sigaction SIGINT_act;
-	SIGINT_act.sa_handler = SIGINT_handler;
+	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);
 	SIGINT_act.sa_flags = 0;
-	sigaction(SIGINT, &SIGINT_act, NULL);
+	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// clog setting
-	clog_set_minimum_level(CLOG_LEVEL_TRACE);
+	clog_set_minimum_level(CLOG_LEVEL_DEBUG);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
@@ -45,6 +46,10 @@ int main(/*int argc, const char **argv*/)
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
 	mdproducer = new MDProducer(queue);
+
+	// TODO:test
+	//mdproducer->SendMd(); 
+
 	pendingSigProducer = new PendingSigProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
 	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer, pendingSigProducer);

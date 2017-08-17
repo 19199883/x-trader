@@ -115,14 +115,26 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	LoadPosition();
 	memset(&pos_cache_.s_pos[0], 0, sizeof(symbol_pos_t));
 	strcpy(pos_cache_.s_pos[0].symbol, GetSymbol());
+	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
+	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 	pos_cache_.symbol_cnt = 1;
 
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err);
+
+	// TODO: feed init position
+	// add log info
+	// add logic relating to init position, for detail to see old codes
+	strategy_init_pos_t data;
+	signal_t sigs[10];
+	int sig_cnt = 0;
+	this->feed_init_position(&data,&sig_cnt, sigs);
 }
 
 void Strategy::feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal_t *sigs)
 {
+	// TODO: add debug level log
+	
 	*sig_cnt = 0;
 	this->pfn_feedinitposition_(data,sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
@@ -132,19 +144,31 @@ void Strategy::feed_init_position(strategy_init_pos_t *data,int *sig_cnt, signal
 
 void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
+	clog_debug("[%s] rev MDBestAndDeep_MY contract:%s; time:%s", module_name_, md->Contract, md->GenTime);
+
 	*sig_cnt = 0;
 	this->pfn_feedbestanddeep_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = this->setting_.config.st_id;
+		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d",
+					module_name_, setting_.config.st_id, sigs[i].sig_id,
+					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose); 
 	}
 }
 
 void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
+	clog_debug("[%s] rev MDOrderStatistic_MY contract:%s", module_name_, md->ContractID);
+
 	*sig_cnt = 0;
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = this->setting_.config.st_id;
+		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d",
+					module_name_, setting_.config.st_id, sigs[i].sig_id,
+					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose); 
 	}
 }
 
@@ -154,6 +178,10 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_
 	this->pfn_feedsignalresponse_(rpt, pos, pending_ord, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = this->setting_.config.st_id;
+		clog_debug("[%s] signal: strategy id:%d;  sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d",
+					module_name_, setting_.config.st_id, sigs[i].sig_id,
+					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose); 
 	}
 }
 
@@ -259,8 +287,8 @@ void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig)
 	localorderid_sigandrptidx_map_table_[localorderid] = cursor;
 	sigid_localorderid_map_table_[sig.st_id] = localorderid;
 
-	clog_debug("[%s] PrepareForExecutingSig: sig id: %d; cursor,%d; LocalOrderID:%d;",
-				module_name_, sig.st_id, cursor, localorderid);
+	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%d;",
+				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
 
 void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
@@ -323,6 +351,8 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, const signal_t& sig)
 			position_.frozen_open_long = 0;
 		}
 	}
+
+	// TODO: add debug levle of position info log
 }
 
 void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
@@ -332,6 +362,9 @@ void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
 	pos.s_pos[0].long_volume = position_.cur_long;
 	pos.s_pos[0].short_volume = position_.cur_short;
 	pos.s_pos[0].changed = 1;
+
+
+	// TODO: add debug levle of position info log
 }
 void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
 {
@@ -372,6 +405,9 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 	else{
 		// log error
 	}
+
+
+	// TODO: add debug levle of position info log
 }
 
 void Strategy::LoadPosition()

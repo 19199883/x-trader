@@ -85,6 +85,9 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 		strcpy(tmp.name, symbol_ele->Attribute("name"));
 		string exc_str = symbol_ele->Attribute("exchange");
 		tmp.exchange = static_cast<exchange_names>(exc_str[0]);
+		symbol_ele->QueryIntAttribute("symbol_log_id",&tmp.symbol_log_id);
+		strcpy(tmp.symbol_log_name, symbol_ele->Attribute("symbol_log_name"));
+
 		symbol_ele = symbol_ele->NextSiblingElement();
 		counter++;
 	}	//end while (symbol_ele != 0)
@@ -142,6 +145,10 @@ void UniConsumer::Start()
 			}
 		}
 	} // end while (running_ &&
+
+	if (rc == VRT_QUEUE_EOF) {
+		clog_info("[%s] [start] rev EOF.", module_name_);
+	}
 }
 
 void UniConsumer::Stop()
@@ -250,6 +257,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 		pendingsig_producer_->Push(sig);
 	} else {
 		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+		// TODO:need frozed position before placeing order
 		strategy.PrepareForExecutingSig(localorderid, sig);
 
 		CX1FtdcInsertOrderField insert_order;

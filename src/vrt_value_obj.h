@@ -31,6 +31,7 @@ extern "C" {
 		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 
+		TRADER_EOF, 
 	};
 
 	struct vrt_hybrid_value {

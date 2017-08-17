@@ -25,8 +25,6 @@ MDProducer::~MDProducer(){
 	if (md_provider_ != NULL){
 		delete md_provider_;
 		md_provider_ = NULL;
-
-		// TODO:
 		clog_info("[%s] release md_provider.", module_name_);
 	}
 
@@ -51,6 +49,19 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
 		clog_error("[%s] can not find 'MarkerData' node.", module_name_);
 		return NULL;
 	}
+}
+
+void MDProducer::End()
+{
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = 0;
+	ivalue->data = TRADER_EOF;
+	(vrt_producer_publish(producer_));
+
+	//(vrt_producer_eof(producer_));
 }
 
 void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md){
@@ -83,7 +94,6 @@ int32_t MDProducer::push(const MDBestAndDeep_MY& md){
 
 MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
 {
-	return NULL;
 	return &bestanddeep_buffer_[index];
 }
 
