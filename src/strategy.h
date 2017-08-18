@@ -72,9 +72,10 @@ public:
 	int32_t GetMaxPosition();
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);
-	bool Deferred(unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, int32_t& updated_vol);
-	void PrepareForExecutingSig(long localorderid, signal_t &sig);
+	bool Deferred(unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, int32_t &updated_vol);
+	void PrepareForExecutingSig(long localorderid, signal_t &sig, int32_t actual_vol);
 	void FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
+	bool HasFrozenPosition();
 
 private:
 	string generate_log_name(char * log_path);
@@ -117,8 +118,9 @@ private:
 	 * 
 	 */
 	void UpdateSigrptByTunnrpt(signal_resp_t& sigrpt, const TunnRpt& tunnrpt);
-	void UpdatePosition(const TunnRpt& rpt, const signal_t& sig);
+	void UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, unsigned short int sig_act);
 	void FillPositionRpt(const TunnRpt& rpt, position_t& pos);
 	const char * GetSymbol();
+	bool Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol);
 };
 

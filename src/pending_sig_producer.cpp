@@ -32,7 +32,7 @@ void PendingSigProducer::Publish(const signal_t& sig)
 	struct vrt_hybrid_value  *ivalue;
 	(vrt_producer_claim(producer_, &vvalue));
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = push(sig);
+	ivalue->index = Push(sig);
 	ivalue->data = PENDING_SIGNAL;
 
 	clog_debug("[%s] Publish strategy id:%d signal id:%d",

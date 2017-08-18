@@ -235,8 +235,11 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
-	// TODO: consider that cancel order request will be ignored when there is NOT frozen postion.
-	//
+	if (!strategy.HasFrozenPosition()){
+		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+		return;
+	}
+	
     CX1FtdcCancelOrderField cancel_order;
     memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
 	// get LocalOrderID by signal ID
@@ -259,10 +262,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 
 	if(strategy.Deferred(sig.sig_openclose, sig.sig_act, vol, updated_vol)){
 		// place signal into disruptor queue
-		pendingsig_producer_->Push(sig);
+		pendingsig_producer_->Publish(sig);
 	} else {
 		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
-		strategy.PrepareForExecutingSig(localorderid, sig);
+		strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
 		CX1FtdcInsertOrderField insert_order;
 		memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
