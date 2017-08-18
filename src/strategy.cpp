@@ -113,11 +113,13 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	memset(&position_, 0, sizeof(StrategyPosition));
 	LoadPosition();
+	
 	memset(&pos_cache_.s_pos[0], 0, sizeof(symbol_pos_t));
 	strcpy(pos_cache_.s_pos[0].symbol, GetSymbol());
+	pos_cache_.symbol_cnt = 1;
+
 	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
-	pos_cache_.symbol_cnt = 1;
 
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err);
@@ -417,8 +419,6 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 
 void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
 {
-	memset(&pos.s_pos[0], 0, sizeof(symbol_pos_t));
-	pos.symbol_cnt = 1;
 	pos.s_pos[0].long_volume = position_.cur_long;
 	pos.s_pos[0].short_volume = position_.cur_short;
 	pos.s_pos[0].changed = 1;
