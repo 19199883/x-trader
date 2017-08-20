@@ -163,10 +163,10 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 	this->pfn_feedbestanddeep_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = this->setting_.config.st_id;
-		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d",
+		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_, setting_.config.st_id, sigs[i].sig_id,
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose); 
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 
@@ -178,10 +178,10 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = this->setting_.config.st_id;
-		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d",
+		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_, setting_.config.st_id, sigs[i].sig_id,
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose); 
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 
@@ -191,10 +191,10 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_
 	this->pfn_feedsignalresponse_(rpt, pos, pending_ord, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = this->setting_.config.st_id;
-		clog_debug("[%s] signal: strategy id:%d;  sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d",
+		clog_debug("[%s] signal: strategy id:%d;  sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_, setting_.config.st_id, sigs[i].sig_id,
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose); 
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 
@@ -254,34 +254,35 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 
 bool Strategy::Deferred(unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, int32_t& updated_vol)
 {
+	bool result = false;
 	updated_vol = 0;
 
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_open_long==0 && position_.cur_long<GetMaxPosition()){
 			updated_vol = GetMaxPosition() - position_.cur_long - position_.frozen_open_long;
-			return false;
-		} else { return true; }
+			result = false;
+		} else { result = true; }
 	}
 	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
 		if (position_.frozen_open_short==0 && position_.cur_short< GetMaxPosition()){
 			updated_vol = GetMaxPosition() - position_.cur_short - position_.frozen_open_short;
-			return false;
-		} else { return true; }
-	} else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_, setting_.config.st_id, sig_act); }
+			result = false;
+		} else { result = true; }
+	} else{ clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d",module_name_, setting_.config.st_id, sig_act, sig_openclose); }
 
 	if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_close_short==0 && position_.cur_short>0){
 			updated_vol = position_.cur_short - position_.frozen_close_short;
-			return false;
-		} else { return true; }
+			result = false;
+		} else { result = true; }
 	}
 	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
 		if (position_.frozen_close_long==0 && position_.cur_long>0){
 			updated_vol = position_.cur_long - position_.frozen_close_long;
-			return false;
-		} else { return true; }
+			result = false;
+		} else { result = true; }
 	}
-	else{ clog_error("[%s] Deferred: strategy id:%d; act:%d",module_name_, setting_.config.st_id, sig_act); }
+	else{ clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d",module_name_, setting_.config.st_id, sig_act, sig_openclose); }
 
 	if (updated_vol > vol) updated_vol = vol; 
 
@@ -291,6 +292,8 @@ bool Strategy::Deferred(unsigned short sig_openclose, unsigned short int sig_act
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
 				position_.frozen_close_long, position_.frozen_close_short,
 				position_.frozen_open_long, position_.frozen_open_short, updated_vol);
+
+	return result;
 } 
 
 void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig, int32_t actual_vol)
@@ -382,11 +385,11 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
 			position_.cur_short -= rpt.MatchedAmount;
-			position_.frozen_open_short -= rpt.MatchedAmount;
+			position_.frozen_close_short -= rpt.MatchedAmount;
 		}
 		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
 			position_.cur_long -= rpt.MatchedAmount;
-			position_.frozen_open_long -= rpt.MatchedAmount;
+			position_.frozen_close_long -= rpt.MatchedAmount;
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
@@ -402,10 +405,10 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 			position_.frozen_open_short = 0;
 		}
 		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
-			position_.frozen_open_short = 0;
+			position_.frozen_close_short = 0;
 		}
 		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
-			position_.frozen_open_long = 0;
+			position_.frozen_close_long = 0;
 		}
 	}
 
