@@ -268,9 +268,7 @@ bool Strategy::Deferred(unsigned short sig_openclose, unsigned short int sig_act
 			updated_vol = GetMaxPosition() - position_.cur_short - position_.frozen_open_short;
 			result = false;
 		} else { result = true; }
-	} else{ clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d",module_name_, setting_.config.st_id, sig_act, sig_openclose); }
-
-	if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
+	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_close_short==0 && position_.cur_short>0){
 			updated_vol = position_.cur_short - position_.frozen_close_short;
 			result = false;

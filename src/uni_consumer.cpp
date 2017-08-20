@@ -258,7 +258,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 		vol = sig.open_volume;
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
-	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%c;", module_name_, sig.sig_openclose); }
+	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_, sig.sig_openclose); }
 
 	if(strategy.Deferred(sig.sig_openclose, sig.sig_act, vol, updated_vol)){
 		// place signal into disruptor queue
