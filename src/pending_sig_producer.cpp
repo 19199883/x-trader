@@ -7,6 +7,7 @@ PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
 	clog_info("[%s] PENDING_SIG_BUFFER_SIZE: %d;", module_name_, PENDINGSIG_BUFFER_SIZE);
 
 	(this->producer_ = vrt_producer_new("pendingsig_producer", 1, queue));
+	this->producer_ ->yield = vrt_yield_strategy_threaded();
 }
 
 PendingSigProducer::~PendingSigProducer()

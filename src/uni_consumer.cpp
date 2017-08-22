@@ -199,7 +199,7 @@ void UniConsumer::ProcPendingSig(int32_t index)
 {
 	signal_t* sig = pendingsig_producer_->GetSignal(index);
 
-	clog_info("[%s] [ProcPendingSig] index: %d; sig id: %d", module_name_, index, sig->st_id);
+	clog_info("[%s] [ProcPendingSig] index: %d; strategy id:%d; sig id: %d", module_name_, index, sig->st_id, sig->sig_id);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[sig->st_id]];
 	PlaceOrder(strategy, *sig);
