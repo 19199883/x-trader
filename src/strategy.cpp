@@ -308,7 +308,7 @@ void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig, int32_t 
 
 	// signal response
 	memset(&(sigrpt_table_[cursor]), 0, sizeof(signal_resp_t));
-	sigrpt_table_[cursor].sig_id = sig.st_id;
+	sigrpt_table_[cursor].sig_id = sig.sig_id;
 	sigrpt_table_[cursor].sig_act = sig.sig_act;
 	strcpy(sigrpt_table_[cursor].symbol, sig.symbol);
 	sigrpt_table_[cursor].order_volume = actual_vol;
