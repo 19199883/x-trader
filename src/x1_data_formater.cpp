@@ -86,12 +86,12 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcCancelOrderField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcCancelOrderField\n"
-            "    accountID=%s\n"
-            "    spdOrderID=%ld\n"
-            "    localOrderID=%ld\n"
-            "    instrumentID=%s\n"
-            "    lRequestID=%ld\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcCancelOrderField "
+            "    accountID=%s "
+            "    spdOrderID=%ld "
+            "    localOrderID=%ld "
+            "    instrumentID=%s "
+            "    lRequestID=%ld ",
             p->AccountID,                    //资金账户ID
             p->X1OrderID,                   //柜台委托号
             p->LocalOrderID,                 //本地委托号

@@ -247,6 +247,9 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	// only use LocalOrderID to cancel order
     cancel_order.X1OrderID = 0; 
 
+	clog_debug("[%s] CancelOrder: LocalOrderID:%d; X1OrderID:%d", 
+				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID); 
+
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
 }
 
