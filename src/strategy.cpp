@@ -1,12 +1,17 @@
 #include <sstream>
 #include <stdio.h>
+#include <fstream>      // std::ifstream, std::ofstream
+#include <stdio.h>
 #include "strategy.h"
+#include "pos_calcu.h"
 
 using namespace std;
 
 Strategy::Strategy()
 : module_name_("Strategy")
 {
+	valid_ = false;
+
 	pfn_init_;
 	pfn_feedbestanddeep_ = NULL;
 	pfn_feedorderstatistic_ = NULL;
@@ -19,7 +24,7 @@ Strategy::Strategy()
 
 Strategy::~Strategy(void)
 {
-	SavePosition();
+	if (valid_) SavePosition();
 
 	if (this->pfn_destroy_ != NULL){
 		// TODO:
@@ -62,6 +67,8 @@ string Strategy::generate_log_name(char* log_path)
 
 void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 {
+	valid_ = true;
+
 	// set breakpoint here
 	this->setting_ = setting;
 	this->pproxy_ = pproxy;
@@ -111,7 +118,6 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.log_name, model_log.c_str());
 	setting_.config.log_id = setting_.config.st_id;
 
-	memset(&position_, 0, sizeof(StrategyPosition));
 	LoadPosition();
 	
 	memset(&pos_cache_.s_pos[0], 0, sizeof(symbol_pos_t));
@@ -150,8 +156,8 @@ void Strategy::FeedInitPosition()
 
 	this->pfn_feedinitposition_(&init_pos, &sig_cnt, sigs);
 
-	clog_debug("[%s] FeedInitPosition contract:%s; exchange:%d; long:%d; short:%d",
-				module_name_, second.symbol, second.exchg_code, 
+	clog_info("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
+				module_name_, GetId(), second.symbol, second.exchg_code, 
 				second.long_volume, second.short_volume);
 }
 
@@ -467,13 +473,36 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 
 void Strategy::LoadPosition()
 {
+	pos_calc* pos_calc_ins = pos_calc::instance();
+
 	memset(&position_, 0, sizeof(position_));
-	// TODO:
+	string sett_cont = GetSymbol();
+	string stra = GetSoFile();
+	string cont = "";
+	if (pos_calc_ins->exists(stra)){
+		pos_calc_ins->get_pos(stra, position_.cur_long, position_.cur_short, cont);
+	} else {
+		position_.cur_long = 0;
+		position_.cur_short = 0;
+		cont = sett_cont;
+	}
+	if(sett_cont != cont){
+		clog_warning("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
+			GetId(), cont.c_str(), sett_cont.c_str());
+	}
 }
 
 void Strategy::SavePosition()
 {
-	// TODO:
+	char buffer[1024];
+	sprintf (buffer, "%d;%s;%s;%d;%d",GetId(), GetSoFile(),
+		GetContract(), position_.cur_long, position_.cur_short); 
+
+	string fname = this->GetSoFile();
+	fname += ".pos";
+	std::ofstream outfile (fname);
+	outfile.write (buffer, strlen(buffer));
+	outfile.close();
 }
 
 const char * Strategy::GetSymbol()

@@ -2,6 +2,7 @@
 #include <chrono>         // std::chrono::seconds
 #include <algorithm>    // std::for_each
 #include "uni_consumer.h"
+#include "pos_calcu.h"
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer,
@@ -21,6 +22,24 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	this->pproxy_->setBasePathLibrary(this->pproxy_->getexedir());
 
 	ParseConfig();
+	
+	// pos_calc, check offline strategies
+	pos_calc *calc = pos_calc::instance();
+	list<string> stras;
+	calc->get_stras(stras);
+	for (string stra : stras){
+		bool online = false;
+		for (auto sett : strategy_settings_){  
+			if (sett.file == stra){
+				online = true;
+				break;
+			}
+		}
+		if (!online){
+			clog_warning("[%s] pos_calc error: offline(%s)", module_name_, stra.c_str());
+		}
+	}
+
 	// create Stratedy objects
 	CreateStrategies();
 }
@@ -252,9 +271,11 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
 	// only use LocalOrderID to cancel order
     cancel_order.X1OrderID = 0; 
+    //strncpy(cancle_order.AccountID, cfg.Logon_config().clientid.c_str(), sizeof(TX1FtdcAccountIDType));
+    strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
 
-	clog_debug("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld", 
-				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID); 
+	clog_debug("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
+				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID, cancel_order.InstrumentID); 
 
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
 }

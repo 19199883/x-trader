@@ -10,6 +10,7 @@
 #include "pending_sig_producer.h"
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
+#include "pos_calcu.h"
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
@@ -63,7 +64,9 @@ int main(/*int argc, const char **argv*/)
   delete mdproducer; 
 
 // clog: free resources
-  clog_handler_free(clog_handler);
+	pos_calc::destroy_instance();
+	clog_handler_free(clog_handler);
+
 	return 0;
 }
 

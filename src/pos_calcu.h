@@ -23,8 +23,6 @@ class pos_calc
 
 		static void destroy_instance();
 
-		bool enabled(){ return enabled_; }
-
 		bool exists(string &stra){
 			string pos_file = stra + ".pos";
 			ifstream is;
@@ -134,24 +132,8 @@ class pos_calc
 		}
 
 	private:
-		pos_calc(){
-			TiXmlDocument config = TiXmlDocument("trasev.config");
-			config.LoadFile();
-			TiXmlElement *RootElement = config.RootElement();
-			const char * enabled_att = RootElement->Attribute("pos_calc");
-			if (NULL == enabled_att){ // if there is not pos_calc attribute, false is default value of eanbled field
-						this->enabled_ = false;
-			}else{
-				string enabled_str = enabled_att;
-				if (0 == strcmp ("on",enabled_str.c_str())){
-					this->enabled_ = true;
-				}else{
-					this->enabled_ = false;
-				}
-			}
-		}
+		pos_calc(){ }
 
-		bool enabled_;
 		static pos_calc* ins_; 
 		static	mutex mtx_ins_;
 };

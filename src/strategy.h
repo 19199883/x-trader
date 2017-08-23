@@ -108,6 +108,9 @@ private:
 	position_t pos_cache_;
 	pending_order_t pending_order_cache_;
 
+	// be used to check whether the stategy is valid
+	bool valid_;
+
 	CLoadLibraryProxy *pproxy_;
 	StrategySetting setting_;
 	const char *module_name_;  
