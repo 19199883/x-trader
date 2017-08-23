@@ -1,3 +1,5 @@
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 #include <algorithm>    // std::for_each
 #include "uni_consumer.h"
 
@@ -197,6 +199,9 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 
 void UniConsumer::ProcPendingSig(int32_t index)
 {
+	// TODO: debug
+	std::this_thread::sleep_for (std::chrono::milliseconds(1));
+	
 	signal_t* sig = pendingsig_producer_->GetSignal(index);
 
 	clog_info("[%s] [ProcPendingSig] index: %d; strategy id:%d; sig id: %d", module_name_, index, sig->st_id, sig->sig_id);
@@ -212,7 +217,8 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %d", module_name_, index, rpt->LocalOrderID);
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld; CancelAmount:%ld; ErrorID:%d ",
+				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount, rpt->CancelAmount, rpt->ErrorID);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
@@ -247,7 +253,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	// only use LocalOrderID to cancel order
     cancel_order.X1OrderID = 0; 
 
-	clog_debug("[%s] CancelOrder: LocalOrderID:%d; X1OrderID:%d", 
+	clog_debug("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld", 
 				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID); 
 
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);

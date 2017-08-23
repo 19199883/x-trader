@@ -323,7 +323,7 @@ void Strategy::PrepareForExecutingSig(long localorderid, signal_t &sig, int32_t 
 	localorderid_sigandrptidx_map_table_[localorderid] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%d;",
+	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
 				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
 

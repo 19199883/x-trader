@@ -10,11 +10,11 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcReqUserLoginField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcReqUserLoginField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    passwd=%s\n"
-            "    companyID=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcReqUserLoginField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    passwd=%s "
+            "    companyID=%d ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金账户ID
             p->Password,                       //密码
@@ -35,24 +35,24 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcInsertOrderField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcInsertOrderField\n"
-            "    accountID=%s\n"
-            "    localOrderID=%ld\n"
-            "    instrumentID=%s\n"
-            "    insertPrice=%.4f\n"
-            "    orderAmount=%ld\n"
-            "    buySellType=%d\n"
-            "    openCloseType=%d\n"
-            "    speculator=%d\n"
-            "    insertType=%d\n"
-            "    orderType=%d\n"
-            "    orderProperty=%d\n"
-            "    instrumentType=%d\n"
-            "    lRequestID=%ld\n"
-            "    customCategory=%s\n"
-            "    reservedType2=%d\n"
-            "    minMatchAmount=%ld\n"
-            "    profitLossPrice=%.4f\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcInsertOrderField "
+            "    accountID=%s "
+            "    localOrderID=%ld "
+            "    instrumentID=%s "
+            "    insertPrice=%.4f "
+            "    orderAmount=%ld "
+            "    buySellType=%d "
+            "    openCloseType=%d "
+            "    speculator=%d "
+            "    insertType=%d "
+            "    orderType=%d "
+            "    orderProperty=%d "
+            "    instrumentType=%d "
+            "    lRequestID=%ld "
+            "    customCategory=%s "
+            "    reservedType2=%d "
+            "    minMatchAmount=%ld "
+            "    profitLossPrice=%.4f ",
             p->AccountID,                    //资金账户
             p->LocalOrderID,                 //本地委托号, 由API使用者维护，在同一个会话中不能重复
             p->InstrumentID,                 //合约代码, 支持目前国内4个期货交易所的所有合约，包括大商所/郑商所的套利合约
@@ -113,11 +113,11 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcQryPositionField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryPositionField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    instrumentID=%s\n"
-            "    instrumentType=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryPositionField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    instrumentID=%s "
+            "    instrumentType=%d ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金账户ID
             p->InstrumentID,                 //合约代码
@@ -138,11 +138,11 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcQryPositionDetailField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryPositionDetailField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    instrumentID=%s\n"
-            "    instrumentType=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryPositionDetailField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    instrumentID=%s "
+            "    instrumentType=%d ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金账户ID
             p->InstrumentID,                 //合约代码
@@ -163,11 +163,11 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcQryOrderField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryOrderField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    instrumentType=%d\n"
-            "    customCategory=%s\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryOrderField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    instrumentType=%d "
+            "    customCategory=%s ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金账户ID
             p->InstrumentType,               //合约类型
@@ -188,11 +188,11 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcQryMatchField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryMatchField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    instrumentType=%d\n"
-            "    customCategory=%s\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryMatchField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    instrumentType=%d "
+            "    customCategory=%s ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金账户ID
             p->InstrumentType,               //合约类型
@@ -213,23 +213,23 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcQuoteInsertField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcQuoteInsertField\n"
-            "    accountID=%s\n"
-            "    lRequestID=%ld\n"
-            "    localOrderID=%ld\n"
-            "    insertType=%d\n"
-            "    instrumentID=%s\n"
-            "    quoteID=%s\n"
-            "    instrumentType=%d\n"
-            "    bOrderAmount=%ld\n"
-            "    sOrderAmount=%ld\n"
-            "    bInsertPrice=%.4f\n"
-            "    sInsertPrice=%.4f\n"
-            "    bOpenCloseType=%d\n"
-            "    sOpenCloseType=%d\n"
-            "    bSpeculator=%d\n"
-            "    sSpeculator=%d\n"
-            "    stayTime=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcQuoteInsertField "
+            "    accountID=%s "
+            "    lRequestID=%ld "
+            "    localOrderID=%ld "
+            "    insertType=%d "
+            "    instrumentID=%s "
+            "    quoteID=%s "
+            "    instrumentType=%d "
+            "    bOrderAmount=%ld "
+            "    sOrderAmount=%ld "
+            "    bInsertPrice=%.4f "
+            "    sInsertPrice=%.4f "
+            "    bOpenCloseType=%d "
+            "    sOpenCloseType=%d "
+            "    bSpeculator=%d "
+            "    sSpeculator=%d "
+            "    stayTime=%d ",
             p->AccountID,                    //资金账号
             p->RequestID,                   //请求ID
             p->LocalOrderID,                 //本地委托号
@@ -263,11 +263,11 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcQryExchangeInstrumentField
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryExchangeInstrumentField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    exchangeID=%s\n"
-            "    instrumentType=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcQryExchangeInstrumentField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    exchangeID=%s "
+            "    instrumentType=%d ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金账户ID
             p->ExchangeID,                   //交易所编码
@@ -288,14 +288,14 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspErrorField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspErrorField\n"
-            "    requestID=%ld\n"
-            "    sessionID=%ld\n"
-            "    accountID=%s\n"
-            "    nErrorID=%d\n"
-            "    spdOrderID=%ld\n"
-            "    localOrderID=%ld\n"
-            "    errorMsg=%s\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspErrorField "
+            "    requestID=%ld "
+            "    sessionID=%ld "
+            "    accountID=%s "
+            "    nErrorID=%d "
+            "    spdOrderID=%ld "
+            "    localOrderID=%ld "
+            "    errorMsg=%s ",
             p->RequestID,                    //请求ID
             p->SessionID,                    //会话标识
             p->AccountID,                    //资金账号
@@ -319,18 +319,18 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspUserLoginField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspUserLoginField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    loginResult=%d\n"
-            "    initLocalOrderID=%ld\n"
-            "    sessionID=%ld\n"
-            "    nErrorID=%d\n"
-            "    errorMsg=%s\n"
-            "    DCEtime=%s\n"
-            "    SHFETime=%s\n"
-            "    CFFEXTime=%s\n"
-            "    CZCETime=%s\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspUserLoginField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    loginResult=%d "
+            "    initLocalOrderID=%ld "
+            "    sessionID=%ld "
+            "    nErrorID=%d "
+            "    errorMsg=%s "
+            "    DCEtime=%s "
+            "    SHFETime=%s "
+            "    CFFEXTime=%s "
+            "    CZCETime=%s ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金帐号ID
             p->LoginResult,                  //登录结果
@@ -358,12 +358,12 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspUserLogoutInfoField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspUserLogoutInfoField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    logoutResult=%d\n"
-            "    nErrorID=%d\n"
-            "    errorMsg=%s\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspUserLogoutInfoField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    logoutResult=%d "
+            "    nErrorID=%d "
+            "    errorMsg=%s ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金账户ID
             p->LogoutResult,                 //退出结果
@@ -385,14 +385,14 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspOperOrderField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspOperOrderField\n"
-            "    localOrderID=%ld\n"
-            "    spdOrderID=%ld\n"
-            "    orderStatus=%d\n"
-            "    lRequestID=%ld\n"
-            "    fee=%.4f\n"
-            "    margin=%.4f\n"
-            "    customCategory=%s\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspOperOrderField "
+            "    localOrderID=%ld "
+            "    spdOrderID=%ld "
+            "    orderStatus=%d "
+            "    lRequestID=%ld "
+            "    fee=%.4f "
+            "    margin=%.4f "
+            "    customCategory=%s ",
             p->LocalOrderID,                 //本地委托号
             p->X1OrderID,                   //柜台委托号
             p->OrderStatus,                  //委托状态
@@ -416,28 +416,28 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriOrderField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriOrderField\n"
-            "    localOrderID=%ld\n"
-            "    spdOrderID=%ld\n"
-            "    OrderSysID=%s\n"
-            "    orderStatus=%d\n"
-            "    sessionID=%ld\n"
-            "    SuspendTime=%s\n"
-            "    instrumentID=%s\n"
-            "    exchangeID=%s\n"
-            "    buySellType=%d\n"
-            "    OpenCloseType=%d\n"
-            "    instrumentType=%d\n"
-            "    speculator=%d\n"
-            "    insertPrice=%.4f\n"
-            "    accountID=%s\n"
-            "    cancelAmount=%ld\n"
-            "    orderAmount=%ld\n"
-            "    insertType=%d\n"
-            "    extspdOrderID=%ld\n"
-            "    customCategory=%s\n"
-            "    reservedType2=%d\n"
-            "    profitLossPrice=%.4f\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriOrderField "
+            "    localOrderID=%ld "
+            "    spdOrderID=%ld "
+            "    OrderSysID=%s "
+            "    orderStatus=%d "
+            "    sessionID=%ld "
+            "    SuspendTime=%s "
+            "    instrumentID=%s "
+            "    exchangeID=%s "
+            "    buySellType=%d "
+            "    OpenCloseType=%d "
+            "    instrumentType=%d "
+            "    speculator=%d "
+            "    insertPrice=%.4f "
+            "    accountID=%s "
+            "    cancelAmount=%ld "
+            "    orderAmount=%ld "
+            "    insertType=%d "
+            "    extspdOrderID=%ld "
+            "    customCategory=%s "
+            "    reservedType2=%d "
+            "    profitLossPrice=%.4f ",
             p->LocalOrderID,                 //本地委托号
             p->X1OrderID,                   //柜台委托号
             p->OrderSysID,                   //报单编号
@@ -475,32 +475,32 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriMatchInfoField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriMatchInfoField\n"
-            "    localOrderID=%ld\n"
-            "    OrderSysID=%s\n"
-            "    matchID=%s\n"
-            "    instrumentID=%s\n"
-            "    buySellType=%d\n"
-            "    OpenCloseType=%d\n"
-            "    matchedPrice=%.4f\n"
-            "    orderAmount=%ld\n"
-            "    matchedAmount=%ld\n"
-            "    matchedTime=%s\n"
-            "    insertPrice=%.4f\n"
-            "    spdOrderID=%ld\n"
-            "    matchType=%ld\n"
-            "    speculator=%d\n"
-            "    exchangeID=%s\n"
-            "    fee=%.4f\n"
-            "    sessionID=%ld\n"
-            "    instrumentType=%d\n"
-            "    accountID=%s\n"
-            "    orderStatus=%d\n"
-            "    margin=%.4f\n"
-            "    frozenCapita=%.4f\n"
-            "    adjustmentInfo=%s\n"
-            "    customCategory=%s\n"
-            "    turnover=%.4f\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriMatchInfoField "
+            "    localOrderID=%ld "
+            "    OrderSysID=%s "
+            "    matchID=%s "
+            "    instrumentID=%s "
+            "    buySellType=%d "
+            "    OpenCloseType=%d "
+            "    matchedPrice=%.4f "
+            "    orderAmount=%ld "
+            "    matchedAmount=%ld "
+            "    matchedTime=%s "
+            "    insertPrice=%.4f "
+            "    spdOrderID=%ld "
+            "    matchType=%ld "
+            "    speculator=%d "
+            "    exchangeID=%s "
+            "    fee=%.4f "
+            "    sessionID=%ld "
+            "    instrumentType=%d "
+            "    accountID=%s "
+            "    orderStatus=%d "
+            "    margin=%.4f "
+            "    frozenCapita=%.4f "
+            "    adjustmentInfo=%s "
+            "    customCategory=%s "
+            "    turnover=%.4f ",
             p->LocalOrderID,                 //本地委托号
             p->OrderSysID,                   //报单编号(交易所报单编号)
             p->MatchID,                      //成交编号
@@ -542,25 +542,25 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriCancelOrderField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriCancelOrderField\n"
-            "    localOrderID=%ld\n"
-            "    OrderSysID=%s\n"
-            "    instrumentID=%s\n"
-            "    insertPrice=%.4f\n"
-            "    buySellType=%d\n"
-            "    OpenCloseType=%d\n"
-            "    cancelAmount=%ld\n"
-            "    spdOrderID=%ld\n"
-            "    speculator=%d\n"
-            "    exchangeID=%s\n"
-            "    canceledTime=%s\n"
-            "    sessionID=%ld\n"
-            "    orderStatus=%d\n"
-            "    instrumentType=%d\n"
-            "    accountID=%s\n"
-            "    orderAmount=%ld\n"
-            "    margin=%.4f\n"
-            "    fee=%.4f\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriCancelOrderField "
+            "    localOrderID=%ld "
+            "    OrderSysID=%s "
+            "    instrumentID=%s "
+            "    insertPrice=%.4f "
+            "    buySellType=%d "
+            "    OpenCloseType=%d "
+            "    cancelAmount=%ld "
+            "    spdOrderID=%ld "
+            "    speculator=%d "
+            "    exchangeID=%s "
+            "    canceledTime=%s "
+            "    sessionID=%ld "
+            "    orderStatus=%d "
+            "    instrumentType=%d "
+            "    accountID=%s "
+            "    orderAmount=%ld "
+            "    margin=%.4f "
+            "    fee=%.4f ",
             p->LocalOrderID,                 //本地委托号
             p->OrderSysID,                   //报单编号
             p->InstrumentID,                 //合约代码
@@ -595,35 +595,35 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspOrderField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspOrderField\n"
-            "    lRequestID=%ld\n"
-            "    spdOrderID=%ld\n"
-            "    orderStatus=%d\n"
-            "    instrumentID=%s\n"
-            "    buySellType=%d\n"
-            "    openClose=%d\n"
-            "    insertPrice=%.4f\n"
-            "    orderAmount=%ld\n"
-            "    matchedPrice=%.4f\n"
-            "    matchedAmount=%ld\n"
-            "    cancelAmount=%ld\n"
-            "    insertType=%d\n"
-            "    speculator=%d\n"
-            "    commTime=%s\n"
-            "    submitTime=%s\n"
-            "    clientID=%s\n"
-            "    exchangeID=%s\n"
-            "    operStation=%s\n"
-            "    accountID=%s\n"
-            "    instrumentType=%d\n"
-            "    OrderSysID=%s\n"
-            "    customCategory=%s\n"
-            "    margin=%.4f\n"
-            "    fee=%.4f\n"
-            "    localOrderID=%ld\n"
-            "    sessionId=%ld\n"
-            "    reservedType2=%d\n"
-            "    profitLossPrice=%.4f\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspOrderField "
+            "    lRequestID=%ld "
+            "    spdOrderID=%ld "
+            "    orderStatus=%d "
+            "    instrumentID=%s "
+            "    buySellType=%d "
+            "    openClose=%d "
+            "    insertPrice=%.4f "
+            "    orderAmount=%ld "
+            "    matchedPrice=%.4f "
+            "    matchedAmount=%ld "
+            "    cancelAmount=%ld "
+            "    insertType=%d "
+            "    speculator=%d "
+            "    commTime=%s "
+            "    submitTime=%s "
+            "    clientID=%s "
+            "    exchangeID=%s "
+            "    operStation=%s "
+            "    accountID=%s "
+            "    instrumentType=%d "
+            "    OrderSysID=%s "
+            "    customCategory=%s "
+            "    margin=%.4f "
+            "    fee=%.4f "
+            "    localOrderID=%ld "
+            "    sessionId=%ld "
+            "    reservedType2=%d "
+            "    profitLossPrice=%.4f ",
             p->RequestID,                   //请求ID
             p->X1OrderID,                   //柜台委托号
             p->OrderStatus,                  //委托状态
@@ -668,27 +668,27 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspMatchField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspMatchField\n"
-            "    lRequestID=%ld\n"
-            "    spdOrderID=%ld\n"
-            "    exchangeID=%s\n"
-            "    instrumentID=%s\n"
-            "    buySellType=%d\n"
-            "    openClose=%d\n"
-            "    matchedPrice=%.4f\n"
-            "    matchedAmount=%ld\n"
-            "    matchedMort=%.4f\n"
-            "    speculator=%d\n"
-            "    matchedTime=%s\n"
-            "    matchedID=%s\n"
-            "    localOrderID=%ld\n"
-            "    clientID=%s\n"
-            "    matchType=%ld\n"
-            "    instrumentType=%d\n"
-            "    customCategory=%s\n"
-            "    fee=%.4f\n"
-            "    reservedType1=%d\n"
-            "    reservedType2=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspMatchField "
+            "    lRequestID=%ld "
+            "    spdOrderID=%ld "
+            "    exchangeID=%s "
+            "    instrumentID=%s "
+            "    buySellType=%d "
+            "    openClose=%d "
+            "    matchedPrice=%.4f "
+            "    matchedAmount=%ld "
+            "    matchedMort=%.4f "
+            "    speculator=%d "
+            "    matchedTime=%s "
+            "    matchedID=%s "
+            "    localOrderID=%ld "
+            "    clientID=%s "
+            "    matchType=%ld "
+            "    instrumentType=%d "
+            "    customCategory=%s "
+            "    fee=%.4f "
+            "    reservedType1=%d "
+            "    reservedType2=%d ",
             p->RequestID,                   //请求ID
             p->X1OrderID,                   //柜台委托号
             p->ExchangeID,                   //交易所ID
@@ -723,30 +723,30 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPositionField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPositionField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    exchangeID=%s\n"
-            "    instrumentID=%s\n"
-            "    buySellType=%d\n"
-            "    openAvgPrice=%.4f\n"
-            "    positionAvgPrice=%.4f\n"
-            "    positionAmount=%ld\n"
-            "    totalAvaiAmount=%ld\n"
-            "    todayAvaiAmount=%ld\n"
-            "    lastAvaiAmount=%ld\n"
-            "    todayAmount=%ld\n"
-            "    lastAmount=%ld\n"
-            "    tradingAmount=%ld\n"
-            "    datePositionProfitLoss=%.4f\n"
-            "    dateCloseProfitLoss=%.4f\n"
-            "    dPremium=%.4f\n"
-            "    floatProfitLoss=%.4f\n"
-            "    dmargin=%.4f\n"
-            "    speculator=%d\n"
-            "    clientID=%s\n"
-            "    preSettlementPrice=%.4f\n"
-            "    instrumentType=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPositionField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    exchangeID=%s "
+            "    instrumentID=%s "
+            "    buySellType=%d "
+            "    openAvgPrice=%.4f "
+            "    positionAvgPrice=%.4f "
+            "    positionAmount=%ld "
+            "    totalAvaiAmount=%ld "
+            "    todayAvaiAmount=%ld "
+            "    lastAvaiAmount=%ld "
+            "    todayAmount=%ld "
+            "    lastAmount=%ld "
+            "    tradingAmount=%ld "
+            "    datePositionProfitLoss=%.4f "
+            "    dateCloseProfitLoss=%.4f "
+            "    dPremium=%.4f "
+            "    floatProfitLoss=%.4f "
+            "    dmargin=%.4f "
+            "    speculator=%d "
+            "    clientID=%s "
+            "    preSettlementPrice=%.4f "
+            "    instrumentType=%d ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金帐号ID
             p->ExchangeID,                   //交易所代码
@@ -786,26 +786,26 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPositionDetailField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPositionDetailField\n"
-            "    lRequestID=%ld\n"
-            "    accountID=%s\n"
-            "    exchangeID=%s\n"
-            "    instrumentID=%s\n"
-            "    buySellType=%d\n"
-            "    openPrice=%.4f\n"
-            "    volume=%ld\n"
-            "    matchID=%s\n"
-            "    matchedDate=%s\n"
-            "    datePositionProfitLoss=%.4f\n"
-            "    dateCloseProfitLoss=%.4f\n"
-            "    floatProfitLoss=%.4f\n"
-            "    dMargin=%.4f\n"
-            "    speculator=%d\n"
-            "    clientID=%s\n"
-            "    preSettlementPrice=%.4f\n"
-            "    instrumentType=%d\n"
-            "    spdOrderID=%ld\n"
-            "    customCategory=%s\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPositionDetailField "
+            "    lRequestID=%ld "
+            "    accountID=%s "
+            "    exchangeID=%s "
+            "    instrumentID=%s "
+            "    buySellType=%d "
+            "    openPrice=%.4f "
+            "    volume=%ld "
+            "    matchID=%s "
+            "    matchedDate=%s "
+            "    datePositionProfitLoss=%.4f "
+            "    dateCloseProfitLoss=%.4f "
+            "    floatProfitLoss=%.4f "
+            "    dMargin=%.4f "
+            "    speculator=%d "
+            "    clientID=%s "
+            "    preSettlementPrice=%.4f "
+            "    instrumentType=%d "
+            "    spdOrderID=%ld "
+            "    customCategory=%s ",
             p->RequestID,                   //请求ID
             p->AccountID,                    //资金帐号ID
             p->ExchangeID,                   //交易所代码
@@ -841,22 +841,22 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspExchangeInstrumentField
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspExchangeInstrumentField\n"
-            "    lRequestID=%ld\n"
-            "    exchangeID=%s\n"
-            "    instrumentID=%s\n"
-            "    VarietyName=%s\n"
-            "    instrumentType=%d\n"
-            "    orderTopLimit=%ld\n"
-            "    contractMultiplier=%.4f\n"
-            "    minPriceFluctuation=%.4f\n"
-            "    instrumentMaturity=%s\n"
-            "    upperLimitPrice=%.4f\n"
-            "    lowerLimitPrice=%.4f\n"
-            "    preClosePrice=%.4f\n"
-            "    preSettlementPrice=%.4f\n"
-            "    settlementPrice=%.4f\n"
-            "    preOpenInterest=%ld\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspExchangeInstrumentField "
+            "    lRequestID=%ld "
+            "    exchangeID=%s "
+            "    instrumentID=%s "
+            "    VarietyName=%s "
+            "    instrumentType=%d "
+            "    orderTopLimit=%ld "
+            "    contractMultiplier=%.4f "
+            "    minPriceFluctuation=%.4f "
+            "    instrumentMaturity=%s "
+            "    upperLimitPrice=%.4f "
+            "    lowerLimitPrice=%.4f "
+            "    preClosePrice=%.4f "
+            "    preSettlementPrice=%.4f "
+            "    settlementPrice=%.4f "
+            "    preOpenInterest=%ld ",
             p->RequestID,                   //请求ID
             p->ExchangeID,                   //交易所编码
             p->InstrumentID,                 //合约代码
@@ -888,9 +888,9 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcExchangeStatusRtnField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcExchangeStatusRtnField\n"
-            "    exchangeID=%s\n"
-            "    exchangeStatus=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcExchangeStatusRtnField "
+            "    exchangeID=%s "
+            "    exchangeStatus=%d ",
             p->ExchangeID,                   //交易所
             p->ExchangeStatus                //交易所状态
             );
@@ -909,9 +909,9 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspExchangeStatusField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspExchangeStatusField\n"
-            "    exchangeID=%s\n"
-            "    exchangeStatus=%d\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspExchangeStatusField "
+            "    exchangeID=%s "
+            "    exchangeStatus=%d ",
             p->ExchangeID,                   //交易所
             p->ExchangeStatus                //交易所状态
             );
@@ -930,26 +930,26 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspCapitalField* p)
 
     if (p)
     {
-        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspCapitalField\n"
-            "    requestID=%ld\n"
-            "    accountID=%s\n"
-            "    preEquity=%.4f\n"
-            "    todayEquity=%.4f\n"
-            "    closeProfitLoss=%.4f\n"
-            "    positionProfitLoss=%.4f\n"
-            "    frozenMargin=%.4f\n"
-            "    margin=%.4f\n"
-            "    fee=%.4f\n"
-            "    available=%.4f\n"
-            "    withdraw=%.4f\n"
-            "    riskDegree=%.4f\n"
-            "    todayPremiumIncome=%.4f\n"
-            "    todayPremiumPay=%.4f\n"
-            "    yesterdayPremium=%.4f\n"
-            "    optMarketValue=%.4f\n"
-            "    floatProfitLoss=%.4f\n"
-            "    totFundOut=%.4f\n"
-            "    totFundIn=%.4f\n",
+        snprintf(buf, sizeof(buf), "structName=CX1FtdcRspCapitalField "
+            "    requestID=%ld "
+            "    accountID=%s "
+            "    preEquity=%.4f "
+            "    todayEquity=%.4f "
+            "    closeProfitLoss=%.4f "
+            "    positionProfitLoss=%.4f "
+            "    frozenMargin=%.4f "
+            "    margin=%.4f "
+            "    fee=%.4f "
+            "    available=%.4f "
+            "    withdraw=%.4f "
+            "    riskDegree=%.4f "
+            "    todayPremiumIncome=%.4f "
+            "    todayPremiumPay=%.4f "
+            "    yesterdayPremium=%.4f "
+            "    optMarketValue=%.4f "
+            "    floatProfitLoss=%.4f "
+            "    totFundOut=%.4f "
+            "    totFundIn=%.4f ",
             p->RequestID,                    //请求ID
             p->AccountID,                    //资金帐号
             p->PreEquity,                    //上日权益
