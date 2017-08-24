@@ -16,7 +16,7 @@ from datetime import date
 import logging
 
 # modify it according to account
-stra_setting = './tools/stra_sett_dce_day137.csv'
+stra_setting = './tools/stra_sett_dce_day100.csv'
 pos_sum_file = './pos_sum.pos'
 ex = "dl"
 

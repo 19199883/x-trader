@@ -11,15 +11,15 @@ import logging
 import os
 import sys
 
-src_config_file = '../trasev.config'
-cur_config_file = 'trasev.config'
+src_config_file = '../x-trader.config'
+cur_config_file = 'x-trader.config'
 stra_setting = 'stra_sett_dce_day100.csv'
 
 def main():
 	os.chdir(sys.path[0])
 	logging.basicConfig(filename='configurator.log',level=logging.DEBUG)
 
-	shutil.copyfile(src_config_file, 'trasev.config')
+	shutil.copyfile(src_config_file, 'x-trader.config')
 	backup()
 
 	tree = ET.parse(cur_config_file)
@@ -33,10 +33,10 @@ def backup():
 	count = 1
 	today = date.today()
 	today_str = today.strftime("%Y%m%d")
-	bk = 'trasev_{0}_{1}.config'.format(today_str,count)
+	bk = 'x-trader_{0}_{1}.config'.format(today_str,count)
 	while(os.path.exists(bk)):
 		count = count + 1
-		bk = 'trasev_{0}_{1}.config'.format(today_str,count)
+		bk = 'x-trader_{0}_{1}.config'.format(today_str,count)
 	shutil.copyfile(cur_config_file, bk)
 
 def update(root):
@@ -49,9 +49,9 @@ def update(root):
 	# skip the first row, title row
 	with open(stra_setting) as csvfile:
 		reader = csv.reader(csvfile)
-		id = 10000000
+		id = 0
 		for row in reader:
-			if id == 10000000:
+			if id == 0:
 				id = id + 1
 				continue
 			add_strategy(strategies, strategy_temp, row, id)
@@ -59,15 +59,6 @@ def update(root):
 
 	# remove template element
 	strategies.remove(strategy_temp)
-
-	model_ids = ''
-	for strategy in strategies.findall('./strategy'):
-		model_ids += str(strategy.get('id'))
-		model_ids += ',' 
-	model_ids = model_ids.rstrip(',')
-
-	source = root.find("./tca/source")
-	source.set('models', model_ids)
 
 def check_cont(contChk):
 	# check whether the specified contract is right dominant contract
