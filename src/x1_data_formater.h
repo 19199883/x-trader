@@ -1,6 +1,4 @@
-﻿//  TODO: wangying x1 status: done
-
-#ifndef X1_DATATYPEFORMATER_H_
+﻿#ifndef X1_DATATYPEFORMATER_H_
 #define X1_DATATYPEFORMATER_H_
 
 #include <string>

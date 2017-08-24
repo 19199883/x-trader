@@ -26,19 +26,6 @@ class MDProducer
 
 		void End();
 
-		// TODO: test
-		void SendMd()
-		{
-			MDOrderStatistic_MY md;
-			strcpy(md.ContractID, "pp1801");
-			for (int i = 0; i < 100; i++){
-				std::this_thread::sleep_for (std::chrono::milliseconds(1));
-				md.Len = i;
-				this->OnMDOrderStatistic(&md);
-				clog_debug("[md test] send i:%d; contract:%s", md.Len, md.ContractID);
-			}
-		}
-
 	private:
 		MYQuoteData* build_quote_provider(SubscribeContracts &subscription);
 		

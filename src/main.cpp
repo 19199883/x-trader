@@ -12,6 +12,8 @@
 #include "uni_consumer.h"
 #include "pos_calcu.h"
 
+#define LATENCY_MEASURE
+
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
 UniConsumer *uniConsumer = NULL;
@@ -48,9 +50,6 @@ int main(/*int argc, const char **argv*/)
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
 	mdproducer = new MDProducer(queue);
-
-	// TODO:test
-	//mdproducer->SendMd(); 
 
 	pendingSigProducer = new PendingSigProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);

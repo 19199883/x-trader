@@ -134,7 +134,6 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 void Strategy::FeedInitPosition()
 {
-	// TODO: consider dominant contract change
 	signal_t sigs[10];
 	int sig_cnt = 0;
 	strategy_init_pos_t init_pos;

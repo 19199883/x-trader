@@ -185,7 +185,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 {
 	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
 
-	clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
+	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
 
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
 	for_each (
@@ -203,7 +203,7 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 {
 	MDOrderStatistic_MY* md = md_producer_->GetOrderStatistic(index);
 
-	clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
+	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
 
 	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
 	for_each (
@@ -219,12 +219,9 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 
 void UniConsumer::ProcPendingSig(int32_t index)
 {
-	// TODO: debug
-	std::this_thread::sleep_for (std::chrono::milliseconds(1));
-	
 	signal_t* sig = pendingsig_producer_->GetSignal(index);
 
-	clog_info("[%s] [ProcPendingSig] index: %d; strategy id:%d; sig id: %d", module_name_, index, sig->st_id, sig->sig_id);
+	clog_debug("[%s] [ProcPendingSig] index: %d; strategy id:%d; sig id: %d", module_name_, index, sig->st_id, sig->sig_id);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[sig->st_id]];
 	PlaceOrder(strategy, *sig);
@@ -237,7 +234,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld; CancelAmount:%ld; ErrorID:%d ",
+	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld; CancelAmount:%ld; ErrorID:%d ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount, rpt->CancelAmount, rpt->ErrorID);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
@@ -247,7 +244,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 {
-	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", module_name_, sig_cnt);
+	clog_debug("[%s] [ProcSigs] sig_cnt: %d; ", module_name_, sig_cnt);
 
 	for (int i = 0; i < sig_cnt; i++){
 		if (sigs[i].sig_act == signal_act_t::cancel){
@@ -262,7 +259,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	if (!strategy.HasFrozenPosition()){
-		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}
 	
