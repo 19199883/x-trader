@@ -52,9 +52,9 @@ class Distributor:
 	def classify(self):
 		with open(stra_setting) as csvfile:
 			reader = csv.reader(csvfile)
-			stra_id = 10000000
+			stra_id = 0
 			for row in reader:
-				if stra_id == 10000000:
+				if stra_id == 0:
 					stra_id = stra_id + 1
 					# skip the first row, title row
 					continue
@@ -128,7 +128,6 @@ class Distributor:
 				i += 1
 
 	# respectively save position of every strategy 
-	# to file which name is as my_exchange_fut_yyyymmdd.log
 	def savePos(self):
 		for commNo in self.straDict.keys():
 			straList = self.straDict[commNo]
