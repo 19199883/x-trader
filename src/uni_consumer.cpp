@@ -3,6 +3,7 @@
 #include <algorithm>    // std::for_each
 #include "uni_consumer.h"
 #include "pos_calcu.h"
+#include "perfctx.h"
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer,
@@ -278,6 +279,11 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID, cancel_order.InstrumentID); 
 
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
+
+#ifdef LATENCY_MEASURE
+		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
+        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
@@ -302,5 +308,11 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 		X1FieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), localorderid, updated_vol, insert_order);
 
 		tunn_rpt_producer_->ReqOrderInsert(&insert_order);
+
+#ifdef LATENCY_MEASURE
+        // latency measure
+		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
+        if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
+#endif
 	}
 }

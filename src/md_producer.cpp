@@ -1,5 +1,6 @@
 #include <functional>   // std::bind
 #include "md_producer.h"
+#include "perfctx.h"
 
 using namespace std::placeholders;
 using namespace std;
@@ -63,6 +64,13 @@ void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
 {
 	if (ended_) return;
 
+#ifdef LATENCY_MEASURE
+	// latency measure
+	static int cnt = 0;
+	perf_ctx::insert_t0(cnt);
+	cnt++;
+#endif
+
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	(vrt_producer_claim(producer_, &vvalue));
@@ -98,6 +106,13 @@ MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
 void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md)
 {
 	if (ended_) return;
+
+#ifdef LATENCY_MEASURE
+	// latency measure
+	static int cnt = 0;
+	perf_ctx::insert_t0(cnt);
+	cnt++;
+#endif
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
