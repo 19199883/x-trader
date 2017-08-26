@@ -64,12 +64,12 @@ void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
 {
 	if (ended_) return;
 
-#ifdef LATENCY_MEASURE
+//#ifdef LATENCY_MEASURE
 	// latency measure
 	static int cnt = 0;
 	perf_ctx::insert_t0(cnt);
 	cnt++;
-#endif
+//#endif
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;

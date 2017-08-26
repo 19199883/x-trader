@@ -437,7 +437,9 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriOrderField* p)
             "    extspdOrderID=%ld "
             "    customCategory=%s "
             "    reservedType2=%d "
-            "    profitLossPrice=%.4f ",
+            "    profitLossPrice=%.4f "
+            "    ErrorID=%d "
+            "    StatusMsg=%s " ,
             p->LocalOrderID,                 //本地委托号
             p->X1OrderID,                   //柜台委托号
             p->OrderSysID,                   //报单编号
@@ -458,8 +460,9 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriOrderField* p)
             p->ExtX1OrderID,                //算法单编号
             p->CustomCategory,               //自定义类别
             p->ReservedType2,                //预留字段2
-			p->ProfitLossPrice               //止盈止损价格
-            );
+			p->ProfitLossPrice,               //止盈止损价格
+			p->ErrorID,
+			p->StatusMsg);
     }
     else
     {

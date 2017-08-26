@@ -1,3 +1,6 @@
+#include <chrono>
+#include <ratio>
+#include <ctime>
 #include <sstream>
 #include <stdio.h>
 #include <fstream>      // std::ifstream, std::ofstream
@@ -6,6 +9,7 @@
 #include "pos_calcu.h"
 
 using namespace std;
+using namespace std::chrono;
 
 Strategy::Strategy()
 : module_name_("Strategy")
@@ -164,9 +168,18 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_debug("[%s] rev MDBestAndDeep_MY contract:%s; time:%s", module_name_, md->Contract, md->GenTime);
 
+	// TODO: perf
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+	
 	*sig_cnt = 0;
 	this->pfn_feedbestanddeep_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
+
+		// TODO: perf
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+
 		sigs[i].st_id = this->setting_.config.st_id;
 		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_, setting_.config.st_id, sigs[i].sig_id,
@@ -179,9 +192,18 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_debug("[%s] rev MDOrderStatistic_MY contract:%s", module_name_, md->ContractID);
 
+	// TODO: perf
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+
 	*sig_cnt = 0;
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
+
+		// TODO: perf
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
+		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+
 		sigs[i].st_id = this->setting_.config.st_id;
 		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_, setting_.config.st_id, sigs[i].sig_id,

@@ -277,10 +277,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
 
-#ifdef LATENCY_MEASURE
+//#ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
         if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
-#endif
+//#endif
 }
 
 void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
@@ -306,10 +306,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 
 		tunn_rpt_producer_->ReqOrderInsert(&insert_order);
 
-#ifdef LATENCY_MEASURE
+//#ifdef LATENCY_MEASURE
         // latency measure
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
         if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
-#endif
+//#endif
 	}
 }
