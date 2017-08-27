@@ -164,11 +164,8 @@ void Strategy::FeedInitPosition()
 	int sig_cnt = 0;
 	strategy_init_pos_t init_pos;
 
-	init_pos.acc_cnt = 0;
-	position_t &today_pos = init_pos._today_pos;
-	position_t &yesterday_pos = init_pos._yesterday_pos;
+	position_t &today_pos = init_pos._cur_pos;
 	today_pos.symbol_cnt = 2; 
-	yesterday_pos.symbol_cnt = 0; 
 	symbol_pos_t& first = today_pos.s_pos[0];
 	symbol_pos_t& second = today_pos.s_pos[1];
 
@@ -179,7 +176,7 @@ void Strategy::FeedInitPosition()
 	second.short_volume = position_.cur_short;
 	second.exchg_code = this->GetExchange(); 
 
-	this->pfn_feedinitposition_(&init_pos, &sig_cnt, sigs);
+	this->pfn_feedinitposition_(&init_pos);
 
 	clog_info("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
@@ -234,10 +231,10 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 	}
 }
 
-void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs)
+void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
-	this->pfn_feedsignalresponse_(rpt, pos, pending_ord, sig_cnt, sigs);
+	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = this->setting_.config.st_id;
 		clog_debug("[%s] signal: strategy id:%d;  sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
@@ -392,9 +389,8 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 
 	// update signal report
 	UpdateSigrptByTunnrpt(sigrpt, rpt);
-	pending_order_cache_.req_cnt = 0;
 
-	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], &pending_order_cache_, sig_cnt, sigs);
+	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
 
 	clog_debug("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d; \
 				symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f; \

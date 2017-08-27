@@ -53,9 +53,9 @@ public:
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code);
 	typedef void ( *FeedBestAndDeep_ptr)(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);	
 	typedef void ( *FeedOrderStatistic_ptr)(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals);
-	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
+	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs);
 	typedef void (*Destroy_ptr)();
-	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data, int *sig_cnt,signal_t *sig_out);
+	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data);
 	typedef void ( *SetLogFn1Ptr )( int strategy_id, LogFn1Ptr fn_ptr );
 	typedef void ( *SetLogFn2Ptr )( int strategy_id, LogFn2Ptr fn_ptr );
 
@@ -68,7 +68,7 @@ public:
 	void FeedInitPosition();
 	void FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);
 	void FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals);
-	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
+	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs);
 
 	// things relating to x-trader internal logic
 	void finalize(void);
@@ -114,7 +114,6 @@ private:
 	// 如果信号ID从0开始递增，可以：array[signal id]=LocalOrderID
 	std::unordered_map<int32_t,long > sigid_localorderid_map_table_;
 	position_t pos_cache_;
-	pending_order_t pending_order_cache_;
 
 	// be used to check whether the stategy is valid
 	bool valid_;

@@ -6,6 +6,16 @@ struct Log1{
 struct Log2{
 };
 
+struct Log1Ex{
+	int strategy_id;
+	struct Log1 content;
+};
+
+struct Log2Ex{
+	int strategy_id;
+	struct Log2 content;
+};
+
 class StrategyLog
 { 
 	public:
@@ -14,6 +24,8 @@ class StrategyLog
 		void Save();
 
 	private:
-		static struct Log1 log1_[8388608];
-		static struct Log2 log2_[8388608];
+		static int log1_cnt_;
+		static struct Log1Ex log1_[8388608];
+		static int log2_cnt_;
+		static struct Log2Ex log2_[8388608];
 };
