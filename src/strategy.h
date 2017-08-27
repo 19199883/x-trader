@@ -20,7 +20,8 @@ using namespace std;
 #define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION "st_feed_init_position_"
-#define STRATEGY_METHOD_SET_LOG_FN "SetLogFn_"
+#define STRATEGY_METHOD_SET_LOG_FN1 "SetLogFn1_"
+#define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
 #define SIGANDRPT_TABLE_SIZE 2048
 
@@ -47,16 +48,16 @@ public:
 class Strategy	
 {
 public:
-	typedef void ( *Output_ptr) (int log_type, int strategy_id, Log1 &content);
-
+	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
+	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code);
 	typedef void ( *FeedBestAndDeep_ptr)(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);	
 	typedef void ( *FeedOrderStatistic_ptr)(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals);
 	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, symbol_pos_t *pos, pending_order_t *pending_ord, int *sig_cnt, signal_t* sigs);
 	typedef void (*Destroy_ptr)();
 	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data, int *sig_cnt,signal_t *sig_out);
-	typedef void ( *SetLogFn_ptr )( int strategy_id, Output_ptr fn );
-
+	typedef void ( *SetLogFn1Ptr )( int strategy_id, LogFn1Ptr fn_ptr );
+	typedef void ( *SetLogFn2Ptr )( int strategy_id, LogFn2Ptr fn_ptr );
 
 public:
 	Strategy();
@@ -92,7 +93,8 @@ private:
 	FeedSignalResponse_ptr pfn_feedsignalresponse_;
 	Destroy_ptr pfn_destroy_;
 	FeedInitPosition_ptr pfn_feedinitposition_;
-	SetLogFn_ptr pfn_setlogfn_;
+	SetLogFn1Ptr pfn_setlogfn1_;
+	SetLogFn2Ptr pfn_setlogfn2_;
 
 	std::array<signal_t, SIGANDRPT_TABLE_SIZE> sig_table_;
 	std::array<signal_resp_t, SIGANDRPT_TABLE_SIZE> sigrpt_table_;

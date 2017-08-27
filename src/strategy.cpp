@@ -23,7 +23,8 @@ Strategy::Strategy()
 	pfn_destroy_ = NULL;
 	pfn_feedinitposition_ = NULL;
 	pfn_destroy_ = NULL;
-	pfn_setlogfn_ = NULL;
+	pfn_setlogfn1_ = NULL;
+	pfn_setlogfn2_ = NULL;
 
 	pproxy_ = NULL;
 }
@@ -121,13 +122,22 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	}
 	
 
-	pfn_setlogfn_ = (SetLogFn_ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN);
-	if (!pfn_setlogfn_ ){
+	pfn_setlogfn1_ = (SetLogFn1Ptr)pproxy_->findObject(
+				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN1);
+	if (!pfn_setlogfn1_ ){
 		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN, errno);
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN1, errno);
 	} else {
-		pfn_setlogfn_(Log);
+		pfn_setlogfn1_(GetId(), StrategyLog::Log1);
+	}
+
+	pfn_setlogfn2_ = (SetLogFn2Ptr)pproxy_->findObject(
+				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN2);
+	if (!pfn_setlogfn2_ ){
+		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN2, errno);
+	} else {
+		pfn_setlogfn2_(GetId(), StrategyLog::Log2);
 	}
 
 	string model_log = generate_log_name(setting_.config.log_name);

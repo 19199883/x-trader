@@ -1,11 +1,16 @@
 #include "strategy_log.h"
 
-void StrategyLog::Log(int log_type, int strategy_id, Log1 &content)
+void StrategyLog::Log1(int strategy_id, struct Log1 &content)
 {
 	// TODO:
 }
 
-void StrategyLog::Save(int log_type, int strategy_id, Log1 &content)
+void StrategyLog::Log2(int strategy_id, struct Log2 &content)
+{
+	// TODO:
+}
+
+void StrategyLog::Save()
 {
 	// TODO:
 }
