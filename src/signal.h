@@ -5,6 +5,10 @@
 
 using namespace std;
 
+struct StrategyLog1{
+
+};
+
 enum exchange_names
 {
 	// SHANGHAI FUTURES EXCHANGE

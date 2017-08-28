@@ -24,6 +24,7 @@ using namespace std;
 
 #define SIGANDRPT_TABLE_SIZE 2048
 #define MAX_STRATEGY_COUNT 100
+#define MAX_LINES_FOR_LOG 80000
 
 struct StrategyPosition
 {
@@ -129,6 +130,10 @@ private:
 
 	// be used to check whether the stategy is valid
 	bool valid_;
+
+	void WriteStrategyLog1();
+	StrategyLog1 log1_[MAX_LINES_FOR_LOG];
+	int32_t log1_cursor_;
 
 	CLoadLibraryProxy *pproxy_;
 	StrategySetting setting_;

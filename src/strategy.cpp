@@ -27,6 +27,9 @@ Strategy::Strategy()
 	pfn_setlogfn2_ = NULL;
 
 	pproxy_ = NULL;
+
+	memset(log1_, 0, sizeof(log1_));
+	log1_cursor_ = -1;
 }
 
 Strategy::~Strategy(void)
