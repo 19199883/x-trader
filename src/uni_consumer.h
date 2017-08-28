@@ -5,7 +5,6 @@
 #include <array>
 #include <string>
 #include <list>
-#include <unordered_map>
 #include "vrt_value_obj.h"
 #include "strategy.h"
 #include "md_producer.h"
@@ -18,6 +17,10 @@
 
 #define STRA_TABLE_SIZE 512 
 #define SIG_BUFFER_SIZE 32 
+
+// 因将合约的各个字符相加的和作为数组的下标，那么最大下标,
+// 假设合约最多10个字符，那么最大下标：122(z) * 100
+#define STRATEGY_KEY 1220 
 
 class X1FieldConverter
 {
@@ -86,19 +89,25 @@ class UniConsumer
 		PendingSigProducer *pendingsig_producer_;
 		CLoadLibraryProxy *pproxy_;
 
-		std::array<Strategy, STRA_TABLE_SIZE> stra_table_;
-		// key: contract; value: indices of strategies in stra_table_
-		// TODO:过将合约的每个字符加起来作为数据索引(合约index)，
-		// array[合约index]=策略索引数组。array是2维数组
-		std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
+		Strategy stra_table_[STRA_TABLE_SIZE];
+
+		// array[合约index]=策略索引数组:
+		// 如合约jd801 key是：408，订阅该合约的策略索引有;3,5,6; 那么标识如下：
+		// cont_straidx_map_table_[408][0]=3, cont_straidx_map_table_[408][0]=5,
+		// cont_straidx_map_table_[408][0]=6
+		int32_t cont_straidx_map_table_[STRATEGY_KEY][STRATEGY_KEY];
+
 		// key: strategy id; value: index of strategy in stra_table_
-		// TODO: 过规则，将策略ID变换成从0开始递增，可以：array[策略 id]=策略索引
-		std::unordered_map<int32_t, int32_t> straid_straidx_map_table_;
+		// array[策略 id]=策略索引
+		int32_t straid_straidx_map_table_[STRA_TABLE_SIZE];
 
 		std::list<StrategySetting> strategy_settings_;
 		StrategySetting CreateStrategySetting(const TiXmlElement *ele);
 		void ParseConfig();
 		void CreateStrategies();
+		
+		// 将合约的各个字符相加的总和作为键值
+		int32_t GetKey(const char* contract);
 
 		// business logic
 		void ProcBestAndDeep(int32_t index);

@@ -217,6 +217,17 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 	);
 }
 
+int32_t UniConsumer::GetKey(const char* contract)
+{
+	int32_t key = 0;
+	for(int i = 0; i < strlen(contract); i++){
+		char c = contract[i];
+		key += c;		   
+	}
+
+	return key;
+}
+
 void UniConsumer::ProcPendingSig(int32_t index)
 {
 	// TODO: debug
