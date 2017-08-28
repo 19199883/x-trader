@@ -304,25 +304,25 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 	updated_vol = 0;
 
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
-		if (position_.frozen_open_long==0 && position_.cur_long<GetMaxPosition()){
-			updated_vol = GetMaxPosition() - position_.cur_long - position_.frozen_open_long;
+		if (position_.frozen_open_long==0){
+			updated_vol = GetMaxPosition() - position_.cur_long;
 			result = false;
 		} else { result = true; }
 	}
 	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
-		if (position_.frozen_open_short==0 && position_.cur_short< GetMaxPosition()){
-			updated_vol = GetMaxPosition() - position_.cur_short - position_.frozen_open_short;
+		if (position_.frozen_open_short==0){
+			updated_vol = GetMaxPosition() - position_.cur_short;
 			result = false;
 		} else { result = true; }
 	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
-		if (position_.frozen_close_short==0 && position_.cur_short>0){
-			updated_vol = position_.cur_short - position_.frozen_close_short;
+		if (position_.frozen_close_short==0){
+			updated_vol = position_.cur_short;
 			result = false;
 		} else { result = true; }
 	}
 	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
-		if (position_.frozen_close_long==0 && position_.cur_long>0){
-			updated_vol = position_.cur_long - position_.frozen_close_long;
+		if (position_.frozen_close_long==0){
+			updated_vol = position_.cur_long;
 			result = false;
 		} else { result = true; }
 	}
@@ -365,18 +365,31 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	}
 
 	// mapping table
-	sigid_sigandrptidx_map_table_[sig.sig_id] = cursor;
-	localorderid_sigandrptidx_map_table_[localorderid] = cursor;
+	// sigid_sigandrptidx_map_table_[sig.sig_id] = cursor;
+	int32_t counter = GetCounterByLocalOrderID(localorderid);
+	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
 	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
 				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
 
+
+long Strategy::GetLocalOrderIDByCounter(long counter)
+{
+    return GetId() + counter * 1000;		
+}
+
+int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
+{
+	return (local_ord_id - GetId()) / 1000;
+}
+
 void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
 	// get signal report by LocalOrderID
-	int32_t index = localorderid_sigandrptidx_map_table_[rpt.LocalOrderID];
+	int32_t counter = GetCounterByLocalOrderID(rpt.LocalOrderID);
+	int32_t index = localorderid_sigandrptidx_map_table_[counter];
 	signal_resp_t& sigrpt = sigrpt_table_[index];
 	signal_t& sig = sig_table_[index];
 

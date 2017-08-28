@@ -1,6 +1,5 @@
 #pragma once
 
-#include <unordered_map>
 #include <list>
 #include <string>
 #include <dlfcn.h>
@@ -17,13 +16,14 @@ using namespace std;
 #define STRATEGY_METHOD_INIT "st_init_"
 #define STRATEGY_METHOD_FEED_MD_BESTANDDEEP "st_feed_marketinfo_1_"
 #define STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS "st_feed_marketinfo_3_"
-#define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_response" //"st_feed_sig_resp_"
+#define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
-#define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_initpos" //"st_feed_init_position_"
+#define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_init_position_"
 #define STRATEGY_METHOD_SET_LOG_FN1 "SetLogFn1_"
 #define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
 #define SIGANDRPT_TABLE_SIZE 2048
+#define MAX_STRATEGY_COUNT 100
 
 struct StrategyPosition
 {
@@ -96,23 +96,35 @@ private:
 	SetLogFn1Ptr pfn_setlogfn1_;
 	SetLogFn2Ptr pfn_setlogfn2_;
 
-	std::array<signal_t, SIGANDRPT_TABLE_SIZE> sig_table_;
-	std::array<signal_resp_t, SIGANDRPT_TABLE_SIZE> sigrpt_table_;
+	long GetLocalOrderIDByCounter(long counter);
+	int32_t GetCounterByLocalOrderID(long local_ord_id);
+
+	// std::array<signal_t, SIGANDRPT_TABLE_SIZE> sig_table_;
+	signal_t sig_table_[SIGANDRPT_TABLE_SIZE];
+	// std::array<signal_resp_t, SIGANDRPT_TABLE_SIZE> sigrpt_table_;
+	signal_resp_t sigrpt_table_[SIGANDRPT_TABLE_SIZE];
 
 	// key: signal id; value: signal or report index in sig_table_ or sigrpt_table_
 	// TODO: replace map with array in the future. get original id value according to logic
 	// 如果信号ID从0开始递增，可以：array[signal id]=LocalOrderID
-	unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table_;
+	// unordered_map<int32_t, int32_t> sigid_sigandrptidx_map_table_;
+	// int32_t sigid_sigandrptidx_map_table_[SIGANDRPT_TABLE_SIZE];
 
 	// key: LocalOrderID; value: signal or report index in sig_table_ or sigrpt_table_
 	// TODO: replace map with array in the future. get original id value according to logic
 	// 根据规则，将LOcalOrderID拆分，得到核心的从0开始递增ID（core_LocalOrderID）值，
 	// 则可以：array[核心ID]= 信号或信号报告索引
-	std::unordered_map<long, int32_t> localorderid_sigandrptidx_map_table_;
+	// std::unordered_map<long, int32_t> localorderid_sigandrptidx_map_table_;
+	// 推送报告给策略时使用，通过通道报告的LocalOrderID获取对用信号报告对象
+	int localorderid_sigandrptidx_map_table_[SIGANDRPT_TABLE_SIZE * MAX_STRATEGY_COUNT]; 
+
 
 	// TODO: replace map with array in the future
 	// 如果信号ID从0开始递增，可以：array[signal id]=LocalOrderID
-	std::unordered_map<int32_t,long > sigid_localorderid_map_table_;
+	// std::unordered_map<int32_t,long > sigid_localorderid_map_table_;
+	// 撤单时使用，通过信号ID获取对用的LocalOrderID
+	long sigid_localorderid_map_table_[SIGANDRPT_TABLE_SIZE];
+
 	position_t pos_cache_;
 
 	// be used to check whether the stategy is valid

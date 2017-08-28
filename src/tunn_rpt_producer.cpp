@@ -439,7 +439,7 @@ void TunnRptProducer::OnRtnExchangeStatus(struct CX1FtdcExchangeStatusRtnField* 
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
 {
-	static long counter = 1;
+	static int32_t counter = 1;
     long localorderid = strategyid+ counter * 1000;		
 	counter++;
 
