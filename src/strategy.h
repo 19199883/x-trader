@@ -17,9 +17,9 @@ using namespace std;
 #define STRATEGY_METHOD_INIT "st_init_"
 #define STRATEGY_METHOD_FEED_MD_BESTANDDEEP "st_feed_marketinfo_1_"
 #define STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS "st_feed_marketinfo_3_"
-#define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
+#define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_response" //"st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
-#define STRATEGY_METHOD_FEED_INIT_POSITION "st_feed_init_position_"
+#define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_initpos" //"st_feed_init_position_"
 #define STRATEGY_METHOD_SET_LOG_FN1 "SetLogFn1_"
 #define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
@@ -78,8 +78,8 @@ public:
 	int32_t GetMaxPosition();
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);
-	bool Deferred(unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, int32_t &updated_vol);
-	void PrepareForExecutingSig(long localorderid, signal_t &sig, int32_t actual_vol);
+	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, int32_t &updated_vol);
+	void PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol);
 	void FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
 	bool HasFrozenPosition();
 

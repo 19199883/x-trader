@@ -219,6 +219,9 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 
 void UniConsumer::ProcPendingSig(int32_t index)
 {
+	// TODO: debug
+	std::this_thread::sleep_for (std::chrono::milliseconds(1));
+
 	signal_t* sig = pendingsig_producer_->GetSignal(index);
 
 	clog_debug("[%s] [ProcPendingSig] index: %d; strategy id:%d; sig id: %d", module_name_, index, sig->st_id, sig->sig_id);
@@ -283,7 +286,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 //#endif
 }
 
-void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
+void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int32_t vol = 0;
 	int32_t updated_vol = 0;
@@ -293,7 +296,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,signal_t &sig)
 		vol = sig.close_volume;
 	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_, sig.sig_openclose); }
 
-	if(strategy.Deferred(sig.sig_openclose, sig.sig_act, vol, updated_vol)){
+	if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol)){
 		// place signal into disruptor queue
 		pendingsig_producer_->Publish(sig);
 	} else {

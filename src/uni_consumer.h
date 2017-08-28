@@ -108,7 +108,7 @@ class UniConsumer
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
-		void PlaceOrder(Strategy &strategy,signal_t &sig);
+		void PlaceOrder(Strategy &strategy, const signal_t &sig);
 		signal_t sig_buffer_[SIG_BUFFER_SIZE];
 		
 };

@@ -37,7 +37,7 @@ void PendingSigProducer::Publish(const signal_t& sig)
 	ivalue->data = PENDING_SIGNAL;
 
 	clog_debug("[%s] Publish strategy id:%d signal id:%d",
-				module_name_, ivalue->index, ivalue->data, sig.st_id, sig.sig_id);
+				module_name_, sig.st_id, sig.sig_id);
 
 	(vrt_producer_publish(producer_));
 }
@@ -51,8 +51,8 @@ int32_t PendingSigProducer::Push(const signal_t& sig)
 	}
 	sig_buffer_[cursor] = sig;
 
-	clog_debug("[%s] push Pending Sig: cursor,%d; Sig Id:%d;",
-				module_name_, cursor, sig.sig_id);
+	clog_debug("[%s] push Pending Sig: cursor,%d; strategy id:%d; Sig Id:%d;",
+				module_name_, cursor, sig.st_id, sig.sig_id);
 
 	return cursor;
 }
