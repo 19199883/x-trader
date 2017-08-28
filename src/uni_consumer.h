@@ -20,7 +20,7 @@
 
 // 因将合约的各个字符相加的和作为数组的下标，那么最大下标,
 // 假设合约最多10个字符，那么最大下标：122(z) * 100
-#define STRATEGY_KEY 1220 
+#define MAX_STRATEGY_KEY 1220 
 
 class X1FieldConverter
 {
@@ -95,7 +95,7 @@ class UniConsumer
 		// 如合约jd801 key是：408，订阅该合约的策略索引有;3,5,6; 那么标识如下：
 		// cont_straidx_map_table_[408][0]=3, cont_straidx_map_table_[408][0]=5,
 		// cont_straidx_map_table_[408][0]=6
-		int32_t cont_straidx_map_table_[STRATEGY_KEY][STRATEGY_KEY];
+		int32_t cont_straidx_map_table_[MAX_STRATEGY_KEY][MAX_STRATEGY_KEY];
 
 		// key: strategy id; value: index of strategy in stra_table_
 		// array[策略 id]=策略索引

@@ -13,6 +13,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
   tunn_rpt_producer_(tunn_rpt_producer),
   pendingsig_producer_(pendingsig_producer)
 {
+	memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
+
 	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
@@ -123,10 +125,15 @@ void UniConsumer::CreateStrategies()
 	int32_t i = 0;
 	for (auto &setting : this->strategy_settings_){
 		stra_table_[i].Init(setting, this->pproxy_);
-		// mapping table
-		straid_straidx_map_table_.emplace(setting.config.st_id, i);
-		// only support one contract for one strategy
-		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, i);
+		straid_straidx_map_table_[setting.config.st_id] = i;
+		// 一个策略只只接收一个合约的行情
+		int32_t key = GetKey(setting.config.symbols[0].name.c_str());
+		for (int i = 0; i < MAX_STRATEGY_KEY; i++){
+			if (cont_straidx_map_table_[key][i] < 0){
+				cont_straidx_map_table_[key][i] = key;
+				break;
+			}
+		}
 
 		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[i].GetId(),
@@ -187,16 +194,16 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 
 	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
 
-	auto range = cont_straidx_map_table_.equal_range(md->Contract);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+	int32_t key = GetKey(md->Contract);
+	int32_t *straidx_list = cont_straidx_map_table_[key];
+	for (int i = 0; i < MAX_STRATEGY_KEY; i++){
+		int32_t straidx = straidx_list[i];
+		if (straxidx >= 0){
 			int sig_cnt = 0;
-			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
+			stra_table_[straidx].FeedMd(md, &sig_cnt, sig_buffer_);
+			ProcSigs(stra_table_[straidx], sig_cnt, sig_buffer_);
+		} else {break;}
+	}
 }
 
 void UniConsumer::ProcOrderStatistic(int32_t index)
@@ -205,16 +212,16 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 
 	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
 
-	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+	int32_t key = GetKey(md->ContractID);
+	int32_t *straidx_list = cont_straidx_map_table_[key];
+	for (int i = 0; i < MAX_STRATEGY_KEY; i++){
+		int32_t straidx = straidx_list[i];
+		if (straxidx >= 0){
 			int sig_cnt = 0;
-			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
+			stra_table_[straidx].FeedMd(md, &sig_cnt, sig_buffer_);
+			ProcSigs(stra_table_[straidx], sig_cnt, sig_buffer_);
+		} else {break;}
+	}
 }
 
 int32_t UniConsumer::GetKey(const char* contract)
