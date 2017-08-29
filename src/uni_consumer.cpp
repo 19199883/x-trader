@@ -127,10 +127,10 @@ void UniConsumer::CreateStrategies()
 		stra_table_[i].Init(setting, this->pproxy_);
 		straid_straidx_map_table_[setting.config.st_id] = i;
 		// 一个策略只只接收一个合约的行情
-		int32_t key = GetKey(setting.config.symbols[0].name.c_str());
+		int32_t key = GetKey(setting.config.symbols[0].name);
 		for (int i = 0; i < MAX_STRATEGY_KEY; i++){
 			if (cont_straidx_map_table_[key][i] < 0){
-				cont_straidx_map_table_[key][i] = key;
+				cont_straidx_map_table_[key][i] = i;
 				break;
 			}
 		}
@@ -198,7 +198,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	int32_t *straidx_list = cont_straidx_map_table_[key];
 	for (int i = 0; i < MAX_STRATEGY_KEY; i++){
 		int32_t straidx = straidx_list[i];
-		if (straxidx >= 0){
+		if (straidx >= 0){
 			int sig_cnt = 0;
 			stra_table_[straidx].FeedMd(md, &sig_cnt, sig_buffer_);
 			ProcSigs(stra_table_[straidx], sig_cnt, sig_buffer_);
@@ -216,7 +216,7 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 	int32_t *straidx_list = cont_straidx_map_table_[key];
 	for (int i = 0; i < MAX_STRATEGY_KEY; i++){
 		int32_t straidx = straidx_list[i];
-		if (straxidx >= 0){
+		if (straidx >= 0){
 			int sig_cnt = 0;
 			stra_table_[straidx].FeedMd(md, &sig_cnt, sig_buffer_);
 			ProcSigs(stra_table_[straidx], sig_cnt, sig_buffer_);

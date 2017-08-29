@@ -36,6 +36,8 @@ Strategy::~Strategy(void)
 {
 	if (valid_) SavePosition();
 
+	WriteStrategyLog1();
+
 	if (this->pfn_destroy_ != NULL){
 		// TODO:
 		//pfn_destroy_ ();
@@ -131,7 +133,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN1, errno);
 	} else {
-		pfn_setlogfn1_(GetId(), StrategyLog::Log1);
+		//pfn_setlogfn1_(GetId(), StrategyLog::Log1);
 	}
 
 	pfn_setlogfn2_ = (SetLogFn2Ptr)pproxy_->findObject(
@@ -140,7 +142,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN2, errno);
 	} else {
-		pfn_setlogfn2_(GetId(), StrategyLog::Log2);
+		//pfn_setlogfn2_(GetId(), StrategyLog::Log2);
 	}
 
 	string model_log = generate_log_name(setting_.config.log_name);
@@ -566,3 +568,7 @@ const char * Strategy::GetSymbol()
 }
 
 
+void Strategy::WriteStrategyLog1()
+{
+	// TODO:
+}

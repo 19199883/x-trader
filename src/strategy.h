@@ -9,7 +9,6 @@
 #include "loadlibraryproxy.h"
 #include "quote_datatype_dce_level2.h"
 #include "tunn_rpt_producer.h"
-#include "strategy_log.h"
 
 using namespace std;
 
