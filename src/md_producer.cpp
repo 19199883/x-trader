@@ -64,6 +64,9 @@ void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
 {
 	if (ended_) return;
 
+	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
+	if (strlen(md->Contract) > 6) return;
+
 //#ifdef LATENCY_MEASURE
 	// latency measure
 	static int cnt = 0;
@@ -106,6 +109,9 @@ MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
 void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md)
 {
 	if (ended_) return;
+
+	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
+	if (strlen(md->ContractID) > 6) return;
 
 #ifdef LATENCY_MEASURE
 	// latency measure
