@@ -120,15 +120,15 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 
 void UniConsumer::CreateStrategies()
 {
-	int32_t i = 0;
+	strategy_counter_ = 0;
 	for (auto &setting : this->strategy_settings_){
 		stra_table_[i].Init(setting, this->pproxy_);
 		// mapping table
-		straid_straidx_map_table_[setting.config.st_id] = i;
+		straid_straidx_map_table_[setting.config.st_id] = strategy_counter_ ;
 
 		// only support one contract for one strategy
 		// unordered_multimap
-		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, i);
+		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
 
 		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[i].GetId(),
@@ -136,7 +136,7 @@ void UniConsumer::CreateStrategies()
 					stra_table_[i].GetMaxPosition(), 
 					stra_table_[i].GetSoFile());
 
-		i++;
+		strategy_counter_++;
 	}
 }
 
@@ -200,6 +200,14 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
 		}
 	);
+
+	// strcmp
+//	for(int i=0; i<strategy_counter_; i++){ 
+//		int sig_cnt = 0;
+//		Strategy &strategy = stra_table_[i];
+//		strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//		ProcSigs(strategy, sig_cnt, sig_buffer_);
+//	}
 }
 
 void UniConsumer::ProcOrderStatistic(int32_t index)
@@ -219,6 +227,14 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
 		}
 	);
+
+	//	strcmp
+//	for(int i=0; i<strategy_counter_; i++){ 
+//		int sig_cnt = 0;
+//		Strategy &strategy = stra_table_[i];
+//		strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//		ProcSigs(strategy, sig_cnt, sig_buffer_);
+//	}
 }
 
 void UniConsumer::ProcPendingSig(int32_t index)
