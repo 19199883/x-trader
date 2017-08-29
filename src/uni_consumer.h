@@ -19,6 +19,7 @@
 
 #define STRA_TABLE_SIZE 512 
 #define SIG_BUFFER_SIZE 32 
+#define MAX_STRATEGY_KEY 3000 
 
 class X1FieldConverter
 {
@@ -86,6 +87,7 @@ class UniConsumer
 		TunnRptProducer *tunn_rpt_producer_;
 		PendingSigProducer *pendingsig_producer_;
 		CLoadLibraryProxy *pproxy_;
+		int32_t strategy_counter_;
 
 		Strategy stra_table_[STRA_TABLE_SIZE];
 		// key: contract; value: indices of strategies in stra_table_
@@ -93,6 +95,11 @@ class UniConsumer
 		// array[合约index]=策略索引数组。array是2维数组
 		// unordered_multimap
 		std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
+
+		// two-dimensional array
+//		int32_t key_table_[MAX_STRATEGY_KEY][MAX_STRATEGY_KEY];
+		int32_t stra_idx_[MAX_STRATEGY_KEY][MAX_STRATEGY_KEY];
+
 	
 		// key: strategy id; value: index of strategy in stra_table_
 		// TODO: 过规则，将策略ID变换成从0开始递增，可以：array[策略 id]=策略索引
@@ -102,6 +109,8 @@ class UniConsumer
 		StrategySetting CreateStrategySetting(const TiXmlElement *ele);
 		void ParseConfig();
 		void CreateStrategies();
+		void GetKeys(const char* contract, int &key1, int &key2);
+		int32_t GetEmptyNode();
 
 		// business logic
 		void ProcBestAndDeep(int32_t index);

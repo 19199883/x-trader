@@ -13,6 +13,10 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
   tunn_rpt_producer_(tunn_rpt_producer),
   pendingsig_producer_(pendingsig_producer)
 {
+	// two-dimensional array
+	// memset(key_table_, -1, sizeof(key_table_));
+	// memset(stra_idx_, -1, sizeof(stra_idx_));
+
 	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
@@ -118,11 +122,31 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 	return setting;
 }
 
+void UniConsumer::GetKeys(const char* contract, int &key1, int &key2)
+{
+	key1 = 0;
+	key2 = 0;
+	int i = 0;
+	for (; i < strlen(contract); i++){
+		if (isalpha(contract[i])) key1 += contract[i]; 
+		else{ break;}
+	}
+
+	key2 = atoi(contract +i);  // TODO: atoi
+}
+
+int32_t UniConsumer::GetEmptyNode()
+{
+	for(int i=0; i<MAX_STRATEGY_KEY; i++){
+		if(stra_idx_[i][0] < 0) return i;
+	}
+}
+
 void UniConsumer::CreateStrategies()
 {
 	strategy_counter_ = 0;
 	for (auto &setting : this->strategy_settings_){
-		stra_table_[i].Init(setting, this->pproxy_);
+		stra_table_[strategy_counter_].Init(setting, this->pproxy_);
 		// mapping table
 		straid_straidx_map_table_[setting.config.st_id] = strategy_counter_ ;
 
@@ -130,11 +154,28 @@ void UniConsumer::CreateStrategies()
 		// unordered_multimap
 		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
 
+		// two-dimensional array
+//		int key1 = 0;
+//		int key2 = 0;
+//		GetKeys(setting.config.symbols[0].name,key1,key2);
+//		int32_t cur_node = -1;
+//		if (key_table_[key1][key2] < 0){
+//			cur_node = GetEmptyNode();
+//			key_table_[key1][key2] = cur_node;
+//			break;
+//		} else { cur_node = key_table_[key1][key2]; }
+//		for(int i=0; i<MAX_STRATEGY_KEY; i++){
+//			if(stra_idx_[cur_node][i] < 0){
+//				stra_idx_[cur_node][i] = strategy_counter_;
+//				break;
+//			}
+//		}
+
 		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
-					module_name_, stra_table_[i].GetId(),
-					stra_table_[i].GetContract(), 
-					stra_table_[i].GetMaxPosition(), 
-					stra_table_[i].GetSoFile());
+					module_name_, stra_table_[strategy_counter_].GetId(),
+					stra_table_[strategy_counter_].GetContract(), 
+					stra_table_[strategy_counter_].GetMaxPosition(), 
+					stra_table_[strategy_counter_].GetSoFile());
 
 		strategy_counter_++;
 	}
@@ -202,11 +243,25 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	);
 
 	// strcmp
-//	for(int i=0; i<strategy_counter_; i++){ 
+//	for(int i = 0; i < strategy_counter_; i++){ 
 //		int sig_cnt = 0;
 //		Strategy &strategy = stra_table_[i];
-//		strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-//		ProcSigs(strategy, sig_cnt, sig_buffer_);
+//		if (strcmp(strategy.GetContract(), md->Contract) == 0){
+//			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//			ProcSigs(strategy, sig_cnt, sig_buffer_);
+//		}
+//	}
+
+
+	// two-dimensional array
+//	GetKeys(md->Contract,key1,key2);
+//	int32_t cur_node = key_table_[key1][key2]; 
+//	for(int i=0; i<MAX_STRATEGY_KEY; i++){
+//		if(stra_idx_[cur_node][i] >= 0){
+//			Strategy &strategy = stra_table_[i];
+//			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//			ProcSigs(strategy, sig_cnt, sig_buffer_);
+//		} else { break; }
 //	}
 }
 
@@ -229,11 +284,24 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 	);
 
 	//	strcmp
-//	for(int i=0; i<strategy_counter_; i++){ 
+//	for(int i = 0; i < strategy_counter_; i++){ 
 //		int sig_cnt = 0;
 //		Strategy &strategy = stra_table_[i];
-//		strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-//		ProcSigs(strategy, sig_cnt, sig_buffer_);
+//		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
+//			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//			ProcSigs(strategy, sig_cnt, sig_buffer_);
+//		}
+
+
+	// two-dimensional array
+//	GetKeys(md->ContractID,key1,key2);
+//	int32_t cur_node = key_table_[key1][key2]; 
+//	for(int i=0; i<MAX_STRATEGY_KEY; i++){
+//		if(stra_idx_[cur_node][i] >= 0){
+//			Strategy &strategy = stra_table_[i];
+//			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//			ProcSigs(strategy, sig_cnt, sig_buffer_);
+//		} else { break; }
 //	}
 }
 
