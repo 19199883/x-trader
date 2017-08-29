@@ -125,7 +125,9 @@ void UniConsumer::CreateStrategies()
 		stra_table_[i].Init(setting, this->pproxy_);
 		// mapping table
 		straid_straidx_map_table_[setting.config.st_id] = i;
+
 		// only support one contract for one strategy
+		// unordered_multimap
 		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, i);
 
 		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
@@ -187,6 +189,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 
 	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
 
+	// unordered_multimap
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
 	for_each (
 		range.first,
@@ -205,6 +208,7 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 
 	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
 
+	// unordered_multimap
 	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
 	for_each (
 		range.first,
