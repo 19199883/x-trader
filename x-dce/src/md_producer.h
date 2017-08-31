@@ -3,8 +3,8 @@
 
 #include <functional>
 #include <array>
-#include <thread>         // std::this_thread::sleep_for
-#include <chrono>         // std::chrono::seconds
+#include <thread>         
+#include <chrono>        
 #include "vrt_value_obj.h"
 #include "quote_interface_dce_level2.h"
 #include <tinyxml.h>

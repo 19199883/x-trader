@@ -16,12 +16,10 @@ std::mutex perf_ctx::mtx;
 //map<int, map<int,int>> perf_ctx::stra_sig_data_map_;
 
 perf_ctx::perf_ctx() {
-	// TODO Auto-generated constructor stub
 
 }
 
 perf_ctx::~perf_ctx() {
-	// TODO Auto-generated destructor stub
 }
 
 void perf_ctx::insert_t0(int data_cnt){

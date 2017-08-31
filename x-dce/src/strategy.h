@@ -21,9 +21,12 @@ using namespace std;
 #define STRATEGY_METHOD_SET_LOG_FN1 "SetLogFn1_"
 #define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
-// TODO:
+// 假设一个策略最多产生3000个信号
 #define SIGANDRPT_TABLE_SIZE 3000
+
+// 一个x-trader最多支持100个策略
 #define MAX_STRATEGY_COUNT 200
+
 #define MAX_LINES_FOR_LOG 80000
 
 struct StrategyPosition

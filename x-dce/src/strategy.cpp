@@ -192,17 +192,17 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_debug("[%s] rev MDBestAndDeep_MY contract:%s; time:%s", module_name_, md->Contract, md->GenTime);
 
-	// TODO: perf
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+	// perf
+	// high_resolution_clock::time_point t0 = high_resolution_clock::now();
 	
 	*sig_cnt = 0;
 	this->pfn_feedbestanddeep_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 
-		// TODO: perf
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+		// perf
+	//	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+	//	int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+	//	clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
 
 		sigs[i].st_id = this->GetId();
 		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
@@ -216,17 +216,17 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_debug("[%s] rev MDOrderStatistic_MY contract:%s", module_name_, md->ContractID);
 
-	// TODO: perf
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+	// perf
+	//high_resolution_clock::time_point t0 = high_resolution_clock::now();
 
 	*sig_cnt = 0;
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 
-		// TODO: perf
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+		// perf
+		//high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		//int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
+		//clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
 
 		sigs[i].st_id = this->GetId();
 		clog_debug("[%s] signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
@@ -282,7 +282,7 @@ long Strategy::GetLocalOrderID(int32_t sig_id)
 
 bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol)
 {
-	// TODO: 开仓限制要使用多空仓位的差值，锁仓部分不算
+	// 开仓限制要使用多空仓位的差值，锁仓部分不算
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		position_.frozen_open_long += updated_vol;
 	} else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
@@ -577,5 +577,4 @@ const char * Strategy::GetSymbol()
 
 void Strategy::WriteStrategyLog1()
 {
-	// TODO:
 }
