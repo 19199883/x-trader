@@ -1,6 +1,6 @@
-#include <thread>         // std::this_thread::sleep_for
-#include <chrono>         // std::chrono::seconds
-#include <algorithm>    // std::for_each
+#include <thread>         
+#include <chrono>        
+#include <algorithm>    
 #include "uni_consumer.h"
 #include "pos_calcu.h"
 #include "perfctx.h"
@@ -13,9 +13,21 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
   tunn_rpt_producer_(tunn_rpt_producer),
   pendingsig_producer_(pendingsig_producer)
 {
-	// two-dimensional array
-	//memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
-	//memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
+#if FIND_STRATEGIES == 1
+	// unordered_multimap 
+	//clog_info("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
+#endif
+
+#if FIND_STRATEGIES == 2 // two-dimensional array
+	memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
+	memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
+	clog_info("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
+#endif	
+
+#if FIND_STRATEGIES == 3
+	// strcmp
+	//clog_info("[%s] method for finding strategies by contract:strcmp", module_name_);
+#endif
 
 	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
@@ -132,16 +144,17 @@ void UniConsumer::GetKeys(const char* contract, int &key1, int &key2)
 		else{ break;}
 	}
 
-	key2 = atoi(contract +i);  // TODO: atoi
+	key2 = atoi(contract +i);   
 }
 
-// two-dimensional array
-//int32_t UniConsumer::GetEmptyNode()
-//{
-//	for(int i=0; i < STRA_TABLE_SIZE; i++){
-//		if(stra_idx_table_[i][0] < 0) return i;
-//	}
-//}
+#if FIND_STRATEGIES== 2 // two-dimensional array
+int32_t UniConsumer::GetEmptyNode()
+{
+	for(int i=0; i < STRA_TABLE_SIZE; i++){
+		if(stra_idx_table_[i][0] < 0) return i;
+	}
+}
+#endif
 
 void UniConsumer::CreateStrategies()
 {
@@ -151,24 +164,27 @@ void UniConsumer::CreateStrategies()
 		// mapping table
 		straid_straidx_map_table_[setting.config.st_id] = strategy_counter_ ;
 
+#if FIND_STRATEGIES == 1 //unordered_multimap  
 		// only support one contract for one strategy
-		// cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
+		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
+#endif
 
-		// two-dimensional array
-//		int key1 = 0;
-//		int key2 = 0;
-//		GetKeys(setting.config.symbols[0].name,key1,key2);
-//		int32_t cur_node = -1;
-//		if (cont_straidx_map_table_[key1][key2] < 0){
-//			cur_node = GetEmptyNode();
-//			cont_straidx_map_table_[key1][key2] = cur_node;
-//		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
-//		for(int i=0; i < STRA_TABLE_SIZE; i++){
-//			if(stra_idx_table_[cur_node][i] < 0){
-//				stra_idx_table_[cur_node][i] = strategy_counter_;
-//				break;
-//			}
-//		}
+#if FIND_STRATEGIES == 2 // two-dimensional array
+		int key1 = 0;
+		int key2 = 0;
+		GetKeys(setting.config.symbols[0].name,key1,key2);
+		int32_t cur_node = -1;
+		if (cont_straidx_map_table_[key1][key2] < 0){
+			cur_node = GetEmptyNode();
+			cont_straidx_map_table_[key1][key2] = cur_node;
+		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
+		for(int i=0; i < STRA_TABLE_SIZE; i++){
+			if(stra_idx_table_[cur_node][i] < 0){
+				stra_idx_table_[cur_node][i] = strategy_counter_;
+				break;
+			}
+		}
+#endif
 
 		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),
@@ -229,19 +245,37 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 
 	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
 
-	// unordered_multimap
-//	auto range = cont_straidx_map_table_.equal_range(md->Contract);
-//	for_each (
-//		range.first,
-//		range.second,
-//		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-//			int sig_cnt = 0;
-//			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
-//			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-//		}
-//	);
+#if FIND_STRATEGIES == 1 //unordered_multimap  
+	auto range = cont_straidx_map_table_.equal_range(md->Contract);
+	for_each (
+		range.first,
+		range.second,
+		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+			int sig_cnt = 0;
+			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
+			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
+		}
+	);
+#endif
 
-	// strcmp
+#if FIND_STRATEGIES == 2 //  two-dimensional array
+	int32_t key1,key2;
+	int32_t sig_cnt = 0;
+	GetKeys(md->Contract,key1,key2);
+	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
+	if (cur_node >= 0){
+		for(int i=0; i < STRA_TABLE_SIZE; i++){
+			if(stra_idx_table_[cur_node][i] >= 0){
+				int32_t stra_idx = stra_idx_table_[cur_node][i];
+				Strategy &strategy = stra_table_[stra_idx];
+				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+				ProcSigs(strategy, sig_cnt, sig_buffer_);
+			} else { break; }
+		}
+	}
+#endif
+
+#if FIND_STRATEGIES == 3 // strcmp
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
@@ -250,23 +284,8 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
+#endif
 
-
-	// two-dimensional array
-//	int32_t key1,key2;
-//	int32_t sig_cnt = 0;
-//	GetKeys(md->Contract,key1,key2);
-//	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-//	if (cur_node >= 0){
-//		for(int i=0; i < STRA_TABLE_SIZE; i++){
-//			if(stra_idx_table_[cur_node][i] >= 0){
-//				int32_t stra_idx = stra_idx_table_[cur_node][i];
-//				Strategy &strategy = stra_table_[stra_idx];
-//				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-//				ProcSigs(strategy, sig_cnt, sig_buffer_);
-//			} else { break; }
-//		}
-//	}
 }
 
 void UniConsumer::ProcOrderStatistic(int32_t index)
@@ -275,19 +294,37 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 
 	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
 
-	// unordered_multimap
-//	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
-//	for_each (
-//		range.first,
-//		range.second,
-//		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-//			int sig_cnt = 0;
-//			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
-//			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-//		}
-//	);
+#if FIND_STRATEGIES == 1 // unordered_multimap
+	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
+	for_each (
+		range.first,
+		range.second,
+		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+			int sig_cnt = 0;
+			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
+			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
+		}
+	);
+#endif
 
-	//	strcmp
+#if FIND_STRATEGIES == 2 // two-dimensional array
+	int32_t key1,key2;
+	int32_t sig_cnt = 0;
+	GetKeys(md->ContractID,key1,key2);
+	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
+	if (cur_node >= 0){
+		for(int i=0; i < STRA_TABLE_SIZE; i++){
+			if(stra_idx_table_[cur_node][i] >= 0){
+				int32_t stra_idx = stra_idx_table_[cur_node][i];
+				Strategy &strategy = stra_table_[stra_idx];
+				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+				ProcSigs(strategy, sig_cnt, sig_buffer_);
+			} else { break; }		
+		}
+	}
+#endif
+
+#if FIND_STRATEGIES == 3 //strcmp
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
@@ -296,30 +333,13 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
+#endif
 
 
-	// two-dimensional array
-//	int32_t key1,key2;
-//	int32_t sig_cnt = 0;
-//	GetKeys(md->ContractID,key1,key2);
-//	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-//	if (cur_node >= 0){
-//		for(int i=0; i < STRA_TABLE_SIZE; i++){
-//			if(stra_idx_table_[cur_node][i] >= 0){
-//				int32_t stra_idx = stra_idx_table_[cur_node][i];
-//				Strategy &strategy = stra_table_[stra_idx];
-//				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-//				ProcSigs(strategy, sig_cnt, sig_buffer_);
-//			} else { break; }		
-//		}
-//	}
 }
 
 void UniConsumer::ProcPendingSig(int32_t index)
 {
-	// TODO: debug
-	std::this_thread::sleep_for (std::chrono::milliseconds(1));
-
 	signal_t* sig = pendingsig_producer_->GetSignal(index);
 
 	clog_debug("[%s] [ProcPendingSig] index: %d; strategy id:%d; sig id: %d", module_name_, index, sig->st_id, sig->sig_id);
