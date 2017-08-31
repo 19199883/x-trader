@@ -19,7 +19,11 @@
 
 #define STRA_TABLE_SIZE 512 
 #define SIG_BUFFER_SIZE 32 
-#define MAX_STRATEGY_KEY 3000 
+
+// key2: stoi(年月)，如1801
+#define MAX_STRATEGY_KEY2 3000 
+// 品种字符相加：如jd1801，key1: j+d(ascii 值相加
+#define MAX_STRATEGY_KEY1 500
 
 class X1FieldConverter
 {
@@ -90,19 +94,15 @@ class UniConsumer
 		int32_t strategy_counter_;
 
 		Strategy stra_table_[STRA_TABLE_SIZE];
-		// key: contract; value: indices of strategies in stra_table_
-		// TODO:过将合约的每个字符加起来作为数据索引(合约index)，
-		// array[合约index]=策略索引数组。array是2维数组
-		// unordered_multimap
-		std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
+
+		// unordered_multimap  key: contract; value: indices of strategies in stra_table_
+		//std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
 
 		// two-dimensional array
-//		int32_t key_table_[MAX_STRATEGY_KEY][MAX_STRATEGY_KEY];
-		int32_t stra_idx_[MAX_STRATEGY_KEY][MAX_STRATEGY_KEY];
+		//int32_t stra_idx_table_[STRA_TABLE_SIZE][STRA_TABLE_SIZE];
+		//int32_t cont_straidx_map_table_[MAX_STRATEGY_KEY1][MAX_STRATEGY_KEY2];
 
-	
 		// key: strategy id; value: index of strategy in stra_table_
-		// TODO: 过规则，将策略ID变换成从0开始递增，可以：array[策略 id]=策略索引
 		int32_t straid_straidx_map_table_[STRA_TABLE_SIZE];
 
 		std::list<StrategySetting> strategy_settings_;

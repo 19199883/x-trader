@@ -14,8 +14,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
   pendingsig_producer_(pendingsig_producer)
 {
 	// two-dimensional array
-	// memset(key_table_, -1, sizeof(key_table_));
-	// memset(stra_idx_, -1, sizeof(stra_idx_));
+	//memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
+	//memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
 
 	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
@@ -135,12 +135,13 @@ void UniConsumer::GetKeys(const char* contract, int &key1, int &key2)
 	key2 = atoi(contract +i);  // TODO: atoi
 }
 
-int32_t UniConsumer::GetEmptyNode()
-{
-	for(int i=0; i<MAX_STRATEGY_KEY; i++){
-		if(stra_idx_[i][0] < 0) return i;
-	}
-}
+// two-dimensional array
+//int32_t UniConsumer::GetEmptyNode()
+//{
+//	for(int i=0; i < STRA_TABLE_SIZE; i++){
+//		if(stra_idx_table_[i][0] < 0) return i;
+//	}
+//}
 
 void UniConsumer::CreateStrategies()
 {
@@ -151,22 +152,20 @@ void UniConsumer::CreateStrategies()
 		straid_straidx_map_table_[setting.config.st_id] = strategy_counter_ ;
 
 		// only support one contract for one strategy
-		// unordered_multimap
-		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
+		// cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
 
 		// two-dimensional array
 //		int key1 = 0;
 //		int key2 = 0;
 //		GetKeys(setting.config.symbols[0].name,key1,key2);
 //		int32_t cur_node = -1;
-//		if (key_table_[key1][key2] < 0){
+//		if (cont_straidx_map_table_[key1][key2] < 0){
 //			cur_node = GetEmptyNode();
-//			key_table_[key1][key2] = cur_node;
-//			break;
-//		} else { cur_node = key_table_[key1][key2]; }
-//		for(int i=0; i<MAX_STRATEGY_KEY; i++){
-//			if(stra_idx_[cur_node][i] < 0){
-//				stra_idx_[cur_node][i] = strategy_counter_;
+//			cont_straidx_map_table_[key1][key2] = cur_node;
+//		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
+//		for(int i=0; i < STRA_TABLE_SIZE; i++){
+//			if(stra_idx_table_[cur_node][i] < 0){
+//				stra_idx_table_[cur_node][i] = strategy_counter_;
 //				break;
 //			}
 //		}
@@ -231,37 +230,42 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
 
 	// unordered_multimap
-	auto range = cont_straidx_map_table_.equal_range(md->Contract);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
+//	auto range = cont_straidx_map_table_.equal_range(md->Contract);
+//	for_each (
+//		range.first,
+//		range.second,
+//		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+//			int sig_cnt = 0;
+//			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
+//			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
+//		}
+//	);
 
 	// strcmp
-//	for(int i = 0; i < strategy_counter_; i++){ 
-//		int sig_cnt = 0;
-//		Strategy &strategy = stra_table_[i];
-//		if (strcmp(strategy.GetContract(), md->Contract) == 0){
-//			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-//			ProcSigs(strategy, sig_cnt, sig_buffer_);
-//		}
-//	}
+	for(int i = 0; i < strategy_counter_; i++){ 
+		int sig_cnt = 0;
+		Strategy &strategy = stra_table_[i];
+		if (strcmp(strategy.GetContract(), md->Contract) == 0){
+			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+			ProcSigs(strategy, sig_cnt, sig_buffer_);
+		}
+	}
 
 
 	// two-dimensional array
+//	int32_t key1,key2;
+//	int32_t sig_cnt = 0;
 //	GetKeys(md->Contract,key1,key2);
-//	int32_t cur_node = key_table_[key1][key2]; 
-//	for(int i=0; i<MAX_STRATEGY_KEY; i++){
-//		if(stra_idx_[cur_node][i] >= 0){
-//			Strategy &strategy = stra_table_[i];
-//			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-//			ProcSigs(strategy, sig_cnt, sig_buffer_);
-//		} else { break; }
+//	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
+//	if (cur_node >= 0){
+//		for(int i=0; i < STRA_TABLE_SIZE; i++){
+//			if(stra_idx_table_[cur_node][i] >= 0){
+//				int32_t stra_idx = stra_idx_table_[cur_node][i];
+//				Strategy &strategy = stra_table_[stra_idx];
+//				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//				ProcSigs(strategy, sig_cnt, sig_buffer_);
+//			} else { break; }
+//		}
 //	}
 }
 
@@ -272,36 +276,42 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
 
 	// unordered_multimap
-	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
+//	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
+//	for_each (
+//		range.first,
+//		range.second,
+//		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
+//			int sig_cnt = 0;
+//			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
+//			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
+//		}
+//	);
 
 	//	strcmp
-//	for(int i = 0; i < strategy_counter_; i++){ 
-//		int sig_cnt = 0;
-//		Strategy &strategy = stra_table_[i];
-//		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
-//			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-//			ProcSigs(strategy, sig_cnt, sig_buffer_);
-//		}
+	for(int i = 0; i < strategy_counter_; i++){ 
+		int sig_cnt = 0;
+		Strategy &strategy = stra_table_[i];
+		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
+			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+			ProcSigs(strategy, sig_cnt, sig_buffer_);
+		}
+	}
 
 
 	// two-dimensional array
+//	int32_t key1,key2;
+//	int32_t sig_cnt = 0;
 //	GetKeys(md->ContractID,key1,key2);
-//	int32_t cur_node = key_table_[key1][key2]; 
-//	for(int i=0; i<MAX_STRATEGY_KEY; i++){
-//		if(stra_idx_[cur_node][i] >= 0){
-//			Strategy &strategy = stra_table_[i];
-//			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-//			ProcSigs(strategy, sig_cnt, sig_buffer_);
-//		} else { break; }
+//	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
+//	if (cur_node >= 0){
+//		for(int i=0; i < STRA_TABLE_SIZE; i++){
+//			if(stra_idx_table_[cur_node][i] >= 0){
+//				int32_t stra_idx = stra_idx_table_[cur_node][i];
+//				Strategy &strategy = stra_table_[stra_idx];
+//				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//				ProcSigs(strategy, sig_cnt, sig_buffer_);
+//			} else { break; }		
+//		}
 //	}
 }
 
