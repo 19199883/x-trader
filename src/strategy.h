@@ -21,8 +21,9 @@ using namespace std;
 #define STRATEGY_METHOD_SET_LOG_FN1 "SetLogFn1_"
 #define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
-#define SIGANDRPT_TABLE_SIZE 2048
-#define MAX_STRATEGY_COUNT 100
+// TODO:
+#define SIGANDRPT_TABLE_SIZE 3000
+#define MAX_STRATEGY_COUNT 200
 #define MAX_LINES_FOR_LOG 80000
 
 struct StrategyPosition

@@ -282,6 +282,7 @@ long Strategy::GetLocalOrderID(int32_t sig_id)
 
 bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol)
 {
+	// TODO: 开仓限制要使用多空仓位的差值，锁仓部分不算
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		position_.frozen_open_long += updated_vol;
 	} else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
@@ -303,35 +304,41 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 				position_.frozen_open_long, position_.frozen_open_short);
 }
 
-bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, int32_t& updated_vol)
+bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, 
+			unsigned short int sig_act, int32_t vol, int32_t& updated_vol)
 {
 	bool result = false;
 	updated_vol = 0;
 
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_open_long==0){
-			updated_vol = GetMaxPosition() - position_.cur_long;
+			updated_vol = GetMaxPosition() - position_.cur_long + position_.cur_short;
 			result = false;
 		} else { result = true; }
 	}
 	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
 		if (position_.frozen_open_short==0){
-			updated_vol = GetMaxPosition() - position_.cur_short;
+			updated_vol = GetMaxPosition() - position_.cur_short + position_.cur_long;
 			result = false;
 		} else { result = true; }
 	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_close_short==0){
-			updated_vol = position_.cur_short;
+			updated_vol = GetMaxPosition()+ position_.cur_short - position_.cur_long;
+			if (updated_vol >  position_.cur_short) updated_vol =  position_.cur_short;
 			result = false;
 		} else { result = true; }
 	}
 	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
 		if (position_.frozen_close_long==0){
-			updated_vol = position_.cur_long;
+			updated_vol = GetMaxPosition() + position_.cur_long - position_.cur_short;
+			if (updated_vol >  position_.cur_long) updated_vol =  position_.cur_long;
 			result = false;
 		} else { result = true; }
 	}
-	else{ clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d",module_name_, setting_.config.st_id, sig_act, sig_openclose); }
+	else{ 
+		clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d",
+				module_name_, setting_.config.st_id, sig_act, sig_openclose); 
+	}
 
 	if (updated_vol > vol) updated_vol = vol; 
 
