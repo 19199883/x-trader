@@ -29,7 +29,7 @@
 // 1: unordered_multimap  
 // 2: two-dimensional array
 // 3: strcmp
-#define FIND_STRATEGIES 2
+#define FIND_STRATEGIES 3
 
 class X1FieldConverter
 {

@@ -67,12 +67,12 @@ void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
 	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
 	if (strlen(md->Contract) > 6) return;
 
-//#ifdef LATENCY_MEASURE
+#ifdef LATENCY_MEASURE
 	// latency measure
-	static int cnt = 0;
-	perf_ctx::insert_t0(cnt);
-	cnt++;
-//#endif
+//	static int cnt = 0;
+//	perf_ctx::insert_t0(cnt);
+//	cnt++;
+#endif
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -115,9 +115,9 @@ void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md)
 
 #ifdef LATENCY_MEASURE
 	// latency measure
-	static int cnt = 0;
-	perf_ctx::insert_t0(cnt);
-	cnt++;
+//	static int cnt = 0;
+//	perf_ctx::insert_t0(cnt);
+//	cnt++;
 #endif
 
 	struct vrt_value  *vvalue;
