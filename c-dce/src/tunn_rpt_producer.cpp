@@ -20,16 +20,12 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
-
-	//rip_check(producer = vrt_producer_new("tunnrpt_producer", 1, queue));
-
 	this->producer_ = producer;
 	this->producer_ ->yield = vrt_yield_strategy_threaded();
 
 	// create X1 object
 	clog_info("[%s] X1 Api: connection to front machine succeeds.", module_name_);
 
-	// TODO: here
 	api_ = CreateExchange(config_);
 
 	auto fn_ord_resf = bind(&TunnRptProducer::OnRspInsertOrder, this, _1,_2);
@@ -89,6 +85,22 @@ void TunnRptProducer::ParseConfig()
 
 int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
 {
+	// TODO:
+		T_PlaceOrder chn_ord;
+		chn_ord.direction = ord.side;
+		chn_ord.limit_price = ord.price;
+		chn_ord.open_close = ord.position_effect;
+		chn_ord.order_kind = ord.price_type;
+		chn_ord.order_type = ord.ord_type;
+		chn_ord.serial_no = ord.cl_ord_id;
+		chn_ord.speculator = ord.sah_;
+		chn_ord.exchange_type = ord.exchange;
+		strcpy(chn_ord.stock_code,ord.symbol.c_str());
+		chn_ord.volume = ord.volume;
+		this->channel->PlaceOrder(&chn_ord);
+
+
+
 	int ret = api_->ReqInsertOrder(p);
 	
 	// report rejected if ret!=0
@@ -120,6 +132,22 @@ int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
 // 撤单操作请求
 int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
 {
+	// TODO:
+		T_CancelOrder chn_ord;
+ 		chn_ord.direction = ord.side;
+		chn_ord.limit_price = ord.price;
+		chn_ord.open_close = ord.position_effect;
+		chn_ord.serial_no = ord.cl_ord_id;
+		chn_ord.speculator = '0';
+		strcpy(chn_ord.stock_code,ord.symbol.c_str());
+		chn_ord.volume = ord.volume;
+		chn_ord.org_serial_no = ord.orig_cl_ord_id;
+		chn_ord.entrust_no = ord.orig_ord_id;
+		chn_ord.exchange_type = ord.exchange;
+		this->channel->CancelOrder(&chn_ord);
+
+
+
 	int ret = api_->ReqCancelOrder(p);
 
 	if (ret != 0){
@@ -132,21 +160,6 @@ int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
 
 	return ret;
 }
-
-void TunnRptProducer::ReqLogin()
-{
-    CX1FtdcReqUserLoginField login_data;
-    memset(&login_data, 0, sizeof(CX1FtdcReqUserLoginField));
-    strncpy(login_data.AccountID, this->config_.userid.c_str(), sizeof(login_data.AccountID));
-    strncpy(login_data.Password, this->config_.password.c_str(), sizeof(login_data.Password));
-    
-	int rtn = api_->ReqUserLogin(&login_data);
-
-    clog_info("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
-    clog_info("[%s] ReqLogin:   %s", 
-			module_name_, X1DatatypeFormater::ToString(&login_data).c_str());
-}
-
 
 void TunnRptProducer::End()
 {
