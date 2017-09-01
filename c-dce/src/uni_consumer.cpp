@@ -379,6 +379,22 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
+	// TODO:
+		T_CancelOrder chn_ord;
+ 		chn_ord.direction = ord.side;
+		chn_ord.limit_price = ord.price;
+		chn_ord.open_close = ord.position_effect;
+		chn_ord.serial_no = ord.cl_ord_id;
+		chn_ord.speculator = '0';
+		strcpy(chn_ord.stock_code,ord.symbol.c_str());
+		chn_ord.volume = ord.volume;
+		chn_ord.org_serial_no = ord.orig_cl_ord_id;
+		chn_ord.entrust_no = ord.orig_ord_id;
+		chn_ord.exchange_type = ord.exchange;
+		this->channel->CancelOrder(&chn_ord);
+
+
+
 	if (!strategy.HasFrozenPosition()){
 		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
@@ -406,6 +422,22 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
+	// TODO:
+		T_PlaceOrder chn_ord;
+		chn_ord.direction = ord.side;
+		chn_ord.limit_price = ord.price;
+		chn_ord.open_close = ord.position_effect;
+		chn_ord.order_kind = ord.price_type;
+		chn_ord.order_type = ord.ord_type;
+		chn_ord.serial_no = ord.cl_ord_id;
+		chn_ord.speculator = ord.sah_;
+		chn_ord.exchange_type = ord.exchange;
+		strcpy(chn_ord.stock_code,ord.symbol.c_str());
+		chn_ord.volume = ord.volume;
+		this->channel->PlaceOrder(&chn_ord);
+
+
+
 	int32_t vol = 0;
 	int32_t updated_vol = 0;
 	if (sig.sig_openclose == alloc_position_effect_t::open_){

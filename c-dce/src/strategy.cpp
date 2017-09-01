@@ -499,6 +499,9 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 	sigrpt.exec_volume = tunnrpt.MatchedAmount;
 	sigrpt.acc_volume += tunnrpt.MatchedAmount;
 
+	// TODO: 因MyExchange成交回报没有状态字段，故在接收是杜撰一个“部分成交状态”，
+	// 此处根据委托量和累计成交量决定最终状态
+
 	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
 		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
 		tunnrpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
