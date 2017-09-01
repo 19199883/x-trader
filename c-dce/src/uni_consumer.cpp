@@ -379,38 +379,17 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
-	// TODO:
-		T_CancelOrder chn_ord;
- 		chn_ord.direction = ord.side;
-		chn_ord.limit_price = ord.price;
-		chn_ord.open_close = ord.position_effect;
-		chn_ord.serial_no = ord.cl_ord_id;
-		chn_ord.speculator = '0';
-		strcpy(chn_ord.stock_code,ord.symbol.c_str());
-		chn_ord.volume = ord.volume;
-		chn_ord.org_serial_no = ord.orig_cl_ord_id;
-		chn_ord.entrust_no = ord.orig_ord_id;
-		chn_ord.exchange_type = ord.exchange;
-		this->channel->CancelOrder(&chn_ord);
-
-
-
 	if (!strategy.HasFrozenPosition()){
 		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}
 	
-    CX1FtdcCancelOrderField cancel_order;
-    memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
-	// get LocalOrderID by signal ID
-	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
-	// only use LocalOrderID to cancel order
-    cancel_order.X1OrderID = 0; 
-    //strncpy(cancle_order.AccountID, cfg.Logon_config().clientid.c_str(), sizeof(TX1FtdcAccountIDType));
-    strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
-
-	clog_debug("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
-				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID, cancel_order.InstrumentID); 
+    T_CancelOrder cancel_order;
+    memset(&cancel_order, 0, sizeof(T_CancelOrder));
+	cancel_order.serial_no = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+	cancel_order.org_serial_no = strategy.GetLocalOrderID(sig.orig_sig_id);
+    cancel_order.entrust_no = 0; // only use LocalOrderID to cancel order
+    strncpy(cancel_order.stock_code, sig.symbol, sizeof(StockCodeType));
 
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
 
@@ -422,7 +401,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
-	// TODO:
+	// TODO: to here
 		T_PlaceOrder chn_ord;
 		chn_ord.direction = ord.side;
 		chn_ord.limit_price = ord.price;
