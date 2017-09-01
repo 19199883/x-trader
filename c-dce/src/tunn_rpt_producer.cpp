@@ -4,6 +4,9 @@
 #include <tinystr.h>
 #include "x1_data_formater.h"
 
+using namespace std;
+using namespace std::placeholders;
+
 // need to be changed
 //集成Myexchange
 
@@ -27,19 +30,16 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	clog_info("[%s] X1 Api: connection to front machine succeeds.", module_name_);
 
 	// TODO: here
-	channel = MyExchangeFactory::create(this->setting.so_file,this->setting.my_xchg_cfg_);
-	std::function<void (const T_OrderRespond *, const T_PositionData *)> ord_resf =
-			std::bind(&tcs::rev_ord_response, this, std::placeholders::_1,std::placeholders::_2);
-	channel->SetCallbackHandler(ord_resf);
-	std::function<void (const T_CancelRespond *)> cancel_resf =
-			std::bind(&tcs::rev_cancel_ord_response, this, std::placeholders::_1);
-	channel->SetCallbackHandler(cancel_resf);
-	std::function<void (const T_OrderReturn *, const T_PositionData *)> ord_rtnf =
-			std::bind(&tcs::rev_ord_return, this, std::placeholders::_1,std::placeholders::_2);
-	channel->SetCallbackHandler(ord_rtnf);
-	std::function<void (const T_TradeReturn *, const T_PositionData *)> trad_rtnf =
-			std::bind(&tcs::rev_trade_return, this, std::placeholders::_1,std::placeholders::_2);
-	channel->SetCallbackHandler(trad_rtnf);
+	api_ = CreateExchange(config_);
+
+	auto fn_ord_resf = bind(&TunnRptProducer::OnRspInsertOrder, this, _1,_2);
+	api_->SetCallbackHandler(fn_ord_resf);
+	auto fn_cancel_resf = bind(&TunnRptProducer::OnRspCancelOrder, this, _1);
+	api_->SetCallbackHandler(fn_cancel_resf);
+	auto fn_ord_rtnf = bind(&TunnRptProducer::OnRtnOrder, this, _1,_2);
+	api_->SetCallbackHandler(fn_ord_rtnf);
+	auto fn_trad_rtnf = bind(&TunnRptProducer::OnRtnMatchedInfo, this, _1,_2);
+	api_->SetCallbackHandler(fn_trad_rtnf);
 }
 
 TunnRptProducer::~TunnRptProducer()
@@ -51,7 +51,7 @@ TunnRptProducer::~TunnRptProducer()
 //	}
 
     if (api_) {
-        api_->Release();
+        DestroyExchange(api_);
         api_ = NULL;
     }
 }
@@ -154,8 +154,12 @@ void TunnRptProducer::End()
 	(vrt_producer_eof(producer_));
 }
 
-void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
+void TunnRptProducer::OnRspInsertOrder(const T_OrderRespond *ord_res,
+			const T_PositionData *pos)
 {
+	// TODO:
+	
+	
     clog_debug("[%s] OnRspInsertOrder ended_:%d", ended_);
 
 	if (ended_) return;
@@ -213,8 +217,11 @@ int32_t TunnRptProducer::Push(const TunnRpt& rpt)
 	return cursor;
 }
 
-void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
+void TunnRptProducer::OnRspCancelOrder(const T_CancelRespond *canel_res)
 {
+	// TODO:
+	
+	
     clog_debug("[%s] OnRspCancelOrder ended_:%d", ended_);
 
 	if (ended_) return;
@@ -287,8 +294,11 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 	(vrt_producer_publish(producer_));
 }
 
-void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfield)
+void TunnRptProducer::OnRtnMatchedInfo(const T_TradeReturn *trade_rtn, const T_PositionData *pos)
 {
+	// TODO:
+	
+	
     clog_debug("[%s] OnRtnMatchedInfo ended_:%d", ended_);
 
 	if (ended_) return;
@@ -314,8 +324,11 @@ void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfiel
 	(vrt_producer_publish(producer_));
 }
 
-void TunnRptProducer::OnRtnOrder(struct CX1FtdcRspPriOrderField* pfield)
+void TunnRptProducer::OnRtnOrder(const T_OrderReturn *ord_rtn, const T_PositionData * pos)
 {
+	// TODO:
+	
+	
     clog_debug("[%s] OnRtnOrderended_:%d", ended_);
 
 	if (ended_) return;

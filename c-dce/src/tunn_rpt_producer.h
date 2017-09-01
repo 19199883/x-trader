@@ -59,15 +59,16 @@ class TunnRptProducer
 		MYExchangeInterface *channel;
 
 		//委托下单响应
-		virtual void OnRspInsertOrder(struct CX1FtdcRspOperOrderField *pf, struct CX1FtdcRspErrorField *pe);
+		void OnRspInsertOrder(const T_OrderRespond *ord_res, const T_PositionData *posstruct);
 		//委托撤单响应
-		virtual void OnRspCancelOrder(struct CX1FtdcRspOperOrderField *pf, struct CX1FtdcRspErrorField *pe);
+		void OnRspCancelOrder(const T_CancelRespond *canel_res);
+		//委托回报
+		void OnRtnOrder(const T_OrderReturn *ord_rtn, const T_PositionData * pos);
+		//成交回报
+		void OnRtnMatchedInfo(const T_TradeReturn *trade_rtn, const T_PositionData *pos);
+
 		//错误回报
 		virtual void OnRtnErrorMsg(struct CX1FtdcRspErrorField *pf);
-		//成交回报
-		virtual void OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField *pf);
-		//委托回报
-		virtual void OnRtnOrder(struct CX1FtdcRspPriOrderField *pf);
 		//撤单回报
 		virtual void OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField *pf);
 

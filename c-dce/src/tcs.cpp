@@ -1,31 +1,3 @@
-void tcs::initialize(void)
-{
-	channel = MyExchangeFactory::create(this->setting.so_file,this->setting.my_xchg_cfg_);
-
-	std::function<void (const T_OrderRespond *, const T_PositionData *)> ord_resf = std::bind(&tcs::rev_ord_response, this, std::placeholders::_1,std::placeholders::_2);
-	channel->SetCallbackHandler(ord_resf);
-
-	std::function<void (const T_CancelRespond *)> cancel_resf = std::bind(&tcs::rev_cancel_ord_response, this, std::placeholders::_1);
-	channel->SetCallbackHandler(cancel_resf);
-
-	std::function<void (const T_OrderReturn *, const T_PositionData *)> ord_rtnf = std::bind(&tcs::rev_ord_return, this, std::placeholders::_1,std::placeholders::_2);
-	channel->SetCallbackHandler(ord_rtnf);
-
-	std::function<void (const T_TradeReturn *, const T_PositionData *)> trad_rtnf = std::bind(&tcs::rev_trade_return, this, std::placeholders::_1,std::placeholders::_2);
-	channel->SetCallbackHandler(trad_rtnf);
-}
-
-void tcs::finalize(void) {	
-	if (this->channel !=0) {
-		MyExchangeFactory::destroy(this->setting.so_file,this->channel);
-		this->channel = 0;
-	}
-}
-
-void tcs::rev_ord_response(const T_OrderRespond *ord_res, const T_PositionData *pos) { }
-void tcs::rev_cancel_ord_response(const T_CancelRespond *canel_res) { }
-void tcs::rev_ord_return(const T_OrderReturn *ord_rtn, const T_PositionData * pos) { }
-void tcs::rev_trade_return(const T_TradeReturn *trade_rtn, const T_PositionData *pos) { }
 void tcs::place_request(const my_order &ord)
 {
 		T_PlaceOrder chn_ord;
