@@ -4,6 +4,9 @@
 #include <tinystr.h>
 #include "x1_data_formater.h"
 
+// need to be changed
+//集成Myexchange
+
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
@@ -21,18 +24,22 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	this->producer_ ->yield = vrt_yield_strategy_threaded();
 
 	// create X1 object
-	char addr[2048];
-	strcpy(addr, this->config_.address.c_str());
-    api_ = CX1FtdcTraderApi::CreateCX1FtdcTraderApi(); 
-	while (1) {
-		if (-1 == api_->Init(addr, this)) {
-			clog_error("[%s] X1 Api init failed.", module_name_);
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
-		else break;
-	}
-
 	clog_info("[%s] X1 Api: connection to front machine succeeds.", module_name_);
+
+	// TODO: here
+	channel = MyExchangeFactory::create(this->setting.so_file,this->setting.my_xchg_cfg_);
+	std::function<void (const T_OrderRespond *, const T_PositionData *)> ord_resf =
+			std::bind(&tcs::rev_ord_response, this, std::placeholders::_1,std::placeholders::_2);
+	channel->SetCallbackHandler(ord_resf);
+	std::function<void (const T_CancelRespond *)> cancel_resf =
+			std::bind(&tcs::rev_cancel_ord_response, this, std::placeholders::_1);
+	channel->SetCallbackHandler(cancel_resf);
+	std::function<void (const T_OrderReturn *, const T_PositionData *)> ord_rtnf =
+			std::bind(&tcs::rev_ord_return, this, std::placeholders::_1,std::placeholders::_2);
+	channel->SetCallbackHandler(ord_rtnf);
+	std::function<void (const T_TradeReturn *, const T_PositionData *)> trad_rtnf =
+			std::bind(&tcs::rev_trade_return, this, std::placeholders::_1,std::placeholders::_2);
+	channel->SetCallbackHandler(trad_rtnf);
 }
 
 TunnRptProducer::~TunnRptProducer()
@@ -56,18 +63,28 @@ void TunnRptProducer::ParseConfig()
     TiXmlElement *RootElement = config.RootElement();    
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
 	if (tunn_node != NULL){
-		this->config_.address = tunn_node->Attribute("address");
-		this->config_.brokerid = tunn_node->Attribute("brokerid");
-		this->config_.userid = tunn_node->Attribute("userid");
-		this->config_.password = tunn_node->Attribute("password");
+		string tunn_conf = tunn_node->Attribute("tunnelConfig");
+		strcpy(config_.tunnel_cfg_path, tunn_conf.c_str());
+		string tunnel_so = tunn_node->Attribute("tunnelSo");
+		strcpy(config_.tunnel_so_path, tunnel_so.tunnel_so_file.c_str());
+		tunn_node->QueryIntAttribute("initPosAtStart", &config_.init_pos_at_start);
+		tunn_node->QueryIntAttribute("modelCtrlOc", &config_.st_ctrl_oc);
+		tunn_node->QueryIntAttribute("changeOcFlag", &config_.change_oc_flag);
+		tunn_node->QueryIntAttribute("initPosFromEv", &config_.init_pos_from_ev);	
 
-		clog_info("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
+		clog_info("[%s] tunn config:tunnelConfig:%s; tunnelSo:%s; "
+					"initPosAtStart:%d; modelCtrlOc:%d"
+					"changeOcFlag:%d; initPosFromEv:%d",
 					module_name_, 
-					this->config_.address.c_str(), 
-					this->config_.brokerid.c_str(),
-					this->config_.userid.c_str(),
-					this->config_.password.c_str());
-	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
+					this->config_.tunnel_cfg_path,
+					this->config_.tunnel_so_path,
+					this->config_.init_pos_at_start,
+					this->config_.st_ctrl_oc,
+					this->config_.change_oc_flag,
+					this->config_.init_pos_from_ev);
+	} else { 
+		clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); 
+	}
 }
 
 int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
@@ -116,41 +133,6 @@ int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
 	return ret;
 }
 
-int TunnRptProducer::QryPosition(CX1FtdcQryPositionDetailField *p)
-{
-	clog_info("[%s] QryPosition- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::QryOrderDetail(CX1FtdcQryOrderField *p)
-{
-	clog_info("[%s] QryOrderDetail- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::QryTradeDetail(CX1FtdcQryMatchField *p)
-{
-	clog_info("[%s] QryTradeDetail- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::ReqForQuoteInsert(CX1FtdcForQuoteField *p)
-{
-	return 0;
-}
-
-///报价录入请求
-int TunnRptProducer::ReqQuoteInsert(CX1FtdcQuoteInsertField *p)
-{
-	return 0;
-}
-
-///报价操作请求
-int TunnRptProducer::ReqQuoteAction(CX1FtdcCancelOrderField *p)
-{
-	return 0;
-}
-
 void TunnRptProducer::ReqLogin()
 {
     CX1FtdcReqUserLoginField login_data;
@@ -163,40 +145,6 @@ void TunnRptProducer::ReqLogin()
     clog_info("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
     clog_info("[%s] ReqLogin:   %s", 
 			module_name_, X1DatatypeFormater::ToString(&login_data).c_str());
-}
-
-void TunnRptProducer::OnFrontConnected()
-{
-    clog_info("[%s] OnFrontConnected.", module_name_);
-	this->ReqLogin();
-}
-
-void TunnRptProducer::OnFrontDisconnected(int nReason)
-{
-    clog_info("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
-}
-
-void TunnRptProducer::OnRspUserLogin(struct CX1FtdcRspUserLoginField* pfield, struct CX1FtdcRspErrorField * perror)
-{
-    clog_info("[%s] OnRspUserLogin:%s %s",
-        module_name_,
-		X1DatatypeFormater::ToString(pfield).c_str(),
-        X1DatatypeFormater::ToString(perror).c_str());
-
-    if (perror == NULL) {
-		clog_info("[%s] OnRspUserLogin,error: %d", module_name_, pfield->LoginResult);
-    }
-    else {
-		clog_info("[%s] OnRspUserLogin, error: %d", module_name_, perror->ErrorID);
-    }
-}
-
-void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, struct CX1FtdcRspErrorField * pe)
-{
-    clog_info("[%s] OnRspUserLogout:%s %s",
-        module_name_,
-		X1DatatypeFormater::ToString(pf).c_str(),
-        X1DatatypeFormater::ToString(pe).c_str());
 }
 
 
@@ -311,24 +259,6 @@ void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, 
 		}
 	}
 }
-
-void TunnRptProducer::OnRspQryPosition(struct CX1FtdcRspPositionField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspQryPositionDetail(struct CX1FtdcRspPositionDetailField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspCustomerCapital(struct CX1FtdcRspCapitalField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspQryExchangeInstrument(struct CX1FtdcRspExchangeInstrumentField* pf, struct CX1FtdcRspErrorField* pe,
-bool bIsLast)
-{
-}
-
 
 void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 {
@@ -450,20 +380,6 @@ void TunnRptProducer::OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField* pfi
 
 		(vrt_producer_publish(producer_));
 	}
-}
-
-void TunnRptProducer::OnRspQryOrderInfo(struct CX1FtdcRspOrderField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-
-void TunnRptProducer::OnRspQryMatchInfo(struct CX1FtdcRspMatchField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRtnExchangeStatus(struct CX1FtdcExchangeStatusRtnField* pf)
-{
-    clog_info("[%s] OnRtnExchangeStatus:%s", module_name_, X1DatatypeFormater::ToString(pf).c_str());
 }
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)

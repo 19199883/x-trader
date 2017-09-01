@@ -31,6 +31,7 @@
 // 3: strcmp
 #define FIND_STRATEGIES 2
 
+// need to be changed
 class X1FieldConverter
 {
 	public:
