@@ -179,27 +179,15 @@ void TunnRptProducer::OnRtnMatchedInfo(const T_TradeReturn *pfield, const T_Posi
 	(vrt_producer_publish(producer_));
 }
 
-void TunnRptProducer::OnRtnOrder(const T_OrderReturn *ord_rtn, const T_PositionData * pos)
+void TunnRptProducer::OnRtnOrder(const T_OrderReturn *pfield, const T_PositionData * pos)
 {
-	// TODO:
-	
-	
     clog_debug("[%s] OnRtnOrderended_:%d", ended_);
-
 	if (ended_) return;
-
-    clog_debug("[%s] OnRtnOrder:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
-
-	if (pfield->OrderStatus == X1_FTDC_SPD_ERROR){
-		clog_warning("[%s] OnRtnOrder:%s",
-			module_name_,
-			X1DatatypeFormater::ToString(pfield).c_str());
-	}
 
 	struct TunnRpt rpt;
     memset(&rpt, 0, sizeof(rpt));
-	rpt.LocalOrderID = pfield->LocalOrderID;
-	rpt.OrderStatus = pfield->OrderStatus;
+	rpt.LocalOrderID = pfield->serial_no;
+	rpt.OrderStatus = pfield->entrust_status;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -207,47 +195,7 @@ void TunnRptProducer::OnRtnOrder(const T_OrderReturn *ord_rtn, const T_PositionD
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = Push(rpt);
 	ivalue->data = TUNN_RPT;
-
-	clog_debug("[%s] OnRtnOrder: index,%d; data,%d; LocalOrderID:%ld",
-				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
-
 	(vrt_producer_publish(producer_));
-}
-
-void TunnRptProducer::OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField* pfield)
-{
-    clog_debug("[%s] OnRtnCancelOrder:%d", ended_);
-
-	if (ended_) return;
-
-    clog_debug("[%s] OnRtnCancelOrder:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
-
-	if (pfield->OrderStatus == X1_FTDC_SPD_ERROR){
-		clog_warning("[%s] OnRtnCancelOrder:%s",
-			module_name_,
-			X1DatatypeFormater::ToString(pfield).c_str());
-	}
-
-	if (pfield->OrderStatus == X1_FTDC_SPD_CANCELED ||
-		pfield->OrderStatus == X1_FTDC_SPD_PARTIAL_CANCELED ||
-		pfield->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
-		struct TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = pfield->LocalOrderID;
-		rpt.OrderStatus = pfield->OrderStatus;
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(rpt);
-		ivalue->data = TUNN_RPT;
-
-		clog_debug("[%s] OnRtnCancelOrder: index,%d; data,%d; LocalOrderID:%ld",
-					module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
-
-		(vrt_producer_publish(producer_));
-	}
 }
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
