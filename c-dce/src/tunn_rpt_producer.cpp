@@ -3,9 +3,6 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 
-// TODO:
-#include "x1_data_formater.h"
-
 using namespace std;
 using namespace std::placeholders;
 

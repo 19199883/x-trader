@@ -334,8 +334,6 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 		}
 	}
 #endif
-
-
 }
 
 void UniConsumer::ProcPendingSig(int32_t index)
@@ -401,40 +399,27 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
-	// TODO: to here
-		T_PlaceOrder chn_ord;
-		chn_ord.direction = ord.side;
-		chn_ord.limit_price = ord.price;
-		chn_ord.open_close = ord.position_effect;
-		chn_ord.order_kind = ord.price_type;
-		chn_ord.order_type = ord.ord_type;
-		chn_ord.serial_no = ord.cl_ord_id;
-		chn_ord.speculator = ord.sah_;
-		chn_ord.exchange_type = ord.exchange;
-		strcpy(chn_ord.stock_code,ord.symbol.c_str());
-		chn_ord.volume = ord.volume;
-		this->channel->PlaceOrder(&chn_ord);
-
-
-
 	int32_t vol = 0;
 	int32_t updated_vol = 0;
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		vol = sig.open_volume;
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
-	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_, sig.sig_openclose); }
+	} else{ 
+		clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", 
+				module_name_, sig.sig_openclose); 
+	}
 
 	if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol)){
-		// place signal into disruptor queue
 		pendingsig_producer_->Publish(sig);
 	} else {
 		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 		strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
-		CX1FtdcInsertOrderField insert_order;
-		memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
-		X1FieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), localorderid, updated_vol, insert_order);
+		T_PlaceOrder insert_order;
+		memset(&insert_order, 0, sizeof(T_PlaceOrder));
+		TunnelFieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), 
+					localorderid, updated_vol, insert_order);
 
 		tunn_rpt_producer_->ReqOrderInsert(&insert_order);
 

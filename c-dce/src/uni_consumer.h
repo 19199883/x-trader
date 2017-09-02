@@ -17,7 +17,10 @@
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 
+// 最大支持的策略数
 #define STRA_TABLE_SIZE 512 
+
+// 最大缓冲的信号数
 #define SIG_BUFFER_SIZE 32 
 
 // key2: stoi(年月)，如1801
@@ -32,50 +35,42 @@
 #define FIND_STRATEGIES 2
 
 // need to be changed
-class X1FieldConverter
+class TunnelFieldConverter
 {
 	public:
-		static void Convert(const signal_t& sig,const char *account, long localorderid, int32_t vol, CX1FtdcInsertOrderField& insert_order)
+		static void Convert(const signal_t& sig,const char *account, 
+					long localorderid, int32_t vol, T_PlaceOrder &insert_order)
 		{
-			strncpy(insert_order.AccountID, account, sizeof(TX1FtdcAccountIDType));
-			insert_order.LocalOrderID = localorderid;
-			strncpy(insert_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
+			insert_order.serial_no = localorderid;
+			strncpy(insert_order.stock_code, sig.symbol, sizeof(StockCodeType));
 
 			if (sig.sig_act == signal_act_t::buy){
-				insert_order.InsertPrice = sig.buy_price;
-				insert_order.BuySellType = X1_FTDC_SPD_BUY;
+				insert_order.limit_price = sig.buy_price;
+				insert_order.direction = MY_TNL_D_BUY;
 			}
 			else if (sig.sig_act == signal_act_t::sell){
-				insert_order.InsertPrice = sig.sell_price;
-				insert_order.BuySellType = X1_FTDC_SPD_SELL;
-			}
-			else{
-				// log
+				insert_order.limit_price = sig.sell_price;
+				insert_order.direction = MY_TNL_D_SELL;
 			}
 
 			if (sig.sig_openclose == alloc_position_effect_t::open_){
-				insert_order.OpenCloseType = X1_FTDC_SPD_OPEN;
+				insert_order.open_close = MY_TNL_D_OPEN;
 			}
 			else if (sig.sig_openclose == alloc_position_effect_t::close_){
-				insert_order.OpenCloseType = X1_FTDC_SPD_CLOSE;
+				insert_order.open_close = MY_TNL_D_CLOSE;
 			}
-			else{
-				// log
-			}
-
 
 			if (sig.instr == instr_t::MARKET){
-				insert_order.OrderType = X1_FTDC_MKORDER; 
+				insert_order.order_kind = MY_TNL_OPT_ANY_PRICE;
 			}
 			else{
-				insert_order.OrderType = X1_FTDC_LIMITORDER; 
+				insert_order.order_kind = MY_TNL_OPT_LIMIT_PRICE;
 			}
 
-			insert_order.OrderAmount = vol;
-			insert_order.OrderProperty = X1_FTDC_SP_NON;
-			insert_order.InsertType = X1_FTDC_BASIC_ORDER;        //委托类别,默认为普通订单
-			insert_order.InstrumentType = X1FTDC_INSTRUMENT_TYPE_COMM;      //合约类型, 期货
-			insert_order.Speculator = X1_FTDC_SPD_SPECULATOR;
+			insert_order.volume = vol;
+			insert_order.speculator = MY_TNL_HF_SPECULATION;
+			insert_order.order_type = MY_TNL_HF_NORMAL;
+			insert_order.exchange_type = MY_TNL_EC_DCE;
 		}
 };
 

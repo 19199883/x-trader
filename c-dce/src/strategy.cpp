@@ -499,42 +499,37 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 	sigrpt.exec_volume = tunnrpt.MatchedAmount;
 	sigrpt.acc_volume += tunnrpt.MatchedAmount;
 
-	// TODO: 因MyExchange成交回报没有状态字段，故在接收是杜撰一个“部分成交状态”，
+	// 因MyExchange成交回报没有状态字段，故在接收是杜撰一个“部分成交状态”，
 	// 此处根据委托量和累计成交量决定最终状态
+	if(tunnrpt.OrderStatus == MY_TNL_OS_PARTIALCOM &&
+			sigrpt.acc_volume == sigrpt.order_volume){
+		tunnrpt.OrderStatus = MY_TNL_OS_COMPLETED;	
+	}
 
-	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
-		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-		tunnrpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if ( tunnrpt.OrderStatus == MY_TNL_OS_WITHDRAWED){
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
 	}else{ sigrpt.killed = 0; }
 
-	if (tunnrpt.OrderStatus==X1_FTDC_SPD_ERROR) sigrpt.rejected = sigrpt.order_volume;
+	if (tunnrpt.OrderStatus == MY_TNL_OS_ERROR) sigrpt.rejected = sigrpt.order_volume;
 	else sigrpt.rejected = 0; 
 
 	sigrpt.error_no = tunnrpt.ErrorID;
 
-	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
-		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-		tunnrpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (tunnrpt.OrderStatus == MY_TNL_OS_WITHDRAWED){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_CANCEL;
 	}
-	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_FILLED){
+	else if(tunnrpt.OrderStatus == MY_TNL_OS_COMPLETED){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_SUCCESS;
 	}
-	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL){
+	else if(tunnrpt.OrderStatus == MY_TNL_OS_PARTIALCOM){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_PARTED;
 	}
-	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_ERROR){
+	else if(tunnrpt.OrderStatus == MY_TNL_OS_ERROR){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_REJECTED;
 	}
-	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_IN_QUEUE || 
-			tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL ||
-			tunnrpt.OrderStatus==X1_FTDC_SPD_PLACED ||
-			tunnrpt.OrderStatus==X1_FTDC_SPD_TRIGGERED){
+	else if(tunnrpt.OrderStatus == MY_TNL_OS_UNREPORT || 
+			tunnrpt.OrderStatus == MY_TNL_OS_REPORDED){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
-	}
-	else{
-		// log error
 	}
 }
 
