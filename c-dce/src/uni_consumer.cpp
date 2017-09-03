@@ -418,8 +418,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 		T_PlaceOrder insert_order;
 		memset(&insert_order, 0, sizeof(T_PlaceOrder));
-		TunnelFieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), 
-					localorderid, updated_vol, insert_order);
+		TunnelFieldConverter::Convert(sig, localorderid, updated_vol, insert_order);
 
 		tunn_rpt_producer_->ReqOrderInsert(&insert_order);
 

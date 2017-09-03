@@ -53,7 +53,7 @@ void TunnRptProducer::ParseConfig()
 		string tunn_conf = tunn_node->Attribute("tunnelConfig");
 		strcpy(config_.tunnel_cfg_path, tunn_conf.c_str());
 		string tunnel_so = tunn_node->Attribute("tunnelSo");
-		strcpy(config_.tunnel_so_path, tunnel_so.tunnel_so_file.c_str());
+		strcpy(config_.tunnel_so_path, tunnel_so.c_str());
 		tunn_node->QueryIntAttribute("initPosAtStart", &config_.init_pos_at_start);
 		tunn_node->QueryIntAttribute("modelCtrlOc", &config_.st_ctrl_oc);
 		tunn_node->QueryIntAttribute("changeOcFlag", &config_.change_oc_flag);
@@ -105,7 +105,7 @@ void TunnRptProducer::OnRspInsertOrder(const T_OrderRespond *pfield,
     memset(&rpt, 0, sizeof(rpt));
 	rpt.LocalOrderID = pfield->serial_no;
 	rpt.OrderStatus = pfield->entrust_status;
-	rpt.ErrorID = perror->error_no;
+	rpt.ErrorID = pfield->error_no;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -113,10 +113,6 @@ void TunnRptProducer::OnRspInsertOrder(const T_OrderRespond *pfield,
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = Push(rpt);
 	ivalue->data = TUNN_RPT;
-
-	clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%ld",
-				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
-
 	(vrt_producer_publish(producer_));
 }
 
@@ -202,11 +198,6 @@ long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
 	counter++;
 
 	return localorderid;
-}
-
-const char* TunnRptProducer::GetAccount()
-{
-	return config_.userid.c_str();
 }
 
 TunnRpt* TunnRptProducer::GetRpt(int32_t index)

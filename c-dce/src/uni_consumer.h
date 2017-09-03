@@ -38,8 +38,7 @@
 class TunnelFieldConverter
 {
 	public:
-		static void Convert(const signal_t& sig,const char *account, 
-					long localorderid, int32_t vol, T_PlaceOrder &insert_order)
+		static void Convert(const signal_t& sig,long localorderid, int32_t vol, T_PlaceOrder &insert_order)
 		{
 			insert_order.serial_no = localorderid;
 			strncpy(insert_order.stock_code, sig.symbol, sizeof(StockCodeType));

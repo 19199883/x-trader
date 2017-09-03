@@ -461,11 +461,9 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
-	if (rpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
-		rpt.OrderStatus==X1_FTDC_SPD_FILLED ||
-		rpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-		rpt.OrderStatus==X1_FTDC_SPD_ERROR ||
-		rpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (rpt.OrderStatus == MY_TNL_OS_COMPLETED ||
+		rpt.OrderStatus == MY_TNL_OS_ERROR ||
+		rpt.OrderStatus == MY_TNL_OS_WITHDRAWED){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
 			position_.frozen_open_long = 0;
 		}
@@ -503,7 +501,7 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 	// 此处根据委托量和累计成交量决定最终状态
 	if(tunnrpt.OrderStatus == MY_TNL_OS_PARTIALCOM &&
 			sigrpt.acc_volume == sigrpt.order_volume){
-		tunnrpt.OrderStatus = MY_TNL_OS_COMPLETED;	
+		tunnrpt.OrderStatus == MY_TNL_OS_COMPLETED;	
 	}
 
 	if ( tunnrpt.OrderStatus == MY_TNL_OS_WITHDRAWED){
