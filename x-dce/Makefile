@@ -59,6 +59,7 @@ dist:
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
 	-cp -arf $(TOP)/x-dce/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/x1/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/level2/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/boost/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libbowsprit.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/
