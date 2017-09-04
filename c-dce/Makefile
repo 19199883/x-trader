@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/c-dce/dist
 INCPATH:=-I$(TOP)/3rd/my-tunnel/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/level2/include 
@@ -11,8 +11,8 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lcheck -lclogger -lcork -lvrt -lmy_quote_dce_level2_jrudp_lib \
-	  -luuid -lboost_filesystem -lmy_common_v2 -lmy_compliance_checker -lmy_exchange_fut_op
+LIBS:=-lpthread  -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lcheck -lclogger -lcork -lvrt -lmy_quote_dce_level2_jrudp_lib \
+	  -lboost_filesystem -lmy_common_v2 -lmy_compliance_checker -lmy_exchange_fut_op -luuid
 DEPS:=.depends
 OUT:=c-dce
 PACKAGE_NAME:=$(OUT)
@@ -59,6 +59,7 @@ dist:
 	mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
 	cp -arf $(TOP)/c-dce/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	cp -arf $(TOP)/3rd/x1/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	cp -arf $(TOP)/3rd/my-tunnel/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	cp -arf $(TOP)/3rd/level2/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	cp -arf $(TOP)/3rd/boost/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
