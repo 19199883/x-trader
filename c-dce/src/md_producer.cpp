@@ -69,9 +69,9 @@ void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
 
 //#ifdef LATENCY_MEASURE
 	// latency measure
-	static int cnt = 0;
-	perf_ctx::insert_t0(cnt);
-	cnt++;
+//	static int cnt = 0;
+//	perf_ctx::insert_t0(cnt);
+//	cnt++;
 //#endif
 
 	struct vrt_value  *vvalue;
@@ -115,9 +115,9 @@ void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md)
 
 #ifdef LATENCY_MEASURE
 	// latency measure
-	static int cnt = 0;
-	perf_ctx::insert_t0(cnt);
-	cnt++;
+//	static int cnt = 0;
+//	perf_ctx::insert_t0(cnt);
+//	cnt++;
 #endif
 
 	struct vrt_value  *vvalue;
