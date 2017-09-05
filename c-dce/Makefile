@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=y
+DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/c-dce/dist
 INCPATH:=-I$(TOP)/3rd/my-tunnel/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/level2/include 

@@ -389,6 +389,9 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
     cancel_order.entrust_no = 0; // only use LocalOrderID to cancel order
     strncpy(cancel_order.stock_code, sig.symbol, sizeof(StockCodeType));
 
+	// TODO: log
+    clog_debug("[%s] CancelOrder LocalOrderID:%ld; original:%ld", cancel_order.serial_no, cancel_order.org_serial_no);
+
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
 
 //#ifdef LATENCY_MEASURE

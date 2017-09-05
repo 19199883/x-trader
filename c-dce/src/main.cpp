@@ -12,6 +12,7 @@
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
 #include "pos_calcu.h"
+#include "my_cmn_log.h"
 
 #define LATENCY_MEASURE
 
@@ -36,6 +37,8 @@ int main(/*int argc, const char **argv*/)
 	sigemptyset(&SIGINT_act.sa_mask);
 	SIGINT_act.sa_flags = 0;
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
+
+	(void) my_cmn::my_log::instance(NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
 	clog_set_minimum_level(CLOG_LEVEL_DEBUG);

@@ -142,13 +142,16 @@ void TunnRptProducer::OnRspCancelOrder(const T_CancelRespond *pfield)
 	rpt.OrderStatus = pfield->entrust_status;
 	rpt.ErrorID = pfield->error_no;
 
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = Push(rpt);
-	ivalue->data = TUNN_RPT;
-	(vrt_producer_publish(producer_));
+    clog_debug("[%s] OnRspCancelOrder LocalOrderID:%ld; status:%c", rpt.LocalOrderID, rpt.OrderStatus);
+
+	// TODO:
+//	struct vrt_value  *vvalue;
+//	struct vrt_hybrid_value  *ivalue;
+//	(vrt_producer_claim(producer_, &vvalue));
+//	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+//	ivalue->index = Push(rpt);
+//	ivalue->data = TUNN_RPT;
+//	(vrt_producer_publish(producer_));
 }
 
 void TunnRptProducer::OnRtnMatchedInfo(const T_TradeReturn *pfield, const T_PositionData *pos)

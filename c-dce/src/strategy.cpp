@@ -405,15 +405,15 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	signal_resp_t& sigrpt = sigrpt_table_[index];
 	signal_t& sig = sig_table_[index];
 
+	// update signal report
+	UpdateSigrptByTunnrpt(sigrpt, rpt);
+
 	// update strategy's position
 	UpdatePosition(rpt, sig.sig_openclose, sig.sig_act);
 	// fill signal position report by tunnel report
 	if (rpt.MatchedAmount > 0){
 		FillPositionRpt(rpt, pos_cache_);
 	}
-
-	// update signal report
-	UpdateSigrptByTunnrpt(sigrpt, rpt);
 
 	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
 
@@ -461,8 +461,7 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
-	if (rpt.OrderStatus == MY_TNL_OS_COMPLETED ||
-		rpt.OrderStatus == MY_TNL_OS_ERROR ||
+	if (rpt.OrderStatus == MY_TNL_OS_ERROR ||
 		rpt.OrderStatus == MY_TNL_OS_WITHDRAWED){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
 			position_.frozen_open_long = 0;
@@ -492,16 +491,21 @@ void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
 	pos.s_pos[0].short_volume = position_.cur_short;
 	pos.s_pos[0].changed = 1;
 }
-void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
+void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt, TunnRpt& tunnrpt)
 {
 	sigrpt.exec_volume = tunnrpt.MatchedAmount;
 	sigrpt.acc_volume += tunnrpt.MatchedAmount;
+
+	clog_debug("[%s] UpdateSigrptByTunnrpt: strategy id:%d;" 
+				"sigrpt status:%d; tunnrpt status:%c; order vol:%d; acc vol:%d",
+				module_name_, setting_.config.st_id, sigrpt.status,
+				tunnrpt.OrderStatus, sigrpt.order_volume, sigrpt.acc_volume);
 
 	// 因MyExchange成交回报没有状态字段，故在接收是杜撰一个“部分成交状态”，
 	// 此处根据委托量和累计成交量决定最终状态
 	if(tunnrpt.OrderStatus == MY_TNL_OS_PARTIALCOM &&
 			sigrpt.acc_volume == sigrpt.order_volume){
-		tunnrpt.OrderStatus == MY_TNL_OS_COMPLETED;	
+		tunnrpt.OrderStatus = MY_TNL_OS_COMPLETED;	
 	}
 
 	if ( tunnrpt.OrderStatus == MY_TNL_OS_WITHDRAWED){
@@ -529,6 +533,11 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 			tunnrpt.OrderStatus == MY_TNL_OS_REPORDED){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}
+
+	clog_debug("[%s] UpdateSigrptByTunnrpt: strategy id:%d;" 
+				"sigrpt status:%d; tunnrpt status:%c; order vol:%d; acc vol:%d",
+				module_name_, setting_.config.st_id, sigrpt.status,
+				tunnrpt.OrderStatus, sigrpt.order_volume, sigrpt.acc_volume);
 }
 
 void Strategy::LoadPosition()
