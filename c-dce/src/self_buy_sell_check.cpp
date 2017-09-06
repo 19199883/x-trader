@@ -14,6 +14,7 @@ using namespace std;
 
 struct OrderInfo
 {
+	bool valid;
     std::string code;
     char buy_sell_flag;
     double price;
@@ -21,6 +22,7 @@ struct OrderInfo
     OrderInfo(const char* code_, char buy_sell_flag_, double price_)
         : code(code_)
     {
+		valid = false;
         buy_sell_flag = buy_sell_flag_;
         price = price_;
     }
@@ -57,46 +59,30 @@ RESULT_TYPE SelfBuySellCheck::TryReqOrderInsert(
 {
     int ret = COMPLIANCE_CHECK_RESULT_SUCCESS;
 
-        AccOrderMap::iterator it = s_orders.find(account);
-        if (it == s_orders.end())
-        {
-            it = s_orders.insert(make_pair(account, MyOrderMap())).first;
-        }
-        MyOrderMap & my_orders = it->second;
-        for (MyOrderMapValue &value : my_orders)
-        {
-            // 相同合约，方向相反
-            if (value.second.code == code && buy_sell_flag != value.second.buy_sell_flag)
-            {
-                // 市价单可以和任何反方向委托成交
-                if (price_flag != CONST_ENTRUSTKIND_XJ)
-                {
-                    ret = COMPLIANCE_CHECK_RESULT_SELFTRADE;
-                    *opposite_serial_no = value.first;
-                    TNL_LOG_WARN("OrderRef(%lld) of Acc(%s) maybe matched with OrderRef(%lld) of Acc(%s) ",
-                        order_ref, account, value.first, account);
-                    break;
-                }
-                //// 现在高价买入，或低价卖出 (有非对价下单，需要判断更好价格，modified by chenyongshun 20131220)
-                if ((buy_sell_flag == CONST_ENTRUST_BUY && (price + DOUBLE_CHECH_PRECISION) >= value.second.price)
-                    || (buy_sell_flag != CONST_ENTRUST_BUY && (price - DOUBLE_CHECH_PRECISION) <= value.second.price))
-                {
-                    ret = COMPLIANCE_CHECK_RESULT_SELFTRADE;
-                    *opposite_serial_no = value.first;
-                    TNL_LOG_WARN("OrderRef(%lld) of Acc(%s) maybe matched with OrderRef(%lld) of Acc(%s) ",
-                        order_ref, account, value.first, account);
-                    break;
-                }
-            }
-        }
+	AccOrderMap::iterator it = s_orders.find(account);
+	if (it == s_orders.end()){
+		it = s_orders.insert(make_pair(account, MyOrderMap())).first;
+	}
+	MyOrderMap & my_orders = it->second;
+	for (MyOrderMapValue &value : my_orders){
+		// 相同合约，方向相反
+		if (value.second.code == code && buy_sell_flag != value.second.buy_sell_flag){
+			//// 现在高价买入，或低价卖出 (有非对价下单，需要判断更好价格，modified by chenyongshun 20131220)
+			if ((buy_sell_flag == CONST_ENTRUST_BUY && (price + DOUBLE_CHECH_PRECISION) >= value.second.price)
+				|| (buy_sell_flag != CONST_ENTRUST_BUY && (price - DOUBLE_CHECH_PRECISION) <= value.second.price)){
+				ret = COMPLIANCE_CHECK_RESULT_SELFTRADE;
+				*opposite_serial_no = value.first;
+				TNL_LOG_WARN("OrderRef(%lld) of Acc(%s) maybe matched with OrderRef(%lld) of Acc(%s) ",
+					order_ref, account, value.first, account);
+				break;
+			}
+		}
+	}
 
-        if (order_type != CONST_ENTRUSTKIND_FAK
-            && order_type != CONST_ENTRUSTKIND_FOK
-            && (ret == COMPLIANCE_CHECK_RESULT_SUCCESS)
-            && (my_orders.find(order_ref) == my_orders.end()))
-        {
-            my_orders.insert(std::make_pair(order_ref, OrderInfo(code, buy_sell_flag, price)));
-        }
+	if ((ret == COMPLIANCE_CHECK_RESULT_SUCCESS)
+		&& (my_orders.find(order_ref) == my_orders.end())){
+		my_orders.insert(std::make_pair(order_ref, OrderInfo(code, buy_sell_flag, price)));
+	}
 
     return ret;
 }
@@ -104,7 +90,6 @@ RESULT_TYPE SelfBuySellCheck::TryReqOrderInsert(
 
 inline void RemoveTerminateOrder(const char * account, OrderRefDataType order_ref)
 {
-    MyLock lock(s_self_match_mutex);
     AccOrderMap::iterator it = s_orders.find(account);
     if (it == s_orders.end())
     {
