@@ -302,13 +302,6 @@ void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, 
 					module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
 
 		(vrt_producer_publish(producer_));
-
-		if (pfield->OrderStatus == X1_FTDC_SPD_ERROR){
-			clog_warning("[%s] OnRspInsertOrder:%s %s",
-				module_name_,
-				X1DatatypeFormater::ToString(pfield).c_str(),
-				X1DatatypeFormater::ToString(perror).c_str());
-		}
 	}
 }
 
