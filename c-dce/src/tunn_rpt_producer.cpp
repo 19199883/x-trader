@@ -98,7 +98,7 @@ void TunnRptProducer::End()
 void TunnRptProducer::OnRspInsertOrder(const T_OrderRespond *pfield,
 			const T_PositionData *pos)
 {
-    clog_debug("[%s] OnRspInsertOrder ended_:%d", ended_);
+    clog_debug("[%s] OnRspInsertOrder ended_:%d", module_name_,ended_);
 	if (ended_) return;
 
 	struct TunnRpt rpt;
@@ -133,7 +133,7 @@ int32_t TunnRptProducer::Push(const TunnRpt& rpt)
 
 void TunnRptProducer::OnRspCancelOrder(const T_CancelRespond *pfield)
 {
-    clog_debug("[%s] OnRspCancelOrder ended_:%d", ended_);
+    clog_debug("[%s] OnRspCancelOrder ended_:%d", module_name_,ended_);
 	if (ended_) return;
 
 	struct TunnRpt rpt;
@@ -142,7 +142,7 @@ void TunnRptProducer::OnRspCancelOrder(const T_CancelRespond *pfield)
 	rpt.OrderStatus = pfield->entrust_status;
 	rpt.ErrorID = pfield->error_no;
 
-    clog_debug("[%s] OnRspCancelOrder LocalOrderID:%ld; status:%c", rpt.LocalOrderID, rpt.OrderStatus);
+    clog_debug("[%s] OnRspCancelOrder LocalOrderID:%ld; status:%c", module_name_,rpt.LocalOrderID, rpt.OrderStatus);
 
 	// TODO:
 //	struct vrt_value  *vvalue;
@@ -156,7 +156,7 @@ void TunnRptProducer::OnRspCancelOrder(const T_CancelRespond *pfield)
 
 void TunnRptProducer::OnRtnMatchedInfo(const T_TradeReturn *pfield, const T_PositionData *pos)
 {
-    clog_debug("[%s] OnRtnMatchedInfo ended_:%d", ended_);
+    clog_debug("[%s] OnRtnMatchedInfo ended_:%d", module_name_,ended_);
 	if (ended_) return;
 
 	struct TunnRpt rpt;
@@ -177,7 +177,7 @@ void TunnRptProducer::OnRtnMatchedInfo(const T_TradeReturn *pfield, const T_Posi
 
 void TunnRptProducer::OnRtnOrder(const T_OrderReturn *pfield, const T_PositionData * pos)
 {
-    clog_debug("[%s] OnRtnOrderended_:%d", ended_);
+    clog_debug("[%s] OnRtnOrderended_:%d", module_name_,ended_);
 	if (ended_) return;
 
 	struct TunnRpt rpt;

@@ -390,7 +390,8 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
     strncpy(cancel_order.stock_code, sig.symbol, sizeof(StockCodeType));
 
 	// TODO: log
-    clog_debug("[%s] CancelOrder LocalOrderID:%ld; original:%ld", cancel_order.serial_no, cancel_order.org_serial_no);
+    clog_debug("[%s] CancelOrder LocalOrderID:%ld; original:%ld", 
+				module_name_, cancel_order.serial_no, cancel_order.org_serial_no);
 
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
 
