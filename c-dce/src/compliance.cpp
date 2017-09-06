@@ -1,6 +1,4 @@
-﻿#include "compliance.h"
-
-Compliance::Compliance():
+﻿Compliance::Compliance():
 	min_counter_(0), max_counter_(0)
 {
 }
