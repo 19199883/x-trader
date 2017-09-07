@@ -26,14 +26,7 @@ class Compliance
 		bool TryReqOrderInsert(int ord_counter, const char * contract, double price,
 					TX1FtdcBuySellTypeType side);
 
-		// 下单失败回报，删除该报单/回滚开仓计数
-		void  OnOrderInsertFailed(int ord_counter);
-
-		// 报单全成时，删除该报单
-		void  OnOrderFilled(int ord_counter);
-
-		// 报单撤单时，删除该报单/更新开仓计数
-		void  OnOrderCanceled(int ord_counter);
+		void End(int ord_counter);
 
 	private:
 		// 记录未终结的中最小的counter

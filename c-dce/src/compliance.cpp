@@ -46,28 +46,23 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 }
 
 
-void Compliance::RemoveTerminateOrder(int ord_counter)
+void Compliance::End(int ord_counter)
 {
-    AccOrderMap::iterator it = s_orders.find(account);
-    if (it == s_orders.end())
-    {
-        it = s_orders.insert(make_pair(account, MyOrderMap())).first;
-    }
-    MyOrderMap & my_orders = it->second;
-    my_orders.erase(order_ref);
+	OrderInfo& ord = ord_buffer_[ord_counter];
+	ord.valid = false;
+
+	if (ord_counter == min_counter_ || !ord_buffer_[min_counter_].valid){
+		int i = min_counter_;
+		for(; i <= max_counter_; i++){
+			OrderInfo& ord = ord_buffer_[i];
+			if(ord.valid){
+				min_counter_ = i;
+				break;
+			}
+		} // for(int i = ord_counter + 1; i < max_counter_; i++)
+		if(i == (max_counter_ + 1)){
+			min_counter_ = max_counter_;
+		}
+	} // if (ord_counter == min_counter_)
 }
 
-void Compliance::OnOrderInsertFailed(int ord_counter)
-{
-    return RemoveTerminateOrder(account, order_ref);
-}
-
-void Compliance::OnOrderFilled( int ord_counterOrder)
-{
-    return RemoveTerminateOrder(account, order_ref);
-}
-
-void Compliance::OnOrderCanceled( int ord_counterOrderOrder)
-{
-    return RemoveTerminateOrder(account, order_ref);
-}
