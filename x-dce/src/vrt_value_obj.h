@@ -6,6 +6,15 @@
 
 #define CLOG_CHANNEL  "x-trader"
 
+// #define LATENCY_MEASURE
+#define COMPLIANCE_CHECK
+
+// 通过合约查找订阅该合约行情的方法:
+// 1: unordered_multimap  
+// 2: two-dimensional array
+// 3: strcmp
+#define FIND_STRATEGIES 3
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

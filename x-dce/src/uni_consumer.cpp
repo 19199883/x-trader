@@ -24,8 +24,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	clog_info("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
 #endif	
 
-#if FIND_STRATEGIES == 3
-	strcmp
+#if FIND_STRATEGIES == 3 // strcmp
 	clog_info("[%s] method for finding strategies by contract:strcmp", module_name_);
 #endif
 
@@ -363,13 +362,13 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
-	if (rpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
-			rpt.OrderStatus==X1_FTDC_SPD_FILLED ||
-			rpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-			rpt.OrderStatus==X1_FTDC_SPD_ERROR ||
-			rpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (rpt->OrderStatus==X1_FTDC_SPD_CANCELED ||
+			rpt->OrderStatus==X1_FTDC_SPD_FILLED ||
+			rpt->OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
+			rpt->OrderStatus==X1_FTDC_SPD_ERROR ||
+			rpt->OrderStatus==X1_FTDC_SPD_IN_CANCELED){
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
-		compliance_.End();
+		compliance_.End(counter);
 	}
 #endif
 
@@ -455,8 +454,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			rpt.LocalOrderID = ord.LocalOrderID;
 			rpt.OrderStatus = X1_FTDC_SPD_ERROR;
 			rpt.ErrorID = 5;
-			int ig_cnt = 0;
-			strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
+			int sig_cnt = 0;
+			strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 #endif

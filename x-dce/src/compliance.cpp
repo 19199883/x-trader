@@ -1,13 +1,7 @@
 ﻿#include <string.h>
 #include <stdio.h>
+#include "vrt_value_obj.h"
 #include "compliance.h"
-#include <inttypes.h>		 
-#include <bowsprit.h>
-#include <libcork/core.h>
-#include <libcork/ds.h>
-#include <libcork/helpers/errors.h>
-#include <clogger.h>
-#include <vrt.h>
 
 Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
 {
@@ -49,7 +43,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 	}
 
 	clog_info("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
-				module_name_, dor_counter, min_counter_, max_counter_, ret);
+				module_name_, ord_counter, min_counter_, max_counter_, ret);
 
     return ret;
 }

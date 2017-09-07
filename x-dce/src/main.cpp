@@ -13,13 +13,6 @@
 #include "uni_consumer.h"
 #include "pos_calcu.h"
 
-// #define LATENCY_MEASURE
-#define COMPLIANCE_CHECK
-// 通过合约查找订阅该合约行情的方法:
-// 1: unordered_multimap  
-// 2: two-dimensional array
-// 3: strcmp
-#define FIND_STRATEGIES 3
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
@@ -48,7 +41,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_INFO);
+	clog_set_minimum_level(CLOG_LEVEL_DEBUG);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");

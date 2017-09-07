@@ -86,6 +86,7 @@ public:
 	void PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol);
 	void FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
 	bool HasFrozenPosition();
+	int32_t GetCounterByLocalOrderID(long local_ord_id);
 
 private:
 	string generate_log_name(char * log_path);
@@ -101,7 +102,6 @@ private:
 	SetLogFn2Ptr pfn_setlogfn2_;
 
 	long GetLocalOrderIDByCounter(long counter);
-	int32_t GetCounterByLocalOrderID(long local_ord_id);
 
 	signal_t sig_table_[SIGANDRPT_TABLE_SIZE];
 	signal_resp_t sigrpt_table_[SIGANDRPT_TABLE_SIZE];
