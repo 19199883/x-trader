@@ -16,6 +16,7 @@
 #include <tinystr.h>
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
+#include "compliance.h"
 
 #define STRA_TABLE_SIZE 512 
 #define SIG_BUFFER_SIZE 32 
@@ -132,6 +133,9 @@ class UniConsumer
 		void CancelOrder(Strategy &strategy,signal_t &sig);
 		void PlaceOrder(Strategy &strategy, const signal_t &sig);
 		signal_t sig_buffer_[SIG_BUFFER_SIZE];
+#ifdef COMPLIANCE_CHECK
+		Compliance compliance_;
+#endif
 		
 };
 

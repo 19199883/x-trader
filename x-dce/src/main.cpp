@@ -13,7 +13,8 @@
 #include "uni_consumer.h"
 #include "pos_calcu.h"
 
-//#define LATENCY_MEASURE
+// #define LATENCY_MEASURE
+// #define COMPLIANCE_CHECK
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
@@ -43,8 +44,6 @@ int main(/*int argc, const char **argv*/)
 	fp=fopen("./x-trader.log","w+");
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
-
-	clog_warning("[new]"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;

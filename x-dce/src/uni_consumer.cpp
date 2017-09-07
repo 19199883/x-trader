@@ -412,7 +412,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		vol = sig.open_volume;
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
-	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_, sig.sig_openclose); }
+	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
+				sig.sig_openclose); }
 
 	if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol)){
 		// place signal into disruptor queue
@@ -423,9 +424,16 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 		CX1FtdcInsertOrderField insert_order;
 		memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
-		X1FieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), localorderid, updated_vol, insert_order);
+		X1FieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), localorderid,
+					updated_vol, insert_order);
 
-		tunn_rpt_producer_->ReqOrderInsert(&insert_order);
+#ifdef COMPLIANCE_CHECK
+		if(compliance_.TryReqOrderInsert()){
+#endif
+			tunn_rpt_producer_->ReqOrderInsert(&insert_order);
+#ifdef COMPLIANCE_CHECK
+		}
+#endif
 
 //#ifdef LATENCY_MEASURE
         // latency measure
