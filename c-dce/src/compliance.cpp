@@ -3,7 +3,10 @@
 #include "compliance.h"
 
 Compliance::Compliance(): min_counter_(0), max_counter_(0)
+:module_name_("Compliance")
 {
+	clog_info("[%s] Compliance inits.", module_name_);
+
 	memset(ord_buffer_, 0, sizeof(ord_buffer_));
 	for(int i = 0; i < COUNTER_UPPER_LIMIT; i++){
 		ord_buffer_[i].valid = false;
@@ -23,9 +26,6 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			if ((side == X1_FTDC_SPD_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
 				(side != X1_FTDC_SPD_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
 				ret = false;
-
-				TNL_LOG_WARN("OrderRef(%lld) of Acc(%s) maybe matched with OrderRef(%lld) of Acc(%s) ",
-					order_ref, account, value.first, account);
 				break;
 			}
 		} // if (strcmp(ord.contract, contract)==0 && side != ord.side)
@@ -41,6 +41,9 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		ord.side = side;
 		ord.price = price;
 	}
+
+	clog_info("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
+				module_name_, dor_counter, min_counter_, max_counter_, ret);
 
     return ret;
 }
@@ -64,5 +67,8 @@ void Compliance::End(int ord_counter)
 			min_counter_ = max_counter_;
 		}
 	} // if (ord_counter == min_counter_)
+
+	clog_info("[%s] TryReqOrderInsert min counter:%d; max counter:%d; ord counter:%d",
+				module_name_, min_counter_, max_counter_, ord_counter);
 }
 

@@ -4,6 +4,12 @@
 #include "uni_consumer.h"
 #include "pos_calcu.h"
 #include "perfctx.h"
+#include <inttypes.h>		 
+#include <bowsprit.h>
+#include <libcork/core.h>
+#include <libcork/ds.h>
+#include <libcork/helpers/errors.h>
+#include <clogger.h>
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer,

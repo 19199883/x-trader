@@ -36,6 +36,7 @@ class Compliance
 		// 存委托单信息，用于检查自成交。只有valid==true，才表示是有效的数据。
 		// 存储方法：LocalOrderID的counter部分作为数组下标进行存储
 		OrderInfo ord_buffer_[COUNTER_UPPER_LIMIT];
+		const char * module_name_;  
 };
 
 #endif // SELFBUYSELLCHECK_H_
