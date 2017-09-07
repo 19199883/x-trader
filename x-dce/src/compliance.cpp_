@@ -11,7 +11,7 @@
 
 Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
 {
-	clog_info("[%s] Compliance inits.", module_name_);
+	clog_info("[%s] Compliance on.", module_name_);
 
 	memset(ord_buffer_, 0, sizeof(ord_buffer_));
 	for(int i = 0; i < COUNTER_UPPER_LIMIT; i++){

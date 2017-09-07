@@ -14,7 +14,12 @@
 #include "pos_calcu.h"
 
 // #define LATENCY_MEASURE
-// #define COMPLIANCE_CHECK
+#define COMPLIANCE_CHECK
+// 通过合约查找订阅该合约行情的方法:
+// 1: unordered_multimap  
+// 2: two-dimensional array
+// 3: strcmp
+#define FIND_STRATEGIES 3
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
@@ -32,6 +37,10 @@ SIG_handler(int s)
 
 int main(/*int argc, const char **argv*/)
 {
+#ifdef LATENCY_MEASURE
+	clog_ebugnfo("latency measure on"); 
+#endif
+
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);

@@ -26,11 +26,6 @@
 // 品种字符相加：如jd1801，key1: j+d(ascii 值相加
 #define MAX_STRATEGY_KEY1 500
 
-// 通过合约查找订阅该合约行情的方法:
-// 1: unordered_multimap  
-// 2: two-dimensional array
-// 3: strcmp
-#define FIND_STRATEGIES 3
 
 class X1FieldConverter
 {
@@ -104,7 +99,7 @@ class UniConsumer
 
 #if FIND_STRATEGIES == 1
 		// unordered_multimap  key: contract; value: indices of strategies in stra_table_
-		//std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
+		std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
 #endif
 
 #if FIND_STRATEGIES == 2
