@@ -1,8 +1,9 @@
+#include <stdlib.h>     /* atol */
 #include <thread>
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include "x1_data_formater.h"
+#include "femas_data_formater.h"
 
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
@@ -70,19 +71,19 @@ void TunnRptProducer::ParseConfig()
 	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
 }
 
-int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
+int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 {
-	int ret = api_->ReqInsertOrder(p);
+	int ret = api_->ReqInsertOrder(p, 0);
 	
 	// report rejected if ret!=0
 	if (ret != 0){
 		clog_warning("[%s] ReqInsertOrder- ret=%d - %s", 
-			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
+			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 
 		struct TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = p->LocalOrderID;
-		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
+		rpt.LocalOrderID = atol(p->UserOrderLocalID);
+		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
 		rpt.ErrorID = ret;
 
 		struct vrt_value  *vvalue;

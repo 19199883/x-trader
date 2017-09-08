@@ -42,7 +42,7 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 		 * things relating to X1 Api
 		 */
 		// 下发指令接口
-		int ReqOrderInsert(CX1FtdcInsertOrderField *p);
+		int ReqOrderInsert(CUstpFtdcInputOrderField *p);
 		// 撤单操作请求
 		int ReqOrderAction(CX1FtdcCancelOrderField *p);
 		int QryPosition(CX1FtdcQryPositionDetailField *p);
@@ -61,7 +61,6 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 		const char* GetAccount();
 		TunnRpt* GetRpt(int32_t index);
 		int32_t GetStrategyID(TunnRpt& rpt);
-
 		void End();
 
 	private:
@@ -227,7 +226,7 @@ private:
 	 */
 	int32_t Push(const TunnRpt& rpt);
 
-	x1ftdcapi::CX1FtdcTraderApi *api_;
+	CUstpFtdcTraderApi *api_;
 };
 
 #endif
