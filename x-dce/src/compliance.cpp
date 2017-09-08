@@ -42,7 +42,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		ord.price = price;
 	}
 
-	clog_info("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
+	clog_debug("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
 				module_name_, ord_counter, min_counter_, max_counter_, ret);
 
     return ret;
@@ -68,7 +68,7 @@ void Compliance::End(int ord_counter)
 		}
 	} // if (ord_counter == min_counter_)
 
-	clog_info("[%s] TryReqOrderInsert min counter:%d; max counter:%d; ord counter:%d",
+	clog_debug("[%s] End min counter:%d; max counter:%d; ord counter:%d",
 				module_name_, min_counter_, max_counter_, ord_counter);
 }
 

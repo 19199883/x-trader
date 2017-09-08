@@ -7,6 +7,7 @@
 #define CLOG_CHANNEL  "x-trader"
 
 // #define LATENCY_MEASURE
+
 #define COMPLIANCE_CHECK
 
 // 通过合约查找订阅该合约行情的方法:
