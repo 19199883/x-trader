@@ -1,0 +1,12 @@
+1. 如果支持FM2.0
+   include:lib\include\femas2.0
+   so:lib\bin\femas2.0
+   API包:FemasAPIV2.00_P01_20150826(fm2).rar
+   
+2. 如果支持FM4.0
+	 include:lib\include\femas4.0
+     so:lib\bin\femas4.0
+     API包:FemasAllFuturesAPI_1.01_20170526(fm4).rar
+3. 默认编译
+   include:lib\include\femas
+   so:lib\bin\femas
