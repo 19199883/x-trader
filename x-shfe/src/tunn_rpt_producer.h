@@ -4,10 +4,9 @@
 #include <array>
 #include <string>
 #include "vrt_value_obj.h"
-#include "X1FtdcTraderApi.h"
+#include "USTPFtdcTraderApi.h"
 
 using namespace std;
-using namespace x1ftdcapi;
 
 /*
  * 10 power of 2
@@ -25,19 +24,19 @@ struct Tunnconfig
 
 struct TunnRpt
 {
-	TX1FtdcLocalOrderIDType               LocalOrderID;                 ///< 本地委托号
-	TX1FtdcOrderAnswerStatusType          OrderStatus;                  ///< 委托状态
-	TX1FtdcAmountType                     MatchedAmount;                ///< 成交数量
-	TX1FtdcPriceType                      MatchedPrice;                 ///< 成交价格
-	TX1FtdcErrorIDType                    ErrorID;                      ///< 错误ID
-	TX1FtdcAmountType                     CancelAmount;                 ///< 撤单数量
+	int									LocalOrderID;                 ///< 本地委托号
+	TUstpFtdcOrderStatusType			OrderStatus;                  ///< 委托状态
+	TUstpFtdcVolumeType					MatchedAmount;                ///< 成交数量
+	TUstpFtdcPriceType					MatchedPrice;                 ///< 成交价格
+	TUstpFtdcErrorIDType				ErrorID;                      ///< 错误ID
+	TUstpFtdcVolumeType					CancelAmount;                 ///< 撤单数量
 };
 
-class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
+class TunnRptProducer: public CUstpFtdcTraderSpi 
 {
 	public:
 		TunnRptProducer(struct vrt_queue  *queue);
-		~TunnRptProducer();
+		virtual ~TunnRptProducer();
 
 		/*
 		 * things relating to X1 Api
@@ -67,10 +66,11 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 
 	private:
 		/*
-		 * things relating to X1 API
+		 * things relating to femas API
 		 */
 		///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 		virtual void OnFrontConnected();
+
 		///当客户端与交易后台通信连接断开时，该方法被调用。当发生这个情况后，API会自动重新连接，客户端可不做处理。
 		///@param nReason 错误原因
 		///        0x1001 网络读失败
@@ -79,79 +79,138 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		///        0x2002 发送心跳失败
 		///        0x2003 收到错误报文
 		virtual void OnFrontDisconnected(int nReason);
-		//客户请求登录响应
-		virtual void OnRspUserLogin(struct CX1FtdcRspUserLoginField *pf, struct CX1FtdcRspErrorField *pe);
-		//客户退出请求响应
-		virtual void OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField *pf, struct CX1FtdcRspErrorField *pe);
-		//委托下单响应
-		virtual void OnRspInsertOrder(struct CX1FtdcRspOperOrderField *pf, struct CX1FtdcRspErrorField *pe);
-		//委托撤单响应
-		virtual void OnRspCancelOrder(struct CX1FtdcRspOperOrderField *pf, struct CX1FtdcRspErrorField *pe);
-		//持仓查询响应
-		virtual void OnRspQryPosition(struct CX1FtdcRspPositionField *pf, struct CX1FtdcRspErrorField *pe, bool bIsLast);
-		virtual void OnRspQryPositionDetail(struct CX1FtdcRspPositionDetailField * pf, struct CX1FtdcRspErrorField * pe, bool bIsLast);
-		//客户资金查询响应
-		virtual void OnRspCustomerCapital(struct CX1FtdcRspCapitalField*pf, struct CX1FtdcRspErrorField *pe, bool bIsLast);
-		//交易所合约查询响应
-		virtual void OnRspQryExchangeInstrument(struct CX1FtdcRspExchangeInstrumentField *pf, struct CX1FtdcRspErrorField *pe, bool bIsLast);
-		//错误回报
-		virtual void OnRtnErrorMsg(struct CX1FtdcRspErrorField *pf);
-		//成交回报
-		virtual void OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField *pf);
-		//委托回报
-		virtual void OnRtnOrder(struct CX1FtdcRspPriOrderField *pf);
-		//撤单回报
-		virtual void OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField *pf);
 
-		virtual void OnRspQryOrderInfo(struct CX1FtdcRspOrderField *pf, struct CX1FtdcRspErrorField * pe, bool bIsLast);
-		virtual void OnRspQryMatchInfo(struct CX1FtdcRspMatchField *pf, struct CX1FtdcRspErrorField * pe, bool bIsLast);
-		/**
-		 * 做市商报单响应
-		 * @param pRspQuoteData:指向做市商报单响应地址的指针。
-		 */
-		virtual void OnRspQuoteInsert(struct CX1FtdcQuoteRspField* pf, struct CX1FtdcRspErrorField* pe){};
-		/**
-		 * 做市商报单回报
-		 * @param pRtnQuoteData:指向做市商报单回报地址的指针。
-		 */
-		virtual void OnRtnQuoteInsert(struct CX1FtdcQuoteRtnField* pf){};
-		/**
-		 * 做市商成交回报
-		 * @param pRtnQuoteMatchedData:指向做市商成交回报地址的指针。
-		 */
-		virtual void OnRtnQuoteMatchedInfo(struct CX1FtdcQuoteMatchRtnField* pf){};
-		/**
-		 * 做市商撤单响应
-		 * @param pRspQuoteCanceledData:指向做市商撤单响应地址的指针。
-		 */
-		virtual void OnRspQuoteCancel(struct CX1FtdcQuoteRspField* pf, struct CX1FtdcRspErrorField* pe){};
-		/**
-		 * 做市商撤单回报
-		 * @param pRtnQuoteCanceledData:指向做市商撤单回报地址的指针。
-		 */
-		virtual void OnRtnQuoteCancel(struct CX1FtdcQuoteCanceledRtnField* pf){};
-		/**
-		 * 交易所状态通知
-		 * @param pRtnExchangeStatusData:指向交易所状态通知地址的指针。
-		 */
-		virtual void OnRtnExchangeStatus(struct CX1FtdcExchangeStatusRtnField* pf);
-		/**
-		 * 批量撤单响应
-		 * @param pRspStripCancelOrderData:指向批量撤单响应地址的指针。
-		 */
-		virtual void OnRspCancelAllOrder(struct CX1FtdcCancelAllOrderRspField*pf, struct CX1FtdcRspErrorField* pe) {};
-		/**
-		 * 询价响应
-		 * @param pRspForQuoteData:询价请求结构地址。
-		 * @return 0 - 请求发送成功 -1 - 请求发送失败  -2 -检测异常。
-		 */
-		virtual void OnRspForQuote(struct CX1FtdcForQuoteRspField* pf, struct CX1FtdcRspErrorField* pe) {};
-		/**
-		 * 询价回报
-		 * @param pRspForQuoteData:询价请求结构地址。
-		 * @return 0 - 请求发送成功 -1 - 请求发送失败  -2 -检测异常。
-		 */
-		virtual void OnRtnForQuote(struct CX1FtdcForQuoteRtnField* pf){} ;
+		///心跳超时警告。当长时间未收到报文时，该方法被调用。
+		///@param nTimeLapse 距离上次接收报文的时间
+		virtual void OnHeartBeatWarning(int nTimeLapse);
+
+		///报文回调开始通知。当API收到一个报文后，首先调用本方法，然后是各数据域的回调，最后是报文回调结束通知。
+		///@param nTopicID 主题代码（如私有流、公共流、行情流等）
+		///@param nSequenceNo 报文序号
+		virtual void OnPackageStart(int nTopicID, int nSequenceNo);
+
+		///报文回调结束通知。当API收到一个报文后，首先调用报文回调开始通知，然后是各数据域的回调，最后调用本方法。
+		///@param nTopicID 主题代码（如私有流、公共流、行情流等）
+		///@param nSequenceNo 报文序号
+		virtual void OnPackageEnd(int nTopicID, int nSequenceNo);
+
+		///错误应答
+		virtual void OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+		///风控前置系统用户登录应答
+		virtual void OnRspUserLogin(CUstpFtdcRspUserLoginField *pRspUserLogin, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast);
+
+		///用户退出应答
+		virtual void OnRspUserLogout(CUstpFtdcRspUserLogoutField *pRspUserLogout, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast);
+
+		///用户密码修改应答
+		virtual void OnRspUserPasswordUpdate(CUstpFtdcUserPasswordUpdateField *pUserPasswordUpdate, CUstpFtdcRspInfoField *pRspInfo,
+			int nRequestID, bool bIsLast)
+		{
+		}
+
+		///报单录入应答
+		virtual void OnRspOrderInsert(CUstpFtdcInputOrderField *pInputOrder, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast);
+
+		///报单操作应答
+		virtual void OnRspOrderAction(CUstpFtdcOrderActionField *pOrderAction, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast);
+
+		///数据流回退通知
+		virtual void OnRtnFlowMessageCancel(CUstpFtdcFlowMessageCancelField *pFlowMessageCancel)
+		{
+		}
+
+		///成交回报
+		virtual void OnRtnTrade(CUstpFtdcTradeField *pTrade);
+
+		///报单回报
+		virtual void OnRtnOrder(CUstpFtdcOrderField *pOrder);
+
+		///报单录入错误回报
+		virtual void OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pInputOrder, CUstpFtdcRspInfoField *pRspInfo);
+
+		///报单操作错误回报
+		virtual void OnErrRtnOrderAction(CUstpFtdcOrderActionField *pOrderAction, CUstpFtdcRspInfoField *pRspInfo);
+
+		///合约交易状态通知
+		virtual void OnRtnInstrumentStatus(CUstpFtdcInstrumentStatusField *pInstrumentStatus)
+		{
+		}
+
+		///报单查询应答
+		virtual void OnRspQryOrder(CUstpFtdcOrderField *pOrder, CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+		///成交单查询应答
+		virtual void OnRspQryTrade(CUstpFtdcTradeField *pTrade, CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+		///可用投资者账户查询应答
+		virtual void OnRspQryUserInvestor(CUstpFtdcRspUserInvestorField *pRspUserInvestor, CUstpFtdcRspInfoField *pRspInfo,
+			int nRequestID, bool bIsLast)
+		{
+		}
+
+		///交易编码查询应答
+		virtual void OnRspQryTradingCode(CUstpFtdcRspTradingCodeField *pRspTradingCode, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast)
+		{
+		}
+
+		///投资者资金账户查询应答
+		virtual void OnRspQryInvestorAccount(CUstpFtdcRspInvestorAccountField *pRspInvestorAccount, CUstpFtdcRspInfoField *pRspInfo,
+			int nRequestID, bool bIsLast)
+		{
+		}
+
+		///合约查询应答
+		virtual void OnRspQryInstrument(CUstpFtdcRspInstrumentField *pRspInstrument, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast)
+		{
+		}
+
+		///交易所查询应答
+		virtual void OnRspQryExchange(CUstpFtdcRspExchangeField *pRspExchange, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast)
+		{
+		}
+
+		///投资者持仓查询应答
+		virtual void OnRspQryInvestorPosition(CUstpFtdcRspInvestorPositionField *pRspInvestorPosition, CUstpFtdcRspInfoField *pRspInfo,
+			int nRequestID, bool bIsLast);
+
+		///订阅主题应答
+		virtual void OnRspSubscribeTopic(CUstpFtdcDisseminationField *pDissemination, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast)
+		{
+		}
+
+		///合规参数查询应答
+		virtual void OnRspQryComplianceParam(CUstpFtdcRspComplianceParamField *pRspComplianceParam, CUstpFtdcRspInfoField *pRspInfo,
+			int nRequestID, bool bIsLast)
+		{
+		}
+
+		///主题查询应答
+		virtual void OnRspQryTopic(CUstpFtdcDisseminationField *pDissemination, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast)
+		{
+		}
+
+		///投资者手续费率查询应答
+		virtual void OnRspQryInvestorFee(CUstpFtdcInvestorFeeField *pInvestorFee, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast)
+		{
+		}
+
+		///投资者保证金率查询应答
+		virtual void OnRspQryInvestorMargin(CUstpFtdcInvestorMarginField *pInvestorMargin, CUstpFtdcRspInfoField *pRspInfo,
+			int nRequestID, bool bIsLast)
+		{
+		}
+
 
 private:
     void ParseConfig();
