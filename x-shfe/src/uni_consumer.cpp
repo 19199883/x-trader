@@ -448,6 +448,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			tunn_rpt_producer_->ReqOrderInsert(&ord);
 #ifdef COMPLIANCE_CHECK
 		}else{
+			clog_warning("[%s] matched with myself:%ld", module_name_, ord.LocalOrderID);
+
 			// feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));

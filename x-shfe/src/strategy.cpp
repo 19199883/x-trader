@@ -17,8 +17,7 @@ Strategy::Strategy()
 	valid_ = false;
 
 	pfn_init_;
-	pfn_feedbestanddeep_ = NULL;
-	pfn_feedorderstatistic_ = NULL;
+	pfn_feedshfemarketdata_ = NULL;
 	pfn_feedsignalresponse_ = NULL;
 	pfn_destroy_ = NULL;
 	pfn_feedinitposition_ = NULL;
@@ -91,18 +90,11 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
 	}
 
-	pfn_feedbestanddeep_ = (FeedBestAndDeep_ptr)pproxy_->findObject(
-					this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP);
-	if (!pfn_feedbestanddeep_){
+	pfn_feedshfemarketdata_ = (FeedShfeMarketData_ptr )pproxy_->findObject(
+					this->setting_.file, STRATEGY_METHOD_FEED_MD_MYSHFE);
+	if (!pfn_feedshfemarketdata_ ){
 		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
-	}
-
-	pfn_feedorderstatistic_ = (FeedOrderStatistic_ptr)pproxy_->findObject(
-					this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS);
-	if (!pfn_feedorderstatistic_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
+					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_MYSHFE, errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
@@ -188,9 +180,10 @@ void Strategy::FeedInitPosition()
 				second.long_volume, second.short_volume);
 }
 
-void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
+void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_debug("[%s] rev MDBestAndDeep_MY contract:%s; time:%s", module_name_, md->Contract, md->GenTime);
+	clog_debug("[%s] rev MYShfeMarketDatacontract:%s; time:%s %s", module_name_, 
+				md->InstrumentID, md->UpdateTime, md->UpdateMillisec);
 
 	// perf
 	// high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -205,33 +198,9 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 	//	clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
 
 		sigs[i].st_id = this->GetId();
+
 		// debug
 		// clog_info("[%s] FeedMd(MDBestAndDeep signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-	//				module_name_, sigs[i].st_id, sigs[i].sig_id,
-	//				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-	//				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
-	}
-}
-
-void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
-{
-	clog_debug("[%s] rev MDOrderStatistic_MY contract:%s", module_name_, md->ContractID);
-
-	// perf
-	//high_resolution_clock::time_point t0 = high_resolution_clock::now();
-
-	*sig_cnt = 0;
-	this->pfn_feedorderstatistic_(md, sig_cnt, sigs);
-	for (int i = 0; i < *sig_cnt; i++ ){
-
-		// perf
-		//high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		//int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		//clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
-
-		sigs[i].st_id = this->GetId();
-		// debug
-		//clog_info("[%s] FeedMd(MDOrderStatistic signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 	//				module_name_, sigs[i].st_id, sigs[i].sig_id,
 	//				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
 	//				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
