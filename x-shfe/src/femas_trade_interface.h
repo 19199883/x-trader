@@ -3,28 +3,6 @@
 public:
 
 	// TODO: here
-    //报单操作请求
-    int ReqOrderAction(CUstpFtdcOrderActionField *pInputOrderAction, int nRequestID)
-    {       
-            ret = api_->ReqOrderAction(pInputOrderAction, nRequestID);
-            if (ret != 0)
-            {
-                // -2，表示未处理请求超过许可数；
-                // -3，表示每秒发送请求数超过许可数。
-                if (ret == -2)
-                {
-                    return TUNNEL_ERR_CODE::CFFEX_OVER_REQUEST;
-                }
-                if (ret == -3)
-                {
-                    return TUNNEL_ERR_CODE::CFFEX_OVER_REQUEST_PER_SECOND;
-                }
-                return TUNNEL_ERR_CODE::RESULT_FAIL;
-            }        
-
-        return ret;
-    }   
-
     int Front_id() const
     {
         return front_id_;

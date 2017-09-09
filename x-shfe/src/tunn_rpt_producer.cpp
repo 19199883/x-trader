@@ -21,19 +21,18 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	this->producer_ = producer;
 	this->producer_ ->yield = vrt_yield_strategy_threaded();
 
-	// create X1 object
+	// create femas object
+    api_ = CUstpFtdcTraderApi::CreateFtdcTraderApi();
+    api_->RegisterSpi(this);
+    api_->SubscribePrivateTopic(USTP_TERT_QUICK);
+    api_->SubscribePublicTopic(USTP_TERT_QUICK);
+
 	char addr[2048];
 	strcpy(addr, this->config_.address.c_str());
-    api_ = CX1FtdcTraderApi::CreateCX1FtdcTraderApi(); 
-	while (1) {
-		if (-1 == api_->Init(addr, this)) {
-			clog_error("[%s] X1 Api init failed.", module_name_);
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
-		else break;
-	}
+	api_->RegisterFront(addr);
+	api_->Init();
+	clog_info("[%s] femas Api init.", module_name_);
 
-	clog_info("[%s] X1 Api: connection to front machine succeeds.", module_name_);
 }
 
 TunnRptProducer::~TunnRptProducer()
@@ -102,16 +101,16 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 }
 
 // 撤单操作请求
-int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
+int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 {
-	int ret = api_->ReqCancelOrder(p);
+	int ret = api_->ReqCancelOrder(p, 0);
 
 	if (ret != 0){
 		clog_warning("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
+			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	} else {
 		clog_debug("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
+			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	}
 
 	return ret;
@@ -154,16 +153,16 @@ int TunnRptProducer::ReqQuoteAction(CX1FtdcCancelOrderField *p)
 
 void TunnRptProducer::ReqLogin()
 {
-    CX1FtdcReqUserLoginField login_data;
-    memset(&login_data, 0, sizeof(CX1FtdcReqUserLoginField));
-    strncpy(login_data.AccountID, this->config_.userid.c_str(), sizeof(login_data.AccountID));
-    strncpy(login_data.Password, this->config_.password.c_str(), sizeof(login_data.Password));
-    
-	int rtn = api_->ReqUserLogin(&login_data);
-
+    CUstpFtdcReqUserLoginField login_data;
+    memset(&login_data, 0, sizeof(CUstpFtdcReqUserLoginField));
+    strncpy(login_data.BrokerID, config_.brokerid.c_str(), sizeof(TUstpFtdcBrokerIDType));
+    strncpy(login_data.UserID, config_.userid.c_str(), sizeof(TUstpFtdcUserIDType));
+    strncpy(login_data.Password, config_.password.c_str(), sizeof(TUstpFtdcPasswordType));
+	int rtn = api_->ReqUserLogin(&login_data, 0);
+	
     clog_info("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
     clog_info("[%s] ReqLogin:   %s", 
-			module_name_, X1DatatypeFormater::ToString(&login_data).c_str());
+			module_name_, FEMASDatatypeFormater::ToString(&login_data).c_str());
 }
 
 void TunnRptProducer::OnFrontConnected()
@@ -177,15 +176,21 @@ void TunnRptProducer::OnFrontDisconnected(int nReason)
     clog_info("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
 }
 
-void TunnRptProducer::OnRspUserLogin(struct CX1FtdcRspUserLoginField* pfield, struct CX1FtdcRspErrorField * perror)
+void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
+{
+    clog_info("[%s] OnHeartBeatWarning, nTimeLapse=%d", module_name_, nTimeLapse);
+}
+
+void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *field, 
+			CUstpFtdcRspInfoField *perror, int nRequestID, bool bIsLast)
 {
     clog_info("[%s] OnRspUserLogin:%s %s",
         module_name_,
-		X1DatatypeFormater::ToString(pfield).c_str(),
-        X1DatatypeFormater::ToString(perror).c_str());
+		FEMASDatatypeFormater::ToString(pfield).c_str(),
+        FEMASDatatypeFormater::ToString(perror).c_str());
 
-    if (perror == NULL) {
-		clog_info("[%s] OnRspUserLogin,error: %d", module_name_, pfield->LoginResult);
+    if (perror == NULL || perror->ErrorID == 0) {
+		clog_info("[%s] OnRspUserLogin success.", module_name_);
     }
     else {
 		clog_info("[%s] OnRspUserLogin, error: %d", module_name_, perror->ErrorID);

@@ -44,15 +44,7 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 		// 下发指令接口
 		int ReqOrderInsert(CUstpFtdcInputOrderField *p);
 		// 撤单操作请求
-		int ReqOrderAction(CX1FtdcCancelOrderField *p);
-		int QryPosition(CX1FtdcQryPositionDetailField *p);
-		int QryOrderDetail(CX1FtdcQryOrderField *p);
-		int QryTradeDetail(CX1FtdcQryMatchField *p);
-		int ReqForQuoteInsert(CX1FtdcForQuoteField *p);
-		///报价录入请求
-		int ReqQuoteInsert(CX1FtdcQuoteInsertField *p);
-		///报价操作请求
-		int ReqQuoteAction(CX1FtdcCancelOrderField *p);
+		int ReqOrderAction(CUstpFtdcOrderActionField *p);
 
 		/*
 		 * things relating to x-trader internal logic

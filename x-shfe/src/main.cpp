@@ -51,10 +51,9 @@ int main(/*int argc, const char **argv*/)
 	int64_t  result;
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
-	mdproducer = new MDProducer(queue);
-
 	pendingSigProducer = new PendingSigProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
+	mdproducer = new MDProducer(queue);
 	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer, pendingSigProducer);
 	uniConsumer->Start();
 
