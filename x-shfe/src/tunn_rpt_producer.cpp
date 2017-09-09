@@ -116,41 +116,6 @@ int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 	return ret;
 }
 
-int TunnRptProducer::QryPosition(CX1FtdcQryPositionDetailField *p)
-{
-	clog_info("[%s] QryPosition- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::QryOrderDetail(CX1FtdcQryOrderField *p)
-{
-	clog_info("[%s] QryOrderDetail- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::QryTradeDetail(CX1FtdcQryMatchField *p)
-{
-	clog_info("[%s] QryTradeDetail- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::ReqForQuoteInsert(CX1FtdcForQuoteField *p)
-{
-	return 0;
-}
-
-///报价录入请求
-int TunnRptProducer::ReqQuoteInsert(CX1FtdcQuoteInsertField *p)
-{
-	return 0;
-}
-
-///报价操作请求
-int TunnRptProducer::ReqQuoteAction(CX1FtdcCancelOrderField *p)
-{
-	return 0;
-}
-
 void TunnRptProducer::ReqLogin()
 {
     CUstpFtdcReqUserLoginField login_data;
@@ -181,9 +146,14 @@ void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
     clog_info("[%s] OnHeartBeatWarning, nTimeLapse=%d", module_name_, nTimeLapse);
 }
 
-void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *field, 
+void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield, 
 			CUstpFtdcRspInfoField *perror, int nRequestID, bool bIsLast)
 {
+	if(pfield != NULL){
+		// TODO: process MaxOrderLocalID
+		max_order_ref_ = atoll(pRspUserLogin->MaxOrderLocalID);
+	}
+	
     clog_info("[%s] OnRspUserLogin:%s %s",
         module_name_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
