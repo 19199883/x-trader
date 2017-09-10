@@ -1,51 +1,6 @@
 ﻿
 // TODO: here
-void MyFemasTradeSpi::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pRspUserLogout, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-bool bIsLast)
-{   
-        logoned_ = false;       
-        TNL_LOG_WARN("OnRspUserLogout: requestid = %d, last_flag=%d \n%s \n%s",
-            nRequestID, bIsLast,
-            FEMASDatatypeFormater::ToString(pRspUserLogout).c_str(),
-            FEMASDatatypeFormater::ToString(pRspInfo).c_str());    
-}
-
-void MyFemasTradeSpi::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{    
-        if (pRspInfo)
-        {
-            ReportErrorState(pRspInfo->ErrorID, pRspInfo->ErrorMsg);
-            TNL_LOG_WARN("OnRspError: requestid = %d, last_flag=%d \n%s",
-                nRequestID, bIsLast, FEMASDatatypeFormater::ToString(pRspInfo).c_str());
-        }
-        else
-        {
-            TNL_LOG_INFO("OnRspError ");
-        }   
-}
-
-void MyFemasTradeSpi::OnRtnOrder(CUstpFtdcOrderField *pOrder)
-{  
-        const OriginalReqInfo *p = NULL;
-        OrderRefDataType order_ref = atoll(pOrder->UserOrderLocalID);       
-            femas_trade_context_.AddNewOrderSysID(atoll(pOrder->OrderSysID));                        
-               OnRtnOrderNormal(pOrder, p, order_ref);           
-            TNL_LOG_DEBUG("%s", FEMASDatatypeFormater::ToString(pOrder).c_str());         
-}
-
-void MyFemasTradeSpi::OnRtnTrade(CUstpFtdcTradeField *pTrade)
-{    
-        EntrustNoType sysid = atoll(pTrade->OrderSysID);
-        OrderRefDataType order_ref = atoll(pTrade->UserOrderLocalID);
-        const OriginalReqInfo *p = NULL;        
-                T_TradeReturn trade_return;
-                FEMASPacker::TradeReturn(p, pTrade, trade_return);                                                      
-            TNL_LOG_DEBUG("%s", FEMASDatatypeFormater::ToString(pTrade).c_str());        
-}
-
 // 报单拒绝
-void MyFemasTradeSpi::OnRspOrderInsert(CUstpFtdcInputOrderField *pInputOrder, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-bool bIsLast)
 {
     int errorid = 0;        
         if (pRspInfo)
@@ -149,14 +104,6 @@ void MyFemasTradeSpi::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pOrderActio
             TNL_LOG_DEBUG("OnErrRtnOrderAction:  \n%s \n%s",
                 FEMASDatatypeFormater::ToString(pOrderAction).c_str(),
                 FEMASDatatypeFormater::ToString(pRspInfo).c_str());         
-}
-
-void MyFemasTradeSpi::OnRtnOrderNormal(CUstpFtdcOrderField * pOrder, const OriginalReqInfo * p, OrderRefDataType order_ref)
-{
-    //PackagerHelper rsp_package(pOrder, p);
-    SerialNoType serial_no = p->serial_no;  
-    T_OrderReturn order_return;
-    FEMASPacker::OrderReturn(serial_no, pOrder, order_return);
 }
 
 CUstpFtdcOrderActionField

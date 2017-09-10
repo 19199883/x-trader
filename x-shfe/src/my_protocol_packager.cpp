@@ -52,16 +52,6 @@ void FEMASPacker::OrderRequest(const TunnelConfigData &cfg,const T_PlaceOrder *r
 	strncpy(insert_order.UserCustom, cfg.Logon_config().clientid.c_str(), sizeof(TUstpFtdcCustomType));
 }
 
-void FEMASPacker::OrderRespond(int error_no, SerialNoType serial_no, const char* entrust_no,
-                                         char entrust_status, T_OrderRespond &order_respond)
-{
-	memset(&order_respond, 0, sizeof(order_respond));
-    order_respond.entrust_no       = atol(entrust_no);
-    order_respond.entrust_status   = FEMASFieldConvert::EntrustStatusTrans(entrust_status);
-    order_respond.serial_no        = serial_no;
-    order_respond.error_no         = error_no;
-}
-
 void FEMASPacker::CancelRequest(const TunnelConfigData &cfg,const T_CancelOrder *req, OrderRefDataType order_ref,
     OrderRefDataType org_order_ref, CUstpFtdcOrderActionField &cancle_order)
 {
@@ -95,35 +85,3 @@ void FEMASPacker::CancelRespond(int error_no, SerialNoType serial_no, const char
     if (error_no != 0) cancel_respond.entrust_status = MY_TNL_OS_ERROR;
 }
 
-
-void FEMASPacker::OrderReturn(SerialNoType serial_no, const CUstpFtdcOrderField *rsp, T_OrderReturn &order_return)
-{
-	memset(&order_return, 0, sizeof(order_return));
-    order_return.entrust_no     = atol(rsp->OrderSysID);
-    order_return.entrust_status = FEMASFieldConvert::EntrustStatusTrans(rsp->OrderStatus);
-    order_return.serial_no      = serial_no;
-
-    strncpy(order_return.stock_code, rsp->InstrumentID, sizeof(TUstpFtdcInstrumentIDType));
-    order_return.direction      = rsp->Direction;
-    order_return.open_close     = rsp->OffsetFlag;
-    order_return.speculator     = FEMASFieldConvert::EntrustTbFlagTrans(rsp->HedgeFlag);
-    order_return.volume         = rsp->Volume;
-    order_return.limit_price    = rsp->LimitPrice;
-
-    order_return.volume_remain  = rsp->VolumeRemain;
-}
-
-
-void FEMASPacker::TradeReturn(const OriginalReqInfo *p_req, const CUstpFtdcTradeField *rsp, T_TradeReturn &trade_return)
-{
-	memset(&trade_return, 0, sizeof(trade_return));
-    trade_return.business_no        = atoi(rsp->TradeID);
-    trade_return.business_price     = rsp->TradePrice;
-    trade_return.business_volume    = rsp->TradeVolume;
-    trade_return.entrust_no         = atol(rsp->OrderSysID);
-    trade_return.serial_no          = p_req->serial_no;
-
-    strncpy(trade_return.stock_code, rsp->InstrumentID, sizeof(TUstpFtdcInstrumentIDType));
-    trade_return.direction      = p_req->buy_sell_flag;
-    trade_return.open_close     = p_req->open_close_flag;
-}

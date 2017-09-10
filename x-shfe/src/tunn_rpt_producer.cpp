@@ -167,14 +167,14 @@ void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield,
     }
 }
 
-void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, struct CX1FtdcRspErrorField * pe)
+void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *e,
+			int nRequestID,truct CX1FtdcRspUserLogoutInfoField* pf, bool bIsLast)
 {
     clog_info("[%s] OnRspUserLogout:%s %s",
         module_name_,
-		X1DatatypeFormater::ToString(pf).c_str(),
-        X1DatatypeFormater::ToString(pe).c_str());
+		FEMASDatatypeFormater::ToString(pf).c_str(),
+        FEMASDatatypeFormater::ToString(pe).c_str());
 }
-
 
 void TunnRptProducer::End()
 {
@@ -182,48 +182,62 @@ void TunnRptProducer::End()
 	(vrt_producer_eof(producer_));
 }
 
-void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
-{
-    clog_debug("[%s] OnRspInsertOrder ended_:%d", ended_);
+void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{    
+        if (pRspInfo){
+            clog_warning("[%s] OnRspError: requestid = %d, last_flag=%d %s",
+                module_name_, nRequestID, bIsLast, 
+				FEMASDatatypeFormater::ToString(pRspInfo).c_str());
+        }else{
+            TNL_LOG_INFO("OnRspError ");
+        }   
+}
 
+void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
+			CUstpFtdcRspInfoField *perror, int nRequestID,bool bIsLast)
+{
 	if (ended_) return;
 
     clog_debug("[%s] OnRspInsertOrder:%s %s",
         module_name_,
-		X1DatatypeFormater::ToString(pfield).c_str(),
-        X1DatatypeFormater::ToString(perror).c_str());
+		FEMASDatatypeFormater::ToString(pfield).c_str(),
+        FEMASDatatypeFormater::ToString(perror).c_str());
 
-	if ((pfield != NULL && pfield->OrderStatus == X1_FTDC_SPD_ERROR) ||
-		perror != NULL){
+	if (perror != NULL){
 		clog_warning("[%s] OnRspInsertOrder:%s %s",
 			module_name_,
-			X1DatatypeFormater::ToString(pfield).c_str(),
-			X1DatatypeFormater::ToString(perror).c_str());
+			FEMASDatatypeFormater::ToString(pfield).c_str(),
+			FEMASDatatypeFormater::ToString(perror).c_str());
 	}
 
-	struct TunnRpt rpt;
-    memset(&rpt, 0, sizeof(rpt));
-	if (perror != NULL) {
-		rpt.LocalOrderID = perror->LocalOrderID;
-		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
-		rpt.ErrorID = perror->ErrorID;
+
+	// 考虑拒绝情况。此时，第一个参数可能为空，需要记住requestid
+	if ((pfield != NULL){
+		struct TunnRpt rpt;
+		memset(&rpt, 0, sizeof(rpt));
+		if (perror != NULL) {
+			rpt.LocalOrderID = atol(perror->UserOrderLocalID);
+			rpt.OrderStatus = X1_FTDC_SPD_ERROR;
+			rpt.ErrorID = perror->ErrorID;
+		}
+		else {
+			rpt.LocalOrderID = atol(pfield->LocalOrderID);
+			// TODO:
+			// order_respond.entrust_no       = atol(entrust_no);
+			rpt.OrderStatus = pfield->OrderStatus;
+		}
+
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		(vrt_producer_claim(producer_, &vvalue));
+		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+		ivalue->index = Push(rpt);
+		ivalue->data = TUNN_RPT;
+		(vrt_producer_publish(producer_));
+
+		clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%ld",
+					module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
 	}
-	else {
-		rpt.LocalOrderID = pfield->LocalOrderID;
-		rpt.OrderStatus = pfield->OrderStatus;
-	}
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = Push(rpt);
-	ivalue->data = TUNN_RPT;
-
-	clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%ld",
-				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
-
-	(vrt_producer_publish(producer_));
 }
 
 int32_t TunnRptProducer::Push(const TunnRpt& rpt)
@@ -243,8 +257,6 @@ int32_t TunnRptProducer::Push(const TunnRpt& rpt)
 
 void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
 {
-    clog_debug("[%s] OnRspCancelOrder ended_:%d", ended_);
-
 	if (ended_) return;
 
     clog_debug("[%s] OnRspCancelOrder:%s %s",
@@ -301,8 +313,6 @@ bool bIsLast)
 
 void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 {
-    clog_debug("[%s] OnRtnErrorMsg:%d", ended_);
-
 	if (ended_) return;
 
     clog_warning("[%s] OnRtnErrorMsg:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
@@ -326,19 +336,19 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 	(vrt_producer_publish(producer_));
 }
 
-void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfield)
+void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
 {
-    clog_debug("[%s] OnRtnMatchedInfo ended_:%d", ended_);
-
 	if (ended_) return;
 
-    clog_debug("[%s] OnRtnMatchedInfo:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
+    clog_debug("[%s] OnRtnMatchedInfo:%s", 
+				module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
+	// TODO: 忽略该回报，因为OrderReturn有成交信息
 	struct TunnRpt rpt;
     memset(&rpt, 0, sizeof(rpt));
-	rpt.LocalOrderID = pfield->LocalOrderID;
+	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 	rpt.OrderStatus = pfield->OrderStatus;
-	rpt.MatchedAmount = pfield->MatchedAmount;
+	rpt.MatchedAmount = pfield->TradeVolume;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -353,23 +363,22 @@ void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfiel
 	(vrt_producer_publish(producer_));
 }
 
-void TunnRptProducer::OnRtnOrder(struct CX1FtdcRspPriOrderField* pfield)
+void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 {
-    clog_debug("[%s] OnRtnOrderended_:%d", ended_);
-
 	if (ended_) return;
 
-    clog_debug("[%s] OnRtnOrder:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
+    clog_debug("[%s] OnRtnOrder:%s", module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
-	if (pfield->OrderStatus == X1_FTDC_SPD_ERROR){
+	if (pfield->OrderStatus == USTP_FTDC_OS_Canceled){
 		clog_warning("[%s] OnRtnOrder:%s",
 			module_name_,
-			X1DatatypeFormater::ToString(pfield).c_str());
+			FEMASDatatypeFormater::ToString(pfield).c_str());
 	}
 
 	struct TunnRpt rpt;
     memset(&rpt, 0, sizeof(rpt));
-	rpt.LocalOrderID = pfield->LocalOrderID;
+    //order_return.entrust_no     = atol(rsp->OrderSysID);
+	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 	rpt.OrderStatus = pfield->OrderStatus;
 
 	struct vrt_value  *vvalue;
@@ -378,17 +387,14 @@ void TunnRptProducer::OnRtnOrder(struct CX1FtdcRspPriOrderField* pfield)
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = Push(rpt);
 	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
 
 	clog_debug("[%s] OnRtnOrder: index,%d; data,%d; LocalOrderID:%ld",
 				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
-
-	(vrt_producer_publish(producer_));
 }
 
 void TunnRptProducer::OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField* pfield)
 {
-    clog_debug("[%s] OnRtnCancelOrder:%d", ended_);
-
 	if (ended_) return;
 
     clog_debug("[%s] OnRtnCancelOrder:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
