@@ -12,6 +12,7 @@ using namespace std;
  * 10 power of 2
  */
 #define RPT_BUFFER_SIZE 4096
+#define MY_TNL_EXID_SHFE  "SHFE"
 
 struct Tunnconfig
 {
@@ -54,6 +55,7 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 		TunnRpt* GetRpt(int32_t index);
 		int32_t GetStrategyID(TunnRpt& rpt);
 		void End();
+		Tunnconfig config_;
 
 	private:
 		/*
@@ -97,10 +99,8 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 		bool bIsLast);
 
 		///用户密码修改应答
-		virtual void OnRspUserPasswordUpdate(CUstpFtdcUserPasswordUpdateField *pUserPasswordUpdate, CUstpFtdcRspInfoField *pRspInfo,
-			int nRequestID, bool bIsLast)
-		{
-		}
+		virtual void OnRspUserPasswordUpdate(CUstpFtdcUserPasswordUpdateField *pUserPasswordUpdate, 
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
 
 		///报单录入应答
 		virtual void OnRspOrderInsert(CUstpFtdcInputOrderField *pInputOrder, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
@@ -128,90 +128,67 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 		virtual void OnErrRtnOrderAction(CUstpFtdcOrderActionField *pOrderAction, CUstpFtdcRspInfoField *pRspInfo);
 
 		///合约交易状态通知
-		virtual void OnRtnInstrumentStatus(CUstpFtdcInstrumentStatusField *pInstrumentStatus)
-		{
-		}
+		virtual void OnRtnInstrumentStatus(CUstpFtdcInstrumentStatusField *pInstrumentStatus) { }
 
 		///报单查询应答
-		virtual void OnRspQryOrder(CUstpFtdcOrderField *pOrder, CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		virtual void OnRspQryOrder(CUstpFtdcOrderField *pOrder, CUstpFtdcRspInfoField *pRspInfo, 
+					int nRequestID, bool bIsLast){}
 
 		///成交单查询应答
-		virtual void OnRspQryTrade(CUstpFtdcTradeField *pTrade, CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		virtual void OnRspQryTrade(CUstpFtdcTradeField *pTrade, CUstpFtdcRspInfoField *pRspInfo,
+					int nRequestID, bool bIsLast){}
 
 		///可用投资者账户查询应答
-		virtual void OnRspQryUserInvestor(CUstpFtdcRspUserInvestorField *pRspUserInvestor, CUstpFtdcRspInfoField *pRspInfo,
-			int nRequestID, bool bIsLast)
-		{
-		}
-
+		virtual void OnRspQryUserInvestor(CUstpFtdcRspUserInvestorField *pRspUserInvestor,
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
 		///交易编码查询应答
-		virtual void OnRspQryTradingCode(CUstpFtdcRspTradingCodeField *pRspTradingCode, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast)
-		{
-		}
-
+		virtual void OnRspQryTradingCode(CUstpFtdcRspTradingCodeField *pRspTradingCode,
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
 		///投资者资金账户查询应答
-		virtual void OnRspQryInvestorAccount(CUstpFtdcRspInvestorAccountField *pRspInvestorAccount, CUstpFtdcRspInfoField *pRspInfo,
-			int nRequestID, bool bIsLast)
-		{
-		}
-
+		virtual void OnRspQryInvestorAccount(CUstpFtdcRspInvestorAccountField *pRspInvestorAccount, 
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
 		///合约查询应答
-		virtual void OnRspQryInstrument(CUstpFtdcRspInstrumentField *pRspInstrument, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast)
-		{
-		}
-
+		virtual void OnRspQryInstrument(CUstpFtdcRspInstrumentField *pRspInstrument,
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
 		///交易所查询应答
 		virtual void OnRspQryExchange(CUstpFtdcRspExchangeField *pRspExchange, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast)
-		{
-		}
-
+		bool bIsLast) { }
 		///投资者持仓查询应答
-		virtual void OnRspQryInvestorPosition(CUstpFtdcRspInvestorPositionField *pRspInvestorPosition, CUstpFtdcRspInfoField *pRspInfo,
-			int nRequestID, bool bIsLast);
+		virtual void OnRspQryInvestorPosition(CUstpFtdcRspInvestorPositionField *pRspInvestorPosition,
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast){}
 
 		///订阅主题应答
 		virtual void OnRspSubscribeTopic(CUstpFtdcDisseminationField *pDissemination, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
 		bool bIsLast)
 		{
 		}
-
 		///合规参数查询应答
-		virtual void OnRspQryComplianceParam(CUstpFtdcRspComplianceParamField *pRspComplianceParam, CUstpFtdcRspInfoField *pRspInfo,
-			int nRequestID, bool bIsLast)
-		{
-		}
+		virtual void OnRspQryComplianceParam(CUstpFtdcRspComplianceParamField *pRspComplianceParam,
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
 
 		///主题查询应答
 		virtual void OnRspQryTopic(CUstpFtdcDisseminationField *pDissemination, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
 		bool bIsLast)
 		{
 		}
-
 		///投资者手续费率查询应答
-		virtual void OnRspQryInvestorFee(CUstpFtdcInvestorFeeField *pInvestorFee, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast)
-		{
-		}
-
+		virtual void OnRspQryInvestorFee(CUstpFtdcInvestorFeeField *pInvestorFee,
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
 		///投资者保证金率查询应答
-		virtual void OnRspQryInvestorMargin(CUstpFtdcInvestorMarginField *pInvestorMargin, CUstpFtdcRspInfoField *pRspInfo,
-			int nRequestID, bool bIsLast)
-		{
-		}
+		virtual void OnRspQryInvestorMargin(CUstpFtdcInvestorMarginField *pInvestorMargin,
+					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
 
 
 private:
     void ParseConfig();
     void ReqLogin();
+	long GetCounterByLocalOrderID();
 
 	struct vrt_producer  *producer_;
 	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
-	Tunnconfig config_;
 	const char * module_name_;  
 	bool ended_;
+	static int32_t counter_;
 
 	/*
 	 * things relating to counter API
