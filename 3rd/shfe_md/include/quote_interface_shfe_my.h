@@ -7,7 +7,7 @@
 
 #include <set>
 #include <string>
-#include <boost/function.hpp>
+#include <functional>   // std::bind
 //#include <functional>
 
 
@@ -30,11 +30,11 @@ public:
     /**
      * @param quote_handler 行情处理的函数对象。shfe quote of my（xh提供）
      */
-    void SetQuoteDataHandler(boost::function<void(const SHFEQuote *)> quote_handler);
-    void SetQuoteDataHandler(boost::function<void(const CDepthMarketDataField *)> quote_handler);
-    void SetQuoteDataHandler(boost::function<void(const MYShfeMarketData *)> quote_handler);
+    void SetQuoteDataHandler(std::function<void(const SHFEQuote *)> quote_handler);
+    void SetQuoteDataHandler(std::function<void(const CDepthMarketDataField *)> quote_handler);
+    void SetQuoteDataHandler(std::function<void(const MYShfeMarketData *)> quote_handler);
 	
-	void SetQuoteDataHandler(boost::function<void(const int *)> quote_handler){}
+	void SetQuoteDataHandler(std::function<void(const int *)> quote_handler){}
 
     ~MYQuoteData();
 
