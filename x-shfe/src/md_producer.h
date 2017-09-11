@@ -6,7 +6,7 @@
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
-#include "quote_interface_dce_level2.h"
+#include "quote_interface_shfe_my.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 
@@ -21,19 +21,14 @@ class MDProducer
 		MDProducer(struct vrt_queue  *queue);
 		~MDProducer();
 
-		MDBestAndDeep_MY* GetBestAnddeep(int32_t index);
-		MDOrderStatistic_MY* GetOrderStatistic(int32_t index);
-
+		MYShfeMarketData * GetShfeMarketData(int32_t index);
 		void End();
 
 	private:
 		MYQuoteData* build_quote_provider(SubscribeContracts &subscription);
 		
-		void OnMDBestAndDeep(const MDBestAndDeep_MY* md);
-		int32_t push(const MDBestAndDeep_MY& md);
-
-		void OnMDOrderStatistic(const MDOrderStatistic_MY* md);
-		int32_t push(const MDOrderStatistic_MY& md);
+		void OnShfeMarketData(const MYShfeMarketData * md);
+		int32_t push(const MYShfeMarketData & md);
 
 		MYQuoteData *md_provider_;
 		SubscribeContracts subs_;
@@ -41,8 +36,7 @@ class MDProducer
 		bool ended_;
 
 		struct vrt_producer  *producer_;
-		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> orderstatistic_buffer_;
-		std::array<MDBestAndDeep_MY, MD_BUFFER_SIZE> bestanddeep_buffer_;
+		std::array<MYShfeMarketData, MD_BUFFER_SIZE> shfemarketdata_buffer_;
 };
 
 #endif

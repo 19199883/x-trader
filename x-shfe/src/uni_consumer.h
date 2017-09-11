@@ -83,10 +83,10 @@ class FemasFieldConverter
 			// 自动挂起标志
 			//insert_order.IsAutoSuspend = 0;
 			//strcpy(insert_order.BusinessUnit,"");
-			strncpy(insert_order.UserCustom, cfg.).userid.c_str(), sizeof(TUstpFtdcCustomType));
+			strncpy(insert_order.UserCustom, cfg.userid.c_str(), sizeof(TUstpFtdcCustomType));
 		}
 
-		void Convert(Tunnconfig &cfg, const signal_t& sig, long local_order_id, 
+		static void Convert(Tunnconfig &cfg, long local_order_id, 
 					long ori_local_ord_id, CUstpFtdcOrderActionField &order)
 		{
 			memset(&order, 0, sizeof(order));
@@ -103,9 +103,9 @@ class FemasFieldConverter
 			snprintf(order.UserOrderLocalID, sizeof(order.UserOrderLocalID), 
 						"%08lld", ori_local_ord_id);
 			// order.OrderSysID);
-			cancle_order.ActionFlag = USTP_FTDC_AF_Delete;
-			cancle_order.LimitPrice = 0;
-			cancle_order.VolumeChange = 0;
+			order.ActionFlag = USTP_FTDC_AF_Delete;
+			order.LimitPrice = 0;
+			order.VolumeChange = 0;
 		}
 
 };
@@ -155,9 +155,7 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcBestAndDeep(int32_t index);
-		void FeedBestAndDeep(int32_t straidx);
-		void ProcOrderStatistic(int32_t index);
+		void ProcShfeMarketData(int32_t index);
 		void ProcPendingSig(int32_t index);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);

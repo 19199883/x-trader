@@ -17,11 +17,8 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 
 	md_provider_ = build_quote_provider(subs_);
 
-	auto f_bestanddeep = std::bind(&MDProducer::OnMDBestAndDeep, this,_1);
-	md_provider_->SetQuoteDataHandler(f_bestanddeep);
-
-	auto f_orderstatics = std::bind(&MDProducer::OnMDOrderStatistic, this, _1);
-	md_provider_->SetQuoteDataHandler(f_orderstatics);
+	auto f_shfemarketdata = std::bind(&MDProducer::OnShfeMarketData, this,_1);
+	md_provider_->SetQuoteDataHandler(f_shfemarketdata);
 }
 
 MDProducer::~MDProducer(){
@@ -60,12 +57,12 @@ void MDProducer::End()
 	(vrt_producer_eof(producer_));
 }
 
-void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
+void MDProducer::OnShfeMarketData(const MYShfeMarketData * md)
 {
 	if (ended_) return;
 
 	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
-	if (strlen(md->Contract) > 6) return;
+	if (strlen(md->InstrumentID) > 6) return;
 
 #ifdef LATENCY_MEASURE
 	// latency measure
@@ -79,76 +76,31 @@ void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
 	(vrt_producer_claim(producer_, &vvalue));
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = push(*md);
-	ivalue->data = BESTANDDEEP;
-
-	clog_debug("[%s] rev MDBestAndDeep: index,%d; data,%d; contracr:%s; time: %s",
-				module_name_, ivalue->index, ivalue->data, md->Contract, md->GenTime);
-
+	ivalue->data = SHFEMARKETDATA;
 	(vrt_producer_publish(producer_));
+
+	clog_debug("[%s] rev ShfeMarketData: index,%d; data,%d; contracr:%s; time: %s %s",
+				module_name_, ivalue->index, ivalue->data, md->InstrumentID,
+				md->UpdateTime, md->UpdateMillisec);
 }
 
-int32_t MDProducer::push(const MDBestAndDeep_MY& md){
-	static int32_t bestanddeep_cursor = MD_BUFFER_SIZE - 1;
-	bestanddeep_cursor++;
-	if (bestanddeep_cursor%MD_BUFFER_SIZE == 0){
-		bestanddeep_cursor = 0;
+int32_t MDProducer::push(const MYShfeMarketData& md){
+	static int32_t shfemarketdata_cursor = MD_BUFFER_SIZE - 1;
+	shfemarketdata_cursor++;
+	if (shfemarketdata_cursor%MD_BUFFER_SIZE == 0){
+		shfemarketdata_cursor = 0;
 	}
-	bestanddeep_buffer_[bestanddeep_cursor] = md;
+	shfemarketdata_buffer_[shfemarketdata_cursor] = md;
 
-	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s",
-				module_name_, bestanddeep_cursor, md.Contract, md.GenTime);
+	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s %s",
+				module_name_, shfemarketdata_cursor, md.InstrumentID, 
+				md.UpdateTime, md.UpdateMillisec);
 
-	return bestanddeep_cursor;
+	return shfemarketdata_cursor;
 }
 
-MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
+MYShfeMarketData* MDProducer::GetShfeMarketData(int32_t index)
 {
-	return &bestanddeep_buffer_[index];
+	return &shfemarketdata_buffer_[index];
 }
 
-void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md)
-{
-	if (ended_) return;
-
-	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
-	if (strlen(md->ContractID) > 6) return;
-
-#ifdef LATENCY_MEASURE
-	// latency measure
-//	static int cnt = 0;
-//	perf_ctx::insert_t0(cnt);
-//	cnt++;
-#endif
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = push(*md);
-	ivalue->data = ORDERSTATISTIC;
-
-	clog_debug("[%s] rev MDOrderStatistic: index,%d; data,%d; contracr:%s; time: %s",
-				module_name_, ivalue->index, ivalue->data, md->ContractID, "");
-
-	(vrt_producer_publish(producer_));
-}
-
-int32_t MDProducer::push(const MDOrderStatistic_MY& md){
-	static int32_t orderstatics_cursor = MD_BUFFER_SIZE - 1;
-	orderstatics_cursor++;
-	if (orderstatics_cursor%MD_BUFFER_SIZE == 0){
-		orderstatics_cursor = 0;
-	}
-	orderstatistic_buffer_[orderstatics_cursor] = md;
-
-
-	clog_debug("[%s] push MDOrderStatistic: cursor,%d; contract:%s; time: %s",
-				module_name_, orderstatics_cursor, md.ContractID, "");
-
-	return orderstatics_cursor;
-}
-
-MDOrderStatistic_MY* MDProducer::GetOrderStatistic(int32_t index)
-{
-	return &orderstatistic_buffer_[index];
-}

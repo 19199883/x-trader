@@ -182,7 +182,7 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 private:
     void ParseConfig();
     void ReqLogin();
-	long GetCounterByLocalOrderID();
+	long GetCounterByLocalOrderID(long localorderid);
 
 	struct vrt_producer  *producer_;
 	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;

@@ -189,7 +189,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 	// high_resolution_clock::time_point t0 = high_resolution_clock::now();
 	
 	*sig_cnt = 0;
-	this->pfn_feedbestanddeep_(md, sig_cnt, sigs);
+	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 
 		// perf
@@ -433,10 +433,9 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
-	if (rpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
-		rpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-		rpt.OrderStatus==X1_FTDC_SPD_ERROR ||
-		rpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (rpt.OrderStatus==USTP_FTDC_OS_AllTraded ||
+		rpt.OrderStatus==USTP_FTDC_OS_PartTradedNotQueueing ||
+		rpt.OrderStatus==USTP_FTDC_OS_Canceled){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
 			position_.frozen_open_long = 0;
 		}
@@ -470,35 +469,25 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 	sigrpt.exec_volume = tunnrpt.MatchedAmount;
 	sigrpt.acc_volume += tunnrpt.MatchedAmount;
 
-	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
-		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-		tunnrpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (tunnrpt.OrderStatus == USTP_FTDC_OS_Canceled){
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
 	}else{ sigrpt.killed = 0; }
 
-	if (tunnrpt.OrderStatus==X1_FTDC_SPD_ERROR) sigrpt.rejected = sigrpt.order_volume;
-	else sigrpt.rejected = 0; 
-
+	sigrpt.rejected = 0; 
 	sigrpt.error_no = tunnrpt.ErrorID;
 
-	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
-		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-		tunnrpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (tunnrpt.OrderStatus==USTP_FTDC_OS_Canceled ||
+		tunnrpt.OrderStatus==USTP_FTDC_OS_PartTradedNotQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_CANCEL;
 	}
-	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_FILLED){
+	else if(tunnrpt.OrderStatus == USTP_FTDC_OS_AllTraded){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_SUCCESS;
 	}
-	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL){
+	else if(tunnrpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_PARTED;
 	}
-	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_ERROR){
-		sigrpt.status = if_sig_state_t::SIG_STATUS_REJECTED;
-	}
-	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_IN_QUEUE || 
-			tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL ||
-			tunnrpt.OrderStatus==X1_FTDC_SPD_PLACED ||
-			tunnrpt.OrderStatus==X1_FTDC_SPD_TRIGGERED){
+	else if(tunnrpt.OrderStatus == USTP_FTDC_OS_NoTradeQueueing || 
+			tunnrpt.OrderStatus == USTP_FTDC_OS_NoTradeNotQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}
 	else{

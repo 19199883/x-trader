@@ -1,7 +1,7 @@
 ﻿#ifndef SELFBUYSELLCHECK_H_
 #define SELFBUYSELLCHECK_H_
 
-#include "X1FtdcApiDataType.h"
+#include "USTPFtdcUserApiDataType.h"
 
 #define DOUBLE_CHECH_PRECISION 0.000001
 // 一个trader支持最多信号数 
@@ -11,7 +11,7 @@ struct OrderInfo
 {
 	bool valid;
     char contract[10];
-    TX1FtdcBuySellTypeType side;
+    TUstpFtdcDirectionType  side;
     double price;
 };
 
@@ -24,7 +24,7 @@ class Compliance
 		 * 返回值：true表示成功；false表示失败 
 		 */
 		bool TryReqOrderInsert(int ord_counter, const char * contract, double price,
-					TX1FtdcBuySellTypeType side);
+					TUstpFtdcDirectionType side);
 
 		void End(int ord_counter);
 

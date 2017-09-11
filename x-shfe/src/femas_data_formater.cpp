@@ -3,7 +3,6 @@
 #include <sstream>
 
 using namespace std;
-using namespace commonfuncs;
 
 static std::string indent_string = "    ";
 static std::string newline_string = "\n";

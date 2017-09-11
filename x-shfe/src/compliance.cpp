@@ -14,7 +14,7 @@ Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Complia
 }
 
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
-			double price, TX1FtdcBuySellTypeType side)
+			double price, TUstpFtdcDirectionType side)
 {
     bool ret = true;
 
@@ -23,9 +23,11 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		if (!ord.valid) continue;
 
 		if (strcmp(ord.contract, contract)==0 && side != ord.side){
-			if ((side == X1_FTDC_SPD_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
-				(side != X1_FTDC_SPD_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
+			if ((side == USTP_FTDC_D_Buy && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
+				(side != USTP_FTDC_D_Buy && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
 				ret = false;
+				clog_debug("[%s] matched with myself. ord counter:%d; queue counter:%d ",
+					module_name_, ord_counter, i);
 				break;
 			}
 		} // if (strcmp(ord.contract, contract)==0 && side != ord.side)

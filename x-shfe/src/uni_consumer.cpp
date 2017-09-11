@@ -206,11 +206,8 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
-				case BESTANDDEEP:
-					ProcBestAndDeep(ivalue->index);
-					break;
-				case ORDERSTATISTIC:
-					ProcOrderStatistic(ivalue->index);
+				case SHFEMARKETDATA:
+					ProcShfeMarketData(ivalue->index);
 					break;
 				case PENDING_SIGNAL:
 					ProcPendingSig(ivalue->index);
@@ -238,14 +235,14 @@ void UniConsumer::Stop()
 	pendingsig_producer_->End();
 }
 
-void UniConsumer::ProcBestAndDeep(int32_t index)
+void UniConsumer::ProcShfeMarketData(int32_t index)
 {
-	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
+	MYShfeMarketData* md = md_producer_->GetShfeMarketData(index);
 
-	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
+	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->InstrumentID);
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
-	auto range = cont_straidx_map_table_.equal_range(md->Contract);
+	auto range = cont_straidx_map_table_.equal_range(md->InstrumentID);
 	for_each (
 		range.first,
 		range.second,
@@ -278,63 +275,12 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-		if (strcmp(strategy.GetContract(), md->Contract) == 0){
+		if (strcmp(strategy.GetContract(), md->InstrumentID) == 0){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
 #endif
-
-}
-
-void UniConsumer::ProcOrderStatistic(int32_t index)
-{
-	MDOrderStatistic_MY* md = md_producer_->GetOrderStatistic(index);
-
-	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
-
-#if FIND_STRATEGIES == 1 // unordered_multimap
-	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-	int32_t key1,key2;
-	int32_t sig_cnt = 0;
-	GetKeys(md->ContractID,key1,key2);
-	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-	if (cur_node >= 0){
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] >= 0){
-				int32_t stra_idx = stra_idx_table_[cur_node][i];
-				Strategy &strategy = stra_table_[stra_idx];
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			} else { break; }		
-		}
-	}
-#endif
-
-#if FIND_STRATEGIES == 3 //strcmp
-	for(int i = 0; i < strategy_counter_; i++){ 
-		int sig_cnt = 0;
-		Strategy &strategy = stra_table_[i];
-		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-			ProcSigs(strategy, sig_cnt, sig_buffer_);
-		}
-	}
-#endif
-
-
 }
 
 void UniConsumer::ProcPendingSig(int32_t index)
@@ -362,11 +308,9 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
-	if (rpt->OrderStatus==X1_FTDC_SPD_CANCELED ||
-			rpt->OrderStatus==X1_FTDC_SPD_FILLED ||
-			rpt->OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-			rpt->OrderStatus==X1_FTDC_SPD_ERROR ||
-			rpt->OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (rpt->OrderStatus == USTP_FTDC_OS_AllTraded ||
+			rpt->OrderStatus == USTP_FTDC_OS_PartTradedNotQueueing ||
+			rpt->OrderStatus == USTP_FTDC_OS_Canceled){
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
@@ -400,8 +344,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
     CUstpFtdcOrderActionField order;
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	long ori_local_order_id = strategy.GetLocalOrderID(sig.orig_sig_id);
-	FemasFieldConverter::Convert(tunn_rpt_producer_->config_, sig, localorderid, 
-				ori_local_order_id, order);
+	FemasFieldConverter::Convert(tunn_rpt_producer_->config_, localorderid, ori_local_order_id, order);
 	int rtn = tunn_rpt_producer_->ReqOrderAction(&order);
 
 	clog_debug("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
@@ -440,31 +383,34 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		FemasFieldConverter::Convert(tunn_rpt_producer_->config_, sig, localorderid, 
 					updated_vol, ord);
 #ifdef COMPLIANCE_CHECK
-		int32_t counter = strategy.GetCounterByLocalOrderID(ord.LocalOrderID);
-		bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID,ord.InsertPrice,
-					ord.BuySellType);
+		int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
+		bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID, ord.LimitPrice,
+					ord.Direction);
 		if(result){
 #endif
 			int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
-			if(rnt != 0){
+			if(rtn != 0){
 				// feed rejeted info
 				TunnRpt rpt;
 				memset(&rpt, 0, sizeof(rpt));
-				rpt.LocalOrderID = ord.LocalOrderID;
+				rpt.LocalOrderID = localorderid;
 				rpt.OrderStatus = USTP_FTDC_OS_Canceled;
 				rpt.ErrorID = rtn;
 				int sig_cnt = 0;
 				strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
 				ProcSigs(strategy, sig_cnt, sig_buffer_);
+
+				clog_warning("[%s] PlaceOrder rtn:%d; LocalOrderID: %s", module_name_, 
+							rtn, ord.UserOrderLocalID);
 			}
 #ifdef COMPLIANCE_CHECK
 		}else{
-			clog_warning("[%s] matched with myself:%ld", module_name_, ord.LocalOrderID);
+			clog_warning("[%s] matched with myself:%s", module_name_, ord.UserOrderLocalID);
 
 			// feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
-			rpt.LocalOrderID = ord.LocalOrderID;
+			rpt.LocalOrderID = localorderid;
 			rpt.OrderStatus = USTP_FTDC_OS_Canceled;
 			rpt.ErrorID = 5;
 			int sig_cnt = 0;

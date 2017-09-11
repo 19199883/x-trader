@@ -74,7 +74,7 @@ void TunnRptProducer::ParseConfig()
 
 int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 {
-	int ret = api_->ReqInsertOrder(p, 0);
+	int ret = api_->ReqOrderInsert(p, 0);
 	
 	// report rejected if ret!=0
 	if (ret != 0){
@@ -96,7 +96,7 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 		(vrt_producer_publish(producer_));
 	}else {
 		clog_debug("[%s] ReqInsertOrder - ret=%d - %s", 
-			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
+			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	}
 
 	return ret;
@@ -105,7 +105,7 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 // 撤单操作请求
 int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 {
-	int ret = api_->ReqCancelOrder(p, 0);
+	int ret = api_->ReqOrderAction(p, 0);
 
 	if (ret != 0){
 		clog_warning("[%s] ReqCancelOrder - ret=%d - %s", 
@@ -153,19 +153,20 @@ void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield,
 {
 	if(pfield != NULL){
 		if (strcmp(pfield->MaxOrderLocalID, "") != 0){
-			counter_ = atol(pfield->MaxOrderLocalID);
+			counter_ = GetCounterByLocalOrderID(atol(pfield->MaxOrderLocalID));
 		}
 	}
 	
-    clog_info("[%s] OnRspUserLogin:%s %s",
+    clog_info("[%s] counter_:%d; OnRspUserLogin:%s %s",
         module_name_,
+		counter_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
         FEMASDatatypeFormater::ToString(perror).c_str());
 
 }
 
 void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
-			int nRequestID,truct CX1FtdcRspUserLogoutInfoField* pf, bool bIsLast)
+			int nRequestID, bool bIsLast)
 {
     clog_info("[%s] OnRspUserLogout:%s %s",
         module_name_,
@@ -179,7 +180,7 @@ void TunnRptProducer::End()
 	(vrt_producer_eof(producer_));
 }
 
-void TunnRptProducer::nRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {    
 	clog_warning("[%s] OnRspError: requestid = %d, last_flag=%d %s",
 		module_name_, nRequestID, bIsLast, 
@@ -203,15 +204,17 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 			FEMASDatatypeFormater::ToString(perror).c_str());
 	}
 
-	if ((pfield != NULL){
+	if (pfield != NULL){
 		struct TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
-		rpt.OrderStatus = pfield->OrderStatus;
 		// TODO:
 		// order_respond.entrust_no       = atol(entrust_no);
 		if (perror != NULL) {
+			rpt.OrderStatus = USTP_FTDC_OS_Canceled;
 			rpt.ErrorID = perror->ErrorID;
+		}else{
+			rpt.OrderStatus = USTP_FTDC_OS_NoTradeQueueing;
 		}
 
 		struct vrt_value  *vvalue;
@@ -221,8 +224,8 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		ivalue->index = Push(rpt);
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
-		clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%ld",
-					module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
+		clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%s",
+					module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 	} // if ((pfield != NULL)
 }
 
@@ -259,24 +262,6 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
 	}
 }
 
-void TunnRptProducer::OnRspQryPosition(struct CX1FtdcRspPositionField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspQryPositionDetail(struct CX1FtdcRspPositionDetailField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspCustomerCapital(struct CX1FtdcRspCapitalField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspQryExchangeInstrument(struct CX1FtdcRspExchangeInstrumentField* pf, struct CX1FtdcRspErrorField* pe,
-bool bIsLast)
-{
-}
-
-
 void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 			CUstpFtdcRspInfoField *perror)
 {
@@ -301,8 +286,8 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 		ivalue->index = Push(rpt);
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
-		clog_debug("[%s] OnRtnErrorMsg: index,%d; data,%d; LocalOrderID:%ld",
-			module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
+		clog_debug("[%s] OnRtnErrorMsg: index,%d; data,%d; LocalOrderID:%s",
+			module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 	}
 }
 
@@ -337,45 +322,11 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 	ivalue->data = TUNN_RPT;
 	(vrt_producer_publish(producer_));
 
-	clog_debug("[%s] OnRtnOrder: index,%d; data,%d; LocalOrderID:%ld",
-				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
+	clog_debug("[%s] OnRtnOrder: index,%d; data,%d; LocalOrderID:%s",
+				module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 }
 
-void TunnRptProducer::OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField* pfield)
-{
-	if (ended_) return;
-
-    clog_debug("[%s] OnRtnCancelOrder:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
-
-	if (pfield->OrderStatus == X1_FTDC_SPD_ERROR){
-		clog_warning("[%s] OnRtnCancelOrder:%s",
-			module_name_,
-			X1DatatypeFormater::ToString(pfield).c_str());
-	}
-
-	if (pfield->OrderStatus == X1_FTDC_SPD_CANCELED ||
-		pfield->OrderStatus == X1_FTDC_SPD_PARTIAL_CANCELED ||
-		pfield->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
-		struct TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = pfield->LocalOrderID;
-		rpt.OrderStatus = pfield->OrderStatus;
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(rpt);
-		ivalue->data = TUNN_RPT;
-
-		clog_debug("[%s] OnRtnCancelOrder: index,%d; data,%d; LocalOrderID:%ld",
-					module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
-
-		(vrt_producer_publish(producer_));
-	}
-}
-
-void MyFemasTradeSpi::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield, 
+void TunnRptProducer::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield, 
 			CUstpFtdcRspInfoField *perror)
 {
 	clog_warning("[%] OnErrRtnOrderAction:%s %s",
@@ -384,9 +335,9 @@ void MyFemasTradeSpi::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield,
 		FEMASDatatypeFormater::ToString(perror).c_str());         
 }
 
-long TunnRptProducer::GetCounterByLocalOrderID(int32_t strategyid)
+long TunnRptProducer::GetCounterByLocalOrderID(long localorderid)
 {
-	return counter_ / 1000;
+	return localorderid / 1000;
 }
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
