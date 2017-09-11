@@ -57,16 +57,17 @@ dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
 	-cp -arf $(TOP)/x-shfe/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-shfe/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/femas2.0/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/shfe_me/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/shfe_md/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/shfe_md/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/boost/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libbowsprit.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /lib64/libcheck.so.0 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libclogger.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libcork.so.15 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libvrt.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-shfe/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cd $(DIST_DIR); \
 		tar -cvjf $(PACKAGE_NAME).tar.bz2  $(PACKAGE_NAME)/*     
 
