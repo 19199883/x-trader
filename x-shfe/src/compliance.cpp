@@ -6,6 +6,9 @@
 Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
 {
 	clog_info("[%s] Compliance on.", module_name_);
+	
+	memset(contracts_, 0, sizeof(contracts));
+	memset(cur_cancel_times_, 0, sizeof(cur_cancel_times_));
 
 	memset(ord_buffer_, 0, sizeof(ord_buffer_));
 	for(int i = 0; i < COUNTER_UPPER_LIMIT; i++){
@@ -13,10 +16,47 @@ Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Complia
 	}
 }
 
+void Compliance::ParseConfig()
+{
+	TiXmlDocument config = TiXmlDocument("x-trader.config");
+    config.LoadFile();
+    TiXmlElement *RootElement = config.RootElement();    
+    TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
+	if (comp_node != NULL){
+		cancel_upper_limit_ = atoi(tunn_node->Attribute("cancelUpperLimit"));
+
+		clog_info("[%s] cancelUpperLimit:%d;", module_name_, cancel_upper_limit_);
+	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
+}
+
+int Compliance::GetCancelTimes(const char* contract);
+{
+	for(int i = 0; i < MAX_CONTRACT_NUMBER; i++){
+		if (strcmp(contracts_[i], "") == 0) break;
+
+		if(strcmp(contract, contracts_[i]) == 0){
+			return cur_cancel_times_[i];
+		}
+	}
+
+	if(i < MAX_CONTRACT_NUMBER){
+		strcpy(contracts_[i], contract);
+	}
+
+	return cur_cancel_times_[i];
+
+}
+
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
-			double price, TUstpFtdcDirectionType side)
+			double price, TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset)
 {
     bool ret = true;
+
+	if(offset == USTP_FTDC_OF_Open && (GetCancelTimes(contract) >= cancel_upper_limit_)){
+		clog_warning("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
+			module_name_, ord_counter, GetCancelTimes(contract);
+		return false;
+	}
 
 	for (int i = min_counter_; i<= max_counter_; i++){
 		OrderInfo& ord = ord_buffer_[i];
@@ -26,7 +66,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			if ((side == USTP_FTDC_D_Buy && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
 				(side != USTP_FTDC_D_Buy && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
 				ret = false;
-				clog_debug("[%s] matched with myself. ord counter:%d; queue counter:%d ",
+				clog_warning("[%s] matched with myself. ord counter:%d; queue counter:%d ",
 					module_name_, ord_counter, i);
 				break;
 			}
@@ -50,6 +90,23 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
     return ret;
 }
 
+
+void Compliance::AccumulateCancelTimes(const char* contract)
+{
+	for(int i = 0; i < MAX_CONTRACT_NUMBER; i++){
+		if (strcmp(contracts_[i], "") == 0) break;
+
+		if(strcmp(contract, contracts_[i]) == 0){
+			cur_cancel_times_[i]++;
+			return;
+		}
+	}
+
+	if(i < MAX_CONTRACT_NUMBER){
+		strcpy(contracts_[i], contract);
+		cur_cancel_times_[i]++;
+	}
+}
 
 void Compliance::End(int ord_counter)
 {
