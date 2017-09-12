@@ -1,9 +1,0 @@
-name: varon-t
-build_dependencies:
-  - pkg-config
-  - check >= 0.9.4
-dependencies:
-  - libcork >= 0.14.0
-  - clogger >= 0.2.0
-  - bowsprit >= 2.0.0
-license: BSD
