@@ -43,8 +43,8 @@ class Compliance
 		// 存储方法：LocalOrderID的counter部分作为数组下标进行存储
 		OrderInfo ord_buffer_[COUNTER_UPPER_LIMIT];
 		const char * module_name_;  
-		int cancel_upper_limit_;
 
+		int cancel_upper_limit_;
 		/*
 		 * contracts存储不同的合约，合约在contracts的下标记为:n,
 		 * 那么cur_cancel_times_[n]用于记录该合约累计撤单数 

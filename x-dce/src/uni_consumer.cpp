@@ -362,6 +362,11 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
+	if (rpt->OrderStatus == USTP_FTDC_OS_PartTradedNotQueueing ||
+			rpt->OrderStatus == USTP_FTDC_OS_Canceled){
+		compliance_.AccumulateCancelTimes(strategy.GetContract());
+	}
+
 	if (rpt->OrderStatus==X1_FTDC_SPD_CANCELED ||
 			rpt->OrderStatus==X1_FTDC_SPD_FILLED ||
 			rpt->OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||

@@ -7,6 +7,8 @@
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 20000
 
+#define MAX_CONTRACT_NUMBER 50
+
 struct OrderInfo
 {
 	bool valid;
@@ -27,8 +29,12 @@ class Compliance
 					TX1FtdcBuySellTypeType side);
 
 		void End(int ord_counter);
+		void AccumulateCancelTimes(const char* contrace);
 
 	private:
+		void ParseConfig();
+		int GetCancelTimes(const char* contract);
+
 		// 记录未终结的中最小的counter
 		int min_counter_;
 		// 记录未终结的中最大的counter
@@ -37,6 +43,14 @@ class Compliance
 		// 存储方法：LocalOrderID的counter部分作为数组下标进行存储
 		OrderInfo ord_buffer_[COUNTER_UPPER_LIMIT];
 		const char * module_name_;  
+
+		int cancel_upper_limit_;
+		/*
+		 * contracts存储不同的合约，合约在contracts的下标记为:n,
+		 * 那么cur_cancel_times_[n]用于记录该合约累计撤单数 
+		 */
+		char contracts_[MAX_CONTRACT_NUMBER][12];
+		int cur_cancel_times_[MAX_CONTRACT_NUMBER];
 };
 
 #endif // SELFBUYSELLCHECK_H_
