@@ -11,8 +11,8 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lUSTPtraderapi -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lcheck -lclogger -lcork -lvrt -lmy_quote_shfe_my_jrcmcc_lib \
-	  -lmy_common_v2 -luuid -lboost_filesystem -lmdclient
+LIBS:=-lpthread -lUSTPtraderapi -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lclogger -lcork -lvrt -lmy_quote_shfe_my_jrcmcc_lib \
+	  -lmy_common_v2 -lboost_filesystem -lmdclient
 DEPS:=.depends
 OUT:=x-shfe
 PACKAGE_NAME:=$(OUT)
@@ -58,11 +58,13 @@ dist:
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
 	-cp -arf $(TOP)/x-shfe/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/x-shfe/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-shfe/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/femas2.0/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/shfe_md/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/shfe_md/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/boost/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf /usr/local/lib/libboost_filesystem.so*  $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf /usr/local/lib/libboost_system.so*  $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libbowsprit.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /lib64/libcheck.so.0 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libclogger.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/

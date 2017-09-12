@@ -13,7 +13,7 @@ import sys
 
 src_config_file = '../x-trader.config'
 cur_config_file = 'x-trader.config'
-stra_setting = 'stra_sett_dce_day100.csv'
+stra_setting = 'stra_sett_dce_day28.csv'
 
 def main():
 	os.chdir(sys.path[0])
@@ -108,15 +108,9 @@ def add_strategy(strategies, strategy_temp, row, id):
 
 	ev_file_src = ""
 	ev_file_dest = "../" + ev_name_value 
-	if 0==strategy_name.find('fl50'):
-		ev_file_src = "fl50.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
-	if 0==strategy_name.find('fl51'):
-		ev_file_src = "fl51.txt"
-		shutil.copyfile(ev_file_src, ev_file_dest)
 
-	if 0==strategy_name.find('fl33'):
-		ev_file_src = "fl33.txt"
+	if 0==strategy_name.find('st'):
+		ev_file_src = "st.txt"
 		shutil.copyfile(ev_file_src, ev_file_dest)
 
 	symbol = new_strategy.find("./symbol")
