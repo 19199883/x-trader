@@ -20,6 +20,18 @@ Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Complia
 	}
 }
 
+Compliance::~Compliance()
+{
+	int i = 0;
+	for(; i < MAX_CONTRACT_NUMBER; i++){
+		if (strcmp(contracts_[i], "") == 0) break;
+
+		clog_info("[%s] contract:%s; cancel times:%s",
+			module_name_, contracts_[i], cur_cancel_times_[i]);
+		}
+	}
+
+}
 void Compliance::ParseConfig()
 {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");

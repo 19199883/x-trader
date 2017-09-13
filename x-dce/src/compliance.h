@@ -22,6 +22,7 @@ class Compliance
 {
 	public:
 		Compliance();
+		virtual ~Compliance();
 		//
 		/*
 		 * 返回值：true表示成功；false表示失败 
