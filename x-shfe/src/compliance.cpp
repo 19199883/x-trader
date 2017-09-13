@@ -28,7 +28,6 @@ Compliance::~Compliance()
 
 		clog_info("[%s] contract:%s; cancel times:%s",
 			module_name_, contracts_[i], cur_cancel_times_[i]);
-		}
 	}
 
 }
