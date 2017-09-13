@@ -362,8 +362,9 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
-	if (rpt->OrderStatus == USTP_FTDC_OS_PartTradedNotQueueing ||
-			rpt->OrderStatus == USTP_FTDC_OS_Canceled){
+	if (rpt->OrderStatus == X1_FTDC_SPD_CANCELED ||
+			rpt->OrderStatus == X1_FTDC_SPD_PARTIAL_CANCELED ||
+			rpt->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
 
@@ -416,10 +417,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
 
-//#ifdef LATENCY_MEASURE
-//		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-//        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
-//#endif
+#ifdef LATENCY_MEASURE
+		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
+        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
@@ -447,7 +448,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 #ifdef COMPLIANCE_CHECK
 		int32_t counter = strategy.GetCounterByLocalOrderID(ord.LocalOrderID);
-		bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID,ord.InsertPrice,ord.BuySellType);
+		bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID,
+					ord.InsertPrice,ord.BuySellType, ord.OpenCloseType);
 		if(result){
 #endif
 			tunn_rpt_producer_->ReqOrderInsert(&ord);
@@ -467,11 +469,11 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		}
 #endif
 
-//#ifdef LATENCY_MEASURE
-        // latency measure
-//		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-//        if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
-//#endif
+#ifdef LATENCY_MEASURE
+      // latency measure
+		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
+        if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
+#endif
 	}
 }
 

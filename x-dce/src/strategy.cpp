@@ -192,17 +192,19 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_debug("[%s] rev MDBestAndDeep_MY contract:%s; time:%s", module_name_, md->Contract, md->GenTime);
 
-	// perf
-	// high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	
 	*sig_cnt = 0;
 	this->pfn_feedbestanddeep_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 
-		// perf
-	//	high_resolution_clock::time_point t1 = high_resolution_clock::now();
-	//	int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-	//	clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+#endif
 
 		sigs[i].st_id = this->GetId();
 		// debug
@@ -217,17 +219,19 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_debug("[%s] rev MDOrderStatistic_MY contract:%s", module_name_, md->ContractID);
 
-	// perf
-	//high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 
 	*sig_cnt = 0;
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 
-		// perf
-		//high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		//int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		//clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
+		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+#endif
 
 		sigs[i].st_id = this->GetId();
 		// debug

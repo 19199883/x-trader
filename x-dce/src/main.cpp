@@ -31,7 +31,7 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 #ifdef LATENCY_MEASURE
-	clog_ebugnfo("latency measure on"); 
+	clog_info("latency measure on"); 
 #endif
 
 	struct sigaction SIGINT_act;
