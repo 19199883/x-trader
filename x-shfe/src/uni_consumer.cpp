@@ -13,6 +13,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
   tunn_rpt_producer_(tunn_rpt_producer),
   pendingsig_producer_(pendingsig_producer)
 {
+	ParseConfig();
+
 #if FIND_STRATEGIES == 1
 	unordered_multimap 
 	clog_info("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
@@ -31,14 +33,20 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
-	this->consumer_->yield = vrt_yield_strategy_threaded();
+
+	if(strcmp(config_.yield, "threaded") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_threaded();
+	}else if(strcmp(config_.yield, "spin") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
+	}else if(strcmp(config_.yield, "hybrid") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_hybrid();
+	}
+
 
 	this->pproxy_ = CLoadLibraryProxy::CreateLoadLibraryProxy();
 	this->pproxy_->setModuleLoadLibrary(new CModuleLoadLibraryLinux());
 	this->pproxy_->setBasePathLibrary(this->pproxy_->getexedir());
 
-	ParseConfig();
-	
 	// pos_calc, check offline strategies
 	pos_calc *calc = pos_calc::instance();
 	list<string> stras;
@@ -82,6 +90,13 @@ void UniConsumer::ParseConfig()
 	TiXmlDocument doc = TiXmlDocument(config_file.c_str());
     doc.LoadFile();
     TiXmlElement *root = doc.RootElement();    
+
+	// yield strategy
+    TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
+	if (comp_node != NULL){
+		this->yield = comp_node->Attribute("yield");
+	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
+
     TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
 	if (strategies_ele != 0){
 		TiXmlElement *strategy_ele = strategies_ele->FirstChildElement();

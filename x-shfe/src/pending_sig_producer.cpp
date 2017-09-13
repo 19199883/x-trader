@@ -4,10 +4,33 @@ PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
 :module_name_("PendingSigProducer")
 {
 	ended_ = false;
+
+	this->ParseConfig();
+
 	clog_info("[%s] PENDING_SIG_BUFFER_SIZE: %d;", module_name_, PENDINGSIG_BUFFER_SIZE);
 
 	(this->producer_ = vrt_producer_new("pendingsig_producer", 1, queue));
-	this->producer_ ->yield = vrt_yield_strategy_threaded();
+
+	if(strcmp(config_.yield, "threaded") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_threaded();
+	}else if(strcmp(config_.yield, "spin") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
+	}else if(strcmp(config_.yield, "hybrid") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_hybrid();
+	}
+}
+
+void PendingSigProducer::ParseConfig()
+{
+	TiXmlDocument config = TiXmlDocument("x-trader.config");
+    config.LoadFile();
+    TiXmlElement *RootElement = config.RootElement();    
+
+	// yield strategy
+    TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
+	if (comp_node != NULL){
+		this->yield = comp_node->Attribute("yield");
+	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
 }
 
 PendingSigProducer::~PendingSigProducer()

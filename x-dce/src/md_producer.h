@@ -15,6 +15,12 @@
  */
 #define MD_BUFFER_SIZE 2048 
 
+struct Mdconfig
+{
+	// disruptor yield strategy
+	char yield[20];
+};
+
 class MDProducer
 {
 	public:
@@ -39,6 +45,8 @@ class MDProducer
 		SubscribeContracts subs_;
 		const char *module_name_;  
 		bool ended_;
+		Mdconfig config_;
+		void ParseConfig();
 
 		struct vrt_producer  *producer_;
 		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> orderstatistic_buffer_;

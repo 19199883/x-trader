@@ -18,7 +18,14 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	//rip_check(producer = vrt_producer_new("tunnrpt_producer", 1, queue));
 
 	this->producer_ = producer;
-	this->producer_ ->yield = vrt_yield_strategy_threaded();
+
+	if(strcmp(config_.yield, "threaded") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_threaded();
+	}else if(strcmp(config_.yield, "spin") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
+	}else if(strcmp(config_.yield, "hybrid") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_hybrid();
+	}
 
 	// create X1 object
 	char addr[2048];
@@ -54,6 +61,13 @@ void TunnRptProducer::ParseConfig()
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
+
+	// yield strategy
+    TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
+	if (comp_node != NULL){
+		this->yield = comp_node->Attribute("yield");
+	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
+
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
 	if (tunn_node != NULL){
 		this->config_.address = tunn_node->Attribute("address");

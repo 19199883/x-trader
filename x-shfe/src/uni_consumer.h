@@ -26,6 +26,11 @@
 // 品种字符相加：如jd1801，key1: j+d(ascii 值相加
 #define MAX_STRATEGY_KEY1 500
 
+struct Uniconfig
+{
+	// disruptor yield strategy
+	char yield[20];
+};
 
 class FemasFieldConverter
 {
@@ -162,6 +167,9 @@ class UniConsumer
 		void CancelOrder(Strategy &strategy,signal_t &sig);
 		void PlaceOrder(Strategy &strategy, const signal_t &sig);
 		signal_t sig_buffer_[SIG_BUFFER_SIZE];
+		Uniconfig config_;
+		void ParseConfig();
+
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
 #endif

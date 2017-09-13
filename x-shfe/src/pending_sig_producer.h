@@ -14,6 +14,12 @@ using namespace std;
  */
 #define PENDINGSIG_BUFFER_SIZE 2048 
 
+struct PendingSigconfig
+{
+	// disruptor yield strategy
+	char yield[20];
+};
+
 class PendingSigProducer
 {
 	public:
@@ -33,6 +39,8 @@ class PendingSigProducer
 
 		const char* module_name_;  
 		bool ended_;
+		PendingSigconfig config_;
+		void ParseConfig();
 };
 
 #endif

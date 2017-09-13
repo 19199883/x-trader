@@ -21,6 +21,9 @@ struct Tunnconfig
 	string userid;
 	string password;
 	char exchange;
+
+	// disruptor yield strategy
+	char yield[20];
 };
 
 struct TunnRpt

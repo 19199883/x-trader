@@ -10,10 +10,19 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 {
 	ended_ = false;
 
+	ParseConfig();
+
 	clog_info("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
 	(this->producer_ = vrt_producer_new("md_producer", 1, queue));
-	this->producer_ ->yield = vrt_yield_strategy_threaded();
+
+	if(strcmp(config_.yield, "threaded") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_threaded();
+	}else if(strcmp(config_.yield, "spin") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
+	}else if(strcmp(config_.yield, "hybrid") == 0){
+		this->producer_ ->yield = vrt_yield_strategy_hybrid();
+	}
 
 	md_provider_ = build_quote_provider(subs_);
 
@@ -22,6 +31,19 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 
 	auto f_orderstatics = std::bind(&MDProducer::OnMDOrderStatistic, this, _1);
 	md_provider_->SetQuoteDataHandler(f_orderstatics);
+}
+
+void MDProducer::ParseConfig()
+{
+	TiXmlDocument config = TiXmlDocument("x-trader.config");
+    config.LoadFile();
+    TiXmlElement *RootElement = config.RootElement();    
+
+	// yield strategy
+    TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
+	if (comp_node != NULL){
+		this->yield = comp_node->Attribute("yield");
+	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
 }
 
 MDProducer::~MDProducer(){
