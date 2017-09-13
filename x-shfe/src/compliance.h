@@ -2,6 +2,7 @@
 #define SELFBUYSELLCHECK_H_
 
 #include "USTPFtdcUserApiDataType.h"
+#include "vrt_value_obj.h"
 
 #define DOUBLE_CHECH_PRECISION 0.000001
 // 一个trader支持最多信号数 
@@ -26,7 +27,7 @@ class Compliance
 		 * 返回值：true表示成功；false表示失败 
 		 */
 		bool TryReqOrderInsert(int ord_counter, const char * contract, double price,
-					TUstpFtdcDirectionType side);
+					TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset);
 
 		void End(int ord_counter);
 		void AccumulateCancelTimes(const char* contrace);

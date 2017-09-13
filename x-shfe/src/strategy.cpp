@@ -182,28 +182,31 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_debug("[%s] rev MYShfeMarketDatacontract:%s; time:%s %s", module_name_, 
-				md->InstrumentID, md->UpdateTime, md->UpdateMillisec);
+	//clog_debug("[%s] rev MYShfeMarketData contract:%s; time:%c %c", 
+	//			module_name_, md->InstrumentID, md->UpdateTime, md->UpdateMillisec);
 
-	// perf
-	// high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	
 	*sig_cnt = 0;
 	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 
-		// perf
-	//	high_resolution_clock::time_point t1 = high_resolution_clock::now();
-	//	int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-	//	clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+#endif
 
 		sigs[i].st_id = this->GetId();
 
-		// debug
-		// clog_info("[%s] FeedMd(MDBestAndDeep signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-	//				module_name_, sigs[i].st_id, sigs[i].sig_id,
-	//				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-	//				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+		 clog_debug("[%s] FeedMd MDBestAndDeep signal: strategy id:%d; sig_id:%d; "
+					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
+					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+					module_name_, sigs[i].st_id, sigs[i].sig_id,
+					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 
@@ -214,10 +217,11 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
 		// debug
-		//clog_info("[%s] feed_sig_respons esignal: strategy id:%d;  sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-	//				module_name_, sigs[i].st_id, sigs[i].sig_id,
-	//				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-	//				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+		clog_debug("[%s] feed_sig_respons esignal: strategy id:%d;sig_id:%d; exchange:%d; symbol:%s;"
+					"open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+					module_name_, sigs[i].st_id, sigs[i].sig_id,
+					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 

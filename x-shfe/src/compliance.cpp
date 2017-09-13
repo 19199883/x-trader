@@ -2,12 +2,16 @@
 #include <stdio.h>
 #include "vrt_value_obj.h"
 #include "compliance.h"
+#include <tinyxml.h>
+#include <tinystr.h>
 
 Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
 {
 	clog_info("[%s] Compliance on.", module_name_);
+
+	ParseConfig();
 	
-	memset(contracts_, 0, sizeof(contracts));
+	memset(contracts_, 0, sizeof(contracts_));
 	memset(cur_cancel_times_, 0, sizeof(cur_cancel_times_));
 
 	memset(ord_buffer_, 0, sizeof(ord_buffer_));
@@ -23,15 +27,15 @@ void Compliance::ParseConfig()
     TiXmlElement *RootElement = config.RootElement();    
     TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
 	if (comp_node != NULL){
-		cancel_upper_limit_ = atoi(tunn_node->Attribute("cancelUpperLimit"));
-
+		cancel_upper_limit_ = atoi(comp_node->Attribute("cancelUpperLimit"));
 		clog_info("[%s] cancelUpperLimit:%d;", module_name_, cancel_upper_limit_);
 	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
 }
 
-int Compliance::GetCancelTimes(const char* contract);
+int Compliance::GetCancelTimes(const char* contract)
 {
-	for(int i = 0; i < MAX_CONTRACT_NUMBER; i++){
+	int i = 0;
+	for(; i < MAX_CONTRACT_NUMBER; i++){
 		if (strcmp(contracts_[i], "") == 0) break;
 
 		if(strcmp(contract, contracts_[i]) == 0){
@@ -54,7 +58,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 
 	if(offset == USTP_FTDC_OF_Open && (GetCancelTimes(contract) >= cancel_upper_limit_)){
 		clog_warning("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
-			module_name_, ord_counter, GetCancelTimes(contract);
+			module_name_, ord_counter, GetCancelTimes(contract));
 		return false;
 	}
 
@@ -93,7 +97,8 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 
 void Compliance::AccumulateCancelTimes(const char* contract)
 {
-	for(int i = 0; i < MAX_CONTRACT_NUMBER; i++){
+	int i = 0;
+	for(; i < MAX_CONTRACT_NUMBER; i++){
 		if (strcmp(contracts_[i], "") == 0) break;
 
 		if(strcmp(contract, contracts_[i]) == 0){

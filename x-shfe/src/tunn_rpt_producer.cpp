@@ -154,6 +154,7 @@ void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield,
 	if(pfield != NULL){
 		if (strcmp(pfield->MaxOrderLocalID, "") != 0){
 			counter_ = GetCounterByLocalOrderID(atol(pfield->MaxOrderLocalID));
+			counter_++;
 		}
 	}
 	
@@ -197,7 +198,7 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
         FEMASDatatypeFormater::ToString(perror).c_str());
 
-	if (perror != NULL){
+	if (perror != NULL && 0 != perror->ErrorID){
 		clog_warning("[%s] OnRspOrderInsert:%s %s",
 			module_name_,
 			FEMASDatatypeFormater::ToString(pfield).c_str(),
@@ -210,7 +211,7 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 		// TODO:
 		// order_respond.entrust_no       = atol(entrust_no);
-		if (perror != NULL) {
+		if (perror != NULL && 0 != perror->ErrorID) {
 			rpt.OrderStatus = USTP_FTDC_OS_Canceled;
 			rpt.ErrorID = perror->ErrorID;
 		}else{
@@ -238,8 +239,10 @@ int32_t TunnRptProducer::Push(const TunnRpt& rpt)
 	}
 	rpt_buffer_[cursor] = rpt;
 
-	clog_debug("[%s] push TunnRpt: cursor,%d; LocalOrderID:%ld;",
-				module_name_, cursor, rpt.LocalOrderID);
+	clog_debug("[%s] push TunnRpt: cursor,%d; LocalOrderID:%ld;"
+				" OrderStatus:%c; MatchedAmount:%d; CancelAmount:%d;ErrorID:%d",
+				module_name_, cursor, rpt.LocalOrderID, rpt.OrderStatus,
+				rpt.MatchedAmount,rpt.CancelAmount, rpt.ErrorID);
 
 	return cursor;
 }
@@ -254,7 +257,7 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
         FEMASDatatypeFormater::ToString(perror).c_str());
 
-	if (perror != NULL){
+	if (perror != NULL && 0 != perror->ErrorID){
 		clog_warning("[%s] OnRspOrderAction:%s %s",
 			module_name_,
 			FEMASDatatypeFormater::ToString(pfield).c_str(),

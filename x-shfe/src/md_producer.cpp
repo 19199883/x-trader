@@ -66,9 +66,9 @@ void MDProducer::OnShfeMarketData(const MYShfeMarketData * md)
 
 #ifdef LATENCY_MEASURE
 	// latency measure
-//	static int cnt = 0;
-//	perf_ctx::insert_t0(cnt);
-//	cnt++;
+	static int cnt = 0;
+	perf_ctx::insert_t0(cnt);
+	cnt++;
 #endif
 
 	struct vrt_value  *vvalue;
@@ -79,7 +79,7 @@ void MDProducer::OnShfeMarketData(const MYShfeMarketData * md)
 	ivalue->data = SHFEMARKETDATA;
 	(vrt_producer_publish(producer_));
 
-	clog_debug("[%s] rev ShfeMarketData: index,%d; data,%d; contracr:%s; time: %s %s",
+	clog_debug("[%s] rev ShfeMarketData: index,%d; data,%d; contract:%s; time: %c %c",
 				module_name_, ivalue->index, ivalue->data, md->InstrumentID,
 				md->UpdateTime, md->UpdateMillisec);
 }
@@ -92,7 +92,7 @@ int32_t MDProducer::push(const MYShfeMarketData& md){
 	}
 	shfemarketdata_buffer_[shfemarketdata_cursor] = md;
 
-	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s %s",
+	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %c %c",
 				module_name_, shfemarketdata_cursor, md.InstrumentID, 
 				md.UpdateTime, md.UpdateMillisec);
 

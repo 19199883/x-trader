@@ -300,8 +300,8 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
-				"CancelAmount:%ld; ErrorID:%d ",
+	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%d;"
+				"CancelAmount:%d; ErrorID:%d ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
 				rpt->CancelAmount, rpt->ErrorID);
 
@@ -360,10 +360,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	}
 
 
-//#ifdef LATENCY_MEASURE
-//		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-//        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
-//#endif
+#ifdef LATENCY_MEASURE
+		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
+        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
@@ -390,7 +390,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 #ifdef COMPLIANCE_CHECK
 		int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 		bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID, ord.LimitPrice,
-					ord.Direction);
+					ord.Direction, ord.OffsetFlag);
 		if(result){
 #endif
 			int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
@@ -424,11 +424,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		}
 #endif
 
-//#ifdef LATENCY_MEASURE
-        // latency measure
-//		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-//        if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
-//#endif
+#ifdef LATENCY_MEASURE
+		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
+        if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
+#endif
 	}
 }
 
