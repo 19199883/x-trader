@@ -15,6 +15,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
   tunn_rpt_producer_(tunn_rpt_producer),
   pendingsig_producer_(pendingsig_producer)
 {
+	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 
 #if FIND_STRATEGIES == 1
@@ -228,9 +229,6 @@ void UniConsumer::Start()
 				case SHFEMARKETDATA:
 					ProcShfeMarketData(ivalue->index);
 					break;
-				case PENDING_SIGNAL:
-					ProcPendingSig(ivalue->index);
-					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
 					break;
@@ -305,16 +303,6 @@ void UniConsumer::ProcShfeMarketData(int32_t index)
 #endif
 }
 
-void UniConsumer::ProcPendingSig(int32_t index)
-{
-	signal_t* sig = pendingsig_producer_->GetSignal(index);
-
-	clog_debug("[%s] [ProcPendingSig] index: %d; strategy id:%d; sig id: %d", module_name_, index, sig->st_id, sig->sig_id);
-
-	Strategy& strategy = stra_table_[straid_straidx_map_table_[sig->st_id]];
-	PlaceOrder(strategy, *sig);
-}
-
 void UniConsumer::ProcTunnRpt(int32_t index)
 {
 	int sig_cnt = 0;
@@ -344,7 +332,23 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 #endif
 
 	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
+	
+	// TODO:
+	if (!strategy.HasFrozenPosition()){
+		int i = 0;
+		for(; i < 2; i++){
+			int32_t st_id = strategy.GetId();
+			if(pending_signals_[st_id][i] >= 0){
+				int32_t sig_id = pending_signals_[st_id][i];
+				pending_signals_[st_id][i] = -1;
+				PlaceOrder(strategy, *strategy.GetSignalBySigID(sig_id));
+				break;
+			}
+		}
+	}
+
 	ProcSigs(strategy, sig_cnt, sig_buffer_);
+
 }
 
 void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
@@ -356,7 +360,30 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			CancelOrder(strategy, sigs[i]);
 		}
 		else{
-			PlaceOrder(strategy, sigs[i]);
+			signal_t &sig = sigs[i];
+			int32_t vol = 0;
+			int32_t updated_vol = 0;
+			if (sig.sig_openclose == alloc_position_effect_t::open_){
+				vol = sig.open_volume;
+			} else if (sig.sig_openclose == alloc_position_effect_t::close_){
+				vol = sig.close_volume;
+			} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
+				sig.sig_openclose); }
+			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol)){
+				// TODO:
+				int i = 0;
+				for(; i < 2; i++){
+					if(pending_signals_[sig.st_id][i] < 0){
+						pending_signals_[sig.st_id][i] = sig.sig_id;
+						break;
+					}
+				}
+				if(i == 2){
+					clog_warning("[%s] pending_signals_ beyond;", module_name_);
+				}
+			} else {
+				PlaceOrder(strategy, sigs[i]);
+			}
 		}
 	}
 }
@@ -399,57 +426,52 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
 				sig.sig_openclose); }
 
-	if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol)){
-		// place signal into disruptor queue
-		pendingsig_producer_->Publish(sig);
-	} else {
-		long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
-		strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
+	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
-		CUstpFtdcInputOrderField ord;
-		FemasFieldConverter::Convert(tunn_rpt_producer_->config_, sig, localorderid, 
-					updated_vol, ord);
+	CUstpFtdcInputOrderField ord;
+	FemasFieldConverter::Convert(tunn_rpt_producer_->config_, sig, localorderid, 
+				updated_vol, ord);
 #ifdef COMPLIANCE_CHECK
-		int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
-		bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID, ord.LimitPrice,
-					ord.Direction, ord.OffsetFlag);
-		if(result){
+	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
+	bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID, ord.LimitPrice,
+				ord.Direction, ord.OffsetFlag);
+	if(result){
 #endif
-			int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
-			if(rtn != 0){
-				// feed rejeted info
-				TunnRpt rpt;
-				memset(&rpt, 0, sizeof(rpt));
-				rpt.LocalOrderID = localorderid;
-				rpt.OrderStatus = USTP_FTDC_OS_Canceled;
-				rpt.ErrorID = rtn;
-				int sig_cnt = 0;
-				strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-
-				clog_warning("[%s] PlaceOrder rtn:%d; LocalOrderID: %s", module_name_, 
-							rtn, ord.UserOrderLocalID);
-			}
-#ifdef COMPLIANCE_CHECK
-		}else{
-			clog_warning("[%s] matched with myself:%s", module_name_, ord.UserOrderLocalID);
-
+		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
+		if(rtn != 0){
 			// feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
 			rpt.LocalOrderID = localorderid;
 			rpt.OrderStatus = USTP_FTDC_OS_Canceled;
-			rpt.ErrorID = 5;
+			rpt.ErrorID = rtn;
 			int sig_cnt = 0;
 			strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
+
+			clog_warning("[%s] PlaceOrder rtn:%d; LocalOrderID: %s", module_name_, 
+						rtn, ord.UserOrderLocalID);
 		}
+#ifdef COMPLIANCE_CHECK
+	}else{
+		clog_warning("[%s] matched with myself:%s", module_name_, ord.UserOrderLocalID);
+
+		// feed rejeted info
+		TunnRpt rpt;
+		memset(&rpt, 0, sizeof(rpt));
+		rpt.LocalOrderID = localorderid;
+		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
+		rpt.ErrorID = 5;
+		int sig_cnt = 0;
+		strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
+		ProcSigs(strategy, sig_cnt, sig_buffer_);
+	}
 #endif
 
 #ifdef LATENCY_MEASURE
-		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-        if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
+	int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
+	if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
 #endif
-	}
 }
 

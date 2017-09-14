@@ -328,6 +328,12 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose,
 	return result;
 } 
 
+signal_t* Strategy::GetSignalBySigID(int32_t sig_id)
+{
+	int32_t cursor = sigid_sigidx_map_table_[sig_id];
+	return &(sig_table_[cursor]);
+}
+
 void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
 {
 	this->Freeze(sig.sig_openclose, sig.sig_act, actual_vol);
@@ -339,6 +345,7 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 		cursor = 0;
 	}
 	sig_table_[cursor] = sig;
+	sigid_sigidx_map_table_[sig.sig_id] = cursor;
 
 	// signal response
 	memset(&(sigrpt_table_[cursor]), 0, sizeof(signal_resp_t));

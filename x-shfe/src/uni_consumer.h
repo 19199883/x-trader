@@ -161,13 +161,19 @@ class UniConsumer
 
 		// business logic
 		void ProcShfeMarketData(int32_t index);
-		void ProcPendingSig(int32_t index);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
 		void PlaceOrder(Strategy &strategy, const signal_t &sig);
 		signal_t sig_buffer_[SIG_BUFFER_SIZE];
 		Uniconfig config_;
+
+		/*
+		 * pending_signals_[st_id][n]:pending_signals_[st_id]存储st_id
+		 * 策略待处理的信号的信号id。-1表示无效
+		 *
+		 */
+		int32_t pending_signals_[200][2];
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
