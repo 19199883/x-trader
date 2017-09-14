@@ -11,7 +11,6 @@
 #include "strategy.h"
 #include "md_producer.h"
 #include "tunn_rpt_producer.h"
-#include "pending_sig_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "moduleloadlibrarylinux.h"
@@ -119,8 +118,7 @@ class UniConsumer
 {
 	public:
 		UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
-					TunnRptProducer *tunn_rpt_producer,
-					PendingSigProducer *pendingsig_producer);
+					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();
@@ -132,7 +130,6 @@ class UniConsumer
 		struct vrt_consumer *consumer_;
 		MDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
-		PendingSigProducer *pendingsig_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;
 

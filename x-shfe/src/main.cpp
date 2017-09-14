@@ -8,7 +8,6 @@
 #include <signal.h>     /* signal */
 #include "vrt_value_obj.h"
 #include "md_producer.h"
-#include "pending_sig_producer.h"
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
 #include "pos_calcu.h"
@@ -18,7 +17,6 @@
 #define  QUEUE_SIZE  4096
 UniConsumer *uniConsumer = NULL;
 MDProducer *mdproducer = NULL;
-PendingSigProducer *pendingSigProducer = NULL;
 TunnRptProducer *tunnRptProducer = NULL;
 
 static void
@@ -41,7 +39,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_INFO);
+	clog_set_minimum_level(CLOG_LEVEL_DEBUG);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
@@ -51,10 +49,9 @@ int main(/*int argc, const char **argv*/)
 	int64_t  result;
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
-	pendingSigProducer = new PendingSigProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
 	mdproducer = new MDProducer(queue);
-	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer, pendingSigProducer);
+	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
 	uniConsumer->Start();
 
   // free vrt_queue
@@ -62,7 +59,6 @@ int main(/*int argc, const char **argv*/)
 
   delete uniConsumer;
   delete tunnRptProducer; 
-  delete  pendingSigProducer; 
   delete mdproducer; 
 
 // clog: free resources

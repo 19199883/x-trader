@@ -8,12 +8,10 @@
 #include <tinystr.h>
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
-			TunnRptProducer *tunn_rpt_producer,
-			PendingSigProducer* pendingsig_producer)
+			TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
   md_producer_(md_producer),
-  tunn_rpt_producer_(tunn_rpt_producer),
-  pendingsig_producer_(pendingsig_producer)
+  tunn_rpt_producer_(tunn_rpt_producer)
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
@@ -249,7 +247,6 @@ void UniConsumer::Stop()
 	running_ = false;
 	md_producer_->End();
 	tunn_rpt_producer_->End();
-	pendingsig_producer_->End();
 #ifdef COMPLIANCE_CHECK
 		compliance_.Save();
 #endif
@@ -342,7 +339,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				int32_t sig_id = pending_signals_[st_id][i];
 				pending_signals_[st_id][i] = -1;
 				PlaceOrder(strategy, *strategy.GetSignalBySigID(sig_id));
-				break;
 			}
 		}
 	}
@@ -425,6 +421,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		vol = sig.close_volume;
 	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
 				sig.sig_openclose); }
+
+	strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol);
 
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
