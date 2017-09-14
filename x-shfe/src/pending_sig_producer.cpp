@@ -1,4 +1,6 @@
 #include "pending_sig_producer.h"
+#include <tinyxml.h>
+#include <tinystr.h>
 
 PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
 :module_name_("PendingSigProducer")
@@ -11,6 +13,7 @@ PendingSigProducer::PendingSigProducer(struct vrt_queue  *queue)
 
 	(this->producer_ = vrt_producer_new("pendingsig_producer", 1, queue));
 
+	clog_info("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -27,10 +30,10 @@ void PendingSigProducer::ParseConfig()
     TiXmlElement *RootElement = config.RootElement();    
 
 	// yield strategy
-    TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
+    TiXmlElement *comp_node = RootElement->FirstChildElement("Disruptor");
 	if (comp_node != NULL){
-		this->yield = comp_node->Attribute("yield");
-	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
+		strcpy(config_.yield, comp_node->Attribute("yield"));
+	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
 }
 
 PendingSigProducer::~PendingSigProducer()

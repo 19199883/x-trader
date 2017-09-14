@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/x-shfe/dist
 INCPATH:=-I$(TOP)/3rd/femas2.0/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include 

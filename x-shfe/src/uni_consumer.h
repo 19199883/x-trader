@@ -168,7 +168,6 @@ class UniConsumer
 		void PlaceOrder(Strategy &strategy, const signal_t &sig);
 		signal_t sig_buffer_[SIG_BUFFER_SIZE];
 		Uniconfig config_;
-		void ParseConfig();
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;

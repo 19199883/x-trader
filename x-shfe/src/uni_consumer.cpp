@@ -4,6 +4,8 @@
 #include "uni_consumer.h"
 #include "pos_calcu.h"
 #include "perfctx.h"
+#include <tinyxml.h>
+#include <tinystr.h>
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer,
@@ -34,12 +36,13 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
+	clog_info("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
-		this->producer_ ->yield = vrt_yield_strategy_threaded();
+		this->consumer_ ->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
-		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
+		this->consumer_ ->yield = vrt_yield_strategy_spin_wait();
 	}else if(strcmp(config_.yield, "hybrid") == 0){
-		this->producer_ ->yield = vrt_yield_strategy_hybrid();
+		this->consumer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
 
@@ -92,10 +95,11 @@ void UniConsumer::ParseConfig()
     TiXmlElement *root = doc.RootElement();    
 
 	// yield strategy
-    TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
+    TiXmlElement *comp_node = root->FirstChildElement("Disruptor");
 	if (comp_node != NULL){
-		this->yield = comp_node->Attribute("yield");
-	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
+		strcpy(config_.yield, comp_node->Attribute("yield"));
+		clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
 
     TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
 	if (strategies_ele != 0){
