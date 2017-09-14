@@ -252,6 +252,9 @@ void UniConsumer::Stop()
 	md_producer_->End();
 	tunn_rpt_producer_->End();
 	pendingsig_producer_->End();
+#ifdef COMPLIANCE_CHECK
+		compliance_.Save();
+#endif
 }
 
 void UniConsumer::ProcShfeMarketData(int32_t index)

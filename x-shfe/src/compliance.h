@@ -31,6 +31,7 @@ class Compliance
 					TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset);
 
 		void End(int ord_counter);
+		void Save();
 		void AccumulateCancelTimes(const char* contrace);
 
 	private:

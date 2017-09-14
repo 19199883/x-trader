@@ -4,6 +4,12 @@
 #include "compliance.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include <ctime>
+#include <chrono>
+#include <ratio>
+
+using namespace std;
+using namespace std::chrono;
 
 Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
 {
@@ -20,15 +26,19 @@ Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Complia
 	}
 }
 
-Compliance::~Compliance()
+void Compliance::Save()
 {
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
 		if (strcmp(contracts_[i], "") == 0) break;
 
-		clog_info("[%s] contract:%s; cancel times:%s",
+		clog_info("[%s] contract:%s; cancel times:%d",
 			module_name_, contracts_[i], cur_cancel_times_[i]);
 	}
+}
+
+Compliance::~Compliance()
+{
 
 }
 void Compliance::ParseConfig()
@@ -65,6 +75,9 @@ int Compliance::GetCancelTimes(const char* contract)
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			double price, TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset)
 {
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
     bool ret = true;
 
 	if(offset == USTP_FTDC_OF_Open && (GetCancelTimes(contract) >= cancel_upper_limit_)){
@@ -102,26 +115,49 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 	clog_debug("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
 				module_name_, ord_counter, min_counter_, max_counter_, ret);
 
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] TryReqOrderInsert latency:%d us", module_name_, latency); 
+#endif
     return ret;
 }
 
 
 void Compliance::AccumulateCancelTimes(const char* contract)
 {
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
 		if (strcmp(contracts_[i], "") == 0) break;
 
 		if(strcmp(contract, contracts_[i]) == 0){
 			cur_cancel_times_[i]++;
-			return;
-		}
-	}
 
-	if(i < MAX_CONTRACT_NUMBER){
-		strcpy(contracts_[i], contract);
-		cur_cancel_times_[i]++;
-	}
+			clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
+
+#ifdef LATENCY_MEASURE
+			high_resolution_clock::time_point t1 = high_resolution_clock::now();
+			int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+			clog_warning("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
+#endif
+				return;
+			}
+		}
+
+		if(i < MAX_CONTRACT_NUMBER){
+			strcpy(contracts_[i], contract);
+			cur_cancel_times_[i]++;
+
+			clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
+		}
+#ifdef LATENCY_MEASURE
+			high_resolution_clock::time_point t1 = high_resolution_clock::now();
+			int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+			clog_warning("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
+#endif
 }
 
 void Compliance::End(int ord_counter)
