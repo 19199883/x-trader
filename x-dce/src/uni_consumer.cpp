@@ -393,7 +393,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 				signal_t *sig = strategy.GetSignalBySigID(sig_id);
 
-				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+				 clog_debug("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
 							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
 							 "sig_act:%d; sig_openclose:%d; ",
 						module_name_, sig->st_id, sig->sig_id,

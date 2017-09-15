@@ -21,7 +21,7 @@ using namespace std;
 #define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
 // 假设一个策略最多产生3000个信号
-#define SIGANDRPT_TABLE_SIZE 3000
+#define SIGANDRPT_TABLE_SIZE 6000
 
 // 一个x-trader最多支持100个策略
 #define MAX_STRATEGY_COUNT 200
@@ -81,14 +81,16 @@ public:
 	int32_t GetMaxPosition();
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);
-	bool Deferred(int sig_id, unsigned short sig_openclose,
-				unsigned short int sig_act, int32_t vol, int32_t &updated_vol);
+	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act);
 	void PrepareForExecutingSig(long localorderid, const signal_t &sig,
 				int32_t actual_vol);
 	void FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
 	bool HasFrozenPosition();
 	int32_t GetCounterByLocalOrderID(long local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
+	void Push(const signal_t &sig);
+	int GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol);
+	int GetVol(const signal_t &sig);
 
 private:
 	string generate_log_name(char * log_path);
@@ -104,6 +106,7 @@ private:
 
 	long GetLocalOrderIDByCounter(long counter);
 
+	int cursor_;
 	signal_t sig_table_[SIGANDRPT_TABLE_SIZE];
 	signal_resp_t sigrpt_table_[SIGANDRPT_TABLE_SIZE];
 

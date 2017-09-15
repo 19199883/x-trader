@@ -63,7 +63,7 @@ class FemasFieldConverter
 				insert_order.LimitPrice = sig.sell_price;
 				insert_order.Direction = USTP_FTDC_D_Sell;
 			}else{
-				 clog_warning("[%s] do support Direction value:%d; sig id:%d", module_name_,
+				 clog_warning("[%s] do support Direction value:%d; sig id:%d", "FemasFieldConverter",
 					insert_order.Direction, sig.sig_id); 
 			}
 

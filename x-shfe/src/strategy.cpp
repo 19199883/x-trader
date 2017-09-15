@@ -15,6 +15,7 @@ Strategy::Strategy()
 : module_name_("Strategy")
 {
 	valid_ = false;
+	cursor_ = 0;
 
 	pfn_init_;
 	pfn_feedshfemarketdata_ = NULL;
@@ -280,34 +281,82 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 				position_.frozen_open_long, position_.frozen_open_short);
 }
 
-bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, 
-			unsigned short int sig_act, int32_t vol, int32_t& updated_vol)
+int Strategy::GetVol(const signal_t &sig)
 {
-	bool result = false;
-	updated_vol = 0;
+	int32_t vol = 0;
+	if (sig.sig_openclose == alloc_position_effect_t::open_){
+		vol = sig.open_volume;
+	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
+		vol = sig.close_volume;
+	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
+				sig.sig_openclose); }
+
+	return vol;
+}
+
+int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol)
+{
+	int updated_vol = 0;
 
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_open_long==0){
 			updated_vol = GetMaxPosition() - position_.cur_long + position_.cur_short;
-			result = false;
-		} else { result = true; }
+		} 
 	}
 	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
 		if (position_.frozen_open_short==0){
 			updated_vol = GetMaxPosition() - position_.cur_short + position_.cur_long;
-			result = false;
-		} else { result = true; }
+		} 
 	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_close_short==0){
 			updated_vol = GetMaxPosition()+ position_.cur_short - position_.cur_long;
 			if (updated_vol >  position_.cur_short) updated_vol =  position_.cur_short;
-			result = false;
-		} else { result = true; }
+		} 
 	}
 	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
 		if (position_.frozen_close_long==0){
 			updated_vol = GetMaxPosition() + position_.cur_long - position_.cur_short;
 			if (updated_vol >  position_.cur_long) updated_vol =  position_.cur_long;
+		}
+	}
+	else{ 
+		clog_error("[%s] GetAvailableVol: strategy id:%d; act:%d; sig_openclose:%d, sig id:%d",
+					module_name_, setting_.config.st_id, sig_act, sig_openclose, sig_id); 
+	}
+
+	if (updated_vol > vol) updated_vol = vol; 
+
+	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
+				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
+				"frozen_open_short:%d; updated vol:%d",
+				module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
+				position_.frozen_close_long, position_.frozen_close_short,
+				position_.frozen_open_long, position_.frozen_open_short, updated_vol);
+
+	return updated_vol;
+} 
+
+
+bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act)
+{
+	bool result = false;
+
+	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
+		if (position_.frozen_open_long==0){
+			result = false;
+		} else { result = true; }
+	}
+	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
+		if (position_.frozen_open_short==0){
+			result = false;
+		} else { result = true; }
+	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
+		if (position_.frozen_close_short==0){
+			result = false;
+		} else { result = true; }
+	}
+	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
+		if (position_.frozen_close_long==0){
 			result = false;
 		} else { result = true; }
 	}
@@ -316,14 +365,13 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose,
 					module_name_, setting_.config.st_id, sig_act, sig_openclose, sig_id); 
 	}
 
-	if (updated_vol > vol) updated_vol = vol; 
 
 	clog_debug("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
-				"frozen_open_short:%d; updated vol:%d",
+				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
 				position_.frozen_close_long, position_.frozen_close_short,
-				position_.frozen_open_long, position_.frozen_open_short, updated_vol);
+				position_.frozen_open_long, position_.frozen_open_short);
 
 	return result;
 } 
@@ -334,31 +382,34 @@ signal_t* Strategy::GetSignalBySigID(int32_t sig_id)
 	return &(sig_table_[cursor]);
 }
 
-void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
+void Strategy::Push(const signal_t &sig)
 {
-	this->Freeze(sig.sig_openclose, sig.sig_act, actual_vol);
-
-	// get next cursor
-	static int32_t cursor = SIGANDRPT_TABLE_SIZE - 1;
-	cursor++;
-	if ((cursor % SIGANDRPT_TABLE_SIZE ) == 0){
-		cursor = 0;
-	}
-	sig_table_[cursor] = sig;
-	sigid_sigidx_map_table_[sig.sig_id] = cursor;
+	sig_table_[cursor_] = sig;
+	sigid_sigidx_map_table_[sig.sig_id] = cursor_;
 
 	// signal response
-	memset(&(sigrpt_table_[cursor]), 0, sizeof(signal_resp_t));
-	sigrpt_table_[cursor].sig_id = sig.sig_id;
-	sigrpt_table_[cursor].sig_act = sig.sig_act;
-	strcpy(sigrpt_table_[cursor].symbol, sig.symbol);
-	sigrpt_table_[cursor].order_volume = actual_vol;
+	memset(&(sigrpt_table_[cursor_]), 0, sizeof(signal_resp_t));
+	sigrpt_table_[cursor_].sig_id = sig.sig_id;
+	sigrpt_table_[cursor_].sig_act = sig.sig_act;
+	strcpy(sigrpt_table_[cursor_].symbol, sig.symbol);
 	if (sig.sig_act==signal_act_t::buy){
-		sigrpt_table_[cursor].order_price = sig.buy_price;
+		sigrpt_table_[cursor_].order_price = sig.buy_price;
 	} else if (sig.sig_act==signal_act_t::sell){
-		sigrpt_table_[cursor].order_price = sig.sell_price;
+		sigrpt_table_[cursor_].order_price = sig.sell_price;
 	}
 
+	cursor_++;
+
+	clog_debug("[%s] push: strategy id:%d; sig id: %d; cursor,%d; ",
+				module_name_, sig.st_id, sig.sig_id, cursor_);
+}
+
+// TODO: 1
+void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
+{
+	int32_t cursor = sigid_sigidx_map_table_[sig.sig_id];
+	this->Freeze(sig.sig_openclose, sig.sig_act, actual_vol);
+	sigrpt_table_[cursor].order_volume = actual_vol;
 	// mapping table
 	// sigid_sigandrptidx_map_table_[sig.sig_id] = cursor;
 	int32_t counter = GetCounterByLocalOrderID(localorderid);
@@ -502,7 +553,7 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}
 	else{
-		clog_warning("[%s] unexpected status:%d", tunnrpt.OrderStatus)
+		clog_warning("[%s] unexpected status:%d", tunnrpt.OrderStatus);
 	}
 }
 

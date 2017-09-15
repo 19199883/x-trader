@@ -330,7 +330,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
 	
-	// TODO:
+	// TODO:1
 	if (!strategy.HasFrozenPosition()){
 		int i = 0;
 		for(; i < 2; i++){
@@ -338,17 +338,15 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 			if(pending_signals_[st_id][i] >= 0){
 				int32_t sig_id = pending_signals_[st_id][i];
 				pending_signals_[st_id][i] = -1;
-
 				signal_t *sig = strategy.GetSignalBySigID(sig_id);
-
-				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+				PlaceOrder(strategy, *sig);
+				 clog_debug("[%s] pending_signals_ get: strategy id:%d; sig_id:%d; exchange:%d; "
 							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
 							 "sig_act:%d; sig_openclose:%d; ",
-						module_name_, sigs.st_id, sigs.sig_id,
+						module_name_, sig->st_id, sig->sig_id,
 						sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
 						sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose); 
 
-				PlaceOrder(strategy, *sig);
 			}
 		}
 	}
@@ -367,29 +365,22 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 		}
 		else{
 			signal_t &sig = sigs[i];
-			int32_t vol = 0;
-			int32_t updated_vol = 0;
-			if (sig.sig_openclose == alloc_position_effect_t::open_){
-				vol = sig.open_volume;
-			} else if (sig.sig_openclose == alloc_position_effect_t::close_){
-				vol = sig.close_volume;
-			} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
-				sig.sig_openclose); }
-			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol)){
-				// TODO:
+			strategy.Push(sig);
+			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
+				// TODO:1
 				int i = 0;
 				for(; i < 2; i++){
 					if(pending_signals_[sig.st_id][i] < 0){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
+						clog_debug("[%s] pending_signals_ push st id:%d; sig id;%d", 
+									module_name_,sig.st_id,pending_signals_[sig.st_id][i]);
 						break;
 					}
 				}
 				if(i == 2){
 					clog_warning("[%s] pending_signals_ beyond;", module_name_);
 				}
-			} else {
-				PlaceOrder(strategy, sigs[i]);
-			}
+			} else { PlaceOrder(strategy, sigs[i]); }
 		}
 	}
 }
@@ -423,18 +414,11 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
-	int32_t vol = 0;
-	int32_t updated_vol = 0;
-	if (sig.sig_openclose == alloc_position_effect_t::open_){
-		vol = sig.open_volume;
-	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
-		vol = sig.close_volume;
-	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
-				sig.sig_openclose); }
-
-	strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol);
-
+	int vol = strategy.GetVol(sig);
+	// TODO: 1
+	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol);
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+	// TODO: 1
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
 	CUstpFtdcInputOrderField ord;
