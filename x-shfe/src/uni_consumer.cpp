@@ -338,7 +338,17 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 			if(pending_signals_[st_id][i] >= 0){
 				int32_t sig_id = pending_signals_[st_id][i];
 				pending_signals_[st_id][i] = -1;
-				PlaceOrder(strategy, *strategy.GetSignalBySigID(sig_id));
+
+				signal_t *sig = strategy.GetSignalBySigID(sig_id);
+
+				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
+							 "sig_act:%d; sig_openclose:%d; ",
+						module_name_, sigs.st_id, sigs.sig_id,
+						sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
+						sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose); 
+
+				PlaceOrder(strategy, *sig);
 			}
 		}
 	}

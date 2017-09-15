@@ -563,7 +563,8 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriCancelOrderField* p)
             "    accountID=%s "
             "    orderAmount=%ld "
             "    margin=%.4f "
-            "    fee=%.4f ",
+            "    fee=%.4f "
+            "    StatusMsg=%s " ,
             p->LocalOrderID,                 //本地委托号
             p->OrderSysID,                   //报单编号
             p->InstrumentID,                 //合约代码
@@ -581,8 +582,8 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriCancelOrderField* p)
             p->AccountID,                    //资金账号
             p->OrderAmount,                  //委托数量
             p->Margin,                       //保证金
-            p->Fee
-            );
+            p->Fee,
+			p->StatusMsg);
     }
     else
     {

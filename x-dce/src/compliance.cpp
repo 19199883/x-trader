@@ -26,7 +26,7 @@ Compliance::~Compliance()
 	for(; i < MAX_CONTRACT_NUMBER; i++){
 		if (strcmp(contracts_[i], "") == 0) break;
 
-		clog_info("[%s] contract:%s; cancel times:%s",
+		clog_info("[%s] contract:%s; cancel times:%d",
 			module_name_, contracts_[i], cur_cancel_times_[i]);
 	}
 }

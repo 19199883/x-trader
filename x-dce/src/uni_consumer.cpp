@@ -8,13 +8,12 @@
 #include <tinystr.h>
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
-			TunnRptProducer *tunn_rpt_producer,
-			PendingSigProducer* pendingsig_producer)
+			TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
   md_producer_(md_producer),
-  tunn_rpt_producer_(tunn_rpt_producer),
-  pendingsig_producer_(pendingsig_producer)
+  tunn_rpt_producer_(tunn_rpt_producer)
 {
+	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 
 #if FIND_STRATEGIES == 1
@@ -229,9 +228,6 @@ void UniConsumer::Start()
 				case ORDERSTATISTIC:
 					ProcOrderStatistic(ivalue->index);
 					break;
-				case PENDING_SIGNAL:
-					ProcPendingSig(ivalue->index);
-					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
 					break;
@@ -252,7 +248,6 @@ void UniConsumer::Stop()
 	running_ = false;
 	md_producer_->End();
 	tunn_rpt_producer_->End();
-	pendingsig_producer_->End();
 }
 
 void UniConsumer::ProcBestAndDeep(int32_t index)
@@ -354,16 +349,6 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 
 }
 
-void UniConsumer::ProcPendingSig(int32_t index)
-{
-	signal_t* sig = pendingsig_producer_->GetSignal(index);
-
-	clog_debug("[%s] [ProcPendingSig] index: %d; strategy id:%d; sig id: %d", module_name_, index, sig->st_id, sig->sig_id);
-
-	Strategy& strategy = stra_table_[straid_straidx_map_table_[sig->st_id]];
-	PlaceOrder(strategy, *sig);
-}
-
 void UniConsumer::ProcTunnRpt(int32_t index)
 {
 	int sig_cnt = 0;
@@ -396,6 +381,30 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 #endif
 
 	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
+
+	// TODO:
+	if (!strategy.HasFrozenPosition()){
+		int i = 0;
+		for(; i < 2; i++){
+			int32_t st_id = strategy.GetId();
+			if(pending_signals_[st_id][i] >= 0){
+				int32_t sig_id = pending_signals_[st_id][i];
+				pending_signals_[st_id][i] = -1;
+
+				signal_t *sig = strategy.GetSignalBySigID(sig_id);
+
+				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
+							 "sig_act:%d; sig_openclose:%d; ",
+						module_name_, sig->st_id, sig->sig_id,
+						sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
+						sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose); 
+	
+				PlaceOrder(strategy, *sig);
+			} // if(pending_signals_[st_id][i] >= 0)
+		} // for(; i < 2; i++)
+	} // if (!strategy.HasFrozenPosition())
+
 	ProcSigs(strategy, sig_cnt, sig_buffer_);
 }
 
@@ -408,7 +417,30 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			CancelOrder(strategy, sigs[i]);
 		}
 		else{
-			PlaceOrder(strategy, sigs[i]);
+			signal_t &sig = sigs[i];
+			int32_t vol = 0;
+			int32_t updated_vol = 0;
+			if (sig.sig_openclose == alloc_position_effect_t::open_){
+				vol = sig.open_volume;
+			} else if (sig.sig_openclose == alloc_position_effect_t::close_){
+				vol = sig.close_volume;
+			} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
+				sig.sig_openclose); }
+			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol)){
+				// TODO:
+				int i = 0;
+				for(; i < 2; i++){
+					if(pending_signals_[sig.st_id][i] < 0){
+						pending_signals_[sig.st_id][i] = sig.sig_id;
+						break;
+					}
+				}
+				if(i == 2){
+					clog_warning("[%s] pending_signals_ beyond;", module_name_);
+				}
+			} else {
+				PlaceOrder(strategy, sigs[i]);
+			}
 		}
 	}
 }
@@ -448,13 +480,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		vol = sig.open_volume;
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
-	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
-				sig.sig_openclose); }
+	} else{ clog_info("[%s] PlaceOrder: do support sig_openclose value:%d; sig id:%d", module_name_,
+				sig.sig_openclose, sig.sig_id); }
 
-	if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol)){
-		// place signal into disruptor queue
-		pendingsig_producer_->Publish(sig);
-	} else {
+		strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, updated_vol);
 		long localorderid = this->tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 		strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
@@ -491,6 +520,5 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
         if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
 #endif
-	}
 }
 

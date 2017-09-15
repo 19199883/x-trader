@@ -62,6 +62,9 @@ class FemasFieldConverter
 			else if (sig.sig_act == signal_act_t::sell){
 				insert_order.LimitPrice = sig.sell_price;
 				insert_order.Direction = USTP_FTDC_D_Sell;
+			}else{
+				 clog_warning("[%s] do support Direction value:%d; sig id:%d", module_name_,
+					insert_order.Direction, sig.sig_id); 
 			}
 
 			if (sig.sig_openclose == alloc_position_effect_t::open_){

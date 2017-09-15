@@ -11,7 +11,6 @@
 #include "strategy.h"
 #include "md_producer.h"
 #include "tunn_rpt_producer.h"
-#include "pending_sig_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "moduleloadlibrarylinux.h"
@@ -50,7 +49,8 @@ class X1FieldConverter
 				insert_order.BuySellType = X1_FTDC_SPD_SELL;
 			}
 			else{
-				// log
+				 clog_warning("[%s] do support BuySellType value:%d; sig id:%d", "X1FieldConverter",
+					insert_order.BuySellType, sig.sig_id); 
 			}
 
 			if (sig.sig_openclose == alloc_position_effect_t::open_){
@@ -83,8 +83,7 @@ class UniConsumer
 {
 	public:
 		UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
-					TunnRptProducer *tunn_rpt_producer,
-					PendingSigProducer *pendingsig_producer);
+					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();
@@ -96,7 +95,6 @@ class UniConsumer
 		struct vrt_consumer *consumer_;
 		MDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
-		PendingSigProducer *pendingsig_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;
 
@@ -127,13 +125,19 @@ class UniConsumer
 		void ProcBestAndDeep(int32_t index);
 		void FeedBestAndDeep(int32_t straidx);
 		void ProcOrderStatistic(int32_t index);
-		void ProcPendingSig(int32_t index);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
 		void PlaceOrder(Strategy &strategy, const signal_t &sig);
 		signal_t sig_buffer_[SIG_BUFFER_SIZE];
 		Uniconfig config_;
+
+		/*
+		 *		 * pending_signals_[st_id][n]:pending_signals_[st_id]存储st_id
+		 *				 * 策略待处理的信号的信号id。-1表示无效
+		 *						 *
+		 *								 */
+		int32_t pending_signals_[200][2];
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;

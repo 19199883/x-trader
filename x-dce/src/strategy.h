@@ -87,6 +87,7 @@ public:
 	void FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
 	bool HasFrozenPosition();
 	int32_t GetCounterByLocalOrderID(long local_ord_id);
+	signal_t* GetSignalBySigID(int32_t sig_id);
 
 private:
 	string generate_log_name(char * log_path);
@@ -112,6 +113,9 @@ private:
 
 	// key: signal id; value: LocalOrderID
 	long sigid_localorderid_map_table_[SIGANDRPT_TABLE_SIZE];
+
+	// key: signal id; value: 号所存数组的位置
+	long sigid_sigidx_map_table_[SIGANDRPT_TABLE_SIZE];
 
 	position_t pos_cache_;
 

@@ -312,8 +312,8 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose,
 		} else { result = true; }
 	}
 	else{ 
-		clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d",
-				module_name_, setting_.config.st_id, sig_act, sig_openclose); 
+		clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d, sig id:%d",
+					module_name_, setting_.config.st_id, sig_act, sig_openclose, sig_id); 
 	}
 
 	if (updated_vol > vol) updated_vol = vol; 
@@ -502,7 +502,7 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}
 	else{
-		// log error
+		clog_warning("[%s] unexpected status:%d", tunnrpt.OrderStatus)
 	}
 }
 

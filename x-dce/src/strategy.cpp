@@ -207,11 +207,14 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 #endif
 
 		sigs[i].st_id = this->GetId();
-		// debug
-		// clog_info("[%s] FeedMd(MDBestAndDeep signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-	//				module_name_, sigs[i].st_id, sigs[i].sig_id,
-	//				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-	//				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+
+		 clog_debug("[%s] FeedMd(MDBestAndDeep signal: strategy id:%d; sig_id:%d; "
+					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
+					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+					module_name_, sigs[i].st_id, sigs[i].sig_id,
+					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
+					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 
@@ -234,11 +237,14 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 #endif
 
 		sigs[i].st_id = this->GetId();
-		// debug
-		//clog_info("[%s] FeedMd(MDOrderStatistic signal: strategy id:%d; sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-	//				module_name_, sigs[i].st_id, sigs[i].sig_id,
-	//				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-	//				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+
+		clog_debug("[%s] FeedMd(MDOrderStatistic signal: strategy id:%d; sig_id:%d; "
+					"exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
+					"sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+					module_name_, sigs[i].st_id, sigs[i].sig_id,
+					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
+					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 
@@ -248,11 +254,14 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
-		// debug
-		//clog_info("[%s] feed_sig_respons esignal: strategy id:%d;  sig_id:%d; exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-	//				module_name_, sigs[i].st_id, sigs[i].sig_id,
-	//				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-	//				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+
+		clog_debug("[%s] feed_sig_respons esignal: strategy id:%d;  sig_id:%d; "
+					"exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
+					"sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+					module_name_, sigs[i].st_id, sigs[i].sig_id,
+					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
+					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 
@@ -343,8 +352,8 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose,
 		} else { result = true; }
 	}
 	else{ 
-		clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d",
-				module_name_, setting_.config.st_id, sig_act, sig_openclose); 
+		clog_error("[%s] Deferred: strategy id:%d; act:%d; sig_openclose:%d, sig id:%d",
+				module_name_, setting_.config.st_id, sig_act, sig_openclose, sig_id); 
 	}
 
 	if (updated_vol > vol) updated_vol = vol; 
@@ -359,6 +368,12 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose,
 	return result;
 } 
 
+signal_t* Strategy::GetSignalBySigID(int32_t sig_id)
+{
+		int32_t cursor = sigid_sigidx_map_table_[sig_id];
+			return &(sig_table_[cursor]);
+}
+
 void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
 {
 	this->Freeze(sig.sig_openclose, sig.sig_act, actual_vol);
@@ -370,6 +385,7 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 		cursor = 0;
 	}
 	sig_table_[cursor] = sig;
+	sigid_sigidx_map_table_[sig.sig_id] = cursor;
 
 	// signal response
 	memset(&(sigrpt_table_[cursor]), 0, sizeof(signal_resp_t));
@@ -537,7 +553,7 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}
 	else{
-		// log error
+		clog_warning("[%s] unexpected status:%d", tunnrpt.OrderStatus);
 	}
 }
 
