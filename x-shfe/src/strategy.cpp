@@ -152,7 +152,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
 	int err = 0;
-	this->pfn_init_(&this->setting_.config, &err);
+	this->pfn_init_(&this->setting_.config, &err, &log_);
 	this->FeedInitPosition();
 }
 
@@ -174,7 +174,7 @@ void Strategy::FeedInitPosition()
 	second.short_volume = position_.cur_short;
 	second.exchg_code = this->GetExchange(); 
 
-	this->pfn_feedinitposition_(&init_pos);
+	this->pfn_feedinitposition_(&init_pos, &log_);
 
 	clog_info("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
@@ -191,7 +191,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 #endif
 	
 	*sig_cnt = 0;
-	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs);
+	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs, &log_);
 	for (int i = 0; i < *sig_cnt; i++ ){
 
 #ifdef LATENCY_MEASURE
@@ -214,7 +214,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
-	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs);
+	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, &log_);
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
 		// debug

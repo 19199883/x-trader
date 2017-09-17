@@ -34,8 +34,10 @@ struct Uniconfig
 class X1FieldConverter
 {
 	public:
-		static void Convert(const signal_t& sig,const char *account, long localorderid, int32_t vol, CX1FtdcInsertOrderField& insert_order)
+		static void Convert(const signal_t& sig,const char *account, long localorderid, 
+					int32_t vol, CX1FtdcInsertOrderField& insert_order)
 		{
+			memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
 			strncpy(insert_order.AccountID, account, sizeof(TX1FtdcAccountIDType));
 			insert_order.LocalOrderID = localorderid;
 			strncpy(insert_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
