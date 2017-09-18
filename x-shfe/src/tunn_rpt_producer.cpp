@@ -93,7 +93,7 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 	
 	// report rejected if ret!=0
 	if (ret != 0){
-		clog_warning("[%s] ReqInsertOrder- ret=%d - %s", 
+		clog_warning("[%s] ReqOrderInsert- ret=%d - %s", 
 			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 
 		struct TunnRpt rpt;
@@ -110,7 +110,7 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
 	}else {
-		clog_debug("[%s] ReqInsertOrder - ret=%d - %s", 
+		clog_debug("[%s] ReqOrderInsert- ret=%d - %s", 
 			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	}
 
@@ -123,7 +123,7 @@ int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 	int ret = api_->ReqOrderAction(p, 0);
 
 	if (ret != 0){
-		clog_warning("[%s] ReqCancelOrder - ret=%d - %s", 
+		clog_warning("[%s] ReqOrderAction- ret=%d - %s", 
 			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	} else {
 		clog_debug("[%s] ReqCancelOrder - ret=%d - %s", 
@@ -208,7 +208,7 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 {
 	if (ended_) return;
 
-    clog_debug("[%s] OnRspInsertOrder:%s %s",
+    clog_debug("[%s] OnRspOrderInsert:%s %s",
         module_name_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
         FEMASDatatypeFormater::ToString(perror).c_str());
@@ -240,7 +240,7 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		ivalue->index = Push(rpt);
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
-		clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%s",
+		clog_debug("[%s] OnRspOrderInsert: index,%d; data,%d; LocalOrderID:%s",
 					module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 	} // if ((pfield != NULL)
 }
@@ -304,7 +304,7 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 		ivalue->index = Push(rpt);
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
-		clog_debug("[%s] OnRtnErrorMsg: index,%d; data,%d; LocalOrderID:%s",
+		clog_debug("[%s] OnErrRtnOrderInsert: index,%d; data,%d; LocalOrderID:%s",
 			module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 	}
 }
@@ -313,7 +313,7 @@ void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
 {
 	if (ended_) return;
 
-    clog_debug("[%s] OnRtnMatchedInfo:%s", 
+    clog_debug("[%s] OnRtnTrade:%s", 
 				module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
 	// 忽略该回报，因为OrderReturn有成交信息
