@@ -624,9 +624,8 @@ void Strategy::WriteLog(bool isSync)
 {
 	log_w_.swap(log_);
 	std::thread t = std::thread(&Strategy::WriteLogImp,this,log_cursor_);
-	if(isSync) t.join();
-
 	log_cursor_ = 0;
+	if(isSync) t.join();
 }
 void Strategy::WriteLogTitle()
 {
