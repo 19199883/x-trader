@@ -20,7 +20,7 @@ Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Complia
 	}
 }
 
-Compliance::~Compliance()
+void Compliance::Save()
 {
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
@@ -29,6 +29,10 @@ Compliance::~Compliance()
 		clog_info("[%s] contract:%s; cancel times:%d",
 			module_name_, contracts_[i], cur_cancel_times_[i]);
 	}
+}
+
+Compliance::~Compliance()
+{
 }
 
 void Compliance::ParseConfig()

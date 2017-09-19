@@ -34,6 +34,7 @@ Strategy::Strategy()
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 	log_cursor_ = 0;
 	pfDayLogFile_ = NULL;
+	thread_log_ = NULL;
 }
 
 void Strategy::End(void)
@@ -52,6 +53,11 @@ void Strategy::End(void)
 
 Strategy::~Strategy(void)
 {
+	if(thread_log_!=NULL){
+		delete thread_log_;
+		thread_log_ = NULL; 
+	}
+
 	if (pproxy_ != NULL){
 		pproxy_->deleteObject(this->setting_.file);
 		pproxy_ = NULL;
@@ -623,7 +629,11 @@ const char * Strategy::GetSymbol()
 void Strategy::WriteLog(bool isSync)
 {
 	log_w_.swap(log_);
-	std::thread t = std::thread(&Strategy::WriteLogImp,this,log_cursor_);
+	if(thread_log_!=NULL){
+		delete thread_log_;
+		thread_log_ = NULL; 
+	}
+	thread_log_ = new std::thread(&Strategy::WriteLogImp,this,log_cursor_);
 	log_cursor_ = 0;
 	if(isSync) t.join();
 }

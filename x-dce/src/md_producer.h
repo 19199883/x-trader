@@ -13,7 +13,7 @@
 /*
  * 10 power of 2
  */
-#define MD_BUFFER_SIZE 2048 
+#define MD_BUFFER_SIZE 1000 
 
 struct Mdconfig
 {

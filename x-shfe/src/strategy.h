@@ -159,6 +159,7 @@ private:
 	vector<strat_out_log> log_;
 	vector<strat_out_log> log_w_;
 	int32_t log_cursor_;
+	std::thread *thread_log_;
 
 	// be used to check whether the stategy is valid
 	bool valid_;

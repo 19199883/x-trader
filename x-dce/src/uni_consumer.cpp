@@ -248,6 +248,13 @@ void UniConsumer::Stop()
 	running_ = false;
 	md_producer_->End();
 	tunn_rpt_producer_->End();
+#ifdef COMPLIANCE_CHECK
+		compliance_.Save();
+#endif
+
+	for(int i=0; i<strategy_counter_; i++){
+		stra_table_[i].End();
+	}
 }
 
 void UniConsumer::ProcBestAndDeep(int32_t index)

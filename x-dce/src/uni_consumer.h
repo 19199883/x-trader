@@ -17,7 +17,7 @@
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 
-#define STRA_TABLE_SIZE 512 
+#define STRA_TABLE_SIZE 100 
 #define SIG_BUFFER_SIZE 32 
 
 // key2: stoi(年月)，如1801
