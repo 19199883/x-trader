@@ -1,4 +1,5 @@
 #include <chrono>
+#include <stdio.h>
 #include <ratio>
 #include <ctime>
 #include <sstream>
@@ -28,15 +29,15 @@ Strategy::Strategy()
 
 	pproxy_ = NULL;
 
-	memset(log1_, 0, sizeof(log1_));
-	log1_cursor_ = -1;
+	memset(log_, 0, sizeof(log_));
+	log_cursor_ = 0;
 }
 
 Strategy::~Strategy(void)
 {
 	if (valid_) SavePosition();
 
-	WriteStrategyLog1();
+	WriteLog();
 
 	if (this->pfn_destroy_ != NULL){
 		// TODO:
@@ -152,7 +153,8 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
 	int err = 0;
-	this->pfn_init_(&this->setting_.config, &err, &log_);
+	this->pfn_init_(&this->setting_.config, &err, log_+log_cursor_);
+	log_cursor_++;
 	this->FeedInitPosition();
 }
 
@@ -174,7 +176,8 @@ void Strategy::FeedInitPosition()
 	second.short_volume = position_.cur_short;
 	second.exchg_code = this->GetExchange(); 
 
-	this->pfn_feedinitposition_(&init_pos, &log_);
+	this->pfn_feedinitposition_(&init_pos, log_+log_cursor_);
+	log_cursor_++;
 
 	clog_info("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
@@ -191,7 +194,9 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 #endif
 	
 	*sig_cnt = 0;
-	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs, &log_);
+	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs, log_+log_cursor_);
+	log_cursor_++;
+
 	for (int i = 0; i < *sig_cnt; i++ ){
 
 #ifdef LATENCY_MEASURE
@@ -214,7 +219,9 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
-	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, &log_);
+	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, log_+log_cursor_);
+	log_cursor_++;
+
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
 		// debug
@@ -597,6 +604,73 @@ const char * Strategy::GetSymbol()
 }
 
 
-void Strategy::WriteStrategyLog1()
+void Strategy::WriteLog()
 {
+	FILE * pfDayLogFile;
+	pfDayLogFile= fopen (setting_.config.log_name, "w");
+
+	// title
+	fprintf (pfDayLogFile, "exch_time  contract  n_tick  price  vol  bv1  bp1  sp1  sv1  amt  ");
+	fprintf (pfDayLogFile, "oi buy_price  sell_price  open_vol  close_vol  ");
+	fprintf (pfDayLogFile, "long_pos  short_pos  total_ordervol  total_cancelvol order_count cancel_count ");
+	fprintf (pfDayLogFile, "cash live total_vol max_dd max_net_pos max_side_pos ");
+	for(int i=0; i< 11; i++)
+	{
+		fprintf(pfDayLogFile,"sig%d ", i);
+	}
+	fprintf(pfDayLogFile,"sig11\n");
+
+	// content
+	for(int i = 0; i < log_cursor_; i++){
+		WriteOne(pfDayLogFile, &(log_[i]));
+	}
+
+
+	fclose(pfDayLogFile);
+}
+
+void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
+{
+    fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
+            pstratlog->exch_time,
+            pstratlog->contract,
+            pstratlog->n_tick,
+            pstratlog->price,
+            pstratlog->vol);
+
+    fprintf(pfDayLogFile,"%d %12.4f %12.4f %d %ld %ld ",
+            pstratlog->bv1,
+            pstratlog->bp1,
+            pstratlog->sp1,
+            pstratlog->sv1,
+            pstratlog->amt,
+            pstratlog->oi);
+
+    fprintf(pfDayLogFile,"%12.4f %12.4f %d %d ",
+            pstratlog->buy_price,
+            pstratlog->sell_price,
+            pstratlog->open_vol,
+            pstratlog->close_vol);
+
+    fprintf(pfDayLogFile,"%d %d %d %d %d %d ",
+            pstratlog->long_pos,
+            pstratlog->short_pos,
+            pstratlog->tot_ordervol,
+            pstratlog->tot_cancelvol,
+            pstratlog->order_cnt,
+            pstratlog->cancel_cnt);
+
+    fprintf(pfDayLogFile,"%16.2f %16.2f %d %16.2f %d %d ",
+            pstratlog->cash,
+            pstratlog->live,
+            pstratlog->tot_vol,
+            pstratlog->max_dd,
+            pstratlog->max_net_pos,
+            pstratlog->max_side_pos);
+
+    for(int i=0; i< 11; i++)
+    {
+        fprintf(pfDayLogFile,"%0.2f ", pstratlog->sig[i]);
+    }
+    fprintf(pfDayLogFile,"%0.2f\n", pstratlog->sig[11]);
 }

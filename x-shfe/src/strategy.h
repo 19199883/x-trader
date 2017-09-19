@@ -146,14 +146,15 @@ private:
 	long sigid_sigidx_map_table_[SIGANDRPT_TABLE_SIZE];
 
 	position_t pos_cache_;
-	strat_out_log log_;
+
+	strat_out_log log_[MAX_LINES_FOR_LOG];
+	int32_t log_cursor_;
+	void WriteLog();
+	void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
 
 	// be used to check whether the stategy is valid
 	bool valid_;
 
-	void WriteStrategyLog1();
-	StrategyLog1 log1_[MAX_LINES_FOR_LOG];
-	int32_t log1_cursor_;
 
 	CLoadLibraryProxy *pproxy_;
 	StrategySetting setting_;
