@@ -6,14 +6,14 @@
 
 #define DOUBLE_CHECH_PRECISION 0.000001
 // 一个trader支持最多信号数 
-#define COUNTER_UPPER_LIMIT 20000
+#define COUNTER_UPPER_LIMIT 5000
 
-#define MAX_CONTRACT_NUMBER 50
+#define MAX_CONTRACT_NUMBER 16
 
 struct OrderInfo
 {
 	bool valid;
-    char contract[10];
+    char contract[7];
     TUstpFtdcDirectionType  side;
     double price;
 };

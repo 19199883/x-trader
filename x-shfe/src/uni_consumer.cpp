@@ -248,8 +248,12 @@ void UniConsumer::Stop()
 	md_producer_->End();
 	tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
-		compliance_.Save();
+	compliance_.Save();
 #endif
+
+	for(int i=0; i<strategy_counter_; i++){
+		stra_table_[i].End();
+	}
 }
 
 void UniConsumer::ProcShfeMarketData(int32_t index)

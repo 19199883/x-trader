@@ -6,7 +6,7 @@
 
 #define CLOG_CHANNEL  "x-trader"
 
-#define LATENCY_MEASURE
+//#define LATENCY_MEASURE
 
 #define COMPLIANCE_CHECK
 

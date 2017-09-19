@@ -11,7 +11,7 @@ using namespace std;
 /*
  * 10 power of 2
  */
-#define RPT_BUFFER_SIZE 4096
+#define RPT_BUFFER_SIZE 200
 #define MY_TNL_EXID_SHFE  "SHFE"
 
 struct Tunnconfig

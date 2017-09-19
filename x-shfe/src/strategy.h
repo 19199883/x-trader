@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <vector>
 #include <string>
 #include <dlfcn.h>
 #include <memory>
@@ -21,12 +22,12 @@ using namespace std;
 #define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
 // 假设一个策略最多产生3000个信号
-#define SIGANDRPT_TABLE_SIZE 6000
+#define SIGANDRPT_TABLE_SIZE 1000
 
 // 一个x-trader最多支持100个策略
-#define MAX_STRATEGY_COUNT 200
+#define MAX_STRATEGY_COUNT 100
 
-#define MAX_LINES_FOR_LOG 80000
+#define MAX_LINES_FOR_LOG 3500
 
 struct strat_out_log
 {
@@ -116,7 +117,13 @@ public:
 	void Push(const signal_t &sig);
 	int GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol);
 	int GetVol(const signal_t &sig);
+	void End(void);
 
+	// log
+	void WriteLog(bool isSync);
+	void WriteLogImp(int32_t count);
+	void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
+	void WriteLogTitle();
 private:
 	string generate_log_name(char * log_path);
 
@@ -147,10 +154,11 @@ private:
 
 	position_t pos_cache_;
 
-	strat_out_log log_[MAX_LINES_FOR_LOG];
+	// log
+	FILE * pfDayLogFile_;
+	vector<strat_out_log> log_;
+	vector<strat_out_log> log_w_;
 	int32_t log_cursor_;
-	void WriteLog();
-	void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
 
 	// be used to check whether the stategy is valid
 	bool valid_;
