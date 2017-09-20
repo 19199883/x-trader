@@ -167,7 +167,8 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	WriteLogTitle();
-	clog_info("[%s] open log file:%s", module_name_,setting_.config.log_name);
+	clog_info("[%s] strategy id:%d;open log file:%s", module_name_,
+				GetId(),setting_.config.log_name);
 
 	LoadPosition();
 	
@@ -215,7 +216,8 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_debug("[%s] rev MDBestAndDeep_MY contract:%s; time:%s", module_name_, md->Contract, md->GenTime);
+	clog_debug("[%s] strategy id:%d;rev MDBestAndDeep_MY contract:%s; time:%s", 
+				module_name_,GetId(), md->Contract, md->GenTime);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -236,10 +238,10 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 
 		sigs[i].st_id = this->GetId();
 
-		 clog_debug("[%s] FeedMd(MDBestAndDeep signal: strategy id:%d; sig_id:%d; "
+		 clog_debug("[%s] strategy id:%d;FeedMd MDBestAndDeep signal: strategy id:%d; sig_id:%d; "
 					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
 					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-					module_name_, sigs[i].st_id, sigs[i].sig_id,
+					module_name_,GetId(), sigs[i].st_id, sigs[i].sig_id,
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
 					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
 					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
@@ -248,7 +250,8 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 
 void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_debug("[%s] rev MDOrderStatistic_MY contract:%s", module_name_, md->ContractID);
+	clog_debug("[%s] strategy id:%d;rev MDOrderStatistic_MY contract:%s", 
+				module_name_,GetId(), md->ContractID);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -264,15 +267,16 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+		clog_warning("[%s] strategy id:%d;strategy latency:%d us", 
+					module_name_,GetId(),latency); 
 #endif
 
 		sigs[i].st_id = this->GetId();
 
-		clog_debug("[%s] FeedMd(MDOrderStatistic signal: strategy id:%d; sig_id:%d; "
+		clog_debug("[%s] strategy id:%d;FeedMd MDOrderStatistic signal: strategy id:%d; sig_id:%d; "
 					"exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
 					"sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-					module_name_, sigs[i].st_id, sigs[i].sig_id,
+					module_name_,GetId(),sigs[i].st_id, sigs[i].sig_id,
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
 					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
 					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
@@ -346,9 +350,9 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 		position_.frozen_close_long += updated_vol;
 	}
 
-	clog_debug("[%s] Freeze: strategy id:%d; current long:%d; current short:%d; \
-				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
-				frozen_open_short:%d; ",
+	clog_debug("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
+				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
+				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
 				position_.frozen_close_long, position_.frozen_close_short,
 				position_.frozen_open_long, position_.frozen_open_short);
@@ -362,8 +366,8 @@ int Strategy::GetVol(const signal_t &sig)
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
 	} else{
-		clog_info("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
-			sig.sig_openclose); 
+		clog_info("[%s] strategy id:%d;PlaceOrder: do support sig_openclose value:%d;", 
+					module_name_,GetId(), sig.sig_openclose); 
 	}
 
 	return vol;
@@ -526,9 +530,9 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 
 	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
 
-	clog_debug("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d; \
-				symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f; \
-				exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
+	clog_debug("[%s] FeedTunnRpt:strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d;"
+				"symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f;"
+				"exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
 				module_name_, setting_.config.st_id, pos_cache_.s_pos[0].symbol, pos_cache_.s_pos[0].long_volume, 
 				pos_cache_.s_pos[0].short_volume, sigrpt.sig_id, sigrpt.symbol,
 				sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
@@ -588,9 +592,9 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 	}
 
-	clog_debug("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d; \
-				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
-				frozen_open_short:%d; ",
+	clog_debug("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
+				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
+				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
 				position_.frozen_close_long, position_.frozen_close_short,
 				position_.frozen_open_long, position_.frozen_open_short);
@@ -725,6 +729,8 @@ void Strategy::WriteLogImp(int32_t count)
 
 void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 {
+	if(0==pstratlog->exch_time) return;
+
     fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
             pstratlog->exch_time,
             pstratlog->contract,

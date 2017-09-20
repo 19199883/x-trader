@@ -451,10 +451,9 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	
     CX1FtdcCancelOrderField cancel_order;
     memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
-	// get LocalOrderID by signal ID
 	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
-	// only use LocalOrderID to cancel order
-    cancel_order.X1OrderID = 0; 
+	cancel_order.RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
+    cancel_order.X1OrderID = 0; // only use LocalOrderID to cancel order
     //strncpy(cancle_order.AccountID, cfg.Logon_config().clientid.c_str(), sizeof(TX1FtdcAccountIDType));
     strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
 

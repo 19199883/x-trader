@@ -65,6 +65,7 @@ class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
 		const char* GetAccount();
 		TunnRpt* GetRpt(int32_t index);
 		int32_t GetStrategyID(TunnRpt& rpt);
+		int32_t GetCounterByLocalOrderID(long local_ord_id);
 
 		void End();
 
@@ -165,6 +166,13 @@ private:
 	Tunnconfig config_;
 	const char * module_name_;  
 	bool ended_;
+
+	/*
+	 * true: cancel request; false; place request
+	 * 请求与在数组存储位置的关系：RequestID与LocalOrderID相同，
+	 * RequestID的counter部分作为数组下标
+	 */
+	bool cancel_requests_[COUNTER_UPPER_LIMIT];
 
 	/*
 	 * things relating to counter API

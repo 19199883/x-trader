@@ -40,6 +40,7 @@ class X1FieldConverter
 			memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
 			strncpy(insert_order.AccountID, account, sizeof(TX1FtdcAccountIDType));
 			insert_order.LocalOrderID = localorderid;
+			insert_order.RequestID = localorderid;
 			strncpy(insert_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
 
 			if (sig.sig_act == signal_act_t::buy){
