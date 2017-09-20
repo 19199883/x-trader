@@ -1,13 +1,21 @@
 #include <thread>
+#include <chrono>
+#include <ctime>
+#include <ratio>
+#include <stdio.h>
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "x1_data_formater.h"
 
+using namespace std::chrono;
+
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
 	ended_ = false;
+
+	for(auto &item : cancel_requests_) item = false;
 
 	this->ParseConfig();
 
@@ -87,7 +95,16 @@ void TunnRptProducer::ParseConfig()
 
 int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
 {
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	int ret = api_->ReqInsertOrder(p);
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
+		clog_warning("[%s] ReqOrderInsert latency:%d us", 
+					module_name_,latency); 
+#endif
 	
 	// report rejected if ret!=0
 	if (ret != 0){
@@ -118,7 +135,18 @@ int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
 // 撤单操作请求
 int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
 {
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+	int counter = GetCounterByLocalOrderID(p->RequestID);
+	cancel_requests_[counter] = true;
 	int ret = api_->ReqCancelOrder(p);
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
+		clog_warning("[%s] ReqOrderAction latency:%d us", 
+					module_name_,latency); 
+#endif
 
 	if (ret != 0){
 		clog_warning("[%s] ReqCancelOrder - ret=%d - %s", 
@@ -346,6 +374,9 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 
     clog_warning("[%s] OnRtnErrorMsg:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
 
+	int counter = GetCounterByLocalOrderID(pfield->RequestID);
+	if(cancel_requests_[counter]) return; // 对于撤单请求的错误，不需报给策略
+
 	struct TunnRpt rpt;
     memset(&rpt, 0, sizeof(rpt));
 	rpt.LocalOrderID = pfield->LocalOrderID;
@@ -358,11 +389,10 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = Push(rpt);
 	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
 
 	clog_debug("[%s] OnRtnErrorMsg: index,%d; data,%d; LocalOrderID:%ld",
 				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
-
-	(vrt_producer_publish(producer_));
 }
 
 void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfield)
@@ -496,4 +526,9 @@ TunnRpt* TunnRptProducer::GetRpt(int32_t index)
 int32_t TunnRptProducer::GetStrategyID(TunnRpt& rpt)
 {
 	return rpt.LocalOrderID % 1000;
+}
+
+int32_t TunnRptProducer::GetCounterByLocalOrderID(long local_ord_id)
+{
+	return local_ord_id/1000;
 }

@@ -16,6 +16,9 @@
 // 3: strcmp
 #define FIND_STRATEGIES 3
 
+// 一个trader支持最多信号数 
+#define COUNTER_UPPER_LIMIT 5000
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

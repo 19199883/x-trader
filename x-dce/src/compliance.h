@@ -5,8 +5,6 @@
 #include "vrt_value_obj.h"
 
 #define DOUBLE_CHECH_PRECISION 0.000001
-// 一个trader支持最多信号数 
-#define COUNTER_UPPER_LIMIT 5000
 
 #define MAX_CONTRACT_NUMBER 16
 

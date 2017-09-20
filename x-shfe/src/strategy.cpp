@@ -666,6 +666,8 @@ void Strategy::WriteLogImp(int32_t count)
 
 void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 {
+	if(0==pstratlog->exch_time) return;
+
     fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
             pstratlog->exch_time,
             pstratlog->contract,
