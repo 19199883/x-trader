@@ -347,7 +347,7 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 void TunnRptProducer::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield, 
 			CUstpFtdcRspInfoField *perror)
 {
-	clog_warning("[%] OnErrRtnOrderAction:%s %s",
+	clog_warning("[%s] OnErrRtnOrderAction:%s %s",
 		module_name_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
 		FEMASDatatypeFormater::ToString(perror).c_str());         
