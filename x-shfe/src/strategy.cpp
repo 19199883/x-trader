@@ -53,7 +53,7 @@ void Strategy::End(void)
 
 Strategy::~Strategy(void)
 {
-	if(thread_log_!=NULL && !thead_log_->joinable()){
+	if(thread_log_!=NULL && !thread_log_->joinable()){
 		delete thread_log_;
 		thread_log_ = NULL; 
 	}
@@ -629,7 +629,7 @@ const char * Strategy::GetSymbol()
 void Strategy::WriteLog(bool isSync)
 {
 	log_w_.swap(log_);
-	if(thread_log_!=NULL && !thead_log_->joinable()){
+	if(thread_log_!=NULL && !thread_log_->joinable()){
 		delete thread_log_;
 		thread_log_ = NULL; 
 	}
@@ -639,7 +639,6 @@ void Strategy::WriteLog(bool isSync)
 		thread_log_->join();
 	}else{
 		thread_log_->detach();
-	}
 	}
 }
 void Strategy::WriteLogTitle()
