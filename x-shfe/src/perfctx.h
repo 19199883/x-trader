@@ -40,7 +40,7 @@ private:
 	//static map<int, map<int,int>> stra_sig_data_map_;
 	static int cur_data_cnt_;
 	static int cur_sig_cnt_;
-	static const int MAX_SIG_CNT = 200;
+	static const int MAX_SIG_CNT = 5000;
 	static std::mutex mtx;
 };
 

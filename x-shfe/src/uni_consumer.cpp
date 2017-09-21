@@ -260,7 +260,8 @@ void UniConsumer::ProcShfeMarketData(int32_t index)
 {
 	MYShfeMarketData* md = md_producer_->GetShfeMarketData(index);
 
-	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->InstrumentID);
+	clog_debug("[%s] [ProcBestAndDeep] index:%d; contract:%si; time:%s",
+				module_name_, index, md->InstrumentID,md->GetQuoteTime().c_str());
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->InstrumentID);

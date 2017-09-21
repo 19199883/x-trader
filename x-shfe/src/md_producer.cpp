@@ -102,9 +102,9 @@ void MDProducer::OnShfeMarketData(const MYShfeMarketData * md)
 	ivalue->data = SHFEMARKETDATA;
 	(vrt_producer_publish(producer_));
 
-	clog_debug("[%s] rev ShfeMarketData: index,%d; data,%d; contract:%s; time: %c %c",
+	clog_debug("[%s] rev ShfeMarketData: index,%d; data,%d; contract:%s; time:%s",
 				module_name_, ivalue->index, ivalue->data, md->InstrumentID,
-				md->UpdateTime, md->UpdateMillisec);
+				md->GetQuoteTime().c_str());
 }
 
 int32_t MDProducer::push(const MYShfeMarketData& md){
