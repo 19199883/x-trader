@@ -40,9 +40,6 @@ class FemasFieldConverter
 		static void Convert(Tunnconfig &cfg, const signal_t& sig, long localorderid, 
 					int32_t vol, CUstpFtdcInputOrderField& insert_order)
 		{
-			// TODO:debug
-			vol = 0;
-
 			memset(&insert_order, 0, sizeof(insert_order));
 			strncpy(insert_order.BrokerID, cfg.brokerid.c_str(), 
 						sizeof(TUstpFtdcBrokerIDType));
