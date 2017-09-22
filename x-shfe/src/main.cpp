@@ -45,6 +45,8 @@ int main(/*int argc, const char **argv*/)
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
+	clog_debug("[%s] thread id:%ld", "main",std::this_thread::get_id() );
+
 	struct vrt_queue  *queue;
 	int64_t  result;
 
@@ -54,6 +56,7 @@ int main(/*int argc, const char **argv*/)
 	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
 	uniConsumer->Start();
 	clog_info("[%s] start exit", "main");
+	fflush (fp);
 
   // free vrt_queue
 	vrt_queue_free(queue);

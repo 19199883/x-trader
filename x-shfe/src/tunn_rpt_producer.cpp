@@ -194,9 +194,12 @@ void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdc
 
 void TunnRptProducer::End()
 {
-	ended_ = true;
-	(vrt_producer_eof(producer_));
-	clog_info("[%s] End exit", module_name_);
+	if(!ended_){
+		clog_info("[%s] last counter:%d", module_name_,counter_);
+		ended_ = true;
+		(vrt_producer_eof(producer_));
+		clog_info("[%s] End exit", module_name_);
+	}
 }
 
 void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)

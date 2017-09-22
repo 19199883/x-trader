@@ -207,6 +207,8 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
+
+	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
 	//clog_debug("[%s] rev MYShfeMarketData contract:%s; time:%c %c", 
 	//			module_name_, md->InstrumentID, md->UpdateTime, md->UpdateMillisec);
 

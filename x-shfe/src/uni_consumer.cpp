@@ -215,6 +215,8 @@ void UniConsumer::CreateStrategies()
 
 void UniConsumer::Start()
 {
+	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
+
 	running_  = true;
 
 	int rc = 0;
@@ -245,17 +247,19 @@ void UniConsumer::Start()
 
 void UniConsumer::Stop()
 {
-	running_ = false;
-	md_producer_->End();
-	tunn_rpt_producer_->End();
+	if(running_){
+		running_ = false;
+		md_producer_->End();
+		tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
-	compliance_.Save();
+		compliance_.Save();
 #endif
 
-	for(int i=0; i<strategy_counter_; i++){
-		stra_table_[i].End();
+		for(int i=0; i<strategy_counter_; i++){
+			stra_table_[i].End();
+		}
+		clog_info("[%s] End exit", module_name_);
 	}
-	clog_info("[%s] End exit", module_name_);
 }
 
 void UniConsumer::ProcShfeMarketData(int32_t index)

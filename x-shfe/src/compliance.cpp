@@ -75,6 +75,12 @@ int Compliance::GetCancelTimes(const char* contract)
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			double price, TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset)
 {
+	if(ord_counter>=COUNTER_UPPER_LIMIT){
+		clog_warning("[%s] TryReqOrderInsert counter is greater than max. counter:%d;",
+			module_name_, ord_counter);
+		return false;
+	}
+
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif

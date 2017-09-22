@@ -9,6 +9,7 @@
 #include "quote_interface_shfe_my.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include <mutex> 
 
 /*
  * 10 power of 2
@@ -42,8 +43,10 @@ class MDProducer
 		bool ended_;
 		Mdconfig config_;
 		void ParseConfig();
+		std::mutex mtx;
 
-		struct vrt_producer  *producer_;
+		struct vrt_producer  *producer_flag1_;
+		struct vrt_producer  *producer_flag_other_;
 		std::array<MYShfeMarketData, MD_BUFFER_SIZE> shfemarketdata_buffer_;
 };
 

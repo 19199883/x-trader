@@ -14,15 +14,19 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 
 	clog_info("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
-	(this->producer_ = vrt_producer_new("md_producer", 1, queue));
+	(this->producer_flag1_ = vrt_producer_new("md_producer", 1, queue));
+	(this->producer_flag_other_ = vrt_producer_new("md_producer", 1, queue));
 
 	clog_info("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
-		this->producer_ ->yield = vrt_yield_strategy_threaded();
+		this->producer_flag1_ ->yield		= vrt_yield_strategy_threaded();
+		this->producer_flag_other_ ->yield	= vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
-		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
+		this->producer_flag1_ ->yield		= vrt_yield_strategy_spin_wait();
+		this->producer_flag_other_ ->yield	= vrt_yield_strategy_spin_wait();
 	}else if(strcmp(config_.yield, "hybrid") == 0){
-		this->producer_ ->yield = vrt_yield_strategy_hybrid();
+		this->producer_flag1_ ->yield		 = vrt_yield_strategy_hybrid();
+		this->producer_flag_other_ ->yield	 = vrt_yield_strategy_hybrid();
 	}
 
 	md_provider_ = build_quote_provider(subs_);
@@ -76,13 +80,18 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
 
 void MDProducer::End()
 {
-	ended_ = true;
-	(vrt_producer_eof(producer_));
-	clog_info("[%s] End exit", module_name_);
+	if(!ended_){
+		ended_ = true;
+		(vrt_producer_eof(producer_flag1_));
+		(vrt_producer_eof(producer_flag_other_));
+		clog_info("[%s] End exit", module_name_);
+	}
 }
 
 void MDProducer::OnShfeMarketData(const MYShfeMarketData * md)
 {
+	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
+
 	if (ended_) return;
 
 	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
@@ -94,14 +103,20 @@ void MDProducer::OnShfeMarketData(const MYShfeMarketData * md)
 	perf_ctx::insert_t0(cnt);
 	cnt++;
 #endif
+		struct vrt_producer* producer_ = NULL;
+		if(md->data_flag==1){
+			producer_ =  producer_flag1_;
+		}else{
+			producer_ =  producer_flag_other_;
+		}
 
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = push(*md);
-	ivalue->data = SHFEMARKETDATA;
-	(vrt_producer_publish(producer_));
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		(vrt_producer_claim(producer_, &vvalue));
+		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+		ivalue->index = push(*md);
+		ivalue->data = SHFEMARKETDATA;
+		(vrt_producer_publish(producer_));
 
 	clog_debug("[%s] rev ShfeMarketData: index,%d; data,%d; contract:%s; time:%s",
 				module_name_, ivalue->index, ivalue->data, md->InstrumentID,
