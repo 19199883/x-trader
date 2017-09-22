@@ -53,16 +53,22 @@ int main(/*int argc, const char **argv*/)
 	mdproducer = new MDProducer(queue);
 	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
 	uniConsumer->Start();
+	clog_info("[%s] start exit", "main");
 
   // free vrt_queue
 	vrt_queue_free(queue);
+	clog_info("[%s] queue exit", "main");
+
 
   delete uniConsumer;
   delete tunnRptProducer; 
   delete mdproducer; 
+	clog_info("[%s] my class exit", "main");
 
 // clog: free resources
 	pos_calc::destroy_instance();
+
+	clog_info("[%s] clogger exit", "main");
 	clog_handler_free(clog_handler);
 
 	return 0;

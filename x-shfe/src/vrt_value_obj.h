@@ -3,10 +3,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+#define gettid() syscall(__NR_gettid)
 
 #define CLOG_CHANNEL  "x-trader"
 
-//#define LATENCY_MEASURE
+#define LATENCY_MEASURE
 
 #define COMPLIANCE_CHECK
 

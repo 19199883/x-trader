@@ -149,6 +149,7 @@ void TunnRptProducer::ReqLogin()
 
 void TunnRptProducer::OnFrontConnected()
 {
+
     clog_info("[%s] OnFrontConnected.", module_name_);
 	this->ReqLogin();
 }
@@ -166,6 +167,7 @@ void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
 void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield, 
 			CUstpFtdcRspInfoField *perror, int nRequestID, bool bIsLast)
 {
+
 	if(pfield != NULL){
 		if (strcmp(pfield->MaxOrderLocalID, "") != 0){
 			counter_ = GetCounterByLocalOrderID(atol(pfield->MaxOrderLocalID));
@@ -194,6 +196,7 @@ void TunnRptProducer::End()
 {
 	ended_ = true;
 	(vrt_producer_eof(producer_));
+	clog_info("[%s] End exit", module_name_);
 }
 
 void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -224,7 +227,6 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		struct TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
-		// TODO:
 		// order_respond.entrust_no       = atol(entrust_no);
 		if (perror != NULL && 0 != perror->ErrorID) {
 			rpt.OrderStatus = USTP_FTDC_OS_Canceled;

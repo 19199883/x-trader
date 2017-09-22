@@ -78,6 +78,7 @@ void MDProducer::End()
 {
 	ended_ = true;
 	(vrt_producer_eof(producer_));
+	clog_info("[%s] End exit", module_name_);
 }
 
 void MDProducer::OnShfeMarketData(const MYShfeMarketData * md)
@@ -115,9 +116,9 @@ int32_t MDProducer::push(const MYShfeMarketData& md){
 	}
 	shfemarketdata_buffer_[shfemarketdata_cursor] = md;
 
-	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %c %c",
+	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time:%s",
 				module_name_, shfemarketdata_cursor, md.InstrumentID, 
-				md.UpdateTime, md.UpdateMillisec);
+				md.GetQuoteTime().c_str());
 
 	return shfemarketdata_cursor;
 }

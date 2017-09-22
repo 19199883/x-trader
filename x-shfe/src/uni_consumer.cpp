@@ -240,6 +240,7 @@ void UniConsumer::Start()
 	if (rc == VRT_QUEUE_EOF) {
 		clog_info("[%s] [start] rev EOF.", module_name_);
 	}
+	clog_info("[%s] start exit.", module_name_);
 }
 
 void UniConsumer::Stop()
@@ -254,13 +255,14 @@ void UniConsumer::Stop()
 	for(int i=0; i<strategy_counter_; i++){
 		stra_table_[i].End();
 	}
+	clog_info("[%s] End exit", module_name_);
 }
 
 void UniConsumer::ProcShfeMarketData(int32_t index)
 {
 	MYShfeMarketData* md = md_producer_->GetShfeMarketData(index);
 
-	clog_debug("[%s] [ProcBestAndDeep] index:%d; contract:%si; time:%s",
+	clog_debug("[%s] [ProcBestAndDeep] index:%d; contract:%s; time:%s",
 				module_name_, index, md->InstrumentID,md->GetQuoteTime().c_str());
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
@@ -335,7 +337,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
 	
-	// TODO:1
 	if (!strategy.HasFrozenPosition()){
 		int i = 0;
 		for(; i < 2; i++){
@@ -372,7 +373,6 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
-				// TODO:1
 				int i = 0;
 				for(; i < 2; i++){
 					if(pending_signals_[sig.st_id][i] < 0){
@@ -420,10 +420,8 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
-	// TODO: 1
 	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol);
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
-	// TODO: 1
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
 	CUstpFtdcInputOrderField ord;
