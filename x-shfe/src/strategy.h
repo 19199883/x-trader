@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <dlfcn.h>
+#include <atomic>         // std::atomic_flag
 #include <memory>
 #include "signal.h"
 #include "moduleloadlibrarylinux.h"
@@ -120,8 +121,11 @@ public:
 	void End(void);
 
 	// log
-	void WriteLog(bool isSync);
-	void WriteLogImp(int32_t count);
+	/*
+	 * isEnded:true,表示写完日之后，退出写日志线程
+	 */ 
+	void WriteLog(bool isEnded);
+	void WriteLogImp();
 	void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
 	void WriteLogTitle();
 private:
@@ -155,11 +159,14 @@ private:
 	position_t pos_cache_;
 
 	// log
+	std::atomic_flag lock_log_;
 	FILE * pfDayLogFile_;
 	vector<strat_out_log> log_;
-	vector<strat_out_log> log_w_;
 	int32_t log_cursor_;
+	vector<strat_out_log> log_w_;
+	int32_t log_write_count_;
 	std::thread *thread_log_;
+	bool log_ended_;
 
 	// be used to check whether the stategy is valid
 	bool valid_;

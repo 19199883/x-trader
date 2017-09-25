@@ -14,7 +14,7 @@ using namespace std;
 using namespace std::chrono;
 
 Strategy::Strategy()
-: module_name_("Strategy")
+: module_name_("Strategy"),lock_log_(ATOMIC_FLAG_INIT)
 {
 	valid_ = false;
 	cursor_ = 0;
@@ -34,7 +34,10 @@ Strategy::Strategy()
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 	log_cursor_ = 0;
 	pfDayLogFile_ = NULL;
-	thread_log_ = NULL;
+	lock_log_.test_and_set();
+	thread_log_ = new std::thread(&Strategy::WriteLogImp,this);
+	log_ended_ = false;
+	log_write_count_ = 0;
 }
 
 void Strategy::End(void)
@@ -630,21 +633,21 @@ const char * Strategy::GetSymbol()
 
 void Strategy::WriteLog(bool isEnded)
 {
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+	log_ended_ = isEnded;
 	log_w_.swap(log_);
-	if(thread_log_!=NULL && !thread_log_->joinable()){
-		delete thread_log_;
-		thread_log_ = NULL; 
-	}
-
-	// TODO: need to improved
-	thread_log_ = new std::thread(&Strategy::WriteLogImp,this,log_cursor_);
+	log_write_count_ = log_cursor_ ;
+	lock_log_.clear();
 	log_cursor_ = 0;
-	if(isSync){
-		thread_log_->join();
-	}else{
-		thread_log_->detach();
-	}
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] WriteLog latency:%d us", module_name_, latency); 
+#endif
 }
+
 void Strategy::WriteLogTitle()
 {
 	// title
@@ -659,11 +662,17 @@ void Strategy::WriteLogTitle()
 	fprintf(pfDayLogFile_,"sig11\n");
 }
 
-void Strategy::WriteLogImp(int32_t count)
+void Strategy::WriteLogImp()
 {
-	// content
-	for(int i = 0; i < count; i++){
-		WriteOne(pfDayLogFile_, log_w_.data()+i);
+	while(!log_ended_){
+		while (lock_log_.test_and_set()) {
+			std::this_thread::sleep_for (std::chrono::seconds(10));
+		}
+		
+		// content
+		for(int i = 0; i < log_write_count_; i++){
+			WriteOne(pfDayLogFile_, log_w_.data()+i);
+		}
 	}
 }
 

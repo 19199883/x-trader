@@ -14,7 +14,7 @@ using namespace std;
 using namespace std::chrono;
 
 Strategy::Strategy()
-: module_name_("Strategy")
+: module_name_("Strategy"),lock_log_(ATOMIC_FLAG_INIT)
 {
 	valid_ = false;
 	cursor_ = 0;
@@ -35,7 +35,10 @@ Strategy::Strategy()
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 	log_cursor_ = 0;
 	pfDayLogFile_ = NULL;
-	thread_log_ = NULL;
+	lock_log_.test_and_set();
+	thread_log_ = new std::thread(&Strategy::WriteLogImp,this);
+	log_ended_ = false;
+	log_write_count_ = 0;
 }
 
 void Strategy::End(void)
@@ -687,22 +690,13 @@ const char * Strategy::GetSymbol()
 }
 
 
-void Strategy::WriteLog(bool isSync)
+void Strategy::WriteLog(bool isEnded)
 {
+	log_ended_ = isEnded;
 	log_w_.swap(log_);
-	if(thread_log_!=NULL && !thread_log_->joinable()){
-		delete thread_log_;
-		thread_log_ = NULL; 
-	}
-	thread_log_ = new std::thread(&Strategy::WriteLogImp,this,log_cursor_);
+	log_write_count_ = log_cursor_ ;
+	lock_log_.clear();
 	log_cursor_ = 0;
-
-	if(isSync){
-		thread_log_->join();
-	}else{
-		thread_log_->detach();
-	}
-
 }
 void Strategy::WriteLogTitle()
 {
@@ -718,13 +712,18 @@ void Strategy::WriteLogTitle()
 	fprintf(pfDayLogFile_,"sig11\n");
 }
 
-void Strategy::WriteLogImp(int32_t count)
+void Strategy::WriteLogImp()
 {
-	// content
-	for(int i = 0; i < count; i++){
-		WriteOne(pfDayLogFile_, log_w_.data()+i);
-	}
+	while(!log_ended_){
+		while (lock_log_.test_and_set()) {
+			std::this_thread::sleep_for (std::chrono::seconds(10));
+		}
 
+		// content
+		for(int i = 0; i < log_write_count_; i++){
+			WriteOne(pfDayLogFile_, log_w_.data()+i);
+		}
+	}
 }
 
 void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
