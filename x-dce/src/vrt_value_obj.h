@@ -17,7 +17,7 @@
 #define FIND_STRATEGIES 3
 
 // 一个trader支持最多信号数 
-#define COUNTER_UPPER_LIMIT 5000
+#define COUNTER_UPPER_LIMIT 15000
 
 #ifdef __cplusplus
 extern "C" {

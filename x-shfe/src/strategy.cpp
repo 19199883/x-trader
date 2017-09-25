@@ -635,6 +635,8 @@ void Strategy::WriteLog(bool isSync)
 		delete thread_log_;
 		thread_log_ = NULL; 
 	}
+
+	// TODO: need to improved
 	thread_log_ = new std::thread(&Strategy::WriteLogImp,this,log_cursor_);
 	log_cursor_ = 0;
 	if(isSync){
