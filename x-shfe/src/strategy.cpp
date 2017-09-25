@@ -628,7 +628,7 @@ const char * Strategy::GetSymbol()
 }
 
 
-void Strategy::WriteLog(bool isSync)
+void Strategy::WriteLog(bool isEnded)
 {
 	log_w_.swap(log_);
 	if(thread_log_!=NULL && !thread_log_->joinable()){
