@@ -1,0 +1,14 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+sharedir=${prefix}/share
+sphinxdir=${sharedir}/doc/clogger/html
+
+Name: clogger
+Description: Logging library
+Version: @VERSION@
+URL: https://github.com/redjack/clogger/
+Libs: -L${libdir} -lclogger
+Cflags: -I${includedir}
+Requires: libcork >= 0.14.0
