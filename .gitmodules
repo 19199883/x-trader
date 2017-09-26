@@ -1,3 +1,6 @@
 [submodule "3rd/bowsprit"]
 	path = 3rd/bowsprit
 	url = ../../redjack/bowsprit.git
+[submodule "3rd/check"]
+	path = 3rd/check
+	url = ../../redjack/check.git
