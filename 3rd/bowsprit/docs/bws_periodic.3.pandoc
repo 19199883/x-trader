@@ -1,0 +1,110 @@
+% bws_periodic(3)
+
+# NAME
+
+bws_periodic -- Snapshotting values periodically
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| **struct bws_periodic**;
+|
+| typedef int
+| (\***bws_periodic_run_f**)(void \**user_data*, struct bws_snapshot \**curr*,
+|                       struct bws_snapshot \**prev*, cork_timestamp *now*);
+|
+| struct bws_periodic \*
+| **bws_periodic_new**(struct bws_ctx \**ctx*,
+|                  void \**user_data*, cork_free_f *free_user_data*,
+|                  bws_periodic_run_f *run*);
+|
+| void
+| **bws_periodic_free**(struct bws_periodic \**periodic*);
+|
+| unsigned int
+| **bws_periodic_interval**(struct bws_periodic \**periodic*);
+|
+| void
+| **bws_periodic_set_interval**(struct bws_periodic \**periodic*,
+|                           unsigned int *seconds*);
+|
+| int
+| **bws_periodic_run_in_background**(struct bws_periodic \**periodic*);
+|
+| int
+| **bws_periodic_join**(struct bws_periodic \**periodic*);
+|
+| int
+| **bws_periodic_poll**(struct bws_periodic \**periodic*);
+|
+| int
+| **bws_periodic_mocked_poll**(struct bws_periodic \**periodic*,
+|                          cork_timestamp *now*);
+
+
+# DESCRIPTION
+
+A **bws_periodic** instance automates the process of continually snapshotting a
+context's measurements at a certain interval.  You provide a callback function
+that will be executed every time the interval expires.  We take care of keeping
+track of when the next interval expires, and checking the current time against
+that expiration time.  Normally, you'll run this periodic process from a
+background thread, but we also provide functions for controlling the interval
+checks yourself, in case you need to write reproducible test cases or integrate
+with an existing event loop.
+
+**bws_periodic_new**() creates a new periodic manager that will snapshot the
+measurements in a particular context.  Your *run* callback will be executed
+every time the interval expires.  We'll pass the current timestamp, and the
+current and previous snapshots, to your callback function.  For the first
+invocation, the previous snapshot will be ``NULL``.  We also pass along an
+opaque *user_data* pointer, which you can use to provide additional state.  If
+you provide a non-``NULL`` *free_user_data* pointer, then we'll take control of
+your *user_data* instance, and will use the *free_user_data* function to free it
+when the periodic manager is freed.
+
+**bws_periodic_free**() frees a periodic manager.  You must not call this if the
+manager's background thread is still running.  If you called
+**bws_periodic_run_in_background**() to start a background thread, you must call
+**bws_periodic_join**() to stop the thread before freeing the manager.
+
+**bws_periodic_set_interval**() changes the interval at which the manager will
+call your *run* callback.  The interval is given in seconds.  The default
+interval (if you don't call this function, or if you provide an *interval* of
+``0``) is 30 seconds.  You must not call this function if you've already called
+**bws_periodic_run_in_background**(), **bws_periodic_poll**(), or
+**bws_periodoc_mocked_poll**().
+
+**bws_periodic_interval**() returns the polling interval for a manager.
+
+**bws_periodic_run_in_background**() start a new background thread that will
+repeatedly check the current time, calling your *run* method each time the
+interval expires.  You must not call this function multiple times for the same
+manager.
+
+**bws_periodic_join**() cancels the manager's running background thread.  You
+must not call this function if you didn't call
+**bws_periodic_run_in_background**() previously.
+
+**bws_periodic_poll**() and **bws_periodic_mocked_poll**() let you check the
+interval manually.  You must not use these functions and
+**bws_periodic_run_in_background**() together for any given manager; you should
+either check the intervals manually, or let the background thread do it for you,
+but not both.  **bws_periodic_poll**() is useful for integrating with an
+existing event loop; it grabs the actual current system time and uses that to
+check the interval.  **bws_periodic_mocked_poll**() lets you provide a timestamp
+that we will assume is the current system time.  This is useful if your event
+loop has already calculated the current time for you, or if you want to write
+reproducible test cases that don't depend on the current date and time.
+
+
+# RETURN VALUES
+
+**bws_periodic_new**() always returns a valid new periodic manager.  If there
+are any memory allocation errors, we will abort the process.
+
+Your **bws_periodic_run_f** callback function should return ``0`` if it
+successfully processed the current snapshot, and any other value if not.
+**bws_periodic_poll**() and **bws_periodic_mocked_poll**() will return the same
+result as your callback function, or ``0`` if it did not execute your callback.

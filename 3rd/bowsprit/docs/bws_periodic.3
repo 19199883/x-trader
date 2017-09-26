@@ -1,0 +1,172 @@
+.TH "bws_periodic" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_periodic \[en] Snapshotting values periodically
+.SH SYNOPSIS
+.PP
+\f[B]#include <bowsprit.h>\f[]
+.PP
+\f[B]struct bws_periodic\f[];
+.PP
+typedef int
+.PD 0
+.P
+.PD
+(*\f[B]bws_periodic_run_f\f[])(void *\f[I]user_data\f[], struct
+bws_snapshot *\f[I]curr\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ struct bws_snapshot
+*\f[I]prev\f[], cork_timestamp \f[I]now\f[]);
+.PP
+struct bws_periodic *
+.PD 0
+.P
+.PD
+\f[B]bws_periodic_new\f[](struct bws_ctx *\f[I]ctx\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ void *\f[I]user_data\f[], cork_free_f
+\f[I]free_user_data\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bws_periodic_run_f \f[I]run\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_periodic_free\f[](struct bws_periodic *\f[I]periodic\f[]);
+.PP
+unsigned int
+.PD 0
+.P
+.PD
+\f[B]bws_periodic_interval\f[](struct bws_periodic *\f[I]periodic\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_periodic_set_interval\f[](struct bws_periodic
+*\f[I]periodic\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ unsigned int
+\f[I]seconds\f[]);
+.PP
+int
+.PD 0
+.P
+.PD
+\f[B]bws_periodic_run_in_background\f[](struct bws_periodic
+*\f[I]periodic\f[]);
+.PP
+int
+.PD 0
+.P
+.PD
+\f[B]bws_periodic_join\f[](struct bws_periodic *\f[I]periodic\f[]);
+.PP
+int
+.PD 0
+.P
+.PD
+\f[B]bws_periodic_poll\f[](struct bws_periodic *\f[I]periodic\f[]);
+.PP
+int
+.PD 0
+.P
+.PD
+\f[B]bws_periodic_mocked_poll\f[](struct bws_periodic
+*\f[I]periodic\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cork_timestamp
+\f[I]now\f[]);
+.SH DESCRIPTION
+.PP
+A \f[B]bws_periodic\f[] instance automates the process of continually
+snapshotting a context's measurements at a certain interval.
+You provide a callback function that will be executed every time the
+interval expires.
+We take care of keeping track of when the next interval expires, and
+checking the current time against that expiration time.
+Normally, you'll run this periodic process from a background thread, but
+we also provide functions for controlling the interval checks yourself,
+in case you need to write reproducible test cases or integrate with an
+existing event loop.
+.PP
+\f[B]bws_periodic_new\f[]() creates a new periodic manager that will
+snapshot the measurements in a particular context.
+Your \f[I]run\f[] callback will be executed every time the interval
+expires.
+We'll pass the current timestamp, and the current and previous
+snapshots, to your callback function.
+For the first invocation, the previous snapshot will be \f[C]NULL\f[].
+We also pass along an opaque \f[I]user_data\f[] pointer, which you can
+use to provide additional state.
+If you provide a non\-\f[C]NULL\f[] \f[I]free_user_data\f[] pointer,
+then we'll take control of your \f[I]user_data\f[] instance, and will
+use the \f[I]free_user_data\f[] function to free it when the periodic
+manager is freed.
+.PP
+\f[B]bws_periodic_free\f[]() frees a periodic manager.
+You must not call this if the manager's background thread is still
+running.
+If you called \f[B]bws_periodic_run_in_background\f[]() to start a
+background thread, you must call \f[B]bws_periodic_join\f[]() to stop
+the thread before freeing the manager.
+.PP
+\f[B]bws_periodic_set_interval\f[]() changes the interval at which the
+manager will call your \f[I]run\f[] callback.
+The interval is given in seconds.
+The default interval (if you don't call this function, or if you provide
+an \f[I]interval\f[] of \f[C]0\f[]) is 30 seconds.
+You must not call this function if you've already called
+\f[B]bws_periodic_run_in_background\f[](), \f[B]bws_periodic_poll\f[](),
+or \f[B]bws_periodoc_mocked_poll\f[]().
+.PP
+\f[B]bws_periodic_interval\f[]() returns the polling interval for a
+manager.
+.PP
+\f[B]bws_periodic_run_in_background\f[]() start a new background thread
+that will repeatedly check the current time, calling your \f[I]run\f[]
+method each time the interval expires.
+You must not call this function multiple times for the same manager.
+.PP
+\f[B]bws_periodic_join\f[]() cancels the manager's running background
+thread.
+You must not call this function if you didn't call
+\f[B]bws_periodic_run_in_background\f[]() previously.
+.PP
+\f[B]bws_periodic_poll\f[]() and \f[B]bws_periodic_mocked_poll\f[]() let
+you check the interval manually.
+You must not use these functions and
+\f[B]bws_periodic_run_in_background\f[]() together for any given
+manager; you should either check the intervals manually, or let the
+background thread do it for you, but not both.
+\f[B]bws_periodic_poll\f[]() is useful for integrating with an existing
+event loop; it grabs the actual current system time and uses that to
+check the interval.
+\f[B]bws_periodic_mocked_poll\f[]() lets you provide a timestamp that we
+will assume is the current system time.
+This is useful if your event loop has already calculated the current
+time for you, or if you want to write reproducible test cases that don't
+depend on the current date and time.
+.SH RETURN VALUES
+.PP
+\f[B]bws_periodic_new\f[]() always returns a valid new periodic manager.
+If there are any memory allocation errors, we will abort the process.
+.PP
+Your \f[B]bws_periodic_run_f\f[] callback function should return
+\f[C]0\f[] if it successfully processed the current snapshot, and any
+other value if not.
+\f[B]bws_periodic_poll\f[]() and \f[B]bws_periodic_mocked_poll\f[]()
+will return the same result as your callback function, or \f[C]0\f[] if
+it did not execute your callback.

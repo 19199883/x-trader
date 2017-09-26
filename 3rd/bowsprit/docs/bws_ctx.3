@@ -1,0 +1,58 @@
+.TH "bws_ctx" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_ctx \[en] Context objects
+.SH SYNOPSIS
+.PP
+\f[B]#include <bowsprit.h>\f[]
+.PP
+\f[B]struct bws_ctx\f[] {
+.PD 0
+.P
+.PD
+\ \ \ \ const char *\f[I]hostname\f[];
+.PD 0
+.P
+.PD
+};
+.PP
+struct bws_ctx *
+.PD 0
+.P
+.PD
+\f[B]bws_ctx_new\f[](const char *\f[I]hostname\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_ctx_free\f[](struct bws_ctx *\f[I]ctx\f[]);
+.SH DESCRIPTION
+.PP
+A \f[B]bws_ctx\f[] instance is a context object, which contains and owns
+all of the plugins and measurements for a particular application.
+If you have several logical applications running in the same process
+space, you can create a separate context object for each one; they will
+be completely independent, and operations affecting separate context
+objects will not interfere with each other in any way.
+.PP
+\f[B]bws_ctx_new\f[]() creates a new context object.
+\f[I]hostname\f[] (which must not be \f[C]NULL\f[]) should be some
+string that identifies the current machine.
+It does not have to be an actual DNS domain name (though that's
+definitely one option).
+If you know that you're not going to gather statistics from multiple
+hosts \[em] for instance, in purely local test cases that you run during
+development \[em] then it's not as important to choose a unique
+hostname.
+We will make our own copy of \f[I]hostname\f[], so it's safe for you to
+pass in a string that you'll later overwrite or free.
+.PP
+\f[B]bws_ctx_free\f[]() frees a context object, along with all of the
+plugins and measurements that it contains.
+It is your responsibility to not try to access any of the context's
+plugins and measurements after the context has been freed.
+.SH RETURN VALUES
+.PP
+\f[B]bws_ctx_new\f[]() always returns a valid new context object.
+If there are any memory allocation errors, we will abort the process.

@@ -1,0 +1,63 @@
+.TH "bws_plugin" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_plugin \[en] Plugins
+.SH SYNOPSIS
+.PP
+\f[B]#include <bowsprit.h>\f[]
+.PP
+\f[B]struct bws_plugin\f[] {
+.PD 0
+.P
+.PD
+\ \ \ \ struct bws_ctx *\f[I]ctx\f[];
+.PD 0
+.P
+.PD
+\ \ \ \ const char *\f[I]name\f[];
+.PD 0
+.P
+.PD
+\ \ \ \ const char *\f[I]instance\f[];
+.PD 0
+.P
+.PD
+};
+.PP
+struct bws_plugin *
+.PD 0
+.P
+.PD
+\f[B]bws_plugin_new\f[](struct bws_ctx *\f[I]ctx\f[], const char
+*\f[I]name\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const char *\f[I]instance\f[]);
+.SH DESCRIPTION
+.PP
+A \f[B]bws_plugin\f[] instance represents a \f[I]plugin\f[], which is a
+collection of measurements that all describe the same portion of code.
+(The name doesn't really have anything to do with loadable code modules;
+it's just the collectd synonym for \[lq]component\[rq] or
+\[lq]subsystem\[rq].)
+.PP
+\f[B]bws_plugin_new\f[]() creates a new plugin object in the given
+context.
+Each plugin has a \f[I]name\f[] (which must not be \f[C]NULL\f[]), which
+identifies the component or subsystem that the plugin measures.
+You can also provide an optional \f[I]instance\f[], in case you need to
+distinguish between multiple plugins with the same \f[I]name\f[].
+(A common example is collecting CPU metrics; you would have a separate
+plugin for each core.
+All of the plugins would have \f[C]cpu\f[] as the name, and the core
+number as the instance.) We will make our own copy of \f[I]name\f[] and
+\f[I]instance\f[], so it's safe for you to pass in a string that you'll
+later overwrite or free.
+.PP
+Note that you cannot explicitly free a plugin object yourself; the
+plugin will be automatically freed when its context is freed.
+.SH RETURN VALUES
+.PP
+\f[B]bws_plugin_new\f[]() always returns a valid new plugin object.
+If there are any memory allocation errors, we will abort the process.

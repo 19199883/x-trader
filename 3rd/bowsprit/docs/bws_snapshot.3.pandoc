@@ -1,0 +1,79 @@
+% bws_snapshot(3)
+
+# NAME
+
+bws_snapshot -- Snapshots
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| **enum bws_value_kind** {
+|     BWS_GAUGE
+| };
+|
+| **struct bws_value_snapshot** {
+|     struct bws_measurement  \**measurement*;
+|     uint64_t  *value*;
+|     const char  \**name*;
+|     enum bws_value_kind  *kind*;
+| };
+|
+| **struct bws_snapshot** {
+|     size_t  *count*;
+|     struct bws_value_snapshot  \**values*;
+| };
+|
+| struct bws_snapshot \*
+| **bws_snapshot_new**(void);
+|
+| void
+| **bws_snapshot_free**(struct bws_snapshot \**snapshot*);
+|
+| void
+| **bws_snapshot_resize**(struct bws_snapshot \**snapshot*, size_t *count*);
+|
+| void
+| **bws_ctx_snapshot**(struct bws_ctx \**ctx*, struct bws_snapshot \**dest*);
+|
+| void
+| **bws_plugin_snapshot**(struct bws_plugin \**plugin*,
+|                     struct bws_snapshot \**dest*);
+
+
+# DESCRIPTION
+
+A **bws_snapshot** instance lets you record a snapshot of the current values of
+a collection of measurements at a single point in time, and perform some simple
+operations on those values.  Each snapshot instance contains an array of
+**bws_value_snapshot** instances, each of which is a copy of some measurement
+value.  By copying the values into a snapshot, this ensures that the values that
+you're looking at or operating on are from a consistent point in time, and won't
+be modified by any concurrent threads that are updating the underlying
+measurements.
+
+**bws_snapshot_new**() creates a new, empty snapshot instance.
+**bws_snapshot_free**() frees a snapshot.  Note that a snapshot is not tied to a
+particular context.  However, once the snapshot has been filled in, you must
+make sure not to free the context that the snapshot was copied from until after
+you're done with the snapshot itself.
+
+**bws_snapshot_resize**() sets the *count* field of the snapshot, and ensures
+that the *values* array is large enough to hold the requested number of values,
+resizing the array if needed.
+
+**bws_ctx_snapshot**() and **bws_plugin_snapshot**() take a snapshot of all of
+the measurement values in a context or plugin, respectively.  Once these
+functions return, you can safely inspect the contents of the snapshot while
+other concurrent threads continue updating the underlying measurements.
+
+Once you have a snapshot, you probably want to do something with.  You can
+filter the snapshot using **bws_snapshot_filter_by_type**(3), and sort it using
+**bws_snapshot_sort**(3).  You can render the contents of the snapshot using
+**bws_snapshot_render_to_buffer**(3) or **bws_snapshot_render_to_stream**(3).
+
+
+# RETURN VALUES
+
+**bws_snapshot_new**() always returns a valid new snapshot object.  If there are
+any memory allocation errors, we will abort the process.

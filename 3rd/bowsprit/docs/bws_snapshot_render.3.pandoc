@@ -1,0 +1,45 @@
+% bws_snapshot_render(3)
+
+# NAME
+
+bws_snapshot_render -- Rendering snapshots
+
+# SYNOPSIS
+
+| **#include &lt;stdio.h&gt;**
+| **#include &lt;bowsprit.h&gt;**
+|
+| void
+| **bws_snapshot_render_to_buffer**(struct bws_snapshot \**snapshot*,
+|                               struct cork_buffer \**dest*);
+|
+| void
+| **bws_snapshot_render_delta_to_buffer**(struct bws_snapshot \**curr*,
+|                                     struct cork_snapshot \**prev*,
+|                                     struct cork_buffer \**dest*,
+|                                     unsigned int *interval_sec*);
+|
+| void
+| **bws_snapshot_render_to_stream**(struct bws_snapshot \**snapshot*,
+|                               FILE \**dest*);
+|
+| void
+| **bws_snapshot_render_delta_to_stream**(struct bws_snapshot \**curr*,
+|                                     struct cork_snapshot \**prev*,
+|                                     FILE \**dest*,
+|                                     unsigned int *interval_sec*);
+
+# DESCRIPTION
+
+The **bws_snapshot_render** family of functions pretty-prints each of the values
+in a snapshot.  Each value is printed on a separate line.  You don't have any
+control over the format that's used for each value; if you want to do that, you
+can iterate through the contents of the snapshot yourself.
+
+The **delta** variants will include the rate of change for any derive statistics
+in the snapshot.  You must provide the current and previous snapshots, along
+with the interval (in seconds) that occurred between the two.  You can pass in
+``NULL`` for *prev* to render the "first" snapshot.
+
+The **buffer** variants print the values into a **cork_buffer**(3) instance.
+**stream** variants print the values to the given C stream.

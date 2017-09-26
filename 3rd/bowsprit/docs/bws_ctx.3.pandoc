@@ -1,0 +1,48 @@
+% bws_ctx(3)
+
+# NAME
+
+bws_ctx -- Context objects
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| **struct bws_ctx** {
+|     const char  \**hostname*;
+| };
+|
+| struct bws_ctx \*
+| **bws_ctx_new**(const char \**hostname*);
+|
+| void
+| **bws_ctx_free**(struct bws_ctx \**ctx*);
+
+
+# DESCRIPTION
+
+A **bws_ctx** instance is a context object, which contains and owns all of the
+plugins and measurements for a particular application.  If you have several
+logical applications running in the same process space, you can create a
+separate context object for each one; they will be completely independent, and
+operations affecting separate context objects will not interfere with each other
+in any way.
+
+**bws_ctx_new**() creates a new context object.  *hostname* (which must not be
+``NULL``) should be some string that identifies the current machine.  It does
+not have to be an actual DNS domain name (though that's definitely one option).
+If you know that you're not going to gather statistics from multiple hosts — for
+instance, in purely local test cases that you run during development — then it's
+not as important to choose a unique hostname.  We will make our own copy of
+*hostname*, so it's safe for you to pass in a string that you'll later overwrite
+or free.
+
+**bws_ctx_free**() frees a context object, along with all of the plugins and
+measurements that it contains.  It is your responsibility to not try to access
+any of the context's plugins and measurements after the context has been freed.
+
+
+# RETURN VALUES
+
+**bws_ctx_new**() always returns a valid new context object.  If there are any
+memory allocation errors, we will abort the process.

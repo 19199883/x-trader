@@ -1,0 +1,131 @@
+.TH "bws_snapshot" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_snapshot \[en] Snapshots
+.SH SYNOPSIS
+.PP
+\f[B]#include <bowsprit.h>\f[]
+.PP
+\f[B]enum bws_value_kind\f[] {
+.PD 0
+.P
+.PD
+\ \ \ \ BWS_GAUGE
+.PD 0
+.P
+.PD
+};
+.PP
+\f[B]struct bws_value_snapshot\f[] {
+.PD 0
+.P
+.PD
+\ \ \ \ struct bws_measurement *\f[I]measurement\f[];
+.PD 0
+.P
+.PD
+\ \ \ \ uint64_t \f[I]value\f[];
+.PD 0
+.P
+.PD
+\ \ \ \ const char *\f[I]name\f[];
+.PD 0
+.P
+.PD
+\ \ \ \ enum bws_value_kind \f[I]kind\f[];
+.PD 0
+.P
+.PD
+};
+.PP
+\f[B]struct bws_snapshot\f[] {
+.PD 0
+.P
+.PD
+\ \ \ \ size_t \f[I]count\f[];
+.PD 0
+.P
+.PD
+\ \ \ \ struct bws_value_snapshot *\f[I]values\f[];
+.PD 0
+.P
+.PD
+};
+.PP
+struct bws_snapshot *
+.PD 0
+.P
+.PD
+\f[B]bws_snapshot_new\f[](void);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_snapshot_free\f[](struct bws_snapshot *\f[I]snapshot\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_snapshot_resize\f[](struct bws_snapshot *\f[I]snapshot\f[],
+size_t \f[I]count\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_ctx_snapshot\f[](struct bws_ctx *\f[I]ctx\f[], struct
+bws_snapshot *\f[I]dest\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_plugin_snapshot\f[](struct bws_plugin *\f[I]plugin\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ struct bws_snapshot
+*\f[I]dest\f[]);
+.SH DESCRIPTION
+.PP
+A \f[B]bws_snapshot\f[] instance lets you record a snapshot of the
+current values of a collection of measurements at a single point in
+time, and perform some simple operations on those values.
+Each snapshot instance contains an array of \f[B]bws_value_snapshot\f[]
+instances, each of which is a copy of some measurement value.
+By copying the values into a snapshot, this ensures that the values that
+you're looking at or operating on are from a consistent point in time,
+and won't be modified by any concurrent threads that are updating the
+underlying measurements.
+.PP
+\f[B]bws_snapshot_new\f[]() creates a new, empty snapshot instance.
+\f[B]bws_snapshot_free\f[]() frees a snapshot.
+Note that a snapshot is not tied to a particular context.
+However, once the snapshot has been filled in, you must make sure not to
+free the context that the snapshot was copied from until after you're
+done with the snapshot itself.
+.PP
+\f[B]bws_snapshot_resize\f[]() sets the \f[I]count\f[] field of the
+snapshot, and ensures that the \f[I]values\f[] array is large enough to
+hold the requested number of values, resizing the array if needed.
+.PP
+\f[B]bws_ctx_snapshot\f[]() and \f[B]bws_plugin_snapshot\f[]() take a
+snapshot of all of the measurement values in a context or plugin,
+respectively.
+Once these functions return, you can safely inspect the contents of the
+snapshot while other concurrent threads continue updating the underlying
+measurements.
+.PP
+Once you have a snapshot, you probably want to do something with.
+You can filter the snapshot using
+\f[B]bws_snapshot_filter_by_type\f[](3), and sort it using
+\f[B]bws_snapshot_sort\f[](3).
+You can render the contents of the snapshot using
+\f[B]bws_snapshot_render_to_buffer\f[](3) or
+\f[B]bws_snapshot_render_to_stream\f[](3).
+.SH RETURN VALUES
+.PP
+\f[B]bws_snapshot_new\f[]() always returns a valid new snapshot object.
+If there are any memory allocation errors, we will abort the process.

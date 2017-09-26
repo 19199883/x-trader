@@ -1,0 +1,62 @@
+% bws_derive(3)
+
+# NAME
+
+bws_derive -- Derives
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| **struct bws_derive**;
+|
+| struct bws_derive \*
+| **bws_measurement_add_derive**(struct bws_measurement \**measurement*,
+|                            const char \**name*);
+|
+| struct bws_derive \*
+| **bws_derive_new**(struct bws_plugin \**plugin*,
+|               const char \**type_name*,
+|               const char \**type_instance*);
+|
+| uint64_t
+| **bws_derive_inc**(struct bws_derive \**derive*);
+|
+| uint64_t
+| **bws_derive_add**(struct bws_derive \**derive*, uint64_t *delta*);
+|
+| void
+| **bws_derive_set**(struct bws_derive \**derive*, uint64_t *value*);
+|
+| uint64_t
+| **bws_derive_get**(const struct bws_derive \**derive*);
+
+
+# DESCRIPTION
+
+A derive is a measurement value that is a counter that can only ever increase,
+and which is not likely to overflow, such as "number of packets processed".
+
+**bws_measurement_add_derive**() adds a new derive with the given *name* to a
+measurement.  **bws_derive_new**() is a helper function that constructs a new
+measurement and adds a single derive named ``value`` to it, returning the
+derive.
+
+Note that you cannot explicitly free a derive object yourself; the derive will
+be automatically freed when its context is freed.
+
+**bws_derive_inc**() increments a derive by 1.  **bws_derive_add**() adds an
+arbitrary *delta* to a derive.  **bws_derive_set**() sets the derive to an
+arbitrary *value*.  It is your responsibility to ensure that that new value is
+at least as large as the old value.  **bws_derive_get**() returns the derive's
+current value.
+
+
+# RETURN VALUES
+
+**bws_measure_add_derive**() and **bws_derive_new**() always return a valid new
+derive object.  If there are any memory allocation errors, we will abort the
+process.
+
+**bws_derive_inc**() and **bws_derive_add**() both return the new value of the
+derive.

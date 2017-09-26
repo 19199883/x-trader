@@ -1,0 +1,25 @@
+.TH "bws_snapshot_sort" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_snapshot_sort \[en] Sorting snapshots
+.SH SYNOPSIS
+.PP
+\f[B]#include <bowsprit.h>\f[]
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_snapshot_sort\f[](struct bws_snapshot *\f[I]snapshot\f[]);
+.SH DESCRIPTION
+.PP
+\f[B]bws_snapshot_sort\f[]() sorts the values in a snapshot in
+descending order.
+The sorting is done in\-place and is stable.
+.PP
+Note that we don't make any assumptions about the units of the
+underlying values, or whether it makes sense to compare all of the
+values with each other.
+If you have a heterogeneous collection of values, you'll probably want
+to filter them first to limit yourself to values that are truly
+comparable.

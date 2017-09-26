@@ -1,0 +1,82 @@
+% bws_rotated_files(3)
+
+# NAME
+
+bws_rotated_files -- Writing statistics into rotated files
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| **struct bws_rotated_files**;
+|
+| struct bws_rotated_files \*
+| **bws_rotated_files_new**(struct bws_ctx \**ctx*,
+|                       const char \**output_path*);
+|
+| void
+| **bws_rotated_files_free**(struct bws_rotated_files \**rotated*);
+|
+| struct bws_periodic \*
+| **bws_rotated_files_periodic**(struct bws_rotated_files \**rotated*);
+|
+| void
+| **bws_rotated_files_set_file_duration**(struct bws_rotated_files \**rotated*,
+|                                     unsigned int *minutes*);
+|
+| void
+| **bws_rotated_files_set_filename_slug**(struct bws_rotated_files \**rotated*,
+|                                     const char \**slug*);
+
+
+# DESCRIPTION
+
+A **bws_rotated_files** instance is a specialized **bws_periodic**(3) instance
+that writes snapshots of a context's measurements into text files in a
+particular directory.  The files are **rotated**; after a certain amount of
+time, the "current" file is closed and a new file is opened.  (Note that we
+don't provide any mechanism for cleaning up after old files; that is your
+responsibility.)
+
+All of the files written will have names of the following form:
+
+| stats-*slug*-*YYYYMMDD*-*HHMMSS*-*QQQQ*.log
+
+The *QQQQ* portion is a sequential increasing counter, which starts at 0.  The
+*slug* portion is optional; if you don't call
+**bws_rotated_files_set_filename_slug**(), then the filenames will not include
+any slug.
+
+The "current" file will be written to a temporary file in the same output
+directory; when the file is closed (either because of a rotation or because the
+file rotator is destroyed) it will be renamed to its "real" filename.  This
+ensures that you can use a simple glob pattern such as ``stats-*.log`` to only
+pick up completed files.
+
+**bws_rotated_files_new**() creates a new file rotator that will process
+snapshots from a particular context and write files into *output_path*.  It is
+your responsibility to ensure that *output_path* exists and is a directory that
+you have permission to create files in.
+
+**bws_rotated_files_free**() will free a file rotator, first closing any
+currently open file.
+
+**bws_rotated_files_periodic**() will return the underlying **bws_periodic**(3)
+instance for the file rotator.  This periodic manager is owned by the file
+rotator; you must not free it.  When the periodic manager fires its callback,
+the file rotator will write out the current snapshot of measurements, rotating
+into a new file if necessary.
+
+**bws_rotated_files_set_file_duration**() lets you configure how long each file
+should be "current" before we rotate over into a new file.  The default duration
+is 10 minutes.
+
+**bws_rotated_files_set_filename_slug**() lets you provide a *slug* that will be
+included in each output filename.  This lets you write statistics from several
+processes into the same directory, while easily being able to tell them apart.
+
+
+# RETURN VALUES
+
+**bws_rotated_files_new**() always returns a valid new file rotator.  If there
+are any memory allocation errors, we will abort the process.

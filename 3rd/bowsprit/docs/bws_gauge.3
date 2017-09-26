@@ -1,0 +1,103 @@
+.TH "bws_gauge" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_gauge \[en] Gauges
+.SH SYNOPSIS
+.PP
+\f[B]#include <bowsprit.h>\f[]
+.PP
+\f[B]struct bws_gauge\f[];
+.PP
+struct bws_gauge *
+.PD 0
+.P
+.PD
+\f[B]bws_measurement_add_gauge\f[](struct bws_measurement
+*\f[I]measurement\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const char
+*\f[I]name\f[]);
+.PP
+struct bws_gauge *
+.PD 0
+.P
+.PD
+\f[B]bws_gauge_new\f[](struct bws_plugin *\f[I]plugin\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ const char *\f[I]type_name\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ const char *\f[I]type_instance\f[]);
+.PP
+uint64_t
+.PD 0
+.P
+.PD
+\f[B]bws_gauge_inc\f[](struct bws_gauge *\f[I]gauge\f[]);
+.PP
+uint64_t
+.PD 0
+.P
+.PD
+\f[B]bws_gauge_dec\f[](struct bws_gauge *\f[I]gauge\f[]);
+.PP
+uint64_t
+.PD 0
+.P
+.PD
+\f[B]bws_gauge_add\f[](struct bws_gauge *\f[I]gauge\f[], uint64_t
+\f[I]delta\f[]);
+.PP
+uint64_t
+.PD 0
+.P
+.PD
+\f[B]bws_gauge_sub\f[](struct bws_gauge *\f[I]gauge\f[], uint64_t
+\f[I]delta\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_gauge_set\f[](struct bws_gauge *\f[I]gauge\f[], uint64_t
+\f[I]value\f[]);
+.PP
+uint64_t
+.PD 0
+.P
+.PD
+\f[B]bws_gauge_get\f[](const struct bws_gauge *\f[I]gauge\f[]);
+.SH DESCRIPTION
+.PP
+A gauge is a measurement value that can go up and down arbitrarily, such
+as \[lq]current memory usage\[rq].
+.PP
+\f[B]bws_measurement_add_gauge\f[]() adds a new gauge with the given
+\f[I]name\f[] to a measurement.
+\f[B]bws_gauge_new\f[]() is a helper function that constructs a new
+measurement and adds a single gauge named \f[C]value\f[] to it,
+returning the gauge.
+.PP
+Note that you cannot explicitly free a gauge object yourself; the gauge
+will be automatically freed when its context is freed.
+.PP
+\f[B]bws_gauge_inc\f[]() increments a gauge by 1.
+\f[B]bws_gauge_dec\f[]() decrements it by 1.
+\f[B]bws_gauge_add\f[]() and \f[B]bws_gauge_sub\f[]() add or remove an
+arbitrary \f[I]delta\f[] to a gauge.
+\f[B]bws_gauge_set\f[]() sets the gauge to an arbitrary \f[I]value\f[].
+\f[B]bws_gauge_get\f[]() returns the gauge's current value.
+.SH RETURN VALUES
+.PP
+\f[B]bws_measure_add_gauge\f[]() and \f[B]bws_gauge_new\f[]() always
+return a valid new gauge object.
+If there are any memory allocation errors, we will abort the process.
+.PP
+\f[B]bws_gauge_inc\f[](), \f[B]bws_gauge_dec\f[](),
+\f[B]bws_gauge_add\f[](), and \f[B]bws_gauge_sub\f[]() all return the
+new value of the gauge.

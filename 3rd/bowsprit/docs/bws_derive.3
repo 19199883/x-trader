@@ -1,0 +1,91 @@
+.TH "bws_derive" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_derive \[en] Derives
+.SH SYNOPSIS
+.PP
+\f[B]#include <bowsprit.h>\f[]
+.PP
+\f[B]struct bws_derive\f[];
+.PP
+struct bws_derive *
+.PD 0
+.P
+.PD
+\f[B]bws_measurement_add_derive\f[](struct bws_measurement
+*\f[I]measurement\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const char
+*\f[I]name\f[]);
+.PP
+struct bws_derive *
+.PD 0
+.P
+.PD
+\f[B]bws_derive_new\f[](struct bws_plugin *\f[I]plugin\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ const char *\f[I]type_name\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ const char *\f[I]type_instance\f[]);
+.PP
+uint64_t
+.PD 0
+.P
+.PD
+\f[B]bws_derive_inc\f[](struct bws_derive *\f[I]derive\f[]);
+.PP
+uint64_t
+.PD 0
+.P
+.PD
+\f[B]bws_derive_add\f[](struct bws_derive *\f[I]derive\f[], uint64_t
+\f[I]delta\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_derive_set\f[](struct bws_derive *\f[I]derive\f[], uint64_t
+\f[I]value\f[]);
+.PP
+uint64_t
+.PD 0
+.P
+.PD
+\f[B]bws_derive_get\f[](const struct bws_derive *\f[I]derive\f[]);
+.SH DESCRIPTION
+.PP
+A derive is a measurement value that is a counter that can only ever
+increase, and which is not likely to overflow, such as \[lq]number of
+packets processed\[rq].
+.PP
+\f[B]bws_measurement_add_derive\f[]() adds a new derive with the given
+\f[I]name\f[] to a measurement.
+\f[B]bws_derive_new\f[]() is a helper function that constructs a new
+measurement and adds a single derive named \f[C]value\f[] to it,
+returning the derive.
+.PP
+Note that you cannot explicitly free a derive object yourself; the
+derive will be automatically freed when its context is freed.
+.PP
+\f[B]bws_derive_inc\f[]() increments a derive by 1.
+\f[B]bws_derive_add\f[]() adds an arbitrary \f[I]delta\f[] to a derive.
+\f[B]bws_derive_set\f[]() sets the derive to an arbitrary
+\f[I]value\f[].
+It is your responsibility to ensure that that new value is at least as
+large as the old value.
+\f[B]bws_derive_get\f[]() returns the derive's current value.
+.SH RETURN VALUES
+.PP
+\f[B]bws_measure_add_derive\f[]() and \f[B]bws_derive_new\f[]() always
+return a valid new derive object.
+If there are any memory allocation errors, we will abort the process.
+.PP
+\f[B]bws_derive_inc\f[]() and \f[B]bws_derive_add\f[]() both return the
+new value of the derive.

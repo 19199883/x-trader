@@ -1,0 +1,116 @@
+.TH "bws_rotated_files" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_rotated_files \[en] Writing statistics into rotated files
+.SH SYNOPSIS
+.PP
+\f[B]#include <bowsprit.h>\f[]
+.PP
+\f[B]struct bws_rotated_files\f[];
+.PP
+struct bws_rotated_files *
+.PD 0
+.P
+.PD
+\f[B]bws_rotated_files_new\f[](struct bws_ctx *\f[I]ctx\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const char
+*\f[I]output_path\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_rotated_files_free\f[](struct bws_rotated_files
+*\f[I]rotated\f[]);
+.PP
+struct bws_periodic *
+.PD 0
+.P
+.PD
+\f[B]bws_rotated_files_periodic\f[](struct bws_rotated_files
+*\f[I]rotated\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_rotated_files_set_file_duration\f[](struct bws_rotated_files
+*\f[I]rotated\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ unsigned
+int \f[I]minutes\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_rotated_files_set_filename_slug\f[](struct bws_rotated_files
+*\f[I]rotated\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const
+char *\f[I]slug\f[]);
+.SH DESCRIPTION
+.PP
+A \f[B]bws_rotated_files\f[] instance is a specialized
+\f[B]bws_periodic\f[](3) instance that writes snapshots of a context's
+measurements into text files in a particular directory.
+The files are \f[B]rotated\f[]; after a certain amount of time, the
+\[lq]current\[rq] file is closed and a new file is opened.
+(Note that we don't provide any mechanism for cleaning up after old
+files; that is your responsibility.)
+.PP
+All of the files written will have names of the following form:
+.PP
+stats\-\f[I]slug\f[]\-\f[I]YYYYMMDD\f[]\-\f[I]HHMMSS\f[]\-\f[I]QQQQ\f[].log
+.PP
+The \f[I]QQQQ\f[] portion is a sequential increasing counter, which
+starts at 0.
+The \f[I]slug\f[] portion is optional; if you don't call
+\f[B]bws_rotated_files_set_filename_slug\f[](), then the filenames will
+not include any slug.
+.PP
+The \[lq]current\[rq] file will be written to a temporary file in the
+same output directory; when the file is closed (either because of a
+rotation or because the file rotator is destroyed) it will be renamed to
+its \[lq]real\[rq] filename.
+This ensures that you can use a simple glob pattern such as
+\f[C]stats\-*.log\f[] to only pick up completed files.
+.PP
+\f[B]bws_rotated_files_new\f[]() creates a new file rotator that will
+process snapshots from a particular context and write files into
+\f[I]output_path\f[].
+It is your responsibility to ensure that \f[I]output_path\f[] exists and
+is a directory that you have permission to create files in.
+.PP
+\f[B]bws_rotated_files_free\f[]() will free a file rotator, first
+closing any currently open file.
+.PP
+\f[B]bws_rotated_files_periodic\f[]() will return the underlying
+\f[B]bws_periodic\f[](3) instance for the file rotator.
+This periodic manager is owned by the file rotator; you must not free
+it.
+When the periodic manager fires its callback, the file rotator will
+write out the current snapshot of measurements, rotating into a new file
+if necessary.
+.PP
+\f[B]bws_rotated_files_set_file_duration\f[]() lets you configure how
+long each file should be \[lq]current\[rq] before we rotate over into a
+new file.
+The default duration is 10 minutes.
+.PP
+\f[B]bws_rotated_files_set_filename_slug\f[]() lets you provide a
+\f[I]slug\f[] that will be included in each output filename.
+This lets you write statistics from several processes into the same
+directory, while easily being able to tell them apart.
+.SH RETURN VALUES
+.PP
+\f[B]bws_rotated_files_new\f[]() always returns a valid new file
+rotator.
+If there are any memory allocation errors, we will abort the process.

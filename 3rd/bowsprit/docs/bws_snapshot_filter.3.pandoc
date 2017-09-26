@@ -1,0 +1,24 @@
+% bws_snapshot_filter(3)
+
+# NAME
+
+bws_snapshot_filter -- Filtering snapshots
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| void
+| **bws_snapshot_filter_by_type_name**(struct bws_snapshot \**src*,
+|                                  const char \**type_name*,
+|                                  struct bws_snapshot \**dest*);
+
+# DESCRIPTION
+
+The **bws_snapshot_filter** family of functions filters the contents of a source
+snapshot, writing the results into a separate destination snapshot.  (The
+filtering is not done in-place, so you must not provide the same snapshot for
+both the *src* and *dest* parameters.)
+
+**bws_snapshot_filter_by_type_name**() only keeps the values that belong to a
+measurement with the given type name.

@@ -1,0 +1,98 @@
+.TH "bws_snapshot_render" "3" "2015-09-03" "Bowsprit" "Bowsprit\ documentation"
+.SH NAME
+.PP
+bws_snapshot_render \[en] Rendering snapshots
+.SH SYNOPSIS
+.PP
+\f[B]#include <stdio.h>\f[]
+.PD 0
+.P
+.PD
+\f[B]#include <bowsprit.h>\f[]
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_snapshot_render_to_buffer\f[](struct bws_snapshot
+*\f[I]snapshot\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ struct
+cork_buffer *\f[I]dest\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_snapshot_render_delta_to_buffer\f[](struct bws_snapshot
+*\f[I]curr\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ struct
+cork_snapshot *\f[I]prev\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ struct
+cork_buffer *\f[I]dest\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ unsigned
+int \f[I]interval_sec\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_snapshot_render_to_stream\f[](struct bws_snapshot
+*\f[I]snapshot\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FILE
+*\f[I]dest\f[]);
+.PP
+void
+.PD 0
+.P
+.PD
+\f[B]bws_snapshot_render_delta_to_stream\f[](struct bws_snapshot
+*\f[I]curr\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ struct
+cork_snapshot *\f[I]prev\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FILE
+*\f[I]dest\f[],
+.PD 0
+.P
+.PD
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ unsigned
+int \f[I]interval_sec\f[]);
+.SH DESCRIPTION
+.PP
+The \f[B]bws_snapshot_render\f[] family of functions pretty\-prints each
+of the values in a snapshot.
+Each value is printed on a separate line.
+You don't have any control over the format that's used for each value;
+if you want to do that, you can iterate through the contents of the
+snapshot yourself.
+.PP
+The \f[B]delta\f[] variants will include the rate of change for any
+derive statistics in the snapshot.
+You must provide the current and previous snapshots, along with the
+interval (in seconds) that occurred between the two.
+You can pass in \f[C]NULL\f[] for \f[I]prev\f[] to render the
+\[lq]first\[rq] snapshot.
+.PP
+The \f[B]buffer\f[] variants print the values into a
+\f[B]cork_buffer\f[](3) instance.
+\f[B]stream\f[] variants print the values to the given C stream.

@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+sharedir=${prefix}/share
+
+Name: Bowsprit
+Description: Collectd-style counters and statistics and whatnot
+Version: @VERSION@
+URL: https://github.com/redjack/bowsprit/
+Libs: -L${libdir} -lbowsprit
+Cflags: -I${includedir}
+Requires: libcork >= 0.14.0, clogger >= 0.3.0

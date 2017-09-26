@@ -1,0 +1,46 @@
+% bws_plugin(3)
+
+# NAME
+
+bws_plugin -- Plugins
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| **struct bws_plugin** {
+|     struct bws_ctx  \**ctx*;
+|     const char  \**name*;
+|     const char  \**instance*;
+| };
+|
+| struct bws_plugin \*
+| **bws_plugin_new**(struct bws_ctx \**ctx*, const char \**name*,
+|                const char \**instance*);
+
+
+# DESCRIPTION
+
+A **bws_plugin** instance represents a *plugin*, which is a collection of
+measurements that all describe the same portion of code.  (The name doesn't
+really have anything to do with loadable code modules; it's just the collectd
+synonym for "component" or "subsystem".)
+
+**bws_plugin_new**() creates a new plugin object in the given context.  Each
+plugin has a *name* (which must not be ``NULL``), which identifies the component
+or subsystem that the plugin measures.  You can also provide an optional
+*instance*, in case you need to distinguish between multiple plugins with the
+same *name*.  (A common example is collecting CPU metrics; you would have a
+separate plugin for each core.  All of the plugins would have ``cpu`` as the
+name, and the core number as the instance.) We will make our own copy of *name*
+and *instance*, so it's safe for you to pass in a string that you'll later
+overwrite or free.
+
+Note that you cannot explicitly free a plugin object yourself; the plugin will
+be automatically freed when its context is freed.
+
+
+# RETURN VALUES
+
+**bws_plugin_new**() always returns a valid new plugin object.  If there are any
+memory allocation errors, we will abort the process.

@@ -1,0 +1,8 @@
+name: bowsprit
+build_dependencies:
+  - pkg-config
+  - check >= 0.9.4
+dependencies:
+  - libcork >= 0.14.0
+  - clogger >= 0.3.0
+license: BSD

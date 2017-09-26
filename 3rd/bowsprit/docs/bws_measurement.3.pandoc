@@ -1,0 +1,73 @@
+% bws_measurement(3)
+
+# NAME
+
+bws_measurement -- Measurements
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| **struct bws_measurement** {
+|     struct bws_plugin  \**plugin*;
+|     const char  \**type_name*;
+|     const char  \**type_instance*;
+| };
+|
+| struct bws_measurement \*
+| **bws_measurement_new**(struct bws_plugin \**plugin*,
+|                     const char \**type_name*,
+|                     const char \**type_instance*);
+
+
+# DESCRIPTION
+
+A **bws_measurement** instance represents an individual *measurement* that you
+would like to provide values for over the course of your application's
+execution.
+
+Each measurement can have one or more *values*.  Each value can change over
+time.  Most measurements have a single value — for instance, the current amount
+of memory used by the process.  Some have multiple values — for instance,
+separately recording the number of bytes transmitted and received for a network
+interface.  (The interface would be represented by a measurement, and the
+transmitted and received counts be values in that measurement.)
+
+Each measurement has a *type name*, and can also have an optional *type
+instance*, which can be used to distinguish between multiple measurements in the
+same plugin that all have the same type name.  The measurement's type name is an
+index into collectd's **types.db**(5) file, and defines how many values the
+measurement has, and the *kind* of each value.  There are four available kinds:
+*absolute*, *counter*, *derive*, and *gauge*.  Gauge and derive are the most
+common.  Use a gauge for a measurement that can go up and down arbitrarily, such
+as "current memory usage".  Use a derive for a counter that is not likely to
+overflow, such as "number of packets processed".  A counter is similar to a
+derive, but is used for small counters that are likely to wrap, such as a TCP
+sequence number; collectd will take this into account when calculating rates.
+An absolute is like a gauge that resets to 0 every time it's read.
+
+Note that it's your responsibility to ensure that the *type_name* refers to a
+type that actually exists in **types.db**(5).  It's also your responsibility to
+make sure that the values that you add to the measurement "line up" with the
+definition of the type that you choose.  We don't verify either of those — if
+you create an inconsistent measurement, we'll happily let you update the values
+and try to send the collected statistics to a collectd server, but the server
+might reject the statistics when it receives them.
+
+**bws_measurement_new**() creates a new measurement object in the given plugin.
+The measurement's *type_name* must not be ``NULL``; its *type_instance* can be
+``NULL``.  We will make our own copy of *type_name* and *type_instance*, so it's
+safe for you to pass in a string that you'll later overwrite or free.  The
+measurement will initially have no values in it; use
+**bws_measurement_add_gauge**() to add some values.  (For the common case of
+single-value measurements, you can also use the **bws_gauge_new**() helper
+constructor.)
+
+Note that you cannot explicitly free a measurement object yourself; the
+measurement will be automatically freed when its context is freed.
+
+
+# RETURN VALUES
+
+**bws_measurement_new**() always returns a valid new measurement object.  If
+there are any memory allocation errors, we will abort the process.

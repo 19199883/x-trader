@@ -1,0 +1,66 @@
+% bws_gauge(3)
+
+# NAME
+
+bws_gauge -- Gauges
+
+# SYNOPSIS
+
+| **#include &lt;bowsprit.h&gt;**
+|
+| **struct bws_gauge**;
+|
+| struct bws_gauge \*
+| **bws_measurement_add_gauge**(struct bws_measurement \**measurement*,
+|                           const char \**name*);
+|
+| struct bws_gauge \*
+| **bws_gauge_new**(struct bws_plugin \**plugin*,
+|               const char \**type_name*,
+|               const char \**type_instance*);
+|
+| uint64_t
+| **bws_gauge_inc**(struct bws_gauge \**gauge*);
+|
+| uint64_t
+| **bws_gauge_dec**(struct bws_gauge \**gauge*);
+|
+| uint64_t
+| **bws_gauge_add**(struct bws_gauge \**gauge*, uint64_t *delta*);
+|
+| uint64_t
+| **bws_gauge_sub**(struct bws_gauge \**gauge*, uint64_t *delta*);
+|
+| void
+| **bws_gauge_set**(struct bws_gauge \**gauge*, uint64_t *value*);
+|
+| uint64_t
+| **bws_gauge_get**(const struct bws_gauge \**gauge*);
+
+
+# DESCRIPTION
+
+A gauge is a measurement value that can go up and down arbitrarily, such as
+"current memory usage".
+
+**bws_measurement_add_gauge**() adds a new gauge with the given *name* to a
+measurement.  **bws_gauge_new**() is a helper function that constructs a new
+measurement and adds a single gauge named ``value`` to it, returning the gauge.
+
+Note that you cannot explicitly free a gauge object yourself; the gauge will be
+automatically freed when its context is freed.
+
+**bws_gauge_inc**() increments a gauge by 1.  **bws_gauge_dec**() decrements it
+by 1.  **bws_gauge_add**() and **bws_gauge_sub**() add or remove an arbitrary
+*delta* to a gauge.  **bws_gauge_set**() sets the gauge to an arbitrary *value*.
+**bws_gauge_get**() returns the gauge's current value.
+
+
+# RETURN VALUES
+
+**bws_measure_add_gauge**() and **bws_gauge_new**() always return a valid new
+gauge object.  If there are any memory allocation errors, we will abort the
+process.
+
+**bws_gauge_inc**(), **bws_gauge_dec**(), **bws_gauge_add**(), and
+**bws_gauge_sub**() all return the new value of the gauge.
