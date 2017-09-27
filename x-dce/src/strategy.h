@@ -169,6 +169,7 @@ private:
 	int32_t log_write_count_;
 	std::thread *thread_log_;
 	bool log_ended_;
+	int cur_ntick_;
 
 	// be used to check whether the stategy is valid
 	bool valid_;

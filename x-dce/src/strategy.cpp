@@ -736,7 +736,9 @@ void Strategy::WriteLogImp()
 
 void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 {
-	if(0==pstratlog->exch_time) return;
+	if(0==pstratlog->exch_time || pstratlog->n_tick<=cur_ntick_) return;
+
+	cur_ntick_ = pstratlog->n_tick;
 
     fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
             pstratlog->exch_time,

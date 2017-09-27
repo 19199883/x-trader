@@ -38,6 +38,7 @@ Strategy::Strategy()
 	thread_log_ = new std::thread(&Strategy::WriteLogImp,this);
 	log_ended_ = false;
 	log_write_count_ = 0;
+	cur_ntick_ = -1;
 }
 
 void Strategy::End(void)
@@ -678,7 +679,9 @@ void Strategy::WriteLogImp()
 
 void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 {
-	if(0==pstratlog->exch_time) return;
+	if(0==pstratlog->exch_time || pstratlog->n_tick<=cur_ntick_) return;
+
+	cur_ntick_ = pstratlog->n_tick;
 
     fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
             pstratlog->exch_time,
