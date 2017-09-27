@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<my_trade_tunnel>
+	<program_title>Esunny</program_title>
+
+	<!-- order ref prefix, range: 1 - 99, used in ctp/femas tunnel -->
+	<orderref_prefix>11</orderref_prefix>
+
+	<!-- provider_type
+		1: ctp
+		2: xspeed
+		3: femas
+		4: zeusing
+		5: ksg
+		6: citics_hs
+		7: esunny
+	-->
+	<provider_type>7</provider_type>
+
+	<login note="Esunny Login Parameters">
+		<serverlist>
+			<server>tcp://222.88.40.170:6160</server>
+		</serverlist>
+		<brokerid></brokerid>
+		<investorid>MAOYUANTEST</investorid>
+		<userid>MAOYUANTEST</userid>
+		<password>AmvgUCydNYxRuBeHQlPB0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==</password>
+		<exchangecode>C</exchangecode>
+	</login>
+	
+	<initial_policy>
+		<!-- 启动时撤销所有挂单；0:no; 1:yes; -->
+		<cancel_orders_at_start>0</cancel_orders_at_start>
+	</initial_policy>
+
+	<compliance_check_param>
+		<self_trade_check>
+			<!-- 0:off; 1:on; 2: on (check in multi accounts)-->
+			<switch>1</switch>
+		</self_trade_check>
+
+		<!-- open_volume_check -->
+		<open_volume_check>
+			<!-- 0:off; 1:on; -->
+			<switch>1</switch>
+			<speculate>10</speculate>
+			<arbitrage>9999</arbitrage>
+			<total>9999</total>
+		</open_volume_check>
+
+		<cancel_time_check>
+			<!-- 0:off; 1:on; -->
+			<switch>1</switch>
+			<init_cancel_times_at_start>1</init_cancel_times_at_start>
+			<warn_threshold>480</warn_threshold>
+			<upper_limit>490</upper_limit>
+		</cancel_time_check>
+	</compliance_check_param>
+</my_trade_tunnel>
