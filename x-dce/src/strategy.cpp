@@ -692,11 +692,19 @@ const char * Strategy::GetSymbol()
 
 void Strategy::WriteLog(bool isEnded)
 {
+#ifdef LATENCY_MEASURE
+	//high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	log_ended_ = isEnded;
 	log_w_.swap(log_);
 	log_write_count_ = log_cursor_ ;
 	lock_log_.clear();
 	log_cursor_ = 0;
+#ifdef LATENCY_MEASURE
+	//	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+	//	int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+	//	clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+#endif
 }
 void Strategy::WriteLogTitle()
 {
