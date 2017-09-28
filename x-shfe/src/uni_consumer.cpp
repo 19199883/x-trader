@@ -318,7 +318,8 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%d;"
+	// TODO:debug
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%d;"
 				"CancelAmount:%d; ErrorID:%d ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
 				rpt->CancelAmount, rpt->ErrorID);
@@ -343,7 +344,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	
 	if (!strategy.HasFrozenPosition()){
 		int i = 0;
-		for(; i < 2; i++){
+		for(; i<MAX_PENDING_SIGNAL_COUNT; i++){
 			int32_t st_id = strategy.GetId();
 			if(pending_signals_[st_id][i] >= 0){
 				int32_t sig_id = pending_signals_[st_id][i];
@@ -356,7 +357,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 						module_name_, sig->st_id, sig->sig_id,
 						sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
 						sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose); 
-
 			}
 		}
 	}
@@ -378,7 +378,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			strategy.Push(sig);
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
 				int i = 0;
-				for(; i < 2; i++){
+				for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					if(pending_signals_[sig.st_id][i] < 0){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
 						clog_debug("[%s] pending_signals_ push st id:%d; sig id;%d", 
@@ -386,7 +386,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 						break;
 					}
 				}
-				if(i == 2){
+				if(i == MAX_PENDING_SIGNAL_COUNT){
 					clog_warning("[%s] pending_signals_ beyond;", module_name_);
 				}
 			} else { PlaceOrder(strategy, sigs[i]); }
@@ -397,7 +397,8 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	if (!strategy.HasFrozenPosition()){
-		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+		// TODO:debug
+		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}
 	
@@ -407,7 +408,8 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	FemasFieldConverter::Convert(tunn_rpt_producer_->config_, localorderid, ori_local_order_id, order);
 	int rtn = tunn_rpt_producer_->ReqOrderAction(&order);
 
-	clog_debug("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
+	// TODO:debug
+	clog_info("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
 				module_name_, order.UserOrderActionLocalID,order.UserOrderLocalID, rtn); 
 	if(rtn != 0){
 		clog_warning("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 

@@ -35,6 +35,9 @@ void Compliance::Save()
 		clog_info("[%s] contract:%s; cancel times:%d",
 			module_name_, contracts_[i], cur_cancel_times_[i]);
 	}
+
+	clog_info("[%s] min counter:%d; max counter:%d;",
+			module_name_, min_counter_, max_counter_);
 }
 
 Compliance::~Compliance()
@@ -60,6 +63,8 @@ int Compliance::GetCancelTimes(const char* contract)
 		if (strcmp(contracts_[i], "") == 0) break;
 
 		if(strcmp(contract, contracts_[i]) == 0){
+			// TODO:debug
+			clog_info("[%s] GetCancelTimes:%s,%d;", module_name_,contract,contracts_[i]);
 			return cur_cancel_times_[i];
 		}
 	}
@@ -68,6 +73,8 @@ int Compliance::GetCancelTimes(const char* contract)
 		strcpy(contracts_[i], contract);
 	}
 
+	// TODO:debug
+	clog_info("[%s] GetCancelTimes:%s,%d;", module_name_,contract,contracts_[i]);
 	return cur_cancel_times_[i];
 
 }
@@ -75,20 +82,21 @@ int Compliance::GetCancelTimes(const char* contract)
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			double price, TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset)
 {
-	if(ord_counter>=COUNTER_UPPER_LIMIT){
-		clog_warning("[%s] TryReqOrderInsert counter is greater than max. counter:%d;",
-			module_name_, ord_counter);
-		return false;
-	}
+//	if(ord_counter>=COUNTER_UPPER_LIMIT){
+//		clog_warning("[%s] TryReqOrderInsert counter is greater than max. counter:%d;",
+//			module_name_, ord_counter);
+//		return false;
+//	}
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
     bool ret = true;
 
-	if(offset == USTP_FTDC_OF_Open && (GetCancelTimes(contract) >= cancel_upper_limit_)){
-		clog_warning("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
-			module_name_, ord_counter, GetCancelTimes(contract));
+	int32_t cancel_times = GetCancelTimes(contract);
+	if(offset==USTP_FTDC_OF_Open && cancel_times>=cancel_upper_limit_){
+		clog_warning("[%s] rejected for cancel upper limit.ord counter:%d;cur times:%d;ord counter:%d;",
+			module_name_,ord_counter,cancel_times,ord_counter);
 		return false;
 	}
 
@@ -118,7 +126,8 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		ord.price = price;
 	}
 
-	clog_debug("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
+	// TODO:debug
+	clog_info("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
 				module_name_, ord_counter, min_counter_, max_counter_, ret);
 
 #ifdef LATENCY_MEASURE
@@ -142,7 +151,8 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 		if(strcmp(contract, contracts_[i]) == 0){
 			cur_cancel_times_[i]++;
 
-			clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
+			// TODO:debug
+			clog_info("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
 
 #ifdef LATENCY_MEASURE
 			high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -157,7 +167,8 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 			strcpy(contracts_[i], contract);
 			cur_cancel_times_[i]++;
 
-			clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
+			// TODO:debug
+			clog_info("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
 		}
 #ifdef LATENCY_MEASURE
 			high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -185,7 +196,8 @@ void Compliance::End(int ord_counter)
 		}
 	} // if (ord_counter == min_counter_)
 
-	clog_debug("[%s] End min counter:%d; max counter:%d; ord counter:%d",
+	// TODO:debug
+	clog_info("[%s] End min counter:%d; max counter:%d; ord counter:%d",
 				module_name_, min_counter_, max_counter_, ord_counter);
 }
 

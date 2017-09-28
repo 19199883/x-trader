@@ -110,7 +110,8 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
 	}else {
-		clog_debug("[%s] ReqOrderInsert- ret=%d - %s", 
+		// TODO:debug
+		clog_info("[%s] ReqOrderInsert- ret=%d - %s", 
 			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	}
 
@@ -126,7 +127,8 @@ int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 		clog_warning("[%s] ReqOrderAction- ret=%d - %s", 
 			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	} else {
-		clog_debug("[%s] ReqCancelOrder - ret=%d - %s", 
+		// TODO:debug
+		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
 			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	}
 
@@ -214,7 +216,8 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 {
 	if (ended_) return;
 
-    clog_debug("[%s] OnRspOrderInsert:%s %s",
+	// TODO:debug
+    clog_info("[%s] OnRspOrderInsert:%s %s",
         module_name_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
         FEMASDatatypeFormater::ToString(perror).c_str());
@@ -272,7 +275,8 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
 {
 	if (ended_) return;
 
-    clog_debug("[%s] OnRspOrderAction:%s %s",
+	// TODO:debug
+    clog_info("[%s] OnRspOrderAction:%s %s",
         module_name_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
         FEMASDatatypeFormater::ToString(perror).c_str());
@@ -318,7 +322,8 @@ void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
 {
 	if (ended_) return;
 
-    clog_debug("[%s] OnRtnTrade:%s", 
+	// TODO:debug
+    clog_info("[%s] OnRtnTrade:%s", 
 				module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
 	// 忽略该回报，因为OrderReturn有成交信息
@@ -328,7 +333,8 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 {
 	if (ended_) return;
 
-    clog_debug("[%s] OnRtnOrder:%s", module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
+	// TODO:debug
+    clog_info("[%s] OnRtnOrder:%s", module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
 	struct TunnRpt rpt;
     memset(&rpt, 0, sizeof(rpt));

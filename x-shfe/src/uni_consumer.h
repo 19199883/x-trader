@@ -25,8 +25,12 @@
 
 // key2: stoi(年月)，如1801
 #define MAX_STRATEGY_KEY2 3000 
+
 // 品种字符相加：如jd1801，key1: j+d(ascii 值相加
 #define MAX_STRATEGY_KEY1 500
+
+// 允许的最大缓存的待处理信号数量
+#define MAX_PENDING_SIGNAL_COUNT 10
 
 struct Uniconfig
 {
@@ -176,7 +180,7 @@ class UniConsumer
 		 * 策略待处理的信号的信号id。-1表示无效
 		 *
 		 */
-		int32_t pending_signals_[200][2];
+		int32_t pending_signals_[STRA_TABLE_SIZE][MAX_PENDING_SIGNAL_COUNT];
 
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
