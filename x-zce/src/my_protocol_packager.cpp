@@ -38,23 +38,15 @@ bool ESUNNYPacker::OrderRequest(const TunnelConfigData& cfg, const T_PlaceOrder*
     strcpy(new_or.InquiryNo, "");
     new_or.HedgeFlag = ESUNNYFieldConvert::GetESUNNYHedgeType(req->speculator);
     new_or.OrderPrice = req->limit_price;
-//    new_or.OrderPrice2;
-//    new_or.StopPrice;
     new_or.OrderQty = req->volume;
-//    new_or.OrderMinQty;
-//    new_or.MinClipSize;
-//    new_or.MaxClipSize;
     new_or.RefInt = 0;
-    //snprintf(new_or.RefString, sizeof(new_or.RefString), "%d", 0);
     new_or.TacticsType = TAPI_TACTICS_TYPE_NONE;
     new_or.TriggerCondition = TAPI_TRIGGER_CONDITION_NONE;
     new_or.TriggerPriceType = TAPI_TRIGGER_PRICE_NONE;
     new_or.AddOneIsValid = APIYNFLAG_NO;
-    // new_or.OrderQty2 = 0;
     new_or.HedgeFlag2 = new_or.HedgeFlag;
     new_or.MarketLevel= TAPI_MARKET_LEVEL_0;
     new_or.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
-    //new_or.UpperChannelNo = 
 
     return true;
 }

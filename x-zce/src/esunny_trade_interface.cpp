@@ -264,41 +264,30 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 {
     TNL_LOG_DEBUG("OnRtnOrder: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
 
-    if (!HaveFinishQueryOrders())
-    {
-        TNL_LOG_WARN("OnRtnOrder when tunnel not ready.");
-        return;
-    }
-
     // check whether placed in this session
-    if (info == NULL || info->SessionID == 0 || info->OrderInfo == NULL)
-    {
+    if (info == NULL || info->SessionID == 0 || info->OrderInfo == NULL) {
         return;
     }
 
-    if (info->OrderInfo->ErrorCode != TAPIERROR_SUCCEED)
-    {
+    if (info->OrderInfo->ErrorCode != TAPIERROR_SUCCEED) {
         ReportErrorState(info->OrderInfo->ErrorCode, info->OrderInfo->ErrorText);
     }
 
     // get original place order info
     const EsunnyOrderInfo *p = esunny_trade_context_.UpdateOrderNoAndGetOrderInfo(info->SessionID, info->OrderInfo->OrderNo,
         info->OrderInfo->ServerFlag);
-    if (!p)
-    {
+    if (!p) {
         TNL_LOG_INFO("can't get original place order info of SessionID: %u", info->SessionID);
         return;
     }
     bool should_rsp = true;
-    if (p->IsTerminated())
-    {
+    if (p->IsTerminated()) {
         should_rsp = false;
         TNL_LOG_ERROR("SessionID: %u. OnRtnOrder after order terminated.", info->SessionID);
     }
 
     // order refuse
-    if (info->ErrorCode != TAPIERROR_SUCCEED)
-    {
+    if (info->ErrorCode != TAPIERROR_SUCCEED) {
         int standard_error_no = cfg_.GetStandardErrorNo(info->ErrorCode);
         // 报单失败，报告合规检查
         ComplianceCheck_OnOrderInsertFailed(
@@ -320,36 +309,31 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
         return;
     }
 
-    if (info->OrderInfo->OrderSystemNo[0] != '\0')
-    {
+    if (info->OrderInfo->OrderSystemNo[0] != '\0') {
         p->entrust_no = BuildEntrustNo(info->OrderInfo->OrderSystemNo);
     }
 
     //如果新报文转换成内部状态为已撤，并且该单状态已经为已撤时，消息不推送到交易服务
     char inner_status = ESUNNYFieldConvert::GetMYEntrustStatus(info->OrderInfo->OrderState);
-    if ((inner_status == MY_TNL_OS_WITHDRAWED) && (inner_status == p->entrust_status))
-    {
+    if ((inner_status == MY_TNL_OS_WITHDRAWED) && (inner_status == p->entrust_status)) {
         TNL_LOG_INFO("Order canceled. SessionID:%u, OrderNo:%s, entrust_no=%lld",
             info->SessionID, info->OrderInfo->OrderNo, p->entrust_no);
         return;
     }
 
-    if (info->OrderInfo->OrderState != TAPI_ORDER_STATE_CANCELING)
-    {
+    if (info->OrderInfo->OrderState != TAPI_ORDER_STATE_CANCELING) {
         p->entrust_status = inner_status;
     }
 
     p->volume_remain = p->po.volume - info->OrderInfo->OrderMatchQty;
 
-    if (p->entrust_status == MY_TNL_OS_COMPLETED)
-    {
+    if (p->entrust_status == MY_TNL_OS_COMPLETED) {
         // 全成，报告合规检查
         ComplianceCheck_OnOrderFilled(
             tunnel_info_.account.c_str(),
             p->po.serial_no);
     }
-    else if (p->entrust_status == MY_TNL_OS_ERROR)
-    {
+    else if (p->entrust_status == MY_TNL_OS_ERROR) {
         // 报单失败，报告合规检查
         ComplianceCheck_OnOrderInsertFailed(
             tunnel_info_.account.c_str(),
@@ -360,8 +344,7 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
             p->po.speculator,
             p->po.open_close,
             p->po.order_type);
-    }
-    else if (p->entrust_status == MY_TNL_OS_WITHDRAWED)
+    } else if (p->entrust_status == MY_TNL_OS_WITHDRAWED)
     {
         ComplianceCheck_OnOrderCanceled(
             tunnel_info_.account.c_str(),
@@ -373,17 +356,14 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
             p->po.open_close);
     }
 
-    if (info->OrderInfo->OrderState == TAPI_ORDER_STATE_ACCEPT)
-    {
+    if (info->OrderInfo->OrderState == TAPI_ORDER_STATE_ACCEPT) {
         // 应答
         T_OrderRespond rsp;
         ESUNNYPacker::OrderRespond(0, p->po.serial_no, 0, p->entrust_status, rsp);
         if (should_rsp && OrderRespond_call_back_handler_) OrderRespond_call_back_handler_(&rsp);
         LogUtil::OnOrderRespond(&rsp, tunnel_info_);
 
-    }
-    else
-    {
+    } else {
         // 委托回报
         T_OrderReturn order_return;
         ESUNNYPacker::OrderReturn(info->OrderInfo, p, order_return);
