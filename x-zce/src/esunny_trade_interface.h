@@ -318,44 +318,27 @@ public:
     // 下发指令接口
     int ReqOrderInsert(const T_PlaceOrder *po)
     {
-        if (!TunnelIsReady())
-        {
-            TNL_LOG_WARN("ReqOrderInsert when tunnel not ready");
-            return TUNNEL_ERR_CODE::NO_VALID_CONNECT_AVAILABLE;
-        }
         int ret = TUNNEL_ERR_CODE::RESULT_FAIL;
 
-        try
-        {
-            TapAPINewOrder po_req;
-            bool convert_res = ESUNNYPacker::OrderRequest(cfg_, po, po_req);
-            if (!convert_res)
-            {
-                TNL_LOG_WARN("PlaceOrder can't find contract info to complete the order");
-                return ret;
-            }
+		TapAPINewOrder po_req;
+		bool convert_res = ESUNNYPacker::OrderRequest(cfg_, po, po_req);
+		if (!convert_res) {
+			TNL_LOG_WARN("PlaceOrder can't find contract info to complete the order");
+			return ret;
+		}
 
-            TAPIUINT32 session_id;
-            {
-                std::lock_guard<std::mutex> lock(api_spinlock_);
-                esunny_trade_context_.SavePendingOrder(po);
-                ret = api_->InsertOrder(&session_id, &po_req);
+		TAPIUINT32 session_id;
+		{
+			std::lock_guard<std::mutex> lock(api_spinlock_);
+			esunny_trade_context_.SavePendingOrder(po);
+			ret = api_->InsertOrder(&session_id, &po_req);
 
-                // TODO for test
-                //usleep(100 * 1000);
-                if (ret == TAPIERROR_SUCCEED)
-                {
-                    esunny_trade_context_.SaveOrderInfo(session_id, new EsunnyOrderInfo(*po));
-                }
-            }
+			if (ret == TAPIERROR_SUCCEED) {
+				esunny_trade_context_.SaveOrderInfo(session_id, new EsunnyOrderInfo(*po));
+			}
+		}
 
-            TNL_LOG_DEBUG("InsertOrder - return:%d, session_id:%d, serial_no:%ld", ret, session_id, po->serial_no);
-            //TNL_LOG_DEBUG("InsertOrder - return:%d, session_id:%d - %s", ret, session_id, ESUNNYDatatypeFormater::ToString(&po_req).c_str());
-        }
-        catch (...)
-        {
-            TNL_LOG_ERROR("unknown exception in InsertOrder.");
-        }
+		TNL_LOG_DEBUG("InsertOrder - return:%d, session_id:%d, serial_no:%ld", ret, session_id, po->serial_no);
 
         return ConvertErrorCode(ret);
     }
@@ -363,52 +346,32 @@ public:
     //报单操作请求
     int ReqOrderAction(const T_CancelOrder *pc)
     {
-        if (!TunnelIsReady())
-        {
+        if (!TunnelIsReady()){
             TNL_LOG_WARN("ReqOrderAction when tunnel not ready");
             return TUNNEL_ERR_CODE::NO_VALID_CONNECT_AVAILABLE;
         }
         int ret = TUNNEL_ERR_CODE::RESULT_FAIL;
 
-        try
-        {
-            // create cancel request object
-            const EsunnyOrderInfo * org_order_info = esunny_trade_context_.GetOrderInfoBySN(pc->org_serial_no);
-            if (!org_order_info)
-            {
-                TNL_LOG_WARN("Cancel Order can't get original order by sn");
-                return ret;
-            }
-            TapAPIOrderCancelReq cancel_req;
-            ESUNNYPacker::CancelRequest(org_order_info, cancel_req);
+		const EsunnyOrderInfo * org_order_info = esunny_trade_context_.GetOrderInfoBySN(pc->org_serial_no);
+		if (!org_order_info) {
+			TNL_LOG_WARN("Cancel Order can't get original order by sn");
+			return ret;
+		}
+		TapAPIOrderCancelReq cancel_req;
+		ESUNNYPacker::CancelRequest(org_order_info, cancel_req);
 
-            TAPIUINT32 session_id;
-            {
-                std::lock_guard<std::mutex> lock(api_spinlock_);
-                ret = api_->CancelOrder(&session_id, &cancel_req);
-            }
+		TAPIUINT32 session_id;
+		{
+			std::lock_guard<std::mutex> lock(api_spinlock_);
+			ret = api_->CancelOrder(&session_id, &cancel_req);
+		}
 
-            if (ret == TAPIERROR_SUCCEED)
-            {
-                esunny_trade_context_.SaveCancelSnOfSessionID(session_id, pc->serial_no);
-                /*
-                T_CancelRespond rsp;
-                ESUNNYPacker::CancelRespond(0, pc->serial_no, 0, rsp);
-
-                // 应答
-                if (CancelRespond_call_back_handler_) CancelRespond_call_back_handler_(&rsp);
-                LogUtil::OnCancelRespond(&rsp, tunnel_info_);
-                */
-            }
+		if (ret == TAPIERROR_SUCCEED) {
+			esunny_trade_context_.SaveCancelSnOfSessionID(session_id, pc->serial_no);
+		}
 
 
-            TNL_LOG_DEBUG("CancelOrder - return:%d, session_id:%d, cancel_sn:%ld, order_sn:%ld", ret, session_id, pc->serial_no, pc->org_serial_no);
-            //TNL_LOG_DEBUG("CancelOrder - return:%d, session_id:%d - %s", ret, session_id, ESUNNYDatatypeFormater::ToString(&cancel_req).c_str());
-        }
-        catch (...)
-        {
-            TNL_LOG_ERROR("unknown exception in ReqOrderAction.");
-        }
+		TNL_LOG_DEBUG("CancelOrder - return:%d, session_id:%d, cancel_sn:%ld, order_sn:%ld", ret, session_id, pc->serial_no, pc->org_serial_no);
 
         return ConvertErrorCode(ret);
     }
@@ -492,18 +455,6 @@ private:
     std::atomic_bool logoned_;
     std::atomic_bool in_init_state_; // clear after first success login
 
-    // query position control variables
-    std::vector<PositionDetail> pos_buffer_;
-
-    // query order detail control variables
-    std::vector<OrderDetail> od_buffer_;
-
-    // query trade detail control variables
-    std::vector<TradeDetail> td_buffer_;
-
-    // variables and functions for cancel all unterminated orders automatically
-    std::atomic_bool have_handled_unterminated_orders_;
-    std::vector<TapAPIOrderInfo> unterminated_orders_;
     std::mutex cancel_sync_;
     std::condition_variable qry_order_finish_cond_;
 

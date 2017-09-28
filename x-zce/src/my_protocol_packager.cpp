@@ -10,8 +10,7 @@
 bool ESUNNYPacker::OrderRequest(const TunnelConfigData& cfg, const T_PlaceOrder* req, TapAPINewOrder& new_or)
 {
     const TapAPITradeContractInfo * ci = ESUNNYFieldConvert::GetContractInfo(req->stock_code);
-    if (!ci)
-    {
+    if (!ci) {
         return false;
     }
 

@@ -24,20 +24,6 @@ C4E3B28684E46D5842053F1BD2FAE78FCCE442EEB0786AD751D37E7AC15727B30815648A850F4110
 07F1F97C0A676E00D09FE0CA2808949DB")
  */
 
-static EntrustNoType BuildEntrustNo(const char *sys_no)
-{
-    // exceed range of int64, remove 0 at middle ( 20150403000000068886 )
-    EntrustNoType en = atol(sys_no + 8);
-
-    // get head of entrust no
-    char buf[9];
-    memcpy(buf, sys_no, 8);
-    buf[8] = '\0';
-    en += (atol(buf) * 100000000);
-
-    return en;
-}
-
 static std::string ReadAuthCode()
 {
     char l[1024];
@@ -226,30 +212,23 @@ void MYEsunnyTradeSpi::OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCo
         sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
+// reserve
 void MYEsunnyTradeSpi::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
     const TapAPITradeContractInfo* info)
 {
     TNL_LOG_INFO("OnRspQryContract: sessionID:%u, errorCode: %d, isLast: %c, \n%s",
         sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
 
-    if (errorCode == TAPIERROR_SUCCEED)
-    {
-        if (info)
-        {
+    if (errorCode == TAPIERROR_SUCCEED) {
+        if (info) {
             ESUNNYFieldConvert::AddContractInfo(*info);
         }
 
-        if (isLast == APIYNFLAG_YES)
-        {
+        if (isLast == APIYNFLAG_YES) {
             // start thread for cancel unterminated orders
-            if (!HaveFinishQueryOrders())
-            {
-
+            if (!HaveFinishQueryOrders()) {
                 std::thread qry_order(&MYEsunnyTradeSpi::QueryAndHandleOrders, this);
                 qry_order.detach();
-            }
-            else
-            {
             }
         }
     }
@@ -286,7 +265,6 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
         TNL_LOG_ERROR("SessionID: %u. OnRtnOrder after order terminated.", info->SessionID);
     }
 
-    // order refuse
     if (info->ErrorCode != TAPIERROR_SUCCEED) {
         int standard_error_no = cfg_.GetStandardErrorNo(info->ErrorCode);
         // 报单失败，报告合规检查
@@ -372,155 +350,18 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
     }
 }
 
+// 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.
+// log this info only to see whether this method will be invoked.
 void MYEsunnyTradeSpi::OnRspOrderAction(TAPIUINT32 sessionID, TAPIUINT32 errorCode, const TapAPIOrderActionRsp* info)
 {
     TNL_LOG_INFO("OnRspOrderAction: sessionID:%u, errorCode: %d, \n%s",
         sessionID, errorCode, ESUNNYDatatypeFormater::ToString(info).c_str());
-    if (sessionID == 0 || info == NULL)
-    {
-        return;
-    }
-
-    if (info->OrderInfo->ErrorCode != TAPIERROR_SUCCEED)
-    {
-        ReportErrorState(info->OrderInfo->ErrorCode, info->OrderInfo->ErrorText);
-    }
-
-    SerialNoType c_sn = esunny_trade_context_.GetSnBySessionID(sessionID);
-    if (c_sn == 0)
-    {
-        TNL_LOG_INFO("can't get cancel serial no of SessionID: %u", sessionID);
-        return;
-    }
-    const EsunnyOrderInfo *p = esunny_trade_context_.GetOrderInfoByOrderNo(info->OrderInfo->OrderNo);
-    if (!p)
-    {
-        TNL_LOG_INFO("can't get original place order info of SessionID: %s", info->OrderInfo->OrderNo);
-        return;
-    }
-
-    int standard_error_no = cfg_.GetStandardErrorNo(errorCode);
-    T_CancelRespond rsp;
-    ESUNNYPacker::CancelRespond(standard_error_no, c_sn, 0, rsp);
-
-    if (standard_error_no != TUNNEL_ERR_CODE::RESULT_SUCCESS)
-    {
-        // 撤单拒绝，报告合规检查
-        ComplianceCheck_OnOrderCancelFailed(
-            tunnel_info_.account.c_str(),
-            p->po.stock_code,
-            p->po.serial_no);
-    }
-
-    // 应答
-    if (CancelRespond_call_back_handler_) CancelRespond_call_back_handler_(&rsp);
-    LogUtil::OnCancelRespond(&rsp, tunnel_info_);
 }
 
 void MYEsunnyTradeSpi::OnRspQryOrder(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIOrderInfo* info)
 {
     TNL_LOG_INFO("OnRspQryOrder: sessionID:%u, errorCode: %d, isLast: %c, \n%s",
         sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
-
-    if (!HaveFinishQueryOrders())
-    {
-        if (!finish_query_canceltimes_)
-        {
-            std::unique_lock<std::mutex> lock(stats_canceltimes_sync_);
-            if (info && info->OrderState == TAPI_ORDER_STATE_CANCELED)
-            {
-                std::string contract_no(info->CommodityNo);
-                contract_no.append(info->ContractNo);
-                std::map<std::string, int>::iterator it = cancel_times_of_contract.find(contract_no);
-                if (it == cancel_times_of_contract.end())
-                {
-                    cancel_times_of_contract.insert(std::make_pair(contract_no, 1));
-                }
-                else
-                {
-                    ++it->second;
-                }
-            }
-
-            if (isLast == APIYNFLAG_YES)
-            {
-                for (std::map<std::string, int>::iterator it = cancel_times_of_contract.begin();
-                    it != cancel_times_of_contract.end(); ++it)
-                {
-                    ComplianceCheck_SetCancelTimes(tunnel_info_.account.c_str(), it->first.c_str(), it->second);
-                }
-                cancel_times_of_contract.clear();
-                finish_query_canceltimes_ = true;
-            }
-        }
-
-        if (!have_handled_unterminated_orders_)
-        {
-            std::unique_lock<std::mutex> lock(cancel_sync_);
-            if (info && !IsOrderTerminate(*info))
-            {
-                unterminated_orders_.push_back(*info);
-            }
-
-            if (isLast == APIYNFLAG_YES && unterminated_orders_.empty())
-            {
-                have_handled_unterminated_orders_ = true;
-            }
-
-            if (isLast == APIYNFLAG_YES)
-            {
-                qry_order_finish_cond_.notify_one();
-            }
-        }
-
-        TNL_LOG_INFO("OnRspQryOrder when cancel unterminated orders or stats cancel times, order: 0X%X, last: %c", info, isLast);
-        return;
-    }
-
-    T_OrderDetailReturn ret;
-
-    // respond error
-    if (errorCode != TAPIERROR_SUCCEED)
-    {
-        ret.error_no = -1;
-        if (QryOrderDetailReturnHandler_) QryOrderDetailReturnHandler_(&ret);
-        LogUtil::OnOrderDetailRtn(&ret, tunnel_info_);
-        return;
-    }
-
-    // empty Order detail
-    if (!info)
-    {
-        ret.error_no = 0;
-        if (QryOrderDetailReturnHandler_) QryOrderDetailReturnHandler_(&ret);
-        LogUtil::OnOrderDetailRtn(&ret, tunnel_info_);
-        return;
-    }
-
-    OrderDetail od;
-    std::string contract_no(info->CommodityNo);
-    contract_no.append(info->ContractNo);
-    strncpy(od.stock_code, contract_no.c_str(), sizeof(od.stock_code));
-    od.entrust_no = BuildEntrustNo(info->OrderSystemNo);
-    ;
-    od.order_kind = ESUNNYFieldConvert::GetMYOrderKind(info->TimeInForce);
-    od.direction = ESUNNYFieldConvert::GetMYSide(info->OrderSide);
-    od.open_close = ESUNNYFieldConvert::GetMYOCFlag(info->PositionEffect);
-    od.speculator = ESUNNYFieldConvert::GetMYHedgeFlag(info->HedgeFlag);
-    od.entrust_status = ESUNNYFieldConvert::GetMYEntrustStatus(info->OrderState);
-    od.limit_price = info->OrderPrice;
-    od.volume = info->OrderQty;
-    od.volume_traded = info->OrderMatchQty;
-    od.volume_remain = od.volume - od.volume_traded;
-    od_buffer_.push_back(od);
-
-    if (isLast == APIYNFLAG_YES)
-    {
-        ret.datas.swap(od_buffer_);
-        ret.error_no = 0;
-        if (QryOrderDetailReturnHandler_) QryOrderDetailReturnHandler_(&ret);
-        LogUtil::OnOrderDetailRtn(&ret, tunnel_info_);
-    }
 }
 
 void MYEsunnyTradeSpi::OnRspQryOrderProcess(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
@@ -535,105 +376,13 @@ void MYEsunnyTradeSpi::OnRspQryFill(TAPIUINT32 sessionID, TAPIINT32 errorCode, T
     TNL_LOG_DEBUG("OnRspQryFill: sessionID:%u, errorCode: %d, isLast: %c, \n%s",
         sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
 
-    T_TradeDetailReturn ret;
-
-    // respond error
-    if (errorCode != TAPIERROR_SUCCEED)
-    {
-        ret.error_no = -1;
-        if (QryTradeDetailReturnHandler_) QryTradeDetailReturnHandler_(&ret);
-        LogUtil::OnTradeDetailRtn(&ret, tunnel_info_);
-        return;
-    }
-
-    // empty trade detail
-    if (!info)
-    {
-        ret.error_no = 0;
-        if (QryTradeDetailReturnHandler_) QryTradeDetailReturnHandler_(&ret);
-        LogUtil::OnTradeDetailRtn(&ret, tunnel_info_);
-        return;
-    }
-
-    TradeDetail td;
-    std::string contract_no(info->CommodityNo);
-    contract_no.append(info->ContractNo);
-    strncpy(td.stock_code, contract_no.c_str(), sizeof(td.stock_code));
-
-    // don't need get system order no for query result
-    td.entrust_no = 0;
-
-    td.direction = ESUNNYFieldConvert::GetMYSide(info->MatchSide);
-    td.open_close = ESUNNYFieldConvert::GetMYOCFlag(info->PositionEffect);
-    td.speculator = ESUNNYFieldConvert::GetMYHedgeFlag(info->HedgeFlag);
-    td.trade_price = info->MatchPrice;
-    td.trade_volume = info->MatchQty;
-    strncpy(td.trade_time, info->MatchDateTime + 11, sizeof(td.trade_time)); // MatchDateTime=2015-03-26 10:30:57
-    td_buffer_.push_back(td);
-
-    if (isLast == APIYNFLAG_YES)
-    {
-        ret.datas.swap(td_buffer_);
-        ret.error_no = 0;
-        if (QryTradeDetailReturnHandler_) QryTradeDetailReturnHandler_(&ret);
-        LogUtil::OnTradeDetailRtn(&ret, tunnel_info_);
-    }
 }
 
+// discard this info
 void MYEsunnyTradeSpi::OnRtnFill(const TapAPIFillInfo* info)
 {
     TNL_LOG_DEBUG("OnRtnFill: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
 
-    if (!HaveFinishQueryOrders())
-    {
-        TNL_LOG_WARN("OnRtnFill when tunnel not ready.");
-        return;
-    }
-
-    if (info == NULL)
-    {
-        TNL_LOG_WARN("OnRtnFill return null object.");
-        return;
-    }
-
-    // get original place order info
-    const EsunnyOrderInfo *p = esunny_trade_context_.GetOrderInfoByOrderNo(info->OrderNo);
-    if (!p)
-    {
-        TNL_LOG_INFO("can't get place order info of OrderNo: %s, order not placed by this session", info->OrderNo);
-        return;
-    }
-    bool should_rsp = true;
-    if (p->IsTerminated())
-    {
-        should_rsp = false;
-        TNL_LOG_ERROR("OrderNo: %s. OnRtnFill after order terminated.", info->OrderNo);
-    }
-
-    // match回报
-    T_TradeReturn trade_return;
-    ESUNNYPacker::TradeReturn(info, p, trade_return);
-    p->volume_total_matched += info->MatchQty;
-    if (should_rsp && TradeReturn_call_back_handler_) TradeReturn_call_back_handler_(&trade_return);
-    LogUtil::OnTradeReturn(&trade_return, tunnel_info_);
-}
-
-namespace
-{
-struct PositionDetailPred
-{
-    PositionDetailPred(const PositionDetail &v)
-        : v_(v)
-    {
-    }
-    bool operator()(const PositionDetail &l)
-    {
-        return v_.direction == l.direction && strcmp(v_.stock_code, l.stock_code) == 0;
-    }
-
-private:
-    const PositionDetail v_;
-};
 }
 
 void MYEsunnyTradeSpi::OnRspQryPosition(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
@@ -645,76 +394,6 @@ void MYEsunnyTradeSpi::OnRspQryPosition(TAPIUINT32 sessionID, TAPIINT32 errorCod
         sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
     T_PositionReturn ret;
 
-    // respond error
-    if (errorCode != TAPIERROR_SUCCEED)
-    {
-        ret.error_no = -1;
-        QryPosReturnHandler_(&ret);
-        LogUtil::OnPositionRtn(&ret, tunnel_info_);
-        return;
-    }
-
-    // empty positioon
-    if (!info)
-    {
-        ret.error_no = 0;
-        QryPosReturnHandler_(&ret);
-        LogUtil::OnPositionRtn(&ret, tunnel_info_);
-        return;
-    }
-
-    PositionDetail pos;
-    std::string contract_no(info->CommodityNo);
-    contract_no.append(info->ContractNo);
-    strncpy(pos.stock_code, contract_no.c_str(), sizeof(StockCodeType));
-    pos.direction = ESUNNYFieldConvert::GetMYSide(info->MatchSide);
-    pos.position = info->PositionQty;
-    pos.position_avg_price = 0;
-    if (pos.position > 0)
-    {
-        pos.position_avg_price = info->PositionPrice;
-    }
-
-    pos.yestoday_position = 0;
-    pos.yd_position_avg_price = 0;
-    if (info->IsHistory == APIYNFLAG_YES)
-    {
-        pos.yestoday_position = info->PositionQty;
-        pos.yd_position_avg_price = info->PositionPrice;
-    }
-
-    if (pos.position > 0 || pos.yestoday_position > 0)
-    {
-        std::vector<PositionDetail>::iterator it = std::find_if(pos_buffer_.begin(), pos_buffer_.end(), PositionDetailPred(pos));
-        if (it == pos_buffer_.end())
-        {
-            pos_buffer_.push_back(pos);
-        }
-        else
-        {
-            if (pos.position > 0)
-            {
-                it->position_avg_price = ((it->position_avg_price * it->position) + (pos.position_avg_price * pos.position))
-                    / (it->position + pos.position);
-                it->position += pos.position;
-            }
-            if (pos.yestoday_position > 0)
-            {
-                it->yd_position_avg_price = ((it->yd_position_avg_price * it->yestoday_position)
-                    + (pos.yd_position_avg_price * pos.yestoday_position))
-                    / (it->yestoday_position + pos.yestoday_position);
-                it->yestoday_position += pos.yestoday_position;
-            }
-        }
-    }
-
-    if (isLast == APIYNFLAG_YES)
-    {
-        ret.datas.swap(pos_buffer_);
-        ret.error_no = 0;
-        QryPosReturnHandler_(&ret);
-        LogUtil::OnPositionRtn(&ret, tunnel_info_);
-    }
 }
 
 void MYEsunnyTradeSpi::OnRtnPosition(const TapAPIPositionInfo* info)
@@ -789,67 +468,3 @@ bool MYEsunnyTradeSpi::IsOrderTerminate(const TapAPIOrderInfo& order_field)
         || order_field.OrderState == TAPI_ORDER_STATE_DELETEDFOREXPIRE;
 }
 
-void MYEsunnyTradeSpi::QueryAndHandleOrders()
-{
-    // query order detail parameter
-    TapAPIOrderQryReq qry_param;
-    memset(&qry_param, 0, sizeof(TapAPIOrderQryReq));
-
-    //超时后没有完成查询，重试。为防止委托单太多，10s都回报不了，每次超时加5s
-    int wait_seconds = 10;
-
-    std::vector<TapAPIOrderInfo> unterminated_orders_t;
-    while (!HaveFinishQueryOrders())
-    {
-        //主动查询所有报单
-        while (true)
-        {
-            TAPIUINT32 session_id;
-			qry_param.OrderQryType = TAPI_ORDER_QRY_TYPE_ALL;
-            int qry_result = api_->QryOrder(&session_id, &qry_param);
-            TNL_LOG_INFO("QryOrder (for cancel unterminated orders or stats cancel times) - session_id:%d, return:%d", session_id,
-                qry_result);
-
-            if (qry_result != 0)
-            {
-                // retry if failed, wait some seconds
-                sleep(2);
-                continue;
-            }
-
-            break;
-        }
-
-        //处理未终结报单（撤未终结报单）
-        if (!have_handled_unterminated_orders_)
-        {
-            {
-                std::unique_lock<std::mutex> lock(cancel_sync_);
-                qry_order_finish_cond_.wait_for(lock, std::chrono::seconds(10));
-                unterminated_orders_t.swap(unterminated_orders_);
-            }
-            //遍历 unterminated_orders 间隔20ms（流控要求），发送撤单请求
-            for (const TapAPIOrderInfo &order_field : unterminated_orders_t)
-            {
-                TapAPIOrderCancelReq action_field = CreatCancelParam(order_field);
-                TAPIUINT32 session_id;
-                TAPIINT32 ret = api_->CancelOrder(&session_id, &action_field);
-                if (ret != TAPIERROR_SUCCEED)
-                {
-                    TNL_LOG_WARN("in CancelUnterminatedOrders, CancelOrder return %d", ret);
-                }
-                usleep(20 * 1000);
-            }
-            unterminated_orders_t.clear();
-
-            //全部发送完毕后，等待 1s ， 判断 handle_flag , 如没有完成，则retry
-            sleep(1);
-        }
-        else if (!finish_query_canceltimes_)
-        {
-            // wait order query result return back
-            sleep(wait_seconds);
-            wait_seconds += 5;
-        }
-    }
-}

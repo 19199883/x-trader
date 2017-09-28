@@ -240,22 +240,16 @@ inline void ESUNNYFieldConvert::AddContractInfo(const TapAPITradeContractInfo& i
 	
     std::string contract(info.CommodityNo);
     contract.append(info.ContractNo1);
-    if (info.ContractNo2[0] != '\0')
-    {
+    if (info.ContractNo2[0] != '\0') {
         contract.append("/");
         contract.append(info.CommodityNo);
         contract.append(info.ContractNo2);
     }
 
     ContractInfoMap::iterator it = contract_in_market.find(contract);
-    if (it != contract_in_market.end())
-    {
+    if (it != contract_in_market.end()) {
         it->second = info;
-    }
-    else
-    {
-        contract_in_market.insert(std::make_pair(contract, info));
-    }
+    } else { contract_in_market.insert(std::make_pair(contract, info)); }
 }
 
 #endif // FIELD_CONVERT_H_
