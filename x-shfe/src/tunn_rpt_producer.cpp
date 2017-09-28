@@ -93,8 +93,10 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 	
 	// report rejected if ret!=0
 	if (ret != 0){
-		clog_warning("[%s] ReqOrderInsert- ret=%d - %s", 
-			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
+		time_t rawtime;
+		time (&rawtime);
+		clog_warning("[%s][%s] ReqOrderInsert- ret=%d - %s", 
+			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
 
 		struct TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
@@ -124,8 +126,10 @@ int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 	int ret = api_->ReqOrderAction(p, 0);
 
 	if (ret != 0){
-		clog_warning("[%s] ReqOrderAction- ret=%d - %s", 
-			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
+		time_t rawtime;
+		time (&rawtime);
+		clog_warning("[%s][%s] ReqOrderAction- ret=%d - %s", 
+			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
 	} else {
 		// TODO:debug
 		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
@@ -206,8 +210,10 @@ void TunnRptProducer::End()
 
 void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {    
-	clog_warning("[%s] OnRspError: requestid = %d, last_flag=%d %s",
-		module_name_, nRequestID, bIsLast, 
+	time_t rawtime;
+	time (&rawtime);
+	clog_warning("[%s][%s] OnRspError: requestid = %d, last_flag=%d %s",
+		module_name_,ctime(&rawtime),nRequestID, bIsLast, 
 		FEMASDatatypeFormater::ToString(pRspInfo).c_str());
 }
 
@@ -223,8 +229,10 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
         FEMASDatatypeFormater::ToString(perror).c_str());
 
 	if (perror != NULL && 0 != perror->ErrorID){
-		clog_warning("[%s] OnRspOrderInsert:%s %s",
-			module_name_,
+		time_t rawtime;
+		time (&rawtime);
+		clog_warning("[%s][%s] OnRspOrderInsert:%s %s",
+			module_name_,ctime(&rawtime),
 			FEMASDatatypeFormater::ToString(pfield).c_str(),
 			FEMASDatatypeFormater::ToString(perror).c_str());
 	}
@@ -282,8 +290,10 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
         FEMASDatatypeFormater::ToString(perror).c_str());
 
 	if (perror != NULL && 0 != perror->ErrorID){
-		clog_warning("[%s] OnRspOrderAction:%s %s",
-			module_name_,
+		time_t rawtime;
+		time (&rawtime);
+		clog_warning("[%s][%s] OnRspOrderAction:%s %s",
+			module_name_,ctime(&rawtime),
 			FEMASDatatypeFormater::ToString(pfield).c_str(),
 			FEMASDatatypeFormater::ToString(perror).c_str());
 	}
@@ -294,8 +304,10 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 {
 	if (ended_) return;
 
-	clog_warning("[%s] OnErrRtnOrderInsert:  %s %s",
-        module_name_,
+	time_t rawtime;
+	time (&rawtime);
+	clog_warning("[%s][%s] OnErrRtnOrderInsert:%s %s",
+        module_name_,ctime(&rawtime),
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
 		FEMASDatatypeFormater::ToString(perror).c_str());
 
@@ -358,8 +370,10 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 void TunnRptProducer::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield, 
 			CUstpFtdcRspInfoField *perror)
 {
-	clog_warning("[%s] OnErrRtnOrderAction:%s %s",
-		module_name_,
+	time_t rawtime;
+	time (&rawtime);
+	clog_warning("[%s][%s] OnErrRtnOrderAction:%s %s",
+		module_name_,ctime(&rawtime),
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
 		FEMASDatatypeFormater::ToString(perror).c_str());         
 }

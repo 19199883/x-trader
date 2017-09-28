@@ -230,7 +230,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+		clog_info("[%s] strategy latency:%d us", module_name_, latency); 
 #endif
 
 		sigs[i].st_id = this->GetId();
@@ -652,7 +652,7 @@ void Strategy::WriteLog(bool isEnded)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] WriteLog latency:%d us", module_name_, latency); 
+		clog_info("[%s] WriteLog latency:%d us", module_name_, latency); 
 #endif
 }
 

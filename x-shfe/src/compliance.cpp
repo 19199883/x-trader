@@ -82,12 +82,6 @@ int Compliance::GetCancelTimes(const char* contract)
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			double price, TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset)
 {
-//	if(ord_counter>=COUNTER_UPPER_LIMIT){
-//		clog_warning("[%s] TryReqOrderInsert counter is greater than max. counter:%d;",
-//			module_name_, ord_counter);
-//		return false;
-//	}
-
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
@@ -95,8 +89,10 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 
 	int32_t cancel_times = GetCancelTimes(contract);
 	if(offset==USTP_FTDC_OF_Open && cancel_times>=cancel_upper_limit_){
-		clog_warning("[%s] rejected for cancel upper limit.ord counter:%d;cur times:%d;ord counter:%d;",
-			module_name_,ord_counter,cancel_times,ord_counter);
+		time_t rawtime;
+		time (&rawtime);
+		clog_warning("[%s][%s] rejected for cancel upper limit.ord counter:%d;cur times:%d;ord counter:%d;",
+			module_name_,ctime (&rawtime),ord_counter,cancel_times,ord_counter);
 		return false;
 	}
 
@@ -108,8 +104,10 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			if ((side == USTP_FTDC_D_Buy && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
 				(side != USTP_FTDC_D_Buy && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
 				ret = false;
-				clog_warning("[%s] matched with myself. ord counter:%d; queue counter:%d ",
-					module_name_, ord_counter, i);
+				time_t rawtime;
+				time (&rawtime);
+				clog_warning("[%s][%s] matched with myself. ord counter:%d; queue counter:%d ",
+					module_name_, ctime(&rawtime),ord_counter, i);
 				break;
 			}
 		} // if (strcmp(ord.contract, contract)==0 && side != ord.side)
@@ -133,7 +131,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] TryReqOrderInsert latency:%d us", module_name_, latency); 
+		clog_info("[%s] TryReqOrderInsert latency:%d us", module_name_, latency); 
 #endif
     return ret;
 }
@@ -157,7 +155,7 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 #ifdef LATENCY_MEASURE
 			high_resolution_clock::time_point t1 = high_resolution_clock::now();
 			int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-			clog_warning("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
+			clog_info("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
 #endif
 				return;
 			}
@@ -173,7 +171,7 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 #ifdef LATENCY_MEASURE
 			high_resolution_clock::time_point t1 = high_resolution_clock::now();
 			int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-			clog_warning("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
+			clog_info("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
 #endif
 }
 
