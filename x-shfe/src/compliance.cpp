@@ -64,7 +64,7 @@ int Compliance::GetCancelTimes(const char* contract)
 
 		if(strcmp(contract, contracts_[i]) == 0){
 			// TODO:debug
-			clog_info("[%s] GetCancelTimes:%s,%d;", module_name_,contract,contracts_[i]);
+			clog_info("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
 			return cur_cancel_times_[i];
 		}
 	}
@@ -74,7 +74,7 @@ int Compliance::GetCancelTimes(const char* contract)
 	}
 
 	// TODO:debug
-	clog_info("[%s] GetCancelTimes:%s,%d;", module_name_,contract,contracts_[i]);
+	clog_info("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
 	return cur_cancel_times_[i];
 
 }
