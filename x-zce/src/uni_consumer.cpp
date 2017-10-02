@@ -486,6 +486,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 				ord.InsertPrice,ord.BuySellType, ord.OpenCloseType);
 	if(result){
 #endif
+		// TODO: 创建会话ID与序号的映射关系(Hash)；序号与会话ID的映射关系
 		tunn_rpt_producer_->ReqOrderInsert(&ord);
 #ifdef COMPLIANCE_CHECK
 	}else{

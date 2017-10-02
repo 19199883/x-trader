@@ -7,6 +7,7 @@
 #include "config_data.h"
 #include "esunny_trade_context.h"
 
+// 创建行情缓存，填充固定字段，之后至填充变更的字段
 bool ESUNNYPacker::OrderRequest(const TunnelConfigData& cfg, const T_PlaceOrder* req, TapAPINewOrder& new_or)
 {
     const TapAPITradeContractInfo * ci = ESUNNYFieldConvert::GetContractInfo(req->stock_code);
@@ -62,9 +63,6 @@ void ESUNNYPacker::OrderRespond(int error_no, long serial_no, long entrust_no, s
 void ESUNNYPacker::CancelRequest(const EsunnyOrderInfo* org_order_info, TapAPIOrderCancelReq& co)
 {
     memset(&co, 0, sizeof(co));
-
-    //co.RefInt = o.RefInt;                                                  ///< 整型参考值
-    //memcpy(co.RefString, o.RefString, sizeof(co.RefString));               ///< 字符串参考值
     co.ServerFlag = org_order_info->server_flag;                             ///< 服务器标识
     memcpy(co.OrderNo, org_order_info->order_no, sizeof(co.OrderNo));        ///< 委托编码
 }
@@ -97,23 +95,3 @@ void ESUNNYPacker::OrderReturn(const TapAPIOrderInfo* rsp, const EsunnyOrderInfo
     order_return.volume_remain = p_req->volume_remain;
 }
 
-void ESUNNYPacker::TradeReturn(const TapAPIFillInfo* rsp, const EsunnyOrderInfo* p_req, T_TradeReturn& trade_return)
-{
-    memset(&trade_return, 0, sizeof(trade_return));
-
-    trade_return.serial_no = p_req->po.serial_no;
-    trade_return.entrust_no = p_req->entrust_no;
-    trade_return.business_volume = rsp->MatchQty;
-    trade_return.business_price = rsp->MatchPrice;
-    int id_len = strlen(rsp->ExchangeMatchNo);
-    int id_offset = 0;
-    if (id_len > 8)
-    {
-        id_offset = id_len - 8; // get 8 bits at the tail
-    }
-    trade_return.business_no = atoi(rsp->ExchangeMatchNo + id_offset);
-
-    memcpy(trade_return.stock_code, p_req->po.stock_code, sizeof(trade_return.stock_code));
-    trade_return.direction = p_req->po.direction;
-    trade_return.open_close = p_req->po.open_close;
-}

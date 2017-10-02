@@ -21,7 +21,6 @@ public:
 
     static void OrderReturn(const TapAPIOrderInfo *rsp, const EsunnyOrderInfo *p_req, T_OrderReturn &order_return);
 
-    static void TradeReturn(const TapAPIFillInfo *rsp, const EsunnyOrderInfo *p_req, T_TradeReturn &trade_return);
 };
 
 #endif // MY_PROTOCOL_Packer_H_

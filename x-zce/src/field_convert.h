@@ -233,6 +233,7 @@ inline const TapAPITradeContractInfo* ESUNNYFieldConvert::GetContractInfo(const 
     return NULL;
 }
 
+// 建行情缓存，填充固定字段，之后至填充变更的字段
 inline void ESUNNYFieldConvert::AddContractInfo(const TapAPITradeContractInfo& info)
 {
     std::lock_guard<std::mutex> lock(contract_mutex);

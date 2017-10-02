@@ -30,34 +30,6 @@ public:
     MYEsunnyTradeSpi(const TunnelConfigData &cfg);
     virtual ~MYEsunnyTradeSpi(void);
 
-    void SetCallbackHandler(std::function<void(const T_OrderRespond *)> handler)
-    {
-        OrderRespond_call_back_handler_ = handler;
-    }
-    void SetCallbackHandler(std::function<void(const T_CancelRespond *)> handler)
-    {
-        CancelRespond_call_back_handler_ = handler;
-    }
-    void SetCallbackHandler(std::function<void(const T_OrderReturn *)> handler)
-    {
-        OrderReturn_call_back_handler_ = handler;
-    }
-    void SetCallbackHandler(std::function<void(const T_TradeReturn *)> handler)
-    {
-        TradeReturn_call_back_handler_ = handler;
-    }
-    void SetCallbackHandler(std::function<void(const T_PositionReturn *)> handler)
-    {
-        QryPosReturnHandler_ = handler;
-    }
-    void SetCallbackHandler(std::function<void(const T_OrderDetailReturn *)> handler)
-    {
-        QryOrderDetailReturnHandler_ = handler;
-    }
-    void SetCallbackHandler(std::function<void(const T_TradeDetailReturn *)> handler)
-    {
-        QryTradeDetailReturnHandler_ = handler;
-    }
     /**
      * @brief 连接成功回调通知
      * @ingroup G_T_Login
@@ -328,19 +300,9 @@ public:
 		}
 
 		TAPIUINT32 session_id;
-		{
-			std::lock_guard<std::mutex> lock(api_spinlock_);
 			esunny_trade_context_.SavePendingOrder(po);
 			ret = api_->InsertOrder(&session_id, &po_req);
-
-			if (ret == TAPIERROR_SUCCEED) {
-				esunny_trade_context_.SaveOrderInfo(session_id, new EsunnyOrderInfo(*po));
-			}
-		}
-
 		TNL_LOG_DEBUG("InsertOrder - return:%d, session_id:%d, serial_no:%ld", ret, session_id, po->serial_no);
-
-        return ConvertErrorCode(ret);
     }
 
     //报单操作请求
@@ -352,85 +314,16 @@ public:
         }
         int ret = TUNNEL_ERR_CODE::RESULT_FAIL;
 
-		const EsunnyOrderInfo * org_order_info = esunny_trade_context_.GetOrderInfoBySN(pc->org_serial_no);
-		if (!org_order_info) {
-			TNL_LOG_WARN("Cancel Order can't get original order by sn");
-			return ret;
-		}
 		TapAPIOrderCancelReq cancel_req;
 		ESUNNYPacker::CancelRequest(org_order_info, cancel_req);
-
 		TAPIUINT32 session_id;
-		{
-			std::lock_guard<std::mutex> lock(api_spinlock_);
 			ret = api_->CancelOrder(&session_id, &cancel_req);
-		}
-
-		if (ret == TAPIERROR_SUCCEED) {
-			esunny_trade_context_.SaveCancelSnOfSessionID(session_id, pc->serial_no);
-		}
-
-
 		TNL_LOG_DEBUG("CancelOrder - return:%d, session_id:%d, cancel_sn:%ld, order_sn:%ld", ret, session_id, pc->serial_no, pc->org_serial_no);
-
-        return ConvertErrorCode(ret);
     }
 
-    int QryPosition(TapAPIPositionQryReq *p, int request_id)
-    {
-        if (!TunnelIsReady())
-        {
-            TNL_LOG_WARN("QryPosition when tunnel not ready");
-            return TUNNEL_ERR_CODE::NO_VALID_CONNECT_AVAILABLE;
-        }
-
-        TAPIUINT32 session_id;
-        int ret;
-        {
-            std::lock_guard<std::mutex> lock(api_spinlock_);
-            ret = api_->QryPosition(&session_id, p);
-        }
-        TNL_LOG_INFO("QryPosition - session_id:%d, return:%d", session_id, ret);
-
-        return ConvertErrorCode(ret);
-    }
-    int QryOrderDetail(TapAPIOrderQryReq *p, int request_id)
-    {
-        if (!TunnelIsReady())
-        {
-            TNL_LOG_WARN("QryOrderDetail when tunnel not ready");
-            return TUNNEL_ERR_CODE::NO_VALID_CONNECT_AVAILABLE;
-        }
-
-        TAPIUINT32 session_id;
-        int ret;
-        {
-            std::lock_guard<std::mutex> lock(api_spinlock_);
-            ret = api_->QryOrder(&session_id, p);
-        }
-        TNL_LOG_INFO("QryOrder - session_id:%d, return:%d", session_id, ret);
-
-        return ConvertErrorCode(ret);
-    }
-    int QryTradeDetail(TapAPIFillQryReq *p, int request_id)
-    {
-        if (!TunnelIsReady())
-        {
-            TNL_LOG_WARN("QryTradeDetail when tunnel not ready");
-            return TUNNEL_ERR_CODE::NO_VALID_CONNECT_AVAILABLE;
-        }
-
-        TAPIUINT32 session_id;
-        int ret;
-        {
-            std::lock_guard<std::mutex> lock(api_spinlock_);
-            ret = api_->QryFill(&session_id, p);
-        }
-        TNL_LOG_INFO("QryFill - session_id:%d, return:%d", session_id, ret);
-
-        return ConvertErrorCode(ret);
-    }
-
+    int QryPosition(TapAPIPositionQryReq *p, int request_id) { }
+    int QryOrderDetail(TapAPIOrderQryReq *p, int request_id) { }
+    int QryTradeDetail(TapAPIFillQryReq *p, int request_id) { }
 
 private:
     ITapTradeAPI *api_;
@@ -438,57 +331,16 @@ private:
 
     Tunnel_Info tunnel_info_;
     std::string pswd_;
-    std::string quote_addr_;
-    std::string exchange_code_;
-
-    std::function<void(const T_OrderRespond *)> OrderRespond_call_back_handler_;
-    std::function<void(const T_CancelRespond *)> CancelRespond_call_back_handler_;
-    std::function<void(const T_OrderReturn *)> OrderReturn_call_back_handler_;
-    std::function<void(const T_TradeReturn *)> TradeReturn_call_back_handler_;
-
-    std::function<void(const T_PositionReturn *)> QryPosReturnHandler_;
-    std::function<void(const T_OrderDetailReturn *)> QryOrderDetailReturnHandler_;
-    std::function<void(const T_TradeDetailReturn *)> QryTradeDetailReturnHandler_;
 
     // 配置数据对象
     TunnelConfigData cfg_;
     std::atomic_bool logoned_;
     std::atomic_bool in_init_state_; // clear after first success login
 
-    std::mutex cancel_sync_;
-    std::condition_variable qry_order_finish_cond_;
-
     void ReqLogin();
-
-    bool TunnelIsReady()
-    {
-        return logoned_ && HaveFinishQueryOrders();
-    }
-    bool HaveFinishQueryOrders()
-    {
-        return have_handled_unterminated_orders_ && finish_query_canceltimes_;
-    }
-
-    int ConvertErrorCode(int esunny_err_code);
-
+    bool TunnelIsReady() { return logoned_ ; }
     // 查询报单（用于撤盘口单，或统计撤单数）
-    void QueryAndHandleOrders();
-
-    void ReportErrorState(int api_error_no, const std::string &error_msg);
-
-    TapAPIOrderCancelReq CreatCancelParam(const TapAPIOrderInfo & order_field);
     bool IsOrderTerminate(const TapAPIOrderInfo & order_field);
-
-    std::mutex stats_canceltimes_sync_;
-    std::atomic_bool finish_query_canceltimes_;
-    std::map<std::string, int> cancel_times_of_contract;
-
-    std::mutex api_spinlock_;
-
-public:
-    // 外部接口对象使用，为避免修改接口，新增对象放到此处
-    std::mutex rsp_sync;
-    std::condition_variable rsp_con;
 };
 
 #endif //

@@ -29,23 +29,11 @@ static std::string ReadAuthCode()
     char l[1024];
     std::string auth_code;
     ifstream auth_cfg("auth_code.dat");
-    while (auth_cfg.getline(l, 1023))
-    {
+    while (auth_cfg.getline(l, 1023)) {
         auth_code.append(l);
     }
 
     return auth_code;
-}
-
-void MYEsunnyTradeSpi::ReportErrorState(int api_error_no, const std::string &error_msg)
-{
-    if (api_error_no == 0)
-    {
-        return;
-    }
-    if (!cfg_.IsKnownErrorNo(api_error_no))
-    {
-    }
 }
 
 MYEsunnyTradeSpi::MYEsunnyTradeSpi(const TunnelConfigData &cfg)
@@ -56,22 +44,15 @@ MYEsunnyTradeSpi::MYEsunnyTradeSpi(const TunnelConfigData &cfg)
 
     // whether it is need to support cancel all order when init
     have_handled_unterminated_orders_ = true;
-    if (cfg_.Initial_policy_param().cancel_orders_at_start)
-    {
+    if (cfg_.Initial_policy_param().cancel_orders_at_start) {
         have_handled_unterminated_orders_ = false;
-    }
-    finish_query_canceltimes_ = false;
-    if (cfg_.Compliance_check_param().init_cancel_times_at_start == 0)
-    {
-        finish_query_canceltimes_ = true;
     }
 
     // check api version
     TNL_LOG_INFO("TapTradeAPIVersion: %s", GetTapTradeAPIVersion());
 
     // 从配置解析参数
-    if (!ParseConfig())
-    {
+    if (!ParseConfig()) {
         return;
     }
 
@@ -88,23 +69,20 @@ MYEsunnyTradeSpi::MYEsunnyTradeSpi(const TunnelConfigData &cfg)
     strcpy(auth_info.KeyOperationLogPath, "");
     TAPIINT32 result;
     api_ = CreateTapTradeAPI(&auth_info, result);
-    if (!api_ || result != TAPIERROR_SUCCEED)
-    {
+    if (!api_ || result != TAPIERROR_SUCCEED) {
         TNL_LOG_WARN("CreateTapTradeAPI result: %d", result);
         return;
     }
     api_->SetAPINotify(this);
 
     // set front address (only support 1 front address)
-    for (const std::string &v : cfg.Logon_config().front_addrs)
-    {
+    for (const std::string &v : cfg.Logon_config().front_addrs) {
         IPAndPortNum ip_port = ParseIPAndPortNum(v);
         api_->SetHostAddress(ip_port.first.c_str(), ip_port.second);
         TNL_LOG_INFO("SetHostAddress, addr: %s:%d", ip_port.first.c_str(), ip_port.second);
         break;
     }
-    if (cfg.Logon_config().front_addrs.size() > 1)
-    {
+    if (cfg.Logon_config().front_addrs.size() > 1) {
         TNL_LOG_WARN("there are %d front address in configure file, only support 1.", cfg.Logon_config().front_addrs.size());
     }
 
@@ -117,16 +95,14 @@ MYEsunnyTradeSpi::MYEsunnyTradeSpi(const TunnelConfigData &cfg)
     stLoginAuth.ISDDA = APIYNFLAG_NO;
 
     result = api_->Login(&stLoginAuth);
-    if (TAPIERROR_SUCCEED != result)
-    {
+    if (TAPIERROR_SUCCEED != result) {
         TNL_LOG_ERROR("Login Error, result: %d", result);
     }
 }
 
 MYEsunnyTradeSpi::~MYEsunnyTradeSpi(void)
 {
-    if (api_)
-    {
+    if (api_) {
         api_->Disconnect();
         api_ = NULL;
     }
@@ -149,8 +125,7 @@ void MYEsunnyTradeSpi::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRsp
 {
     TNL_LOG_INFO("OnRspLogin: errorCode: %d, \n%s", errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
 
-    if (errorCode == TAPIERROR_SUCCEED)
-    {
+    if (errorCode == TAPIERROR_SUCCEED) {
         logoned_ = true;
         in_init_state_ = false;
     }
@@ -160,7 +135,6 @@ void MYEsunnyTradeSpi::OnAPIReady()
 {
     TNL_LOG_INFO("OnAPIReady");
 
-    // query contract info
     TAPIUINT32 session_id;
     api_->QryContract(&session_id, NULL);
 }
@@ -193,10 +167,7 @@ void MYEsunnyTradeSpi::OnRspQryFund(TAPIUINT32 sessionID, TAPIINT32 errorCode, T
         sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
-void MYEsunnyTradeSpi::OnRtnFund(const TapAPIFundData* info)
-{
-    //TNL_LOG_INFO("OnRtnFund: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
-}
+void MYEsunnyTradeSpi::OnRtnFund(const TapAPIFundData* info) { }
 
 void MYEsunnyTradeSpi::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
     const TapAPIExchangeInfo* info)
@@ -224,13 +195,7 @@ void MYEsunnyTradeSpi::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCod
             ESUNNYFieldConvert::AddContractInfo(*info);
         }
 
-        if (isLast == APIYNFLAG_YES) {
-            // start thread for cancel unterminated orders
-            if (!HaveFinishQueryOrders()) {
-                std::thread qry_order(&MYEsunnyTradeSpi::QueryAndHandleOrders, this);
-                qry_order.detach();
-            }
-        }
+        if (isLast == APIYNFLAG_YES) { // start thread for cancel unterminated orders }
     }
 }
 
@@ -248,13 +213,6 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
         return;
     }
 
-    if (info->OrderInfo->ErrorCode != TAPIERROR_SUCCEED) {
-        ReportErrorState(info->OrderInfo->ErrorCode, info->OrderInfo->ErrorText);
-    }
-
-    // get original place order info
-    const EsunnyOrderInfo *p = esunny_trade_context_.UpdateOrderNoAndGetOrderInfo(info->SessionID, info->OrderInfo->OrderNo,
-        info->OrderInfo->ServerFlag);
     if (!p) {
         TNL_LOG_INFO("can't get original place order info of SessionID: %u", info->SessionID);
         return;
@@ -268,16 +226,6 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
     if (info->ErrorCode != TAPIERROR_SUCCEED) {
         int standard_error_no = cfg_.GetStandardErrorNo(info->ErrorCode);
         // 报单失败，报告合规检查
-        ComplianceCheck_OnOrderInsertFailed(
-            tunnel_info_.account.c_str(),
-            p->po.serial_no,
-            MY_TNL_EC_CZCE,
-            p->po.stock_code,
-            p->po.volume,
-            p->po.speculator,
-            p->po.open_close,
-            p->po.order_type);
-
         T_OrderRespond rsp;
         ESUNNYPacker::OrderRespond(standard_error_no, p->po.serial_no, 0, MY_TNL_OS_ERROR, rsp);
 
@@ -307,31 +255,11 @@ void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 
     if (p->entrust_status == MY_TNL_OS_COMPLETED) {
         // 全成，报告合规检查
-        ComplianceCheck_OnOrderFilled(
-            tunnel_info_.account.c_str(),
-            p->po.serial_no);
     }
     else if (p->entrust_status == MY_TNL_OS_ERROR) {
         // 报单失败，报告合规检查
-        ComplianceCheck_OnOrderInsertFailed(
-            tunnel_info_.account.c_str(),
-            p->po.serial_no,
-            MY_TNL_EC_CZCE,
-            p->po.stock_code,
-            p->po.volume,
-            p->po.speculator,
-            p->po.open_close,
-            p->po.order_type);
     } else if (p->entrust_status == MY_TNL_OS_WITHDRAWED)
     {
-        ComplianceCheck_OnOrderCanceled(
-            tunnel_info_.account.c_str(),
-            p->po.stock_code,
-            p->po.serial_no,
-            MY_TNL_EC_CZCE,
-            p->volume_remain,
-            p->po.speculator,
-            p->po.open_close);
     }
 
     if (info->OrderInfo->OrderState == TAPI_ORDER_STATE_ACCEPT) {
@@ -371,64 +299,26 @@ void MYEsunnyTradeSpi::OnRspQryOrderProcess(TAPIUINT32 sessionID, TAPIINT32 erro
         sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
-void MYEsunnyTradeSpi::OnRspQryFill(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIFillInfo* info)
-{
-    TNL_LOG_DEBUG("OnRspQryFill: sessionID:%u, errorCode: %d, isLast: %c, \n%s",
-        sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
-
-}
+void MYEsunnyTradeSpi::OnRspQryFill(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIFillInfo* info) { }
 
 // discard this info
-void MYEsunnyTradeSpi::OnRtnFill(const TapAPIFillInfo* info)
-{
-    TNL_LOG_DEBUG("OnRtnFill: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
-
-}
+void MYEsunnyTradeSpi::OnRtnFill(const TapAPIFillInfo* info) { }
 
 void MYEsunnyTradeSpi::OnRspQryPosition(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
-    const TapAPIPositionInfo* info)
-{
-    if (sessionID == 0) return;
+    const TapAPIPositionInfo* info) { }
 
-    TNL_LOG_INFO("OnRspQryPosition: sessionID:%u, errorCode: %d, isLast: %c, \n%s",
-        sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
-    T_PositionReturn ret;
+void MYEsunnyTradeSpi::OnRtnPosition(const TapAPIPositionInfo* info) { }
 
-}
+void MYEsunnyTradeSpi::OnRspQryClose(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPICloseInfo* info) { }
 
-void MYEsunnyTradeSpi::OnRtnPosition(const TapAPIPositionInfo* info)
-{
-    //TNL_LOG_INFO("OnRtnPosition: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
-}
+void MYEsunnyTradeSpi::OnRtnClose(const TapAPICloseInfo* info) { }
 
-void MYEsunnyTradeSpi::OnRspQryClose(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPICloseInfo* info)
-{
-    TNL_LOG_INFO("OnRspQryClose: sessionID:%u, errorCode: %d, isLast: %c, \n%s",
-        sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
-}
-
-void MYEsunnyTradeSpi::OnRtnClose(const TapAPICloseInfo* info)
-{
-    //TNL_LOG_INFO("OnRtnClose: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
-}
-
-void MYEsunnyTradeSpi::OnRtnPositionProfit(const TapAPIPositionProfitNotice* info)
-{
-    //TNL_LOG_INFO("OnRtnPositionProfit: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
-}
+void MYEsunnyTradeSpi::OnRtnPositionProfit(const TapAPIPositionProfitNotice* info) { }
 
 void MYEsunnyTradeSpi::OnRspQryDeepQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
-    const TapAPIDeepQuoteQryRsp* info)
-{
-    TNL_LOG_INFO("OnRspQryDeepQuote: sessionID:%u, errorCode: %d, isLast: %c, \n%s",
-        sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
-}
+    const TapAPIDeepQuoteQryRsp* info) { }
 
-void MYEsunnyTradeSpi::OnRspQryExchangeStateInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
-    const TapAPIExchangeStateInfo* info)
-{
-    TNL_LOG_INFO("OnRspQryExchangeStateInfo: sessionID:%u, errorCode: %d, isLast: %c, \n%s",
-        sessionID, errorCode, isLast, ESUNNYDatatypeFormater::ToString(info).c_str());
+void MYEsunnyTradeSpi::OnRspQryExchangeStateInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIExchangeStateInfo* info) {
 }
 
 void MYEsunnyTradeSpi::OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotice* info)
@@ -436,27 +326,7 @@ void MYEsunnyTradeSpi::OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotic
     TNL_LOG_INFO("OnRtnExchangeStateInfo: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
-void MYEsunnyTradeSpi::ReqLogin()
-{
-}
-
-int MYEsunnyTradeSpi::ConvertErrorCode(int esunny_err_code)
-{
-    return esunny_err_code;
-}
-
-TapAPIOrderCancelReq MYEsunnyTradeSpi::CreatCancelParam(const TapAPIOrderInfo& o)
-{
-    TapAPIOrderCancelReq req_param;
-    memset(&req_param, 0, sizeof(req_param));
-
-    //req_param.RefInt = o.RefInt;                                            ///< 整型参考值
-    //memcpy(req_param.RefString, o.RefString, sizeof(req_param.RefString));  ///< 字符串参考值
-    req_param.ServerFlag = o.ServerFlag;                                    ///< 服务器标识
-    memcpy(req_param.OrderNo, o.OrderNo, sizeof(req_param.OrderNo));        ///< 委托编码
-
-    return req_param;
-}
+void MYEsunnyTradeSpi::ReqLogin() { }
 
 bool MYEsunnyTradeSpi::IsOrderTerminate(const TapAPIOrderInfo& order_field)
 {
