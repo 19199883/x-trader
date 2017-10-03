@@ -1,26 +1,13 @@
 ﻿#ifndef ESUNNY_TRADE_INTERFACE_H_
 #define ESUNNY_TRADE_INTERFACE_H_
 
-#include <string>
-#include <sstream>
-#include <list>
-#include <atomic>
-#include <pthread.h>
-#include <mutex>
-#include <condition_variable>
-
-#include "TapTradeAPI.h"
-
 #include "config_data.h"
 #include "trade_data_type.h"
-#include "esunny_trade_context.h"
 #include "my_protocol_packager.h"
 #include "my_tunnel_lib.h"
 #include "my_cmn_util_funcs.h"
 #include "tunnel_cmn_utility.h"
-#include "trade_log_util.h"
 #include "field_convert.h"
-#include "esunny_data_formater.h"
 
 struct OriginalReqInfo;
 
@@ -30,11 +17,6 @@ public:
     MYEsunnyTradeSpi(const TunnelConfigData &cfg);
     virtual ~MYEsunnyTradeSpi(void);
 
-    /**
-     * @brief 连接成功回调通知
-     * @ingroup G_T_Login
-     */
-    virtual void TAP_CDECL OnConnect();
     /**
      * @brief    系统登录过程回调。
      * @details  此函数为Login()登录函数的回调，调用Login()成功后建立了链路连接，然后API将向服务器发送登录认证信息，

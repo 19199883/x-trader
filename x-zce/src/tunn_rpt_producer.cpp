@@ -6,7 +6,7 @@
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include "x1_data_formater.h"
+#include "esunny_data_formater.h"
 
 using namespace std::chrono;
 
@@ -53,12 +53,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 TunnRptProducer::~TunnRptProducer()
 {
-//	if (this->producer_ != NULL){
-//		vrt_producer_free(this->producer_);
-//		this->producer_ = NULL;
-//		clog_info("[%s] release tunnrpt_producer.", module_name_);
-//	}
-
     if (api_) {
         api_->Release();
         api_ = NULL;
@@ -159,41 +153,6 @@ int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
 	return ret;
 }
 
-int TunnRptProducer::QryPosition(CX1FtdcQryPositionDetailField *p)
-{
-	clog_info("[%s] QryPosition- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::QryOrderDetail(CX1FtdcQryOrderField *p)
-{
-	clog_info("[%s] QryOrderDetail- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::QryTradeDetail(CX1FtdcQryMatchField *p)
-{
-	clog_info("[%s] QryTradeDetail- do NOT support this function.", module_name_);
-	return 0;
-}
-
-int TunnRptProducer::ReqForQuoteInsert(CX1FtdcForQuoteField *p)
-{
-	return 0;
-}
-
-///报价录入请求
-int TunnRptProducer::ReqQuoteInsert(CX1FtdcQuoteInsertField *p)
-{
-	return 0;
-}
-
-///报价操作请求
-int TunnRptProducer::ReqQuoteAction(CX1FtdcCancelOrderField *p)
-{
-	return 0;
-}
-
 void TunnRptProducer::ReqLogin()
 {
     CX1FtdcReqUserLoginField login_data;
@@ -208,10 +167,9 @@ void TunnRptProducer::ReqLogin()
 			module_name_, X1DatatypeFormater::ToString(&login_data).c_str());
 }
 
-void TunnRptProducer::OnFrontConnected()
+void TunnRptProducer::OnConnect()
 {
-    clog_info("[%s] OnFrontConnected.", module_name_);
-	this->ReqLogin();
+    clog_info("[%s] OnConnect.", module_name_);
 }
 
 void TunnRptProducer::OnFrontDisconnected(int nReason)
@@ -219,19 +177,53 @@ void TunnRptProducer::OnFrontDisconnected(int nReason)
     clog_info("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
 }
 
-void TunnRptProducer::OnRspUserLogin(struct CX1FtdcRspUserLoginField* pfield, struct CX1FtdcRspErrorField * perror)
+void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspInfo* loginRspInfo)
 {
-    clog_info("[%s] OnRspUserLogin:%s %s",
+    clog_info("[%s] OnRspLogin: errorCode:%d,%s",
         module_name_,
-		X1DatatypeFormater::ToString(pfield).c_str(),
-        X1DatatypeFormater::ToString(perror).c_str());
+		errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
 
-    if (perror == NULL) {
-		clog_info("[%s] OnRspUserLogin,error: %d", module_name_, pfield->LoginResult);
-    }
-    else {
-		clog_info("[%s] OnRspUserLogin, error: %d", module_name_, perror->ErrorID);
-    }
+    if (errorCode == TAPIERROR_SUCCEED) { }
+}
+
+void TunnRptProducer::OnAPIReady()
+{
+    clog_info("[%s] OnAPIReady",module_name_);
+
+    TAPIUINT32 session_id;
+	// TODO:
+    api_->QryContract(&session_id, NULL);
+}
+
+void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
+{
+    clog_error("[%s] OnDisconnect, reasonCode:%d",module_name_,reasonCode);
+}
+
+void TunnRptProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode)
+{
+}
+
+void TunnRptProducer::OnRspSetReservedInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+			const TAPISTR_50 info)
+{
+}
+
+void TunnRptProducer::OnRspQryAccount(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
+			TAPIYNFLAG isLast, const TapAPIAccountInfo* info)
+{
+}
+
+void TunnRptProducer::OnRspQryFund(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+			TAPIYNFLAG isLast, const TapAPIFundData* info)
+{
+}
+
+void TunnRptProducer::OnRtnFund(const TapAPIFundData* info) { }
+
+void TunnRptProducer::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+			TAPIYNFLAG isLast, const TapAPIExchangeInfo* info)
+{
 }
 
 void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, struct CX1FtdcRspErrorField * pe)

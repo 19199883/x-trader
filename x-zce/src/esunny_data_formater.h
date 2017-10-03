@@ -35,12 +35,8 @@ public:
 	static std::string ToString(const TapAPIExchangeStateInfoNotice *pdata);
 
 private:
-	ESUNNYDatatypeFormater()
-	{
-	}
-	~ESUNNYDatatypeFormater()
-	{
-	}
+	ESUNNYDatatypeFormater() { }
+	~ESUNNYDatatypeFormater() { }
 };
 
 #endif /* ESUNNY_DATATYPEFORMATER_H_ */

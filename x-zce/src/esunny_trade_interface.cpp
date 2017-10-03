@@ -116,29 +116,6 @@ bool MYEsunnyTradeSpi::ParseConfig()
     return true;
 }
 
-void MYEsunnyTradeSpi::OnConnect()
-{
-    TNL_LOG_INFO("OnConnect");
-}
-
-void MYEsunnyTradeSpi::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspInfo* loginRspInfo)
-{
-    TNL_LOG_INFO("OnRspLogin: errorCode: %d, \n%s", errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
-
-    if (errorCode == TAPIERROR_SUCCEED) {
-        logoned_ = true;
-        in_init_state_ = false;
-    }
-}
-
-void MYEsunnyTradeSpi::OnAPIReady()
-{
-    TNL_LOG_INFO("OnAPIReady");
-
-    TAPIUINT32 session_id;
-    api_->QryContract(&session_id, NULL);
-}
-
 void MYEsunnyTradeSpi::OnDisconnect(TAPIINT32 reasonCode)
 {
     TNL_LOG_ERROR("OnDisconnect, reasonCode:%d", reasonCode);
