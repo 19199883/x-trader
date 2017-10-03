@@ -37,48 +37,8 @@ class X1FieldConverter
 		static void Convert(const signal_t& sig,const char *account, long localorderid, 
 					int32_t vol, CX1FtdcInsertOrderField& insert_order)
 		{
-			memset(&insert_order, 0, sizeof(CX1FtdcInsertOrderField));
-			strncpy(insert_order.AccountID, account, sizeof(TX1FtdcAccountIDType));
 			insert_order.LocalOrderID = localorderid;
 			insert_order.RequestID = localorderid;
-			strncpy(insert_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
-
-			if (sig.sig_act == signal_act_t::buy){
-				insert_order.InsertPrice = sig.buy_price;
-				insert_order.BuySellType = X1_FTDC_SPD_BUY;
-			}
-			else if (sig.sig_act == signal_act_t::sell){
-				insert_order.InsertPrice = sig.sell_price;
-				insert_order.BuySellType = X1_FTDC_SPD_SELL;
-			}
-			else{
-				 clog_warning("[%s] do support BuySellType value:%d; sig id:%d", "X1FieldConverter",
-					insert_order.BuySellType, sig.sig_id); 
-			}
-
-			if (sig.sig_openclose == alloc_position_effect_t::open_){
-				insert_order.OpenCloseType = X1_FTDC_SPD_OPEN;
-			}
-			else if (sig.sig_openclose == alloc_position_effect_t::close_){
-				insert_order.OpenCloseType = X1_FTDC_SPD_CLOSE;
-			}
-			else{
-				// log
-			}
-
-
-			if (sig.instr == instr_t::MARKET){
-				insert_order.OrderType = X1_FTDC_MKORDER; 
-			}
-			else{
-				insert_order.OrderType = X1_FTDC_LIMITORDER; 
-			}
-
-			insert_order.OrderAmount = vol;
-			insert_order.OrderProperty = X1_FTDC_SP_NON;
-			insert_order.InsertType = X1_FTDC_BASIC_ORDER;        //委托类别,默认为普通订单
-			insert_order.InstrumentType = X1FTDC_INSTRUMENT_TYPE_COMM;      //合约类型, 期货
-			insert_order.Speculator = X1_FTDC_SPD_SPECULATOR;
 		}
 };
 

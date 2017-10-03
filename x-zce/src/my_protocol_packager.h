@@ -3,15 +3,16 @@
 
 #include "TapTradeAPIDataType.h"
 
+#define EXCHANGE_NO "ZCE"
+
 class ESUNNYPacker
 {
 public:
 
-    static void InitNewOrder(const TunnelConfigData &cfg, const T_PlaceOrder *req,
-				TapAPINewOrder &new_or);
+    static void InitNewOrder(const char *account);
 
-    static void OrderRequest(const TunnelConfigData &cfg, const T_PlaceOrder *req,
-				TapAPINewOrder &new_or);
+	static TapAPINewOrder* OrderRequest(const signal_t& sig,const char *account,
+			long localorderid,int32_t vol)
 
     static void OrderRespond(int error_no, long serial_no, long entrust_no, 
 				short entrust_status, T_OrderRespond &order_respond);

@@ -40,7 +40,6 @@ IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg)
     return std::make_pair(addr_ip, (unsigned short) port_tmp);
 }
 
-
 struct Tunnconfig
 {
 	string address;
@@ -73,7 +72,7 @@ class TunnRptProducer: public ITapTradeAPINotify
 		 * things relating to esunny Api
 		 */
 		// 下发指令接口
-		int ReqOrderInsert(TAPIUINT32 &session_id,CX1FtdcInsertOrderField *p);
+		int ReqOrderInsert(TAPIUINT32 *session_id, TapAPINewOrder *p);
 		// 撤单操作请求
 		int ReqOrderAction(CX1FtdcCancelOrderField *p);
 
