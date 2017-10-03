@@ -13,6 +13,34 @@ using namespace std;
  */
 #define RPT_BUFFER_SIZE 200
 
+typedef std::pair<std::string, unsigned short> IPAndPortNum;
+IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg);
+
+typedef std::pair<std::string, std::string> IPAndPortStr;
+IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
+
+IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg)
+{   
+    //format: udp://192.168.60.23:7120   or  tcp://192.168.60.23:7120
+    std:::string ip_port = addr_cfg.substr(6);
+    std::size_t split_pos = ip_port.find(":");
+    if ((split_pos == std::string::npos) || (split_pos + 1 >= ip_port.length())) {
+        clog_error("parse address failed: %s", addr_cfg.c_str());
+        return std::make_pair("", (unsigned short) 0);
+    }
+
+    std::string addr_ip = ip_port.substr(0, split_pos);
+    std::string addr_port = ip_port.substr(split_pos + 1);
+    int port_tmp = atoi(addr_port.c_str());
+    if (port_tmp <= 0 || port_tmp > 0xFFFF) {
+        clog_error("port in address beyond valid range: %s", addr_cfg.c_str());
+        return std::make_pair("", 0);
+    }
+    
+    return std::make_pair(addr_ip, (unsigned short) port_tmp);
+}
+
+
 struct Tunnconfig
 {
 	string address;
@@ -150,6 +178,41 @@ class TunnRptProducer: public ITapTradeAPINotify
 		virtual void TAP_CDECL OnRspQryExchange(TAPIUINT32 sessionID,
 					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIExchangeInfo *info);
 
+		/**
+		 * @brief    返回系统中品种信息
+		 * @details  此回调接口用于向用户返回得到的所有品种信息。
+		 * @param[in] sessionID 请求的会话ID，和GetAllCommodities()函数返回对应；
+		 * @param[in] errorCode 错误码。0 表示成功。
+		 * @param[in] isLast     标示是否是最后一批数据；
+		 * @param[in] info       指向返回的信息结构体。当errorCode不为0时，info为空。
+		 * @attention 不要修改和删除info所指示的数据；函数调用结束，参数不再有效。
+		 * @ingroup G_T_Commodity
+		 */
+		virtual void TAP_CDECL OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+					TAPIYNFLAG isLast, const TapAPICommodityInfo *info);
+
+		/**
+		 * @brief 返回系统中合约信息
+		 * @param[in] sessionID 请求的会话ID；
+		 * @param[in] errorCode 错误码。0 表示成功。
+		 * @param[in] isLast     标示是否是最后一批数据；
+		 * @param[in] info       指向返回的信息结构体。当errorCode不为0时，info为空。
+		 * @attention 不要修改和删除info所指示的数据；函数调用结束，参数不再有效。
+		 * @ingroup G_T_Contract
+		 */
+		virtual void TAP_CDECL OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+					TAPIYNFLAG isLast, const TapAPITradeContractInfo *info);
+
+		/**
+		 * @brief    返回新增合约信息
+		 * @details  向用户推送新的合约。主要用来处理在交易时间段中服务器添加了新合约时，
+		 * 向用户发送这个合约的信息。
+		 * @param[in] info       指向返回的信息结构体。当errorCode不为0时，info为空。
+		 * @attention 不要修改和删除info所指示的数据；函数调用结束，参数不再有效。
+		 * @ingroup G_T_Contract
+		 */
+		virtual void TAP_CDECL OnRtnContract(const TapAPITradeContractInfo *info);
+
 		/*
 		 * things relating to x-trader internal logic
 		 */
@@ -164,11 +227,16 @@ private:
     void ParseConfig();
     void ReqLogin();
 
+	/*
+	 * things relating to x-trader internal logic
+	 */
+	int32_t Push(const TunnRpt& rpt);
 	struct vrt_producer  *producer_;
 	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
 	Tunnconfig config_;
 	const char * module_name_;  
 	bool ended_;
+	bool ready_;
 
 	/*
 	 * true: cancel request; false; place request
@@ -180,9 +248,9 @@ private:
 	/*
 	 * things relating to counter API
 	 */
-	int32_t Push(const TunnRpt& rpt);
+    ITapTradeAPI *api_;
 
-	x1ftdcapi::CX1FtdcTraderApi *api_;
+
 };
 
 #endif

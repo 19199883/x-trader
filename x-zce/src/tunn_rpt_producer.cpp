@@ -10,23 +10,35 @@
 
 using namespace std::chrono;
 
+static std::string ReadAuthCode()
+{
+    char l[1024];
+    std::string auth_code;
+    ifstream auth_cfg("auth_code.dat");
+    while (auth_cfg.getline(l, 1023)) {
+        auth_code.append(l);
+    }
+
+    return auth_code;
+}
+
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
+	ready_ = false;
 	ended_ = false;
-
 	for(auto &item : cancel_requests_) item = false;
+	
+    // check api version
+    clog_info("[%s] TapTradeAPIVersion:%s",module_name_,GetTapTradeAPIVersion());
+
 
 	this->ParseConfig();
 
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
-
-	//rip_check(producer = vrt_producer_new("tunnrpt_producer", 1, queue));
-
 	this->producer_ = producer;
-
 	clog_info("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
@@ -36,19 +48,34 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
-	// create X1 object
-	char addr[2048];
-	strcpy(addr, this->config_.address.c_str());
-    api_ = CX1FtdcTraderApi::CreateCX1FtdcTraderApi(); 
-	while (1) {
-		if (-1 == api_->Init(addr, this)) {
-			clog_error("[%s] X1 Api init failed.", module_name_);
-			std::this_thread::sleep_for(std::chrono::seconds(1));
-		}
-		else break;
-	}
-
-	clog_info("[%s] X1 Api: connection to front machine succeeds.", module_name_);
+	// create esunny object
+    TapAPIApplicationInfo auth_info;
+    std::string auth_code = ReadAuthCode();
+    clog_info("[%s] AuthCode: %s",module_name_,auth_code.c_str());
+    strncpy(auth_info.AuthCode, auth_code.c_str(), sizeof(auth_info.AuthCode));
+    strcpy(auth_info.KeyOperationLogPath, "");
+    TAPIINT32 result;
+    api_ = CreateTapTradeAPI(&auth_info, result);
+    if (!api_ || result != TAPIERROR_SUCCEED) {
+        clog_warning("[%s] CreateTapTradeAPI result:%d",module_name_,result);
+        return;
+    }
+    api_->SetAPINotify(this);
+	// address for front machine
+	IPAndPortNum ip_port = ParseIPAndPortNum(config_.address);
+	api_->SetHostAddress(ip_port.first.c_str(), ip_port.second);
+	clog_info("SetHostAddress, addr: %s:%d", ip_port.first.c_str(), ip_port.second);
+    //登录服务器
+    TapAPITradeLoginAuth stLoginAuth;
+    memset(&stLoginAuth, 0, sizeof(stLoginAuth));
+    strcpy(stLoginAuth.UserNo, config_.userid.c_str());
+    strcpy(stLoginAuth.Password, config_.password.c_str());
+    stLoginAuth.ISModifyPassword = APIYNFLAG_NO;
+    stLoginAuth.ISDDA = APIYNFLAG_NO;
+    result = api_->Login(&stLoginAuth);
+    if (TAPIERROR_SUCCEED != result) {
+        clog_error("[%s] Login Error, result:%d",module_name_,result);
+    }
 }
 
 TunnRptProducer::~TunnRptProducer()
@@ -191,7 +218,6 @@ void TunnRptProducer::OnAPIReady()
     clog_info("[%s] OnAPIReady",module_name_);
 
     TAPIUINT32 session_id;
-	// TODO:
     api_->QryContract(&session_id, NULL);
 }
 
@@ -225,6 +251,36 @@ void TunnRptProducer::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode
 			TAPIYNFLAG isLast, const TapAPIExchangeInfo* info)
 {
 }
+
+void TunnRptProducer::OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+			TAPIYNFLAG isLast, const TapAPICommodityInfo* info)
+{
+    clog_info("[%s] OnRspQryCommodity: sessionID:%u, errorCode:%d, isLast:%c, %s",
+        module_name_, sessionID, errorCode, isLast,
+		ESUNNYDatatypeFormater::ToString(info).c_str());
+}
+
+void TunnRptProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
+			TAPIYNFLAG isLast, const TapAPITradeContractInfo* info)
+{
+    clog_info("[%s] OnRspQryContract: sessionID:%u, errorCode:%d, isLast:%c, %s",
+        module_name_,sessionID, errorCode, isLast, 
+		ESUNNYDatatypeFormater::ToString(info).c_str());
+
+    if (errorCode == TAPIERROR_SUCCEED) {
+        if (info) {
+            ESUNNYFieldConvert::AddContractInfo(*info);
+        }
+
+        if (isLast == APIYNFLAG_YES) {
+			// TODO: enter working state after this point
+			// start thread for cancel unterminated orders 
+			// }
+    }
+}
+
+void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
+{ }
 
 void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, struct CX1FtdcRspErrorField * pe)
 {
