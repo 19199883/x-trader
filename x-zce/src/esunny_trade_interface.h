@@ -154,24 +154,15 @@ public:
 	virtual void TAP_CDECL OnRspUpperChannelInfo(TAPIUINT32 sessionID,TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIUpperChannelInfo * info) {}
 	virtual void TAP_CDECL OnRspAccountRentInfo(TAPIUINT32 sessionID,TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIAccountRentInfo * info) {};
 
-    bool ParseConfig();
-
     // 下发指令接口
     int ReqOrderInsert(const T_PlaceOrder *po)
     {
         int ret = TUNNEL_ERR_CODE::RESULT_FAIL;
-
 		TapAPINewOrder po_req;
 		bool convert_res = ESUNNYPacker::OrderRequest(cfg_, po, po_req);
-		if (!convert_res) {
-			TNL_LOG_WARN("PlaceOrder can't find contract info to complete the order");
-			return ret;
-		}
-
 		TAPIUINT32 session_id;
-			esunny_trade_context_.SavePendingOrder(po);
-			ret = api_->InsertOrder(&session_id, &po_req);
-		TNL_LOG_DEBUG("InsertOrder - return:%d, session_id:%d, serial_no:%ld", ret, session_id, po->serial_no);
+		// TODO: here1
+		ret = api_->InsertOrder(&session_id, &po_req);
     }
 
     //报单操作请求
@@ -191,16 +182,6 @@ public:
     }
 
 private:
-
-    Tunnel_Info tunnel_info_;
-    std::string pswd_;
-
-    TunnelConfigData cfg_;
-    std::atomic_bool logoned_;
-    std::atomic_bool in_init_state_; // clear after first success login
-
-    void ReqLogin();
-    bool TunnelIsReady() { return logoned_ ; }
     // 查询报单（用于撤盘口单，或统计撤单数）
     bool IsOrderTerminate(const TapAPIOrderInfo & order_field);
 };

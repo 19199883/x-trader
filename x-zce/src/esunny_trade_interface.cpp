@@ -11,28 +11,6 @@
 
 using namespace std;
 
-MYEsunnyTradeSpi::MYEsunnyTradeSpi(const TunnelConfigData &cfg)
-    : cfg_(cfg)
-{
-}
-
-MYEsunnyTradeSpi::~MYEsunnyTradeSpi(void)
-{
-    if (api_) {
-        api_->Disconnect();
-        api_ = NULL;
-    }
-}
-
-bool MYEsunnyTradeSpi::ParseConfig()
-{
-    // 用户密码
-    tunnel_info_.account = cfg_.Logon_config().investorid;
-    pswd_ = cfg_.Logon_config().password;
-    return true;
-}
-
-
 void MYEsunnyTradeSpi::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 {
     TNL_LOG_DEBUG("OnRtnOrder: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
@@ -154,8 +132,6 @@ void MYEsunnyTradeSpi::OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotic
 {
     TNL_LOG_INFO("OnRtnExchangeStateInfo: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
 }
-
-void MYEsunnyTradeSpi::ReqLogin() { }
 
 bool MYEsunnyTradeSpi::IsOrderTerminate(const TapAPIOrderInfo& order_field)
 {

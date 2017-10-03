@@ -29,13 +29,11 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	ended_ = false;
 	for(auto &item : cancel_requests_) item = false;
 	
+	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
     // check api version
     clog_info("[%s] TapTradeAPIVersion:%s",module_name_,GetTapTradeAPIVersion());
 
-
 	this->ParseConfig();
-
-	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
@@ -72,6 +70,9 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     strcpy(stLoginAuth.Password, config_.password.c_str());
     stLoginAuth.ISModifyPassword = APIYNFLAG_NO;
     stLoginAuth.ISDDA = APIYNFLAG_NO;
+	stLoginAuth.NoticeIgnoreFlag = TAPI_NOTICE_IGNORE_FUND | TAPI_NOTICE_IGNORE_POSITIONPROFIT |
+		TAPI_NOTICE_IGNORE_FILL | TAPI_NOTICE_IGNORE_POSITION | TAPI_NOTICE_IGNORE_CLOSE | 
+		TAPI_NOTICE_IGNORE_POSITIONPROFIT;
     result = api_->Login(&stLoginAuth);
     if (TAPIERROR_SUCCEED != result) {
         clog_error("[%s] Login Error, result:%d",module_name_,result);
@@ -81,7 +82,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 TunnRptProducer::~TunnRptProducer()
 {
     if (api_) {
-        api_->Release();
+        api_->Disconnect();
         api_ = NULL;
     }
 }
@@ -114,12 +115,13 @@ void TunnRptProducer::ParseConfig()
 	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
 }
 
-int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
+int TunnRptProducer::ReqOrderInsert(TAPIUINT32 *session, TapAPINewOrder *p)
 {
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	int ret = api_->ReqInsertOrder(p);
+	// TODO: here1
+	int ret = api_->ReqInsertOrder(session,p);
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -129,8 +131,8 @@ int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
 	
 	// report rejected if ret!=0
 	if (ret != 0){
-		clog_warning("[%s] ReqInsertOrder- ret=%d - %s", 
-			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
+		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%d",
+				module_name_,ret, session_id);
 
 		struct TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
@@ -146,8 +148,8 @@ int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
 	}else {
-		clog_debug("[%s] ReqInsertOrder - ret=%d - %s", 
-			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
+		clog_debug("[%s] ReqInsertOrder - return:%d, session_id:%d",
+				module_name_,ret, session_id);
 	}
 
 	return ret;
@@ -180,28 +182,9 @@ int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
 	return ret;
 }
 
-void TunnRptProducer::ReqLogin()
-{
-    CX1FtdcReqUserLoginField login_data;
-    memset(&login_data, 0, sizeof(CX1FtdcReqUserLoginField));
-    strncpy(login_data.AccountID, this->config_.userid.c_str(), sizeof(login_data.AccountID));
-    strncpy(login_data.Password, this->config_.password.c_str(), sizeof(login_data.Password));
-    
-	int rtn = api_->ReqUserLogin(&login_data);
-
-    clog_info("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
-    clog_info("[%s] ReqLogin:   %s", 
-			module_name_, X1DatatypeFormater::ToString(&login_data).c_str());
-}
-
 void TunnRptProducer::OnConnect()
 {
     clog_info("[%s] OnConnect.", module_name_);
-}
-
-void TunnRptProducer::OnFrontDisconnected(int nReason)
-{
-    clog_info("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
 }
 
 void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspInfo* loginRspInfo)
@@ -228,36 +211,43 @@ void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
 
 void TunnRptProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode)
 {
+    clog_info("[%s] OnRspChangePassword.", module_name_);
+}
 }
 
 void TunnRptProducer::OnRspSetReservedInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			const TAPISTR_50 info)
 {
+    clog_info("[%s] OnRspSetReservedInfo.", module_name_);
 }
 
 void TunnRptProducer::OnRspQryAccount(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIAccountInfo* info)
 {
+    clog_info("[%s] OnRspQryAccount.", module_name_);
 }
 
 void TunnRptProducer::OnRspQryFund(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIFundData* info)
 {
+    clog_info("[%s] OnRspQryFund.", module_name_);
 }
 
-void TunnRptProducer::OnRtnFund(const TapAPIFundData* info) { }
+void TunnRptProducer::OnRtnFund(const TapAPIFundData* info) 
+{
+    clog_info("[%s] OnRtnFund.", module_name_);
+}
 
 void TunnRptProducer::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIExchangeInfo* info)
 {
+    clog_info("[%s] OnRspQryExchange.", module_name_);
 }
 
 void TunnRptProducer::OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPICommodityInfo* info)
 {
-    clog_info("[%s] OnRspQryCommodity: sessionID:%u, errorCode:%d, isLast:%c, %s",
-        module_name_, sessionID, errorCode, isLast,
-		ESUNNYDatatypeFormater::ToString(info).c_str());
+    clog_info("[%s] OnRspQryCommodity.", module_name_);
 }
 
 void TunnRptProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
@@ -269,18 +259,20 @@ void TunnRptProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode
 
     if (errorCode == TAPIERROR_SUCCEED) {
         if (info) {
+			// TODO:
             ESUNNYFieldConvert::AddContractInfo(*info);
         }
 
         if (isLast == APIYNFLAG_YES) {
-			// TODO: enter working state after this point
-			// start thread for cancel unterminated orders 
-			// }
-    }
+			ready_ = true;
+		}
+	}
 }
 
 void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
-{ }
+{
+    clog_info("[%s] OnRtnContract.", module_name_);
+}
 
 void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, struct CX1FtdcRspErrorField * pe)
 {

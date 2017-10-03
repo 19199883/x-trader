@@ -73,7 +73,7 @@ class TunnRptProducer: public ITapTradeAPINotify
 		 * things relating to esunny Api
 		 */
 		// 下发指令接口
-		int ReqOrderInsert(CX1FtdcInsertOrderField *p);
+		int ReqOrderInsert(TAPIUINT32 &session_id,CX1FtdcInsertOrderField *p);
 		// 撤单操作请求
 		int ReqOrderAction(CX1FtdcCancelOrderField *p);
 
@@ -225,7 +225,6 @@ class TunnRptProducer: public ITapTradeAPINotify
 
 private:
     void ParseConfig();
-    void ReqLogin();
 
 	/*
 	 * things relating to x-trader internal logic
@@ -249,8 +248,6 @@ private:
 	 * things relating to counter API
 	 */
     ITapTradeAPI *api_;
-
-
 };
 
 #endif

@@ -1,54 +1,51 @@
 ﻿#include "my_protocol_packager.h"
-
 #include <sstream>
 #include <stdlib.h>
-
 #include "field_convert.h"
-#include "config_data.h"
-#include "esunny_trade_context.h"
 
-// 创建行情缓存，填充固定字段，之后至填充变更的字段
-bool ESUNNYPacker::OrderRequest(const TunnelConfigData& cfg, const T_PlaceOrder* req, TapAPINewOrder& new_or)
+TapAPINewOrder ESUNNYPacker::new_order_;
+
+bool ESUNNYPacker::InitNewOrder(const TunnelConfigData& cfg, const T_PlaceOrder* req,
+			TapAPINewOrder& new_or)
+{
+    memset(&new_order_, 0, sizeof(new_order_));
+    strcpy(new_order_.AccountNo, cfg.Logon_config().clientid.c_str());
+    strcpy(new_order_.ExchangeNo, ci->ExchangeNo);
+    new_order_.CommodityType = ci->CommodityType;
+    strcpy(new_order_.StrikePrice, "");
+    new_order_.CallOrPutFlag = ci->CallOrPutFlag1;
+    strcpy(new_order_.ContractNo2, "");
+    strcpy(new_order_.StrikePrice2, "");
+    new_order_.CallOrPutFlag2 = ci->CallOrPutFlag2;
+    new_order_.OrderType = ESUNNYFieldConvert::GetESUNNYPriceType(req->order_kind);
+    new_order_.OrderSource = TAPI_ORDER_SOURCE_ESUNNY_API;
+    new_order_.TimeInForce = ESUNNYFieldConvert::GetESUNNYTimeCondition(req->order_type);
+    strcpy(new_order_.ExpireTime, "");
+    new_order_.IsRiskOrder = APIYNFLAG_NO;
+    new_order_.PositionEffect2 = TAPI_PositionEffect_NONE;
+    strcpy(new_order_.InquiryNo, "");
+    new_order_.HedgeFlag = ESUNNYFieldConvert::GetESUNNYHedgeType(req->speculator);
+    new_order_.RefInt = 0;
+    new_order_.TacticsType = TAPI_TACTICS_TYPE_NONE;
+    new_order_.TriggerCondition = TAPI_TRIGGER_CONDITION_NONE;
+    new_order_.TriggerPriceType = TAPI_TRIGGER_PRICE_NONE;
+    new_order_.AddOneIsValid = APIYNFLAG_NO;
+    new_order-.HedgeFlag2 = new_or.HedgeFlag;
+    new_order-.MarketLevel= TAPI_MARKET_LEVEL_0;
+    new_order_.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
+}
+
+// TODO:创建行情缓存，填充固定字段，之后至填充变更的字段
+void ESUNNYPacker::OrderRequest(const TunnelConfigData& cfg, const T_PlaceOrder* req,
+			TapAPINewOrder& new_or)
 {
     const TapAPITradeContractInfo * ci = ESUNNYFieldConvert::GetContractInfo(req->stock_code);
-    if (!ci) {
-        return false;
-    }
-
-    memset(&new_or, 0, sizeof(new_or));
-
-    strcpy(new_or.AccountNo, cfg.Logon_config().clientid.c_str());
-    strcpy(new_or.ExchangeNo, ci->ExchangeNo);
-    new_or.CommodityType = ci->CommodityType;
     strcpy(new_or.CommodityNo, ci->CommodityNo);
     strcpy(new_or.ContractNo, ci->ContractNo1);
-    strcpy(new_or.StrikePrice, "");
-    new_or.CallOrPutFlag = ci->CallOrPutFlag1;
-    strcpy(new_or.ContractNo2, "");
-    strcpy(new_or.StrikePrice2, "");
-    new_or.CallOrPutFlag2 = ci->CallOrPutFlag2;
-    new_or.OrderType = ESUNNYFieldConvert::GetESUNNYPriceType(req->order_kind);
-    new_or.OrderSource = TAPI_ORDER_SOURCE_ESUNNY_API;
-    new_or.TimeInForce = ESUNNYFieldConvert::GetESUNNYTimeCondition(req->order_type);
-    strcpy(new_or.ExpireTime, "");
-    new_or.IsRiskOrder = APIYNFLAG_NO;
     new_or.OrderSide = ESUNNYFieldConvert::GetESUNNYSide(req->direction);
     new_or.PositionEffect = ESUNNYFieldConvert::GetESUNNYOCFlag(req->open_close);
-    new_or.PositionEffect2 = TAPI_PositionEffect_NONE;
-    strcpy(new_or.InquiryNo, "");
-    new_or.HedgeFlag = ESUNNYFieldConvert::GetESUNNYHedgeType(req->speculator);
     new_or.OrderPrice = req->limit_price;
     new_or.OrderQty = req->volume;
-    new_or.RefInt = 0;
-    new_or.TacticsType = TAPI_TACTICS_TYPE_NONE;
-    new_or.TriggerCondition = TAPI_TRIGGER_CONDITION_NONE;
-    new_or.TriggerPriceType = TAPI_TRIGGER_PRICE_NONE;
-    new_or.AddOneIsValid = APIYNFLAG_NO;
-    new_or.HedgeFlag2 = new_or.HedgeFlag;
-    new_or.MarketLevel= TAPI_MARKET_LEVEL_0;
-    new_or.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
-
-    return true;
 }
 
 void ESUNNYPacker::OrderRespond(int error_no, long serial_no, long entrust_no, short entrust_status, T_OrderRespond& rsp)
