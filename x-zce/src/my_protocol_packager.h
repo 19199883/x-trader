@@ -17,8 +17,6 @@ public:
     static void OrderRespond(int error_no, long serial_no, long entrust_no, 
 				short entrust_status, T_OrderRespond &order_respond);
 
-    static void CancelRequest(const EsunnyOrderInfo *org_order_info, TapAPIOrderCancelReq &co);
-
     static void CancelRespond(int error_no, long serial_no, long entrust_no, 
 				T_CancelRespond &cancle_order);
 

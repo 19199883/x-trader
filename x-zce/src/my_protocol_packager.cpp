@@ -76,13 +76,6 @@ void ESUNNYPacker::OrderRespond(int error_no, long serial_no, long entrust_no, s
     rsp.entrust_status = entrust_status;
 }
 
-void ESUNNYPacker::CancelRequest(const EsunnyOrderInfo* org_order_info, TapAPIOrderCancelReq& co)
-{
-    memset(&co, 0, sizeof(co));
-    co.ServerFlag = org_order_info->server_flag;                             ///< 服务器标识
-    memcpy(co.OrderNo, org_order_info->order_no, sizeof(co.OrderNo));        ///< 委托编码
-}
-
 void ESUNNYPacker::CancelRespond(int error_no, long serial_no, long entrust_no, T_CancelRespond& cancel_respond)
 {
     memset(&cancel_respond, 0, sizeof(T_CancelRespond));

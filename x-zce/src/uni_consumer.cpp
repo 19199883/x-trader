@@ -442,32 +442,30 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 	}
 }
 
+// done
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	if (!strategy.HasFrozenPosition()){
-		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+		clog_debug("[%s] strategy id:%d,sig id:%d. CancelOrder: ignore"
+					"request due to frozen position.", 
+					module_name_,sig.st_id,sig.sig_id); 
 		return;
 	}
 	
-    CX1FtdcCancelOrderField cancel_order;
-    memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
-	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
-	cancel_order.RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
-    cancel_order.X1OrderID = 0; // only use LocalOrderID to cancel order
-    //strncpy(cancle_order.AccountID, cfg.Logon_config().clientid.c_str(), sizeof(TX1FtdcAccountIDType));
-    strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
+	long ori_localorderid = strategy.GetLocalOrderID(sig.orig_sig_id);
+	int32_t counter = strategy.GetCounterByLocalOrderID(ori_localorderid);
+	clog_debug("[%s] CancelOrder:strategy id:%d,sig id:%d,LocalOrderID:%ld; ", 
+				module_name_,sig.st_id,sig.sig_id, ori_localorderid); 
 
-	clog_debug("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
-				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID, cancel_order.InstrumentID); 
-
-	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
+	this->tunn_rpt_producer_->ReqOrderAction(counter);
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
+        if(latency > 0) clog_info("[%s] cancel latency:%d us", module_name_, latency); 
 #endif
 }
 
+// done
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
@@ -475,17 +473,15 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 				sig.sig_openclose, sig.sig_act, vol);
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
-
 	const char *account = tunn_rpt_producer_->GetAccount();
 	TapAPINewOrder* ord = ESUNNYPacker::OrderRequest(sig,account,localorderid,updated_vol);
 	TAPIUINT32 session_id;
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
-	bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID,
-				ord.InsertPrice,ord.BuySellType, ord.OpenCloseType);
+	bool result = compliance_.TryReqOrderInsert(counter,sig.symbol,
+				ord.OrderPrice,ord.OrderSide, ord.PositionEffect);
 	if(result){
 #endif
-		// TODO: here1
 		int rtn = tunn_rpt_producer_->ReqOrderInsert(&session_id,ord);
 		session_localorderid_map_[session_id] = localorderid;
 		if(rtn != 0){ // feed rejeted info

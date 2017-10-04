@@ -1,15 +1,7 @@
 ﻿#ifndef ESUNNY_TRADE_INTERFACE_H_
 #define ESUNNY_TRADE_INTERFACE_H_
-
-#include "config_data.h"
-#include "trade_data_type.h"
 #include "my_protocol_packager.h"
-#include "my_tunnel_lib.h"
-#include "my_cmn_util_funcs.h"
-#include "tunnel_cmn_utility.h"
 #include "field_convert.h"
-
-struct OriginalReqInfo;
 
 class MYEsunnyTradeSpi: public ITapTradeAPINotify
 {
@@ -153,22 +145,6 @@ public:
 	virtual void TAP_CDECL OnRtnReqQuoteNotice(const TapAPIReqQuoteNotice *info) {}
 	virtual void TAP_CDECL OnRspUpperChannelInfo(TAPIUINT32 sessionID,TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIUpperChannelInfo * info) {}
 	virtual void TAP_CDECL OnRspAccountRentInfo(TAPIUINT32 sessionID,TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIAccountRentInfo * info) {};
-
-    //报单操作请求
-    int ReqOrderAction(const T_CancelOrder *pc)
-    {
-        if (!TunnelIsReady()){
-            TNL_LOG_WARN("ReqOrderAction when tunnel not ready");
-            return TUNNEL_ERR_CODE::NO_VALID_CONNECT_AVAILABLE;
-        }
-        int ret = TUNNEL_ERR_CODE::RESULT_FAIL;
-
-		TapAPIOrderCancelReq cancel_req;
-		ESUNNYPacker::CancelRequest(org_order_info, cancel_req);
-		TAPIUINT32 session_id;
-			ret = api_->CancelOrder(&session_id, &cancel_req);
-		TNL_LOG_DEBUG("CancelOrder - return:%d, session_id:%d, cancel_sn:%ld, order_sn:%ld", ret, session_id, pc->serial_no, pc->org_serial_no);
-    }
 
 private:
     // 查询报单（用于撤盘口单，或统计撤单数）

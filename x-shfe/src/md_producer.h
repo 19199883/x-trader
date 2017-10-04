@@ -43,7 +43,6 @@ class MDProducer
 		bool ended_;
 		Mdconfig config_;
 		void ParseConfig();
-		std::mutex mtx;
 
 		struct vrt_producer  *producer_flag1_;
 		struct vrt_producer  *producer_flag_other_;
