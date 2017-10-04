@@ -31,9 +31,7 @@ struct TunnRpt
 	int									LocalOrderID;                 ///< 本地委托号
 	TUstpFtdcOrderStatusType			OrderStatus;                  ///< 委托状态
 	TUstpFtdcVolumeType					MatchedAmount;                ///< 成交数量
-	TUstpFtdcPriceType					MatchedPrice;                 ///< 成交价格
 	TUstpFtdcErrorIDType				ErrorID;                      ///< 错误ID
-	TUstpFtdcVolumeType					CancelAmount;                 ///< 撤单数量
 };
 
 class TunnRptProducer: public CUstpFtdcTraderSpi 
@@ -196,7 +194,8 @@ private:
 	/*
 	 * things relating to counter API
 	 */
-	int32_t Push(const TunnRpt& rpt);
+	int32_t Push();
+	void Reset(TunnRpt &rpt);
 
 	CUstpFtdcTraderApi *api_;
 };

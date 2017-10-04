@@ -224,8 +224,9 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 	}
 
 	if (pfield != NULL){
-		struct TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
+		int32_t cursor = Push();
+		struct TunnRpt &rpt = rpt_buffer_[cursor];
+		Reset(rpt);
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 		// order_respond.entrust_no       = atol(entrust_no);
 		if (perror != NULL && 0 != perror->ErrorID) {
@@ -239,7 +240,7 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		struct vrt_hybrid_value  *ivalue;
 		(vrt_producer_claim(producer_, &vvalue));
 		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(rpt);
+		ivalue->index = cursor;
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
 		clog_debug("[%s] OnRspOrderInsert: index,%d; data,%d; LocalOrderID:%s",
@@ -247,19 +248,19 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 	} // if ((pfield != NULL)
 }
 
-int32_t TunnRptProducer::Push(const TunnRpt& rpt)
+void TunnRptProducer::Reset(TunnRpt &rpt)
+{
+		rpt.MatchedAmount = 0;
+			rpt.ErrorID = 0;
+}
+
+int32_t TunnRptProducer::Push()
 {
 	static int32_t cursor = RPT_BUFFER_SIZE - 1;
 	cursor++;
 	if (cursor%RPT_BUFFER_SIZE == 0){
 		cursor = 0;
 	}
-	rpt_buffer_[cursor] = rpt;
-
-	clog_debug("[%s] push TunnRpt: cursor,%d; LocalOrderID:%ld;"
-				" OrderStatus:%c; MatchedAmount:%d; CancelAmount:%d;ErrorID:%d",
-				module_name_, cursor, rpt.LocalOrderID, rpt.OrderStatus,
-				rpt.MatchedAmount,rpt.CancelAmount, rpt.ErrorID);
 
 	return cursor;
 }
@@ -298,8 +299,9 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 		FEMASDatatypeFormater::ToString(perror).c_str());
 
 	if(pfield != NULL && perror != NULL){
-		struct TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
+		int32_t cursor = Push();
+		struct TunnRpt &rpt = rpt_buffer_[cursor];
+		Reset(rpt);
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
 		rpt.ErrorID = perror->ErrorID;
@@ -308,7 +310,7 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 		struct vrt_hybrid_value  *ivalue;
 		(vrt_producer_claim(producer_, &vvalue));
 		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(rpt);
+		ivalue->index = cursor;
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
 		clog_debug("[%s] OnErrRtnOrderInsert: index,%d; data,%d; LocalOrderID:%s",
@@ -334,8 +336,9 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 	// TODO:debug
     clog_info("[%s] OnRtnOrder:%s", module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
-	struct TunnRpt rpt;
-    memset(&rpt, 0, sizeof(rpt));
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	Reset(rpt);
     //order_return.entrust_no     = atol(rsp->OrderSysID);
 	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 	rpt.OrderStatus = pfield->OrderStatus;
@@ -345,7 +348,7 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 	struct vrt_hybrid_value  *ivalue;
 	(vrt_producer_claim(producer_, &vvalue));
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = Push(rpt);
+	ivalue->index = cursor;
 	ivalue->data = TUNN_RPT;
 	(vrt_producer_publish(producer_));
 
