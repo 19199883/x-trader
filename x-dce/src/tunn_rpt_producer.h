@@ -177,7 +177,7 @@ private:
 	/*
 	 * things relating to counter API
 	 */
-	int32_t Push(const TunnRpt& rpt);
+	int32_t Push();
 
 	x1ftdcapi::CX1FtdcTraderApi *api_;
 };
