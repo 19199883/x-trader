@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 // done
-bool ESUNNYPacker::InitNewOrder(const char *account)
+void ESUNNYPacker::InitNewOrder(const char *account)
 {
     memset(&new_order_, 0, sizeof(new_order_));
     strcpy(new_order_.AccountNo,account);
@@ -37,32 +37,34 @@ TapAPINewOrder* ESUNNYPacker::OrderRequest(const signal_t& sig,const char *accou
 			long localorderid,int32_t vol)
 {
 	// contract
-    strncpy(new_or.CommodityNo,sig.symbol,2);
-	new_or.CommodityNo[2] = 0;
-    strncpy(new_or.ContractNo, sig.symbol+2,3);
-	new_or.ContractNo[3] = 0;
+    strncpy(new_order_.CommodityNo,sig.symbol,2);
+	new_order_.CommodityNo[2] = 0;
+    strncpy(new_order_.ContractNo, sig.symbol+2,3);
+	new_order_.ContractNo[3] = 0;
 	// side
 	if (sig.sig_act==signal_act_t::buy){
-		new_or.OrderPrice = sig.buy_price;
-		new_or.OrderSide = TAPI_SIDE_BUY;
+		new_order_.OrderPrice = sig.buy_price;
+		new_order_.OrderSide = TAPI_SIDE_BUY;
 	} else if (sig.sig_act==signal_act_t::sell){
-		new_or.OrderPrice = sig.sell_price;
-		new_or.OrderSide = TAPI_SIDE_SELL;
+		new_order_.OrderPrice = sig.sell_price;
+		new_order_.OrderSide = TAPI_SIDE_SELL;
 	} else{
 		 clog_warning("do support BuySellType value:%d; sig id:%d",
 			sig.sig_act, sig.sig_id); 
 	}
 	// position effect
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
-		new_or.PositionEffect = TAPI_PositionEffect_OPEN;
+		new_order_.PositionEffect = TAPI_PositionEffect_OPEN;
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
-		new_or.PositionEffect = TAPI_PositionEffect_COVER;
+		new_order_.PositionEffect = TAPI_PositionEffect_COVER;
 	} else{
 		 clog_warning("do support PositionEffect value:%d; sig id:%d",
 			sig.sig_openclose, sig.sig_id); 
 	}
 	// volume
-    new_or.OrderQty = vol;
+    new_order_.OrderQty = vol;
+
+	return &new_order_;
 }
 
 void ESUNNYPacker::OrderRespond(int error_no, long serial_no, long entrust_no, short entrust_status, T_OrderRespond& rsp)

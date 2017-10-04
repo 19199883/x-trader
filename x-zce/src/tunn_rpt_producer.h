@@ -3,6 +3,7 @@
 
 #include <array>
 #include <string>
+#include <unordered_map>
 #include "vrt_value_obj.h"
 #include "TapTradeAPI.h"
 
@@ -54,7 +55,8 @@ struct Tunnconfig
 
 struct TunnRpt
 {
-	TX1FtdcLocalOrderIDType               LocalOrderID;                 ///< 本地委托号
+	TAPIUINT32 session_id;
+	long					              LocalOrderID;                 ///< 本地委托号
 	TX1FtdcOrderAnswerStatusType          OrderStatus;                  ///< 委托状态
 	TX1FtdcAmountType                     MatchedAmount;                ///< 成交数量
 	TX1FtdcPriceType                      MatchedPrice;                 ///< 成交价格
@@ -235,6 +237,7 @@ private:
 	Tunnconfig config_;
 	const char * module_name_;  
 	bool ended_;
+	unordered_map<TAPIUINT32,long > session_localorderid_map_;
 
 	/*
 	 * true: cancel request; false; place request

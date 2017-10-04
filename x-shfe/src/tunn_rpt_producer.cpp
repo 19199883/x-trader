@@ -97,20 +97,6 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 		time (&rawtime);
 		clog_warning("[%s][%s] ReqOrderInsert- ret=%d - %s", 
 			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
-
-		struct TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = atol(p->UserOrderLocalID);
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
-		rpt.ErrorID = ret;
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(rpt);
-		ivalue->data = TUNN_RPT;
-		(vrt_producer_publish(producer_));
 	}else {
 		// TODO:debug
 		clog_info("[%s] ReqOrderInsert- ret=%d - %s", 

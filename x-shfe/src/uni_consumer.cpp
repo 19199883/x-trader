@@ -440,8 +440,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	if(result){
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
-		if(rtn != 0){
-			// feed rejeted info
+		if(rtn != 0){ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
 			rpt.LocalOrderID = localorderid;

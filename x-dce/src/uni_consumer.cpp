@@ -392,7 +392,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	// TODO:
 	if (!strategy.HasFrozenPosition()){
 		int i = 0;
-		for(; i < 2; i++){
+		for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 			int32_t st_id = strategy.GetId();
 			if(pending_signals_[st_id][i] >= 0){
 				int32_t sig_id = pending_signals_[st_id][i];
@@ -426,7 +426,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
 				// TODO:
 				int i = 0;
-				for(; i < 2; i++){
+				for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					if(pending_signals_[sig.st_id][i] < 0){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
 						clog_debug("[%s] pending_signals_ push st id:%d; sig id;%d", 
@@ -434,7 +434,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 						break;
 					}
 				}
-				if(i == 2){
+				if(i == MAX_PENDING_SIGNAL_COUNT){
 					clog_warning("[%s] pending_signals_ beyond;", module_name_);
 				}
 			} else { PlaceOrder(strategy, sigs[i]); }
@@ -486,7 +486,17 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 				ord.InsertPrice,ord.BuySellType, ord.OpenCloseType);
 	if(result){
 #endif
-		tunn_rpt_producer_->ReqOrderInsert(&ord);
+		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
+		if(rtn != 0){ // feed rejeted info
+			TunnRpt rpt;
+			memset(&rpt, 0, sizeof(rpt));
+			rpt.LocalOrderID = ord.LocalOrderID;
+			rpt.OrderStatus = X1_FTDC_SPD_ERROR;
+			rpt.ErrorID = rtn;
+			int sig_cnt = 0;
+			strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
+			ProcSigs(strategy, sig_cnt, sig_buffer_);
+		}
 #ifdef COMPLIANCE_CHECK
 	}else{
 		clog_warning("[%s] matched with myself:%ld", module_name_, ord.LocalOrderID);

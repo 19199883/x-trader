@@ -154,17 +154,6 @@ public:
 	virtual void TAP_CDECL OnRspUpperChannelInfo(TAPIUINT32 sessionID,TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIUpperChannelInfo * info) {}
 	virtual void TAP_CDECL OnRspAccountRentInfo(TAPIUINT32 sessionID,TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIAccountRentInfo * info) {};
 
-    // 下发指令接口
-    int ReqOrderInsert(const T_PlaceOrder *po)
-    {
-        int ret = TUNNEL_ERR_CODE::RESULT_FAIL;
-		TapAPINewOrder po_req;
-		bool convert_res = ESUNNYPacker::OrderRequest(cfg_, po, po_req);
-		TAPIUINT32 session_id;
-		// TODO: here1
-		ret = api_->InsertOrder(&session_id, &po_req);
-    }
-
     //报单操作请求
     int ReqOrderAction(const T_CancelOrder *pc)
     {

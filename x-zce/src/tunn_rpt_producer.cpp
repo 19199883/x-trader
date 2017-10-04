@@ -121,33 +121,16 @@ int TunnRptProducer::ReqOrderInsert(TAPIUINT32 *session, TapAPINewOrder *p)
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	// TODO: here1
 	int ret = api_->ReqInsertOrder(session,p);
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] ReqOrderInsert latency:%d us", 
+		clog_info("[%s] ReqOrderInsert latency:%d us", 
 					module_name_,latency); 
 #endif
-	
-	// report rejected if ret!=0
 	if (ret != 0){
 		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%d",
 				module_name_,ret, session_id);
-
-		struct TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = p->LocalOrderID;
-		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
-		rpt.ErrorID = ret;
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(rpt);
-		ivalue->data = TUNN_RPT;
-		(vrt_producer_publish(producer_));
 	}else {
 		clog_debug("[%s] ReqInsertOrder - return:%d, session_id:%d",
 				module_name_,ret, session_id);

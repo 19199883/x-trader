@@ -392,7 +392,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	// TODO:
 	if (!strategy.HasFrozenPosition()){
 		int i = 0;
-		for(; i < 2; i++){
+		for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 			int32_t st_id = strategy.GetId();
 			if(pending_signals_[st_id][i] >= 0){
 				int32_t sig_id = pending_signals_[st_id][i];
@@ -426,7 +426,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
 				// TODO:
 				int i = 0;
-				for(; i < 2; i++){
+				for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					if(pending_signals_[sig.st_id][i] < 0){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
 						clog_debug("[%s] pending_signals_ push st id:%d; sig id;%d", 
@@ -434,7 +434,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 						break;
 					}
 				}
-				if(i == 2){
+				if(i == MAX_PENDING_SIGNAL_COUNT){
 					clog_warning("[%s] pending_signals_ beyond;", module_name_);
 				}
 			} else { PlaceOrder(strategy, sigs[i]); }
@@ -471,36 +471,41 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
-	// TODO: 1
-	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol);
+	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id,
+				sig.sig_openclose, sig.sig_act, vol);
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
-	CX1FtdcInsertOrderField ord;
-	X1FieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), localorderid,
-				updated_vol, ord);
-
+	const char *account = tunn_rpt_producer_->GetAccount();
+	TapAPINewOrder* ord = ESUNNYPacker::OrderRequest(sig,account,localorderid,updated_vol);
+	TAPIUINT32 session_id;
 #ifdef COMPLIANCE_CHECK
-	int32_t counter = strategy.GetCounterByLocalOrderID(ord.LocalOrderID);
+	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID,
 				ord.InsertPrice,ord.BuySellType, ord.OpenCloseType);
 	if(result){
 #endif
-		// TODO: 创建会话ID与序号的映射关系(Hash)；序号与会话ID的映射关系
 		// TODO: here1
-		int rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
-		if(rtn != 0){
-			// TODO:
+		int rtn = tunn_rpt_producer_->ReqOrderInsert(&session_id,ord);
+		session_localorderid_map_[session_id] = localorderid;
+		if(rtn != 0){ // feed rejeted info
+			TunnRpt rpt;
+			memset(&rpt, 0, sizeof(rpt));
+			rpt.LocalOrderID = localorderid;
+			rpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
+			rpt.ErrorID = rtn;
+			int sig_cnt = 0;
+			strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
+			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_warning("[%s] matched with myself:%ld", module_name_, ord.LocalOrderID);
-
+		clog_warning("[%s] compliance checking failed:%ld", module_name_,localorderid);
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = ord.LocalOrderID;
-		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
+		rpt.LocalOrderID = localorderid;
+		rpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
 		strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
@@ -511,7 +516,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 #ifdef LATENCY_MEASURE
   // latency measure
 	int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-	if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
+	if(latency > 0) clog_info("[%s] place latency:%d us", module_name_, latency); 
 #endif
 }
 

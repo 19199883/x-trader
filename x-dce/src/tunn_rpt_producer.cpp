@@ -110,20 +110,6 @@ int TunnRptProducer::ReqOrderInsert(CX1FtdcInsertOrderField *p)
 	if (ret != 0){
 		clog_warning("[%s] ReqInsertOrder- ret=%d - %s", 
 			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
-
-		struct TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = p->LocalOrderID;
-		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
-		rpt.ErrorID = ret;
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(rpt);
-		ivalue->data = TUNN_RPT;
-		(vrt_producer_publish(producer_));
 	}else {
 		clog_debug("[%s] ReqInsertOrder - ret=%d - %s", 
 			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
