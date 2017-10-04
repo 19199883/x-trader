@@ -1,14 +1,10 @@
 ﻿#include "my_protocol_packager.h"
 #include <sstream>
 #include <stdlib.h>
-#include "field_convert.h"
 
-TapAPINewOrder ESUNNYPacker::new_order_;
-
-// TODO: invoke this method somewhere
+// done
 bool ESUNNYPacker::InitNewOrder(const char *account)
 {
-	// done
     memset(&new_order_, 0, sizeof(new_order_));
     strcpy(new_order_.AccountNo,account);
     strcpy(new_order_.ExchangeNo, EXCHANGE_NO);

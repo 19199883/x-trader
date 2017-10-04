@@ -34,6 +34,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     clog_info("[%s] TapTradeAPIVersion:%s",module_name_,GetTapTradeAPIVersion());
 
 	this->ParseConfig();
+	ESUNNYPacker::InitNewOrder(config_.GetAccount());
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
@@ -198,10 +199,7 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
 
 void TunnRptProducer::OnAPIReady()
 {
-    clog_info("[%s] OnAPIReady",module_name_);
-
-    TAPIUINT32 session_id;
-    api_->QryContract(&session_id, NULL);
+    clog_info("[%s] OnAPIReady",module_name_);	
 }
 
 void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
@@ -257,16 +255,6 @@ void TunnRptProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode
         module_name_,sessionID, errorCode, isLast, 
 		ESUNNYDatatypeFormater::ToString(info).c_str());
 
-    if (errorCode == TAPIERROR_SUCCEED) {
-        if (info) {
-			// TODO:
-            ESUNNYFieldConvert::AddContractInfo(*info);
-        }
-
-        if (isLast == APIYNFLAG_YES) {
-			ready_ = true;
-		}
-	}
 }
 
 void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)

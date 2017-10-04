@@ -37,6 +37,7 @@ class X1FieldConverter
 		static void Convert(const signal_t& sig,const char *account, long localorderid, 
 					int32_t vol, CX1FtdcInsertOrderField& insert_order)
 		{
+			// TODO: here1
 			insert_order.LocalOrderID = localorderid;
 			insert_order.RequestID = localorderid;
 		}

@@ -488,7 +488,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 #endif
 		// TODO: 创建会话ID与序号的映射关系(Hash)；序号与会话ID的映射关系
 		// TODO: here1
-		tunn_rpt_producer_->ReqOrderInsert(&ord);
+		int rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
+		if(rtn != 0){
+			// TODO:
+		}
 #ifdef COMPLIANCE_CHECK
 	}else{
 		clog_warning("[%s] matched with myself:%ld", module_name_, ord.LocalOrderID);

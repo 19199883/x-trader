@@ -133,7 +133,8 @@ class TunnRptProducer: public ITapTradeAPINotify
 
 		/**
 		 * @brief    返回用户信息
-		 * @details  此回调接口向用户返回查询的资金账号的详细信息。用户有必要将得到的账号编号保存起来，然后在后续的函数调用中使用。
+		 * @details  此回调接口向用户返回查询的资金账号的详细信息。用户有必要将得到的账
+		 * 号编号保存起来，然后在后续的函数调用中使用。
 		 * @param[in] sessionID 请求的会话ID；
 		 * @param[in] errorCode 错误码。0 表示成功。
 		 * @param[in] isLast 标示是否是最后一批数据；
@@ -234,7 +235,6 @@ private:
 	Tunnconfig config_;
 	const char * module_name_;  
 	bool ended_;
-	bool ready_;
 
 	/*
 	 * true: cancel request; false; place request
