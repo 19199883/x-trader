@@ -31,9 +31,7 @@ struct TunnRpt
 	TX1FtdcLocalOrderIDType               LocalOrderID;                 ///< 本地委托号
 	TX1FtdcOrderAnswerStatusType          OrderStatus;                  ///< 委托状态
 	TX1FtdcAmountType                     MatchedAmount;                ///< 成交数量
-	TX1FtdcPriceType                      MatchedPrice;                 ///< 成交价格
 	TX1FtdcErrorIDType                    ErrorID;                      ///< 错误ID
-	TX1FtdcAmountType                     CancelAmount;                 ///< 撤单数量
 };
 
 class TunnRptProducer: public x1ftdcapi::CX1FtdcTraderSpi
@@ -178,6 +176,7 @@ private:
 	 * things relating to counter API
 	 */
 	int32_t Push();
+	void Reset(TunnRpt &rpt);
 
 	x1ftdcapi::CX1FtdcTraderApi *api_;
 };
