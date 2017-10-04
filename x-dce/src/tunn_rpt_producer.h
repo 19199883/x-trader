@@ -12,7 +12,6 @@ using namespace x1ftdcapi;
 /*
  * 10 power of 2
  */
-#define RPT_BUFFER_SIZE 200
 
 struct Tunnconfig
 {
@@ -160,7 +159,7 @@ private:
     void ReqLogin();
 
 	struct vrt_producer  *producer_;
-	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
+	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
 	Tunnconfig config_;
 	const char * module_name_;  
 	bool ended_;
@@ -176,7 +175,6 @@ private:
 	 * things relating to counter API
 	 */
 	int32_t Push();
-	void Reset(TunnRpt &rpt);
 
 	x1ftdcapi::CX1FtdcTraderApi *api_;
 };

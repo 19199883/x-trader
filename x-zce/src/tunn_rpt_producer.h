@@ -55,9 +55,7 @@ struct TunnRpt
 	long				    LocalOrderID;       ///< 本地委托号
 	TAPIOrderStateType	    OrderStatus;        ///< 委托状态
 	TAPIUINT32		        MatchedAmount;      ///< 成交数量
-	TAPIREAL64		        MatchedPrice;       ///< 成交价格
 	TAPIUINT32			    ErrorID;            ///< 错误ID
-	TAPIUINT32		        CancelAmount;       ///< 撤单数量
 	TAPICHAR				ServerFlag;			///< 服务器标识
 	TAPISTR_20				OrderNo;			///< 委托编码
 };
@@ -385,14 +383,13 @@ private:
 	/*
 	 * things relating to x-trader internal logic
 	 */
-	int32_t Push(const TunnRpt& rpt);
 	struct vrt_producer  *producer_;
 	/* 有2各用途：
 	 * 1.缓存所有的委托报告信息，用于撤单使用。访问一个委托单的报告，
 	 * 通过该委托单的LocalOrderID的counter作为数组下标
 	 * 2.用于通过disruptor传递数据给消费者
 	 */
-	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
+	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
 
 	Tunnconfig config_;
 	const char * module_name_;  

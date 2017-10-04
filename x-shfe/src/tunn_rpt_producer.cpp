@@ -13,15 +13,12 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	ended_ = false;
 
 	this->ParseConfig();
+	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
-
-	//rip_check(producer = vrt_producer_new("tunnrpt_producer", 1, queue));
-
 	this->producer_ = producer;
-
 	clog_info("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
@@ -226,7 +223,6 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 	if (pfield != NULL){
 		int32_t cursor = Push();
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
-		Reset(rpt);
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 		// order_respond.entrust_no       = atol(entrust_no);
 		if (perror != NULL && 0 != perror->ErrorID) {
@@ -246,12 +242,6 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		clog_debug("[%s] OnRspOrderInsert: index,%d; data,%d; LocalOrderID:%s",
 					module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 	} // if ((pfield != NULL)
-}
-
-void TunnRptProducer::Reset(TunnRpt &rpt)
-{
-		rpt.MatchedAmount = 0;
-			rpt.ErrorID = 0;
 }
 
 int32_t TunnRptProducer::Push()
@@ -301,7 +291,6 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 	if(pfield != NULL && perror != NULL){
 		int32_t cursor = Push();
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
-		Reset(rpt);
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
 		rpt.ErrorID = perror->ErrorID;
@@ -338,7 +327,6 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
-	Reset(rpt);
     //order_return.entrust_no     = atol(rsp->OrderSysID);
 	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 	rpt.OrderStatus = pfield->OrderStatus;

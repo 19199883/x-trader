@@ -19,6 +19,9 @@
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 15000
 
+// 满足一天足够的下单量，以空间换时间
+#define RPT_BUFFER_SIZE 15000
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

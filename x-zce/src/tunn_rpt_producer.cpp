@@ -29,6 +29,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 {
 	ended_ = false;
 	for(auto &item : cancel_requests_) item = false;
+	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 	
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
     // check api version
@@ -275,20 +276,10 @@ void TunnRptProducer::End()
 	(vrt_producer_eof(producer_));
 }
 
-// TODO:here1
-int32_t TunnRptProducer::Push(const TunnRpt& rpt)
+void TunnRptProducer::Reset(TunnRpt &rpt)
 {
-	static int32_t cursor = RPT_BUFFER_SIZE - 1;
-	cursor++;
-	if (cursor%RPT_BUFFER_SIZE == 0){
-		cursor = 0;
-	}
-	rpt_buffer_[cursor] = rpt;
-
-	clog_debug("[%s] push TunnRpt: cursor,%d; LocalOrderID:%ld;",
-				module_name_, cursor, rpt.LocalOrderID);
-
-	return cursor;
+	rpt.MatchedAmount = 0;
+	rpt.ErrorID = 0;
 }
 
 void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
@@ -397,6 +388,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	long localorderid = session_localorderid_map_[info->SessionID];
 	int32_t counter = GetCounterByLocalOrderID(localorderid);
 	if(strcmp(tunnrpt_table_[counter].OrderNo,"") == 0){
+		Reset(tunnrpt_table_[counter]);
 		tunnrpt_table_[counter].ServerFlag = info->ServerFlag;
 		tunnrpt_table_[counter].LocalOrderID = localorderid;
 		strcpy(tunnrpt_table_[counter].OrderNo,info->OrderNo);
@@ -423,11 +415,11 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
+	vrt_producer_claim(producer_, &vvalue);
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = Push(rpt);
+	ivalue->index = cursor;
 	ivalue->data = TUNN_RPT;
-	(vrt_producer_publish(producer_));
+	vrt_producer_publish(producer_);
 
 	clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%ld",
 				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);

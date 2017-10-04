@@ -11,7 +11,6 @@ using namespace std;
 /*
  * 10 power of 2
  */
-#define RPT_BUFFER_SIZE 200
 #define MY_TNL_EXID_SHFE  "SHFE"
 
 struct Tunnconfig
@@ -186,7 +185,7 @@ private:
 	long GetCounterByLocalOrderID(long localorderid);
 
 	struct vrt_producer  *producer_;
-	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
+	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
 	const char * module_name_;  
 	bool ended_;
 	static int32_t counter_;
@@ -195,7 +194,6 @@ private:
 	 * things relating to counter API
 	 */
 	int32_t Push();
-	void Reset(TunnRpt &rpt);
 
 	CUstpFtdcTraderApi *api_;
 };

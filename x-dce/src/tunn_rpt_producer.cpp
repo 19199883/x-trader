@@ -16,17 +16,14 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	ended_ = false;
 
 	for(auto &item : cancel_requests_) item = false;
+	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 
 	this->ParseConfig();
 
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
-
-	//rip_check(producer = vrt_producer_new("tunnrpt_producer", 1, queue));
-
 	this->producer_ = producer;
-
 	clog_info("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
@@ -256,7 +253,6 @@ void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, 
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
-	Reset(rpt);
 	if (perror != NULL) {
 		rpt.LocalOrderID = perror->LocalOrderID;
 		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
@@ -280,11 +276,6 @@ void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, 
 	(vrt_producer_publish(producer_));
 }
 
-void TunnRptProducer::Reset(TunnRpt &rpt)
-{
-	rpt.MatchedAmount = 0;
-	rpt.ErrorID = 0;
-}
 
 int32_t TunnRptProducer::Push()
 {
@@ -320,7 +311,6 @@ void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, 
 		pfield->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
 		int32_t cursor = Push();
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
-		Reset(rpt);
 		rpt.LocalOrderID = pfield->LocalOrderID;
 		rpt.OrderStatus = pfield->OrderStatus;
 
@@ -369,7 +359,6 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
-	Reset(rpt);
 	rpt.LocalOrderID = pfield->LocalOrderID;
 	rpt.OrderStatus = X1_FTDC_SPD_ERROR;
 	rpt.ErrorID = pfield->ErrorID;
@@ -396,7 +385,6 @@ void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfiel
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
-	Reset(rpt);
 	rpt.LocalOrderID = pfield->LocalOrderID;
 	rpt.OrderStatus = pfield->OrderStatus;
 	rpt.MatchedAmount = pfield->MatchedAmount;
@@ -430,7 +418,6 @@ void TunnRptProducer::OnRtnOrder(struct CX1FtdcRspPriOrderField* pfield)
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
-	Reset(rpt);
 	rpt.LocalOrderID = pfield->LocalOrderID;
 	rpt.OrderStatus = pfield->OrderStatus;
 
@@ -466,7 +453,6 @@ void TunnRptProducer::OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField* pfi
 		pfield->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
 		int32_t cursor = Push();
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
-		Reset(rpt);
 		rpt.LocalOrderID = pfield->LocalOrderID;
 		rpt.OrderStatus = pfield->OrderStatus;
 
