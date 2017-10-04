@@ -19,6 +19,11 @@
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 15000
 
+/*
+ * 10 power of 2
+ */
+#define RPT_BUFFER_SIZE 15000
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

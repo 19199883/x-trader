@@ -34,18 +34,6 @@ struct Uniconfig
 	char yield[20];
 };
 
-class X1FieldConverter
-{
-	public:
-		static void Convert(const signal_t& sig,const char *account, long localorderid, 
-					int32_t vol, CX1FtdcInsertOrderField& insert_order)
-		{
-			// TODO: here1
-			insert_order.LocalOrderID = localorderid;
-			insert_order.RequestID = localorderid;
-		}
-};
-
 class UniConsumer
 {
 	public:

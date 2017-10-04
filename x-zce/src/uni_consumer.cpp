@@ -364,7 +364,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
 	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
-				"CancelAmount:%ld; ErrorID:%d ",
+				"CancelAmount:%ld; ErrorID:%u ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
 				rpt->CancelAmount, rpt->ErrorID);
 
@@ -482,8 +482,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 				ord.OrderPrice,ord.OrderSide, ord.PositionEffect);
 	if(result){
 #endif
-		int rtn = tunn_rpt_producer_->ReqOrderInsert(&session_id,ord);
-		session_localorderid_map_[session_id] = localorderid;
+		int rtn = tunn_rpt_producer_->ReqOrderInsert(localorderid,&session_id,ord);
 		if(rtn != 0){ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));

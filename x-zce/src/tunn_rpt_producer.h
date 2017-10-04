@@ -9,10 +9,6 @@
 
 using namespace std;
 
-/*
- * 10 power of 2
- */
-#define RPT_BUFFER_SIZE 200
 
 typedef std::pair<std::string, unsigned short> IPAndPortNum;
 IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg);
@@ -75,9 +71,13 @@ class TunnRptProducer: public ITapTradeAPINotify
 		/*
 		 * things relating to esunny Api
 		 */
-		// 下发指令接口
-		int ReqOrderInsert(TAPIUINT32 *session_id, TapAPINewOrder *p);
-		// 撤单操作请求
+		/*
+		 * localorderid:新委托单的LocalOrderID
+		 */
+		int ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session_id, TapAPINewOrder *p);
+		/*
+		 * counter:要撤单的委托单的counter of LocalOrderID
+		 */
 		int ReqOrderAction(int32_t counter);
 
 		/**
@@ -387,17 +387,24 @@ private:
 	 */
 	int32_t Push(const TunnRpt& rpt);
 	struct vrt_producer  *producer_;
+	/* 有2各用途：
+	 * 1.缓存所有的委托报告信息，用于撤单使用。访问一个委托单的报告，
+	 * 通过该委托单的LocalOrderID的counter作为数组下标
+	 * 2.用于通过disruptor传递数据给消费者
+	 */
 	std::array<TunnRpt, RPT_BUFFER_SIZE> rpt_buffer_;
+
 	Tunnconfig config_;
 	const char * module_name_;  
 	bool ended_;
+	/*
+	 * key:session_id; value:counter of LocalOrderID
+	 */
 	unordered_map<TAPIUINT32,long > session_localorderid_map_;
 
 	/*
-	 * 缓存所有的委托报告信息，用于撤单使用。访问一个委托单的报告，
-	 * 通过该委托单的LocalOrderID的counter作为数组下标
+	 * 撤单请求，避免每次初始化
 	 */
-	TunnRpt tunnrpt_table_[COUNTER_UPPER_LIMIT];
 	TapAPIOrderCancelReq cancel_req_;
 
 	/*

@@ -10,6 +10,7 @@
 
 using namespace std::chrono;
 
+// done
 static std::string ReadAuthCode()
 {
     char l[1024];
@@ -22,10 +23,10 @@ static std::string ReadAuthCode()
     return auth_code;
 }
 
+// done
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
-	ready_ = false;
 	ended_ = false;
 	for(auto &item : cancel_requests_) item = false;
 	
@@ -35,6 +36,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 	this->ParseConfig();
 	ESUNNYPacker::InitNewOrder(config_.GetAccount());
+    memset(&cancel_req_, 0, sizeof(cancel_req_));
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
@@ -80,6 +82,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     }
 }
 
+// done
 TunnRptProducer::~TunnRptProducer()
 {
     if (api_) {
@@ -88,6 +91,7 @@ TunnRptProducer::~TunnRptProducer()
     }
 }
 
+// done
 void TunnRptProducer::ParseConfig()
 {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
@@ -116,12 +120,14 @@ void TunnRptProducer::ParseConfig()
 	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
 }
 
-int TunnRptProducer::ReqOrderInsert(TAPIUINT32 *session, TapAPINewOrder *p)
+// done
+int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, TapAPINewOrder *p)
 {
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	int ret = api_->ReqInsertOrder(session,p);
+	session_localorderid_map_[session_id] = localorderid;
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -129,11 +135,11 @@ int TunnRptProducer::ReqOrderInsert(TAPIUINT32 *session, TapAPINewOrder *p)
 					module_name_,latency); 
 #endif
 	if (ret != 0){
-		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%d",
-				module_name_,ret, session_id);
+		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
+				module_name_,ret, session_id,localorderid);
 	}else {
-		clog_debug("[%s] ReqInsertOrder - return:%d, session_id:%d",
-				module_name_,ret, session_id);
+		clog_debug("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
+				module_name_,ret, session_id,localorderid);
 	}
 
 	return ret;
@@ -147,7 +153,6 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	TAPIUINT32 sessionID;
-    memset(&cancel_req_, 0, sizeof(cancel_req_));
     cancel_req_.ServerFlag = tunnrpt_table_[counter].server_flag;
     memcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].order_no, 
 				sizeof(cancel_req_.OrderNo));
@@ -175,144 +180,102 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 	return ret;
 }
 
+// done
 void TunnRptProducer::OnConnect()
 {
     clog_info("[%s] OnConnect.", module_name_);
 }
 
+// done
 void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspInfo* loginRspInfo)
 {
     clog_info("[%s] OnRspLogin: errorCode:%d,%s",
         module_name_,
 		errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
-
-    if (errorCode == TAPIERROR_SUCCEED) { }
 }
 
+// done
 void TunnRptProducer::OnAPIReady()
 {
     clog_info("[%s] OnAPIReady",module_name_);	
 }
 
+// done
 void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
 {
     clog_error("[%s] OnDisconnect, reasonCode:%d",module_name_,reasonCode);
 }
 
+// done
 void TunnRptProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode)
 {
     clog_info("[%s] OnRspChangePassword.", module_name_);
 }
-}
 
+// done
 void TunnRptProducer::OnRspSetReservedInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			const TAPISTR_50 info)
 {
     clog_info("[%s] OnRspSetReservedInfo.", module_name_);
 }
 
+// done
 void TunnRptProducer::OnRspQryAccount(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIAccountInfo* info)
 {
     clog_info("[%s] OnRspQryAccount.", module_name_);
 }
 
+// done
 void TunnRptProducer::OnRspQryFund(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIFundData* info)
 {
     clog_info("[%s] OnRspQryFund.", module_name_);
 }
 
+// done
 void TunnRptProducer::OnRtnFund(const TapAPIFundData* info) 
 {
     clog_info("[%s] OnRtnFund.", module_name_);
 }
 
+// done
 void TunnRptProducer::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIExchangeInfo* info)
 {
     clog_info("[%s] OnRspQryExchange.", module_name_);
 }
 
+// done
 void TunnRptProducer::OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPICommodityInfo* info)
 {
     clog_info("[%s] OnRspQryCommodity.", module_name_);
 }
 
+// done
 void TunnRptProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
 			TAPIYNFLAG isLast, const TapAPITradeContractInfo* info)
 {
     clog_info("[%s] OnRspQryContract: sessionID:%u, errorCode:%d, isLast:%c, %s",
         module_name_,sessionID, errorCode, isLast, 
 		ESUNNYDatatypeFormater::ToString(info).c_str());
-
 }
 
+// done
 void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
 {
     clog_info("[%s] OnRtnContract.", module_name_);
 }
 
-void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, struct CX1FtdcRspErrorField * pe)
-{
-    clog_info("[%s] OnRspUserLogout:%s %s",
-        module_name_,
-		X1DatatypeFormater::ToString(pf).c_str(),
-        X1DatatypeFormater::ToString(pe).c_str());
-}
-
-
+// done
 void TunnRptProducer::End()
 {
 	ended_ = true;
 	(vrt_producer_eof(producer_));
 }
 
-void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
-{
-    clog_debug("[%s] OnRspInsertOrder ended_:%d", ended_);
-
-	if (ended_) return;
-
-    clog_debug("[%s] OnRspInsertOrder:%s %s",
-        module_name_,
-		X1DatatypeFormater::ToString(pfield).c_str(),
-        X1DatatypeFormater::ToString(perror).c_str());
-
-	if ((pfield != NULL && pfield->OrderStatus == X1_FTDC_SPD_ERROR) ||
-		perror != NULL){
-		clog_warning("[%s] OnRspInsertOrder:%s %s",
-			module_name_,
-			X1DatatypeFormater::ToString(pfield).c_str(),
-			X1DatatypeFormater::ToString(perror).c_str());
-	}
-
-	struct TunnRpt rpt;
-    memset(&rpt, 0, sizeof(rpt));
-	if (perror != NULL) {
-		rpt.LocalOrderID = perror->LocalOrderID;
-		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
-		rpt.ErrorID = perror->ErrorID;
-	}
-	else {
-		rpt.LocalOrderID = pfield->LocalOrderID;
-		rpt.OrderStatus = pfield->OrderStatus;
-	}
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = Push(rpt);
-	ivalue->data = TUNN_RPT;
-
-	clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%ld",
-				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
-
-	(vrt_producer_publish(producer_));
-}
-
+// TODO:here1
 int32_t TunnRptProducer::Push(const TunnRpt& rpt)
 {
 	static int32_t cursor = RPT_BUFFER_SIZE - 1;
@@ -367,24 +330,6 @@ void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, 
 		(vrt_producer_publish(producer_));
 	}
 }
-
-void TunnRptProducer::OnRspQryPosition(struct CX1FtdcRspPositionField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspQryPositionDetail(struct CX1FtdcRspPositionDetailField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspCustomerCapital(struct CX1FtdcRspCapitalField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRspQryExchangeInstrument(struct CX1FtdcRspExchangeInstrumentField* pf, struct CX1FtdcRspErrorField* pe,
-bool bIsLast)
-{
-}
-
 
 void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 {
@@ -442,63 +387,57 @@ void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfiel
 	(vrt_producer_publish(producer_));
 }
 
-// TODO:here1
 void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 {
-    TNL_LOG_DEBUG("OnRtnOrder: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
+    clog_debug("[%s] OnRtnOrder:%s",module_name_, 
+				ESUNNYDatatypeFormater::ToString(info).c_str());
 
-    // check whether placed in this session
-    if (info == NULL || info->SessionID == 0 || info->OrderInfo == NULL) {
-        return;
-    }
+	if (ended_) return;
 
-    if (!p) {
-        TNL_LOG_INFO("can't get original place order info of SessionID: %u", info->SessionID);
-        return;
-    }
-    bool should_rsp = true;
-    if (p->IsTerminated()) {
-        should_rsp = false;
-        TNL_LOG_ERROR("SessionID: %u. OnRtnOrder after order terminated.", info->SessionID);
-    }
+	long localorderid = session_localorderid_map_[info->SessionID];
+	int32_t counter = GetCounterByLocalOrderID(localorderid);
+	if(strcmp(tunnrpt_table_[counter].OrderNo,"") == 0){
+		tunnrpt_table_[counter].ServerFlag = info->ServerFlag;
+		tunnrpt_table_[counter].LocalOrderID = localorderid;
+		strcpy(tunnrpt_table_[counter].OrderNo,info->OrderNo);
+	}
 
+	tunnrpt &tunnrpt = tunnrpt_table_[counter];
+
+    if (info->OrderInfo->OrderState == TAPI_ORDER_STATE_SUBMITA ||
+			info->OrderInfo->OrderState == TAPI_ORDER_STATE_QUEUED ||
+			info->OrderInfo->OrderState == TAPI_ORDER_STATE_CANCELING ||
+			) {// discard these reports
+		return;
+    }
+	
+// TODO:here1
     if (info->ErrorCode != TAPIERROR_SUCCEED) {
-        int standard_error_no = cfg_.GetStandardErrorNo(info->ErrorCode);
-        // 报单失败，报告合规检查
-        T_OrderRespond rsp;
-        ESUNNYPacker::OrderRespond(standard_error_no, p->po.serial_no, 0, MY_TNL_OS_ERROR, rsp);
+		clog_warning("[%s] OnRtnOrder:%s",module_name_, 
+				ESUNNYDatatypeFormater::ToString(info).c_str());
+		tunnrpt.ErrorID = info->ErrorCode;
+		tunnrpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
+    }else{
 
-        // 应答
-        if (should_rsp && OrderRespond_call_back_handler_) OrderRespond_call_back_handler_(&rsp);
-        LogUtil::OnOrderRespond(&rsp, tunnel_info_);
-        return;
-    }
+	}
 
-    if (info->OrderInfo->OrderSystemNo[0] != '\0') {
-        p->entrust_no = BuildEntrustNo(info->OrderInfo->OrderSystemNo);
-    }
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = Push(rpt);
+	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
 
-    //如果新报文转换成内部状态为已撤，并且该单状态已经为已撤时，消息不推送到交易服务
-    char inner_status = ESUNNYFieldConvert::GetMYEntrustStatus(info->OrderInfo->OrderState);
-    if ((inner_status == MY_TNL_OS_WITHDRAWED) && (inner_status == p->entrust_status)) {
-        TNL_LOG_INFO("Order canceled. SessionID:%u, OrderNo:%s, entrust_no=%lld",
-            info->SessionID, info->OrderInfo->OrderNo, p->entrust_no);
-        return;
-    }
-
-    if (info->OrderInfo->OrderState != TAPI_ORDER_STATE_CANCELING) {
-        p->entrust_status = inner_status;
-    }
-
-    p->volume_remain = p->po.volume - info->OrderInfo->OrderMatchQty;
+	clog_debug("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%ld",
+				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
 
     if (p->entrust_status == MY_TNL_OS_COMPLETED) {
         // 全成，报告合规检查
     }
     else if (p->entrust_status == MY_TNL_OS_ERROR) {
         // 报单失败，报告合规检查
-    } else if (p->entrust_status == MY_TNL_OS_WITHDRAWED)
-    {
+    } else if (p->entrust_status == MY_TNL_OS_WITHDRAWED) {
     }
 
     if (info->OrderInfo->OrderState == TAPI_ORDER_STATE_ACCEPT) {
@@ -540,6 +479,41 @@ void MYEsunnyTradeSpi::OnRspQryOrderProcess(TAPIUINT32 sessionID, TAPIINT32 erro
 }
 
 void MYEsunnyTradeSpi::OnRspQryFill(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIFillInfo* info) { }
+
+// discard this info
+void MYEsunnyTradeSpi::OnRtnFill(const TapAPIFillInfo* info) { }
+
+void MYEsunnyTradeSpi::OnRspQryPosition(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
+    const TapAPIPositionInfo* info) { }
+
+void MYEsunnyTradeSpi::OnRtnPosition(const TapAPIPositionInfo* info) { }
+
+void MYEsunnyTradeSpi::OnRspQryClose(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPICloseInfo* info) { }
+
+void MYEsunnyTradeSpi::OnRtnClose(const TapAPICloseInfo* info) { }
+
+void MYEsunnyTradeSpi::OnRtnPositionProfit(const TapAPIPositionProfitNotice* info) { }
+
+void MYEsunnyTradeSpi::OnRspQryDeepQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
+    const TapAPIDeepQuoteQryRsp* info) { }
+
+void MYEsunnyTradeSpi::OnRspQryExchangeStateInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIExchangeStateInfo* info) {
+}
+
+void MYEsunnyTradeSpi::OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotice* info)
+{
+    TNL_LOG_INFO("OnRtnExchangeStateInfo: \n%s", ESUNNYDatatypeFormater::ToString(info).c_str());
+}
+
+bool MYEsunnyTradeSpi::IsOrderTerminate(const TapAPIOrderInfo& order_field)
+{
+    return order_field.OrderState == TAPI_ORDER_STATE_FINISHED
+        || order_field.OrderState == TAPI_ORDER_STATE_CANCELED
+        || order_field.OrderState == TAPI_ORDER_STATE_LEFTDELETED
+        || order_field.OrderState == TAPI_ORDER_STATE_FAIL
+        || order_field.OrderState == TAPI_ORDER_STATE_DELETED
+        || order_field.OrderState == TAPI_ORDER_STATE_DELETEDFOREXPIRE;
+}
 
 void TunnRptProducer::OnRtnOrder(struct CX1FtdcRspPriOrderField* pfield)
 {
@@ -607,20 +581,6 @@ void TunnRptProducer::OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField* pfi
 
 		(vrt_producer_publish(producer_));
 	}
-}
-
-void TunnRptProducer::OnRspQryOrderInfo(struct CX1FtdcRspOrderField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-
-void TunnRptProducer::OnRspQryMatchInfo(struct CX1FtdcRspMatchField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
-
-void TunnRptProducer::OnRtnExchangeStatus(struct CX1FtdcExchangeStatusRtnField* pf)
-{
-    clog_info("[%s] OnRtnExchangeStatus:%s", module_name_, X1DatatypeFormater::ToString(pf).c_str());
 }
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
