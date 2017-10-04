@@ -51,7 +51,7 @@ struct Tunnconfig
 
 struct TunnRpt
 {
-	TAPIUINT32			    session_id;
+	TAPIUINT32			    SessionID;
 	long				    LocalOrderID;       ///< 本地委托号
 	TAPIOrderStateType	    OrderStatus;        ///< 委托状态
 	TAPIUINT32		        MatchedAmount;      ///< 成交数量
