@@ -320,9 +320,9 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	// TODO:debug
 	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%d;"
-				"CancelAmount:%d; ErrorID:%d ",
+				"ErrorID:%d ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
-				rpt->CancelAmount, rpt->ErrorID);
+				 rpt->ErrorID);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
