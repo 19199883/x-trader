@@ -15,11 +15,11 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	this->ParseConfig();
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 
-	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
+	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
-	clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -38,18 +38,12 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	strcpy(addr, this->config_.address.c_str());
 	api_->RegisterFront(addr);
 	api_->Init();
-	clog_info("[%s] femas Api init.", module_name_);
+	clog_warning("[%s] femas Api init.", module_name_);
 
 }
 
 TunnRptProducer::~TunnRptProducer()
 {
-//	if (this->producer_ != NULL){
-//		vrt_producer_free(this->producer_);
-//		this->producer_ = NULL;
-//		clog_info("[%s] release tunnrpt_producer.", module_name_);
-//	}
-
     if (api_) {
         api_->Release();
         api_ = NULL;
@@ -75,7 +69,7 @@ void TunnRptProducer::ParseConfig()
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
 
-		clog_info("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
+		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
 					module_name_, 
 					this->config_.address.c_str(), 
 					this->config_.brokerid.c_str(),
@@ -92,10 +86,9 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 	if (ret != 0){
 		time_t rawtime;
 		time (&rawtime);
-		clog_warning("[%s][%s] ReqOrderInsert- ret=%d - %s", 
+		clog_error("[%s][%s] ReqOrderInsert- ret=%d - %s", 
 			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
 	}else {
-		// TODO:debug
 		clog_info("[%s] ReqOrderInsert- ret=%d - %s", 
 			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	}
@@ -111,10 +104,9 @@ int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 	if (ret != 0){
 		time_t rawtime;
 		time (&rawtime);
-		clog_warning("[%s][%s] ReqOrderAction- ret=%d - %s", 
+		clog_error("[%s][%s] ReqOrderAction- ret=%d - %s", 
 			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
 	} else {
-		// TODO:debug
 		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
 			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
 	}
@@ -131,26 +123,26 @@ void TunnRptProducer::ReqLogin()
     strncpy(login_data.Password, config_.password.c_str(), sizeof(TUstpFtdcPasswordType));
 	int rtn = api_->ReqUserLogin(&login_data, 0);
 	
-    clog_info("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
-    clog_info("[%s] ReqLogin:   %s", 
+    clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
+    clog_warning("[%s] ReqLogin:   %s", 
 			module_name_, FEMASDatatypeFormater::ToString(&login_data).c_str());
 }
 
 void TunnRptProducer::OnFrontConnected()
 {
 
-    clog_info("[%s] OnFrontConnected.", module_name_);
+    clog_warning("[%s] OnFrontConnected.", module_name_);
 	this->ReqLogin();
 }
 
 void TunnRptProducer::OnFrontDisconnected(int nReason)
 {
-    clog_info("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
+    clog_warning("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
 }
 
 void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
 {
-    clog_debug("[%s] OnHeartBeatWarning, nTimeLapse=%d", module_name_, nTimeLapse);
+    clog_warning("[%s] OnHeartBeatWarning, nTimeLapse=%d", module_name_, nTimeLapse);
 }
 
 void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield, 
@@ -164,7 +156,7 @@ void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield,
 		}
 	}
 	
-    clog_info("[%s] counter_:%d; OnRspUserLogin:%s %s",
+    clog_warning("[%s] counter_:%d; OnRspUserLogin:%s %s",
         module_name_,
 		counter_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
@@ -175,7 +167,7 @@ void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield,
 void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
 			int nRequestID, bool bIsLast)
 {
-    clog_info("[%s] OnRspUserLogout:%s %s",
+    clog_warning("[%s] OnRspUserLogout:%s %s",
         module_name_,
 		FEMASDatatypeFormater::ToString(pf).c_str(),
         FEMASDatatypeFormater::ToString(pe).c_str());
@@ -184,10 +176,10 @@ void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdc
 void TunnRptProducer::End()
 {
 	if(!ended_){
-		clog_info("[%s] last counter:%d", module_name_,counter_);
+		clog_warning("[%s] last counter:%d", module_name_,counter_);
 		ended_ = true;
 		(vrt_producer_eof(producer_));
-		clog_info("[%s] End exit", module_name_);
+		clog_warning("[%s] End exit", module_name_);
 	}
 }
 
@@ -195,7 +187,7 @@ void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID
 {    
 	time_t rawtime;
 	time (&rawtime);
-	clog_warning("[%s][%s] OnRspError: requestid = %d, last_flag=%d %s",
+	clog_error("[%s][%s] OnRspError: requestid = %d, last_flag=%d %s",
 		module_name_,ctime(&rawtime),nRequestID, bIsLast, 
 		FEMASDatatypeFormater::ToString(pRspInfo).c_str());
 }
@@ -205,7 +197,6 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 {
 	if (ended_) return;
 
-	// TODO:debug
     clog_info("[%s] OnRspOrderInsert:%s %s",
         module_name_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
@@ -214,7 +205,7 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 	if (perror != NULL && 0 != perror->ErrorID){
 		time_t rawtime;
 		time (&rawtime);
-		clog_warning("[%s][%s] OnRspOrderInsert:%s %s",
+		clog_error("[%s][%s] OnRspOrderInsert:%s %s",
 			module_name_,ctime(&rawtime),
 			FEMASDatatypeFormater::ToString(pfield).c_str(),
 			FEMASDatatypeFormater::ToString(perror).c_str());
@@ -239,8 +230,6 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		ivalue->index = cursor;
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
-		clog_debug("[%s] OnRspOrderInsert: index,%d; data,%d; LocalOrderID:%s",
-					module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 	} // if ((pfield != NULL)
 }
 
@@ -260,7 +249,6 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
 {
 	if (ended_) return;
 
-	// TODO:debug
     clog_info("[%s] OnRspOrderAction:%s %s",
         module_name_,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
@@ -269,7 +257,7 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
 	if (perror != NULL && 0 != perror->ErrorID){
 		time_t rawtime;
 		time (&rawtime);
-		clog_warning("[%s][%s] OnRspOrderAction:%s %s",
+		clog_error("[%s][%s] OnRspOrderAction:%s %s",
 			module_name_,ctime(&rawtime),
 			FEMASDatatypeFormater::ToString(pfield).c_str(),
 			FEMASDatatypeFormater::ToString(perror).c_str());
@@ -283,7 +271,7 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 
 	time_t rawtime;
 	time (&rawtime);
-	clog_warning("[%s][%s] OnErrRtnOrderInsert:%s %s",
+	clog_error("[%s][%s] OnErrRtnOrderInsert:%s %s",
         module_name_,ctime(&rawtime),
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
 		FEMASDatatypeFormater::ToString(perror).c_str());
@@ -302,8 +290,6 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 		ivalue->index = cursor;
 		ivalue->data = TUNN_RPT;
 		(vrt_producer_publish(producer_));
-		clog_debug("[%s] OnErrRtnOrderInsert: index,%d; data,%d; LocalOrderID:%s",
-			module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 	}
 }
 
@@ -311,7 +297,6 @@ void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
 {
 	if (ended_) return;
 
-	// TODO:debug
     clog_info("[%s] OnRtnTrade:%s", 
 				module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
@@ -322,7 +307,6 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 {
 	if (ended_) return;
 
-	// TODO:debug
     clog_info("[%s] OnRtnOrder:%s", module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
 	int32_t cursor = Push();
@@ -339,9 +323,6 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 	ivalue->index = cursor;
 	ivalue->data = TUNN_RPT;
 	(vrt_producer_publish(producer_));
-
-	clog_debug("[%s] OnRtnOrder: index,%d; data,%d; LocalOrderID:%s",
-				module_name_, ivalue->index, ivalue->data, pfield->UserOrderLocalID);
 }
 
 void TunnRptProducer::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield, 
@@ -349,7 +330,7 @@ void TunnRptProducer::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield,
 {
 	time_t rawtime;
 	time (&rawtime);
-	clog_warning("[%s][%s] OnErrRtnOrderAction:%s %s",
+	clog_error("[%s][%s] OnErrRtnOrderAction:%s %s",
 		module_name_,ctime(&rawtime),
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
 		FEMASDatatypeFormater::ToString(perror).c_str());         

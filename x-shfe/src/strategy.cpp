@@ -47,11 +47,11 @@ void Strategy::End(void)
 
 	WriteLog(true);
 	fclose(pfDayLogFile_);
-	clog_info("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
+	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
 
 	if (this->pfn_destroy_ != NULL){
 		//pfn_destroy_ ();
-		clog_info("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
+		clog_warning("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
 	}
 }
 
@@ -106,35 +106,35 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
 	}
 
 	pfn_feedshfemarketdata_ = (FeedShfeMarketData_ptr )pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_MYSHFE);
 	if (!pfn_feedshfemarketdata_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_MYSHFE, errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_INIT_POSITION, errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_SIG_RESP, errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_DESTROY, errno);
 	}
 	
@@ -142,7 +142,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	pfn_setlogfn1_ = (SetLogFn1Ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN1);
 	if (!pfn_setlogfn1_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN1, errno);
 	} else {
 		//pfn_setlogfn1_(GetId(), StrategyLog::Log1);
@@ -151,7 +151,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	pfn_setlogfn2_ = (SetLogFn2Ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN2);
 	if (!pfn_setlogfn2_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN2, errno);
 	} else {
 		//pfn_setlogfn2_(GetId(), StrategyLog::Log2);
@@ -163,7 +163,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	WriteLogTitle();
-	clog_info("[%s] open log file:%s", module_name_,setting_.config.log_name);
+	clog_warning("[%s] open log file:%s", module_name_,setting_.config.log_name);
 
 	LoadPosition();
 	
@@ -204,17 +204,14 @@ void Strategy::FeedInitPosition()
 	log_cursor_++;
 	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false); 
 
-	clog_info("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
+	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
 				second.long_volume, second.short_volume);
 }
 
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
-
 	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
-	//clog_debug("[%s] rev MYShfeMarketData contract:%s; time:%c %c", 
-	//			module_name_, md->InstrumentID, md->UpdateTime, md->UpdateMillisec);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -235,7 +232,6 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 
 		sigs[i].st_id = this->GetId();
 
-		// TODO:debug
 		 clog_info("[%s] FeedMd MDBestAndDeep signal: strategy id:%d; sig_id:%d; "
 					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
 					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
@@ -254,8 +250,6 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
-		// debug
-		// TODO:debug
 		clog_info("[%s] feed_sig_respons esignal: strategy id:%d;sig_id:%d; exchange:%d; symbol:%s;"
 					"open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_, sigs[i].st_id, sigs[i].sig_id,
@@ -326,7 +320,7 @@ int Strategy::GetVol(const signal_t &sig)
 		vol = sig.open_volume;
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
-	} else{ clog_warning("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
+	} else{ clog_error("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
 				sig.sig_openclose); }
 
 	return vol;
@@ -364,7 +358,6 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 
 	if (updated_vol > vol) updated_vol = vol; 
 
-	// TODO:debug
 	clog_info("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 				"frozen_open_short:%d; updated vol:%d",
@@ -405,7 +398,6 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 	}
 
 
-	// TODO:debug
 	clog_info("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 				"frozen_open_short:%d; ",
@@ -439,9 +431,6 @@ void Strategy::Push(const signal_t &sig)
 	}
 
 	cursor_++;
-
-	clog_debug("[%s] push: strategy id:%d; sig id: %d; cursor,%d; ",
-				module_name_, sig.st_id, sig.sig_id, cursor_);
 }
 
 void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
@@ -455,7 +444,6 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	// TODO:debug
 	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
 				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
@@ -491,7 +479,6 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 
 	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
 
-	// TODO:debug
 	clog_info("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d; \
 				symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f; \
 				exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
@@ -553,7 +540,6 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 	}
 
-	// TODO:debug
 	clog_info("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d; \
 				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
 				frozen_open_short:%d; ",
@@ -595,7 +581,7 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}
 	else{
-		clog_warning("[%s] unexpected status:%d", tunnrpt.OrderStatus);
+		clog_error("[%s] unexpected status:%d", tunnrpt.OrderStatus);
 	}
 }
 
@@ -615,7 +601,7 @@ void Strategy::LoadPosition()
 		cont = sett_cont;
 	}
 	if(sett_cont != cont){
-		clog_warning("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
+		clog_error("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
 			GetId(), cont.c_str(), sett_cont.c_str());
 	}
 }

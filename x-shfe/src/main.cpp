@@ -29,7 +29,7 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 #ifdef LATENCY_MEASURE
-	clog_info("latency measure on"); 
+	clog_warning("latency measure on"); 
 #endif
 
 	struct sigaction SIGINT_act;
@@ -45,8 +45,6 @@ int main(/*int argc, const char **argv*/)
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
-	clog_debug("[%s] thread id:%ld", "main",std::this_thread::get_id() );
-
 	struct vrt_queue  *queue;
 	int64_t  result;
 
@@ -55,23 +53,18 @@ int main(/*int argc, const char **argv*/)
 	mdproducer = new MDProducer(queue);
 	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
 	uniConsumer->Start();
-	clog_info("[%s] start exit", "main");
 	fflush (fp);
 
   // free vrt_queue
 	vrt_queue_free(queue);
-	clog_info("[%s] queue exit", "main");
-
 
   delete uniConsumer;
   delete tunnRptProducer; 
   delete mdproducer; 
-	clog_info("[%s] my class exit", "main");
 
 // clog: free resources
 	pos_calc::destroy_instance();
 
-	clog_info("[%s] clogger exit", "main");
 	clog_handler_free(clog_handler);
 
 	return 0;

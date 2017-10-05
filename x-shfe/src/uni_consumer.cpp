@@ -23,24 +23,24 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 
 #if FIND_STRATEGIES == 1
 	unordered_multimap 
-	clog_info("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
+	clog_warning("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
 #endif
 
 #if FIND_STRATEGIES == 2 // two-dimensional array
 	memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
 	memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
-	clog_info("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
+	clog_warning("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
 #endif	
 
 #if FIND_STRATEGIES == 3 // strcmp
-	clog_info("[%s] method for finding strategies by contract:strcmp", module_name_);
+	clog_warning("[%s] method for finding strategies by contract:strcmp", module_name_);
 #endif
 
-	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
+	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
-	clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->consumer_ ->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -67,7 +67,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 			}
 		}
 		if (!online){
-			clog_warning("[%s] pos_calc error: offline(%s)", module_name_, stra.c_str());
+			clog_error("[%s] pos_calc error: offline(%s)", module_name_, stra.c_str());
 		}
 	}
 
@@ -83,12 +83,6 @@ UniConsumer::~UniConsumer()
 		pproxy_->DeleteLoadLibraryProxy();
 		pproxy_ = NULL;
 	}
-
-//	if (this->consumer_ != NULL){
-//		vrt_consumer_free(this->consumer_);
-//		this->consumer_ = NULL;
-//		clog_info("[%s] release uni_consumer.", module_name_);
-//	}
 }
 
 void UniConsumer::ParseConfig()
@@ -102,7 +96,7 @@ void UniConsumer::ParseConfig()
     TiXmlElement *comp_node = root->FirstChildElement("Disruptor");
 	if (comp_node != NULL){
 		strcpy(config_.yield, comp_node->Attribute("yield"));
-		clog_info("[%s] yield:%s", module_name_, config_.yield); 
+		clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
 
     TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
@@ -208,7 +202,7 @@ void UniConsumer::CreateStrategies()
 		}
 #endif
 
-		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
+		clog_warning("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),
 					stra_table_[strategy_counter_].GetContract(), 
 					stra_table_[strategy_counter_].GetMaxPosition(), 
@@ -238,16 +232,16 @@ void UniConsumer::Start()
 					ProcTunnRpt(ivalue->index);
 					break;
 				default:
-					clog_info("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
+					clog_error("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
 					break;
 			}
 		}
 	} // end while (running_ &&
 
 	if (rc == VRT_QUEUE_EOF) {
-		clog_info("[%s] [start] rev EOF.", module_name_);
+		clog_warning("[%s] [start] rev EOF.", module_name_);
 	}
-	clog_info("[%s] start exit.", module_name_);
+	clog_warning("[%s] start exit.", module_name_);
 }
 
 void UniConsumer::Stop()
@@ -263,7 +257,7 @@ void UniConsumer::Stop()
 		for(int i=0; i<strategy_counter_; i++){
 			stra_table_[i].End();
 		}
-		clog_info("[%s] End exit", module_name_);
+		clog_warning("[%s] End exit", module_name_);
 	}
 }
 
@@ -323,7 +317,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	// TODO:debug
 	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%d;"
 				"ErrorID:%d ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
@@ -392,7 +385,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 					}
 				}
 				if(i == MAX_PENDING_SIGNAL_COUNT){
-					clog_warning("[%s] pending_signals_ beyond;", module_name_);
+					clog_error("[%s] pending_signals_ beyond;", module_name_);
 				}
 			} else { PlaceOrder(strategy, sigs[i]); }
 		}
@@ -402,7 +395,6 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	if (!strategy.HasFrozenPosition()){
-		// TODO:debug
 		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}
@@ -413,18 +405,17 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 				ori_local_order_id);
 	int rtn = tunn_rpt_producer_->ReqOrderAction(order);
 
-	// TODO:debug
 	clog_info("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
 				module_name_, order.UserOrderActionLocalID,order.UserOrderLocalID, rtn); 
 	if(rtn != 0){
-		clog_warning("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
+		clog_error("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
 				module_name_, order.UserOrderActionLocalID,order.UserOrderLocalID, rtn); 
 	}
 
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
+        if(latency > 0) clog_info("[%s] cancel latency:%d us", module_name_, latency); 
 #endif
 }
 
@@ -453,12 +444,12 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 
-			clog_warning("[%s] PlaceOrder rtn:%d; LocalOrderID: %s", module_name_, 
+			clog_error("[%s] PlaceOrder rtn:%d; LocalOrderID: %s", module_name_, 
 						rtn, ord.UserOrderLocalID);
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_warning("[%s] matched with myself:%s", module_name_, ord.UserOrderLocalID);
+		clog_error("[%s] matched with myself:%s", module_name_, ord.UserOrderLocalID);
 
 		// feed rejeted info
 		TunnRpt rpt;
