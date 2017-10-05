@@ -18,8 +18,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
-	FemasFieldConverter::InitNewOrder(tunn_rpt_producer_->config_)
-	FemasFieldConverter::InitCancelOrder(tunn_rpt_producer_->config_)
+	FemasFieldConverter::InitNewOrder(tunn_rpt_producer_->config_);
+	FemasFieldConverter::InitCancelOrder(tunn_rpt_producer_->config_);
 
 #if FIND_STRATEGIES == 1
 	unordered_multimap 
@@ -406,10 +406,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	int rtn = tunn_rpt_producer_->ReqOrderAction(order);
 
 	clog_info("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-				module_name_, order.UserOrderActionLocalID,order.UserOrderLocalID, rtn); 
+				module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
 	if(rtn != 0){
 		clog_error("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-				module_name_, order.UserOrderActionLocalID,order.UserOrderLocalID, rtn); 
+				module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
 	}
 
 
@@ -429,8 +429,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	CUstpFtdcInputOrderField *ord =  FemasFieldConverter::Convert(sig, localorderid, updated_vol);
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
-	bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID, ord.LimitPrice,
-				ord.Direction, ord.OffsetFlag);
+	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID, ord->LimitPrice,
+				ord->Direction, ord->OffsetFlag);
 	if(result){
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
@@ -445,11 +445,11 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 
 			clog_error("[%s] PlaceOrder rtn:%d; LocalOrderID: %s", module_name_, 
-						rtn, ord.UserOrderLocalID);
+						rtn, ord->UserOrderLocalID);
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_error("[%s] matched with myself:%s", module_name_, ord.UserOrderLocalID);
+		clog_error("[%s] matched with myself:%s", module_name_, ord->UserOrderLocalID);
 
 		// feed rejeted info
 		TunnRpt rpt;

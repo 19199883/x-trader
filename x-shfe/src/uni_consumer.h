@@ -48,27 +48,17 @@ class FemasFieldConverter
 			strncpy(new_order_.BrokerID, cfg.brokerid.c_str(), 
 						sizeof(TUstpFtdcBrokerIDType));
 			strncpy(new_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
-			//strcpy(insert_order.OrderSysID, "");//系统报单编号，填什么内容?
-			strncpy(insert_order.InvestorID, cfg.userid.c_str(), sizeof(TUstpFtdcInvestorIDType));
-			strncpy(insert_order.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
-			insert_order.OrderPriceType = USTP_FTDC_OPT_LimitPrice; 
-			insert_order.HedgeFlag = USTP_FTDC_CHF_Speculation;
+			strncpy(new_order_.InvestorID, cfg.userid.c_str(), sizeof(TUstpFtdcInvestorIDType));
+			strncpy(new_order_.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
+			new_order_.OrderPriceType = USTP_FTDC_OPT_LimitPrice; 
+			new_order_.HedgeFlag = USTP_FTDC_CHF_Speculation;
 			// 有效期类型
-			insert_order.TimeCondition = USTP_FTDC_TC_GFD;
-			// GTD日期
-			//strcpy(insert_order.GTDDate, "");
+			new_order_.TimeCondition = USTP_FTDC_TC_GFD;
 			// 成交量类型
-			insert_order.VolumeCondition = USTP_FTDC_VC_AV;
-			// 最小成交量
-			//insert_order.MinVolume = 0;
-			// 止损价
-			//insert_order.StopPrice = 0;
+			new_order_.VolumeCondition = USTP_FTDC_VC_AV;
 			// 强平原因
-			insert_order.ForceCloseReason = USTP_FTDC_FCR_NotForceClose;
-			// 自动挂起标志
-			//insert_order.IsAutoSuspend = 0;
-			//strcpy(insert_order.BusinessUnit,"");
-			strncpy(insert_order.UserCustom, cfg.userid.c_str(), sizeof(TUstpFtdcCustomType));
+			new_order_.ForceCloseReason = USTP_FTDC_FCR_NotForceClose;
+			strncpy(new_order_.UserCustom, cfg.userid.c_str(), sizeof(TUstpFtdcCustomType));
 		}
 
 		static CUstpFtdcInputOrderField* Convert(const signal_t& sig, 
