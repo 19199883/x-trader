@@ -6,9 +6,9 @@
 #include <unordered_map>
 #include "vrt_value_obj.h"
 #include "TapTradeAPI.h"
+#include "TapTradeAPIDataType.h"
 
 using namespace std;
-
 
 typedef std::pair<std::string, unsigned short> IPAndPortNum;
 IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg);
@@ -19,7 +19,7 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
 IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg)
 {   
     //format: udp://192.168.60.23:7120   or  tcp://192.168.60.23:7120
-    std:::string ip_port = addr_cfg.substr(6);
+    std::string ip_port = addr_cfg.substr(6);
     std::size_t split_pos = ip_port.find(":");
     if ((split_pos == std::string::npos) || (split_pos + 1 >= ip_port.length())) {
         clog_error("parse address failed: %s", addr_cfg.c_str());
@@ -389,7 +389,7 @@ private:
 	 * 通过该委托单的LocalOrderID的counter作为数组下标
 	 * 2.用于通过disruptor传递数据给消费者
 	 */
-	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
+	TunnRpt tunnrpt_table_[RPT_BUFFER_SIZE];
 
 	Tunnconfig config_;
 	const char * module_name_;  

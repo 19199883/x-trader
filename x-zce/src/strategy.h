@@ -169,8 +169,8 @@ private:
 	/*
 	 * 
 	 */
-	void UpdateSigrptByTunnrpt(signal_resp_t& sigrpt, const TunnRpt& tunnrpt);
-	void UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose,
+	void UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt, const TunnRpt& tunnrpt);
+	void UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short sig_openclose,
 				unsigned short int sig_act);
 	void FillPositionRpt(const TunnRpt& rpt, position_t& pos);
 	const char * GetSymbol();

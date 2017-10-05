@@ -1,6 +1,7 @@
 ﻿#include "my_protocol_packager.h"
 #include <sstream>
 #include <stdlib.h>
+#include "vrt_value_obj.h"
 
 // done
 void ESUNNYPacker::InitNewOrder(const char *account)
@@ -14,7 +15,7 @@ void ESUNNYPacker::InitNewOrder(const char *account)
     strcpy(new_order_.ContractNo2, "");
     strcpy(new_order_.StrikePrice2, "");
     new_order_.CallOrPutFlag2 = TAPI_CALLPUT_FLAG_NONE;
-    new_order_.OrderType = TAPI_ORDER_TYPE_LIMIT
+    new_order_.OrderType = TAPI_ORDER_TYPE_LIMIT;
     new_order_.OrderSource = TAPI_ORDER_SOURCE_ESUNNY_API;
     new_order_.TimeInForce = TAPI_ORDER_TIMEINFORCE_GFD;
     strcpy(new_order_.ExpireTime, "");
@@ -27,8 +28,8 @@ void ESUNNYPacker::InitNewOrder(const char *account)
     new_order_.TriggerCondition = TAPI_TRIGGER_CONDITION_NONE;
     new_order_.TriggerPriceType = TAPI_TRIGGER_PRICE_NONE;
     new_order_.AddOneIsValid = APIYNFLAG_NO;
-    new_order-.HedgeFlag2 = TAPI_HEDGEFLAG_NONE;
-    new_order-.MarketLevel= TAPI_MARKET_LEVEL_0;
+    new_order_.HedgeFlag2 = TAPI_HEDGEFLAG_NONE;
+    new_order_.MarketLevel= TAPI_MARKET_LEVEL_0;
     new_order_.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
 }
 

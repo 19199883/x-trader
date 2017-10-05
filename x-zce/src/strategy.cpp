@@ -107,9 +107,9 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
 	}
 
-	pfn_l2quotesnapshot_ = (FeedL2QuoteSnapshot_ptr)pproxy_->findObject(
+	pfn_feedl2quotesnapshot_ = (FeedL2QuoteSnapshot_ptr)pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT);
-	if (!pfn_l2quotesnapshot_){
+	if (!pfn_feedl2quotesnapshot_){
 		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), 
 					STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT, errno);
@@ -460,7 +460,7 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	signal_t& sig = sig_table_[index];
 
 	// 使MatchedAmount为最后一次的成交量
-	int32_t lastqty = tunnrpt.MatchedAmount - sigrpt.acc_volume;
+	int32_t lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
 	// update strategy's position
 	UpdatePosition(lastqty,rpt, sig.sig_openclose, sig.sig_act);
 	// fill signal position report by tunnel report

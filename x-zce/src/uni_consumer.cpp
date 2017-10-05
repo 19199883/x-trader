@@ -6,6 +6,7 @@
 #include "perfctx.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "my_protocol_packager.h"
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer)
@@ -304,9 +305,8 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
 	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
-				"CancelAmount:%ld; ErrorID:%u ",
-				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
-				rpt->CancelAmount, rpt->ErrorID);
+				" ErrorID:%u ", module_name_, index, rpt->LocalOrderID, 
+				rpt->OrderStatus, rpt->MatchedAmount, rpt->ErrorID);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
@@ -415,7 +415,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter,sig.symbol,
-				ord.OrderPrice,ord.OrderSide, ord.PositionEffect);
+				ord->OrderPrice,ord->OrderSide, ord->PositionEffect);
 	if(result){
 #endif
 		int rtn = tunn_rpt_producer_->ReqOrderInsert(localorderid,&session_id,ord);

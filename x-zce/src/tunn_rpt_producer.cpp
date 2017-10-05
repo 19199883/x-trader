@@ -3,10 +3,14 @@
 #include <ctime>
 #include <ratio>
 #include <stdio.h>
+#include <fstream>
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "esunny_data_formater.h"
+#include "my_protocol_packager.h"
+#include "TapAPIError.h"
+#include "TapTradeAPI.h"
 
 using namespace std::chrono;
 
@@ -28,14 +32,14 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
 	ended_ = false;
-	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
+	memset(tunnrpt_table_,0,sizeof(tunnrpt_table_));
 	
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
     // check api version
     clog_info("[%s] TapTradeAPIVersion:%s",module_name_,GetTapTradeAPIVersion());
 
 	this->ParseConfig();
-	ESUNNYPacker::InitNewOrder(config_.GetAccount());
+	ESUNNYPacker::InitNewOrder(GetAccount());
     memset(&cancel_req_, 0, sizeof(cancel_req_));
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
@@ -126,8 +130,8 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	int ret = api_->ReqInsertOrder(session,p);
-	session_localorderid_map_[session_id] = localorderid;
+	int ret = api_->InsertOrder(session,p);
+	session_localorderid_map_[*session] = localorderid;
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -136,10 +140,10 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 #endif
 	if (ret != 0){
 		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
-				module_name_,ret, session_id,localorderid);
+				module_name_,ret, *session,localorderid);
 	}else {
 		clog_debug("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
-				module_name_,ret, session_id,localorderid);
+				module_name_,ret, *session,localorderid);
 	}
 
 	return ret;
@@ -153,10 +157,10 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	TAPIUINT32 sessionID;
-    cancel_req_.ServerFlag = tunnrpt_table_[counter].server_flag;
-    memcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].order_no, 
+    cancel_req_.ServerFlag = tunnrpt_table_[counter].ServerFlag;
+    memcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].OrderNo, 
 				sizeof(cancel_req_.OrderNo));
-	int ret = api_->CancelOrder(&session_id,&cancel_req_);
+	int ret = api_->CancelOrder(&sessionID,&cancel_req_);
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -167,12 +171,12 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 	if (ret != 0){
 		clog_warning("[%s] CancelOrder - return:%d, session_id:%d, "
 			"counter of original order:%d,server flag:%c,order no:%s", 
-			module_name_,ret,session_id,counter,cancel_req_.ServerFlag,
+			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
 	} else {
 		clog_debug("[%s] CancelOrder - return:%d, session_id:%d, "
 			"counter of original order:%d,server flag:%c,order no:%s", 
-			module_name_,ret,session_id,counter,cancel_req_.ServerFlag,
+			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
 	}
 
@@ -274,7 +278,6 @@ void TunnRptProducer::End()
 	(vrt_producer_eof(producer_));
 }
 
-// done
 void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 {
     clog_debug("[%s] OnRtnOrder:%s",module_name_, 
@@ -284,7 +287,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 
 	long localorderid = session_localorderid_map_[info->SessionID];
 	int32_t counter = GetCounterByLocalOrderID(localorderid);
-	tunnrpt &tunnrpt = tunnrpt_table_[counter];
+	TunnRpt &tunnrpt = tunnrpt_table_[counter];
 	if(strcmp(tunnrpt.OrderNo,"") == 0){
 		tunnrpt.SessionID = info->SessionID;
 		tunnrpt.LocalOrderID = localorderid;
@@ -298,15 +301,15 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 		tunnrpt.ErrorID = info->ErrorCode;
 		tunnrpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
     }else{
-		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_SUBMITA ||
+		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_SUBMIT ||
 			info->OrderInfo->OrderState==TAPI_ORDER_STATE_QUEUED ||
 			info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELING
 			) {// discard these reports
 			return;
 		}
 
-		tunnrpt.OrderStatus = info->OrderInfo.OrderState;
-		tunnrpt.MatchedAmount = info->OrderInfo.OrderMatchQty;
+		tunnrpt.OrderStatus = info->OrderInfo->OrderState;
+		tunnrpt.MatchedAmount = info->OrderInfo->OrderMatchQty;
 	}
 
 	struct vrt_value  *vvalue;
@@ -323,55 +326,54 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	}
 }
 
-// done
 // 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.
 // log this info only to see whether this method will be invoked.
-void MYEsunnyTradeSpi::OnRspOrderAction(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
+void TunnRptProducer::OnRspOrderAction(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
 			const TapAPIOrderActionRsp* info)
 {
     clog_debug("[%s] OnRspOrderAction:sessionID:%u,errorCode:%d, %s",
         module_name_,sessionID, errorCode, ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
-void MYEsunnyTradeSpi::OnRspQryOrder(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+void TunnRptProducer::OnRspQryOrder(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIOrderInfo* info)
 {
 }
 
-void MYEsunnyTradeSpi::OnRspQryOrderProcess(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+void TunnRptProducer::OnRspQryOrderProcess(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast,
     const TapAPIOrderInfo* info)
 {
 }
 
-void MYEsunnyTradeSpi::OnRspQryFill(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
+void TunnRptProducer::OnRspQryFill(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
 			TAPIYNFLAG isLast, const TapAPIFillInfo* info) { }
 
 // discard this info
-void MYEsunnyTradeSpi::OnRtnFill(const TapAPIFillInfo* info) { }
+void TunnRptProducer::OnRtnFill(const TapAPIFillInfo* info) { }
 
-void MYEsunnyTradeSpi::OnRspQryPosition(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+void TunnRptProducer::OnRspQryPosition(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast,
     const TapAPIPositionInfo* info) { }
 
-void MYEsunnyTradeSpi::OnRtnPosition(const TapAPIPositionInfo* info) { }
+void TunnRptProducer::OnRtnPosition(const TapAPIPositionInfo* info) { }
 
-void MYEsunnyTradeSpi::OnRspQryClose(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
+void TunnRptProducer::OnRspQryClose(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
 			TAPIYNFLAG isLast, const TapAPICloseInfo* info) { }
 
-void MYEsunnyTradeSpi::OnRtnClose(const TapAPICloseInfo* info) { }
+void TunnRptProducer::OnRtnClose(const TapAPICloseInfo* info) { }
 
-void MYEsunnyTradeSpi::OnRtnPositionProfit(const TapAPIPositionProfitNotice* info) { }
+void TunnRptProducer::OnRtnPositionProfit(const TapAPIPositionProfitNotice* info) { }
 
-void MYEsunnyTradeSpi::OnRspQryDeepQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+void TunnRptProducer::OnRspQryDeepQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast,
     const TapAPIDeepQuoteQryRsp* info) { }
 
-void MYEsunnyTradeSpi::OnRspQryExchangeStateInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
+void TunnRptProducer::OnRspQryExchangeStateInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIExchangeStateInfo* info) {
 }
 
-void MYEsunnyTradeSpi::OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotice* info)
+void TunnRptProducer::OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotice* info)
 {
 }
 
@@ -391,7 +393,7 @@ const char* TunnRptProducer::GetAccount()
 
 TunnRpt* TunnRptProducer::GetRpt(int32_t index)
 {
-	return &(rpt_buffer_[index]);
+	return &(tunnrpt_table_[index]);
 }
 
 int32_t TunnRptProducer::GetStrategyID(TunnRpt& rpt)
