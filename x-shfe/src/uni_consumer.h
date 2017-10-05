@@ -41,47 +41,18 @@ struct Uniconfig
 class FemasFieldConverter
 {
 	public:
-		static void Convert(Tunnconfig &cfg, const signal_t& sig, long localorderid, 
-					int32_t vol, CUstpFtdcInputOrderField& insert_order)
+		static void InitNewOrder(Tunnconfig &cfg)
 		{
-			memset(&insert_order, 0, sizeof(insert_order));
-			strncpy(insert_order.BrokerID, cfg.brokerid.c_str(), 
+			memset(&new_order_, 0, sizeof(new_order_));
+
+			strncpy(new_order_.BrokerID, cfg.brokerid.c_str(), 
 						sizeof(TUstpFtdcBrokerIDType));
-			strncpy(insert_order.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
+			strncpy(new_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
 			//strcpy(insert_order.OrderSysID, "");//系统报单编号，填什么内容?
 			strncpy(insert_order.InvestorID, cfg.userid.c_str(), sizeof(TUstpFtdcInvestorIDType));
 			strncpy(insert_order.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
-			strncpy(insert_order.InstrumentID, sig.symbol, sizeof(TUstpFtdcInstrumentIDType));
-			// 8位，左填充0，最大支持99999个信号
-			snprintf(insert_order.UserOrderLocalID, sizeof(TUstpFtdcUserOrderLocalIDType), 
-						"%08lld", localorderid);
-			if (sig.instr == instr_t::MARKET){
-				insert_order.OrderPriceType = USTP_FTDC_OPT_AnyPrice; 
-			}
-			else{
-				insert_order.OrderPriceType = USTP_FTDC_OPT_LimitPrice; 
-			}
-
-			if (sig.sig_act == signal_act_t::buy){
-				insert_order.LimitPrice = sig.buy_price;
-				insert_order.Direction = USTP_FTDC_D_Buy;
-			}
-			else if (sig.sig_act == signal_act_t::sell){
-				insert_order.LimitPrice = sig.sell_price;
-				insert_order.Direction = USTP_FTDC_D_Sell;
-			}else{
-				 clog_warning("[%s] do support Direction value:%d; sig id:%d", "FemasFieldConverter",
-					insert_order.Direction, sig.sig_id); 
-			}
-
-			if (sig.sig_openclose == alloc_position_effect_t::open_){
-				insert_order.OffsetFlag = USTP_FTDC_OF_Open;
-			}
-			else if (sig.sig_openclose == alloc_position_effect_t::close_){
-				insert_order.OffsetFlag = USTP_FTDC_OF_CloseToday;
-			}
+			insert_order.OrderPriceType = USTP_FTDC_OPT_LimitPrice; 
 			insert_order.HedgeFlag = USTP_FTDC_CHF_Speculation;
-			insert_order.Volume = vol;
 			// 有效期类型
 			insert_order.TimeCondition = USTP_FTDC_TC_GFD;
 			// GTD日期
@@ -100,27 +71,64 @@ class FemasFieldConverter
 			strncpy(insert_order.UserCustom, cfg.userid.c_str(), sizeof(TUstpFtdcCustomType));
 		}
 
-		static void Convert(Tunnconfig &cfg, long local_order_id, 
-					long ori_local_ord_id, CUstpFtdcOrderActionField &order)
+		static CUstpFtdcInputOrderField* Convert(const signal_t& sig, 
+					long localorderid,int32_t vol)
 		{
-			memset(&order, 0, sizeof(order));
+			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(TUstpFtdcInstrumentIDType));
+			snprintf(new_order_.UserOrderLocalID, sizeof(TUstpFtdcUserOrderLocalIDType), 
+						"%08lld", localorderid); // 8位，左填充0，最大支持99999个信号
+
+			if (sig.sig_act == signal_act_t::buy){
+				new_order_.LimitPrice = sig.buy_price;
+				new_order_.Direction = USTP_FTDC_D_Buy;
+			}else if (sig.sig_act == signal_act_t::sell){
+				new_order_.LimitPrice = sig.sell_price;
+				new_order_.Direction = USTP_FTDC_D_Sell;
+			}else{
+				 clog_warning("[%s] do support Direction value:%d; sig id:%d", "FemasFieldConverter",
+					new_order_.Direction, sig.sig_id); 
+			}
+
+			if (sig.sig_openclose == alloc_position_effect_t::open_){
+				new_order_.OffsetFlag = USTP_FTDC_OF_Open;
+			}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+				new_order_.OffsetFlag = USTP_FTDC_OF_CloseToday;
+			}
+			new_order_.Volume = vol;
+
+			return &new_order_;
+		}
+
+		static void InitCancelOrder(Tunnconfig &cfg)
+		{
+			memset(&cancel_order_, 0, sizeof(cancel_order_));
 
 			// 原报单交易所标识
-			strncpy(order.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
-			strncpy(order.BrokerID, cfg.brokerid.c_str(), sizeof(TUstpFtdcBrokerIDType));
-			strncpy(order.InvestorID, cfg.userid.c_str(), sizeof(TUstpFtdcInvestorIDType));
-			strncpy(order.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
+			strncpy(cancel_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
+			strncpy(cancel_order_.BrokerID, cfg.brokerid.c_str(), sizeof(TUstpFtdcBrokerIDType));
+			strncpy(cancel_order_.InvestorID, cfg.userid.c_str(), sizeof(TUstpFtdcInvestorIDType));
+			strncpy(cancel_order_.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
+			// order.OrderSysID);
+			cancel_order_.ActionFlag = USTP_FTDC_AF_Delete;
+			cancel_order_.LimitPrice = 0;
+			cancel_order_.VolumeChange = 0;
+		}
+
+		static CUstpFtdcOrderActionField*  Convert(long local_order_id,long ori_local_ord_id)
+		{
 			// 8位，左填充0，最大支持99999个信号
-			snprintf(order.UserOrderActionLocalID, sizeof(order.UserOrderActionLocalID), 
+			snprintf(cancel_order_.UserOrderActionLocalID, sizeof(cancel_order_.UserOrderActionLocalID), 
 						"%08lld", local_order_id);
 			// wangying 8位，左填充0，最大支持99999个信号
-			snprintf(order.UserOrderLocalID, sizeof(order.UserOrderLocalID), 
+			snprintf(cancel_order_.UserOrderLocalID, sizeof(cancel_order_.UserOrderLocalID), 
 						"%08lld", ori_local_ord_id);
-			// order.OrderSysID);
-			order.ActionFlag = USTP_FTDC_AF_Delete;
-			order.LimitPrice = 0;
-			order.VolumeChange = 0;
+
+			return &cancel_order_;
 		}
+
+	private:
+		static CUstpFtdcInputOrderField new_order_;
+		static CUstpFtdcOrderActionField cancel_order_;
 
 };
 

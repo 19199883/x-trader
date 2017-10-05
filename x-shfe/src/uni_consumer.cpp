@@ -7,6 +7,9 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 
+CUstpFtdcInputOrderField FemasFieldConverter::new_order_;
+CUstpFtdcOrderActionField FemasFieldConverter::cancel_order_;
+
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
@@ -15,6 +18,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
+	FemasFieldConverter::InitNewOrder(tunn_rpt_producer_->config_)
+	FemasFieldConverter::InitCancelOrder(tunn_rpt_producer_->config_)
 
 #if FIND_STRATEGIES == 1
 	unordered_multimap 
@@ -402,11 +407,11 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		return;
 	}
 	
-    CUstpFtdcOrderActionField order;
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	long ori_local_order_id = strategy.GetLocalOrderID(sig.orig_sig_id);
-	FemasFieldConverter::Convert(tunn_rpt_producer_->config_, localorderid, ori_local_order_id, order);
-	int rtn = tunn_rpt_producer_->ReqOrderAction(&order);
+    CUstpFtdcOrderActionField *order =  FemasFieldConverter::Convert(localorderid, 
+				ori_local_order_id);
+	int rtn = tunn_rpt_producer_->ReqOrderAction(order);
 
 	// TODO:debug
 	clog_info("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
@@ -430,16 +435,14 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
-	CUstpFtdcInputOrderField ord;
-	FemasFieldConverter::Convert(tunn_rpt_producer_->config_, sig, localorderid, 
-				updated_vol, ord);
+	CUstpFtdcInputOrderField *ord =  FemasFieldConverter::Convert(sig, localorderid, updated_vol);
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID, ord.LimitPrice,
 				ord.Direction, ord.OffsetFlag);
 	if(result){
 #endif
-		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
+		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 		if(rtn != 0){ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
