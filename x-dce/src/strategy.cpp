@@ -640,7 +640,6 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 		sigrpt.status = if_sig_state_t::SIG_STATUS_REJECTED;
 	}
 	else if(tunnrpt.OrderStatus==X1_FTDC_SPD_IN_QUEUE || 
-			tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL ||
 			tunnrpt.OrderStatus==X1_FTDC_SPD_PLACED ||
 			tunnrpt.OrderStatus==X1_FTDC_SPD_TRIGGERED){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;

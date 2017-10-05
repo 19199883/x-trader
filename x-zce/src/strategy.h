@@ -125,7 +125,7 @@ private:
 
 	// things relating to strategy interface
 	Init_ptr pfn_init_;
-	FeedL2QuoteSnapshot_ptrpfn_feedl2quotesnapshot_;
+	FeedL2QuoteSnapshot_ptr pfn_feedl2quotesnapshot_;
 	FeedSignalResponse_ptr pfn_feedsignalresponse_;
 	Destroy_ptr pfn_destroy_;
 	FeedInitPosition_ptr pfn_feedinitposition_;
