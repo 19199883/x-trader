@@ -558,6 +558,7 @@ bool Strategy::HasFrozenPosition()
 
 void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, unsigned short int sig_act)
 {
+	// TODO:是累计成交
 	if (rpt.MatchedAmount > 0){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
 			position_.cur_long += rpt.MatchedAmount;
@@ -611,6 +612,7 @@ void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
 }
 void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
 {
+	// TODO:是累计成交
 	sigrpt.exec_volume = tunnrpt.MatchedAmount;
 	sigrpt.acc_volume += tunnrpt.MatchedAmount;
 

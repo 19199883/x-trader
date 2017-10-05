@@ -28,7 +28,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
 	ended_ = false;
-	for(auto &item : cancel_requests_) item = false;
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 	
 	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
@@ -157,7 +156,6 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
     cancel_req_.ServerFlag = tunnrpt_table_[counter].server_flag;
     memcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].order_no, 
 				sizeof(cancel_req_.OrderNo));
-	cancel_requests_[counter] = true;
 	int ret = api_->CancelOrder(&session_id,&cancel_req_);
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();

@@ -6,7 +6,7 @@
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
-#include "quote_interface_dce_level2.h"
+#include "quote_datatype_czce_level2.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 
@@ -27,19 +27,14 @@ class MDProducer
 		MDProducer(struct vrt_queue  *queue);
 		~MDProducer();
 
-		MDBestAndDeep_MY* GetBestAnddeep(int32_t index);
-		MDOrderStatistic_MY* GetOrderStatistic(int32_t index);
-
+		ZCEL2QuotSnapshotField_MY* GetL2QuoteSnapshot(int32_t index);
 		void End();
 
 	private:
 		MYQuoteData* build_quote_provider(SubscribeContracts &subscription);
 		
-		void OnMDBestAndDeep(const MDBestAndDeep_MY* md);
-		int32_t push(const MDBestAndDeep_MY& md);
-
-		void OnMDOrderStatistic(const MDOrderStatistic_MY* md);
-		int32_t push(const MDOrderStatistic_MY& md);
+		void OnMD(const ZCEL2QuotSnapshotField_MY* md);
+		int32_t push(const ZCEL2QuotSnapshotField_MY& md);
 
 		MYQuoteData *md_provider_;
 		SubscribeContracts subs_;
@@ -49,8 +44,7 @@ class MDProducer
 		void ParseConfig();
 
 		struct vrt_producer  *producer_;
-		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> orderstatistic_buffer_;
-		std::array<MDBestAndDeep_MY, MD_BUFFER_SIZE> bestanddeep_buffer_;
+		std::array<ZCEL2QuotSnapshotField_MY, MD_BUFFER_SIZE> l2quotesnapshot_buffer_;
 };
 
 #endif

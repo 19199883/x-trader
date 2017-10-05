@@ -9,19 +9,16 @@
 #include "signal.h"
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
-#include "quote_datatype_dce_level2.h"
+#include "quote_datatype_czce_level2.h"
 #include "tunn_rpt_producer.h"
 
 using namespace std;
 
 #define STRATEGY_METHOD_INIT "st_init_"
-#define STRATEGY_METHOD_FEED_MD_BESTANDDEEP "st_feed_marketinfo_1_"
-#define STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS "st_feed_marketinfo_3_"
+#define STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT "st_feed_marketinfo_8_"
 #define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_init_position_"
-#define STRATEGY_METHOD_SET_LOG_FN1 "SetLogFn1_"
-#define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
 // 假设一个策略最多产生3000个信号
 #define SIGANDRPT_TABLE_SIZE 1500
@@ -79,16 +76,11 @@ public:
 class Strategy	
 {
 public:
-	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
-	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log);
-	typedef void ( *FeedBestAndDeep_ptr)(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals, struct strat_out_log *log);	
-	typedef void ( *FeedOrderStatistic_ptr)(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals, struct strat_out_log *log);
+	typedef void ( *FeedL2QuoteSnapshot_ptr)(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* signals, struct strat_out_log *log);	
 	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs, struct strat_out_log *log);
 	typedef void (*Destroy_ptr)();
 	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data, struct strat_out_log *log);
-	typedef void ( *SetLogFn1Ptr )( int strategy_id, LogFn1Ptr fn_ptr );
-	typedef void ( *SetLogFn2Ptr )( int strategy_id, LogFn2Ptr fn_ptr );
 
 public:
 	Strategy();
@@ -97,8 +89,7 @@ public:
 	// things relating to strategy interface
 	void Init(StrategySetting &setting, CLoadLibraryProxy *pproxy);
 	void FeedInitPosition();
-	void FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);
-	void FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* signals);
+	void FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* signals);
 	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs);
 
 	// things relating to x-trader internal logic
@@ -134,16 +125,12 @@ private:
 
 	// things relating to strategy interface
 	Init_ptr pfn_init_;
-	FeedBestAndDeep_ptr pfn_feedbestanddeep_;
-	FeedOrderStatistic_ptr pfn_feedorderstatistic_;
+	FeedL2QuoteSnapshot_ptrpfn_feedl2quotesnapshot_;
 	FeedSignalResponse_ptr pfn_feedsignalresponse_;
 	Destroy_ptr pfn_destroy_;
 	FeedInitPosition_ptr pfn_feedinitposition_;
-	SetLogFn1Ptr pfn_setlogfn1_;
-	SetLogFn2Ptr pfn_setlogfn2_;
 
 	long GetLocalOrderIDByCounter(long counter);
-
 	int cursor_;
 	signal_t sig_table_[SIGANDRPT_TABLE_SIZE];
 	signal_resp_t sigrpt_table_[SIGANDRPT_TABLE_SIZE];

@@ -1,7 +1,7 @@
 ﻿#ifndef SELFBUYSELLCHECK_H_
 #define SELFBUYSELLCHECK_H_
 
-#include "X1FtdcApiDataType.h"
+#include "TapTradeAPIDataType.h"
 #include "vrt_value_obj.h"
 
 #define DOUBLE_CHECH_PRECISION 0.000001
@@ -12,7 +12,7 @@ struct OrderInfo
 {
 	bool valid;
     char contract[7];
-    TX1FtdcBuySellTypeType side;
+    TAPISideType side;
     double price;
 };
 
@@ -25,12 +25,13 @@ class Compliance
 		/*
 		 * 返回值：true表示成功；false表示失败 
 		 */
+		// TODO:here1
 		bool TryReqOrderInsert(int ord_counter, const char * contract, double price,
-					TX1FtdcBuySellTypeType side,TX1FtdcOpenCloseTypeType offset);
+					TAPISideType side,TAPIPositionEffectType offset);
 
 		void End(int ord_counter);
 		void Save();
-		void AccumulateCancelTimes(const char* contrace);
+		void AccumulateCancelTimes(const char* contract);
 
 	private:
 		void ParseConfig();

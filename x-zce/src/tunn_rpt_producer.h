@@ -405,13 +405,6 @@ private:
 	TapAPIOrderCancelReq cancel_req_;
 
 	/*
-	 * true: cancel request; false; place request
-	 * 请求与在数组存储位置的关系：RequestID与LocalOrderID相同，
-	 * RequestID的counter部分作为数组下标
-	 */
-	bool cancel_requests_[COUNTER_UPPER_LIMIT];
-
-	/*
 	 * things relating to counter API
 	 */
     ITapTradeAPI *api_;
