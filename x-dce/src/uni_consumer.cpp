@@ -7,6 +7,8 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 
+CX1FtdcInsertOrderField X1FieldConverter::new_order_;
+
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
@@ -15,6 +17,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
+	X1FieldConverter::InitNewOrder(tunn_rpt_producer_->GetAccount());
 
 #if FIND_STRATEGIES == 1
 	unordered_multimap 
@@ -454,7 +457,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
 	cancel_order.RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
     cancel_order.X1OrderID = 0; // only use LocalOrderID to cancel order
-    //strncpy(cancle_order.AccountID, cfg.Logon_config().clientid.c_str(), sizeof(TX1FtdcAccountIDType));
+	// TODO:验证是否需要合约
     strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
 
 	clog_debug("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
@@ -476,21 +479,19 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
-	CX1FtdcInsertOrderField ord;
-	X1FieldConverter::Convert(sig, tunn_rpt_producer_->GetAccount(), localorderid,
-				updated_vol, ord);
+	CX1FtdcInsertOrderField *ord = X1FieldConverter::Convert(sig,localorderid,updated_vol);
 
 #ifdef COMPLIANCE_CHECK
-	int32_t counter = strategy.GetCounterByLocalOrderID(ord.LocalOrderID);
-	bool result = compliance_.TryReqOrderInsert(counter, ord.InstrumentID,
-				ord.InsertPrice,ord.BuySellType, ord.OpenCloseType);
+	int32_t counter = strategy.GetCounterByLocalOrderID(ord->LocalOrderID);
+	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID,
+				ord->InsertPrice,ord->BuySellType, ord->OpenCloseType);
 	if(result){
 #endif
-		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(&ord);
+		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 		if(rtn != 0){ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
-			rpt.LocalOrderID = ord.LocalOrderID;
+			rpt.LocalOrderID = ord->LocalOrderID;
 			rpt.OrderStatus = X1_FTDC_SPD_ERROR;
 			rpt.ErrorID = rtn;
 			int sig_cnt = 0;
@@ -499,12 +500,12 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_warning("[%s] matched with myself:%ld", module_name_, ord.LocalOrderID);
+		clog_warning("[%s] matched with myself:%ld", module_name_, ord->LocalOrderID);
 
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = ord.LocalOrderID;
+		rpt.LocalOrderID = ord->LocalOrderID;
 		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
