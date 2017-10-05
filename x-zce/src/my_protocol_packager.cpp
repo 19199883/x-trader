@@ -67,40 +67,4 @@ TapAPINewOrder* ESUNNYPacker::OrderRequest(const signal_t& sig,const char *accou
 	return &new_order_;
 }
 
-void ESUNNYPacker::OrderRespond(int error_no, long serial_no, long entrust_no, short entrust_status, T_OrderRespond& rsp)
-{
-    memset(&rsp, 0, sizeof(T_OrderRespond));
-    rsp.serial_no = serial_no;
-    rsp.error_no = error_no;
-    rsp.entrust_no = entrust_no;
-    rsp.entrust_status = entrust_status;
-}
-
-void ESUNNYPacker::CancelRespond(int error_no, long serial_no, long entrust_no, T_CancelRespond& cancel_respond)
-{
-    memset(&cancel_respond, 0, sizeof(T_CancelRespond));
-    cancel_respond.serial_no = serial_no;
-    cancel_respond.error_no = error_no;
-    cancel_respond.entrust_no = entrust_no;
-
-    // 需要回报撤单状态，成功为已报，失败为拒绝
-    cancel_respond.entrust_status = MY_TNL_OS_REPORDED;
-    if (error_no != 0) cancel_respond.entrust_status = MY_TNL_OS_ERROR;
-}
-
-void ESUNNYPacker::OrderReturn(const TapAPIOrderInfo* rsp, const EsunnyOrderInfo* p_req, T_OrderReturn& order_return)
-{
-    memset(&order_return, 0, sizeof(order_return));
-
-    order_return.serial_no = p_req->po.serial_no;
-    memcpy(order_return.stock_code, p_req->po.stock_code, sizeof(order_return.stock_code));
-    order_return.entrust_no = p_req->entrust_no;
-    order_return.entrust_status = p_req->entrust_status;
-    order_return.direction = p_req->po.direction;
-    order_return.open_close = p_req->po.open_close;
-    order_return.speculator = p_req->po.speculator;
-    order_return.volume = p_req->po.volume;
-    order_return.limit_price = p_req->po.limit_price;
-    order_return.volume_remain = p_req->volume_remain;
-}
 

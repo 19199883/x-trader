@@ -8,20 +8,10 @@
 class ESUNNYPacker
 {
 public:
-
     static void InitNewOrder(const char *account);
 
 	static TapAPINewOrder* OrderRequest(const signal_t& sig,const char *account,
 			long localorderid,int32_t vol)
-
-    static void OrderRespond(int error_no, long serial_no, long entrust_no, 
-				short entrust_status, T_OrderRespond &order_respond);
-
-    static void CancelRespond(int error_no, long serial_no, long entrust_no, 
-				T_CancelRespond &cancle_order);
-
-    static void OrderReturn(const TapAPIOrderInfo *rsp, const EsunnyOrderInfo *p_req, 
-				T_OrderReturn &order_return);
 
 private:
 	TapAPINewOrde new_order_;

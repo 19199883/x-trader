@@ -77,12 +77,6 @@ UniConsumer::~UniConsumer()
 		pproxy_->DeleteLoadLibraryProxy();
 		pproxy_ = NULL;
 	}
-
-//	if (this->consumer_ != NULL){
-//		vrt_consumer_free(this->consumer_);
-//		this->consumer_ = NULL;
-//		clog_info("[%s] release uni_consumer.", module_name_);
-//	}
 }
 
 void UniConsumer::ParseConfig()
@@ -222,11 +216,8 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
-				case BESTANDDEEP:
-					ProcBestAndDeep(ivalue->index);
-					break;
-				case ORDERSTATISTIC:
-					ProcOrderStatistic(ivalue->index);
+				case L2QUOTESNAPSHOT:
+					ProcL2QuoteSnapshot(ivalue->index);
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -257,11 +248,11 @@ void UniConsumer::Stop()
 	}
 }
 
-void UniConsumer::ProcBestAndDeep(int32_t index)
+void UniConsumer::ProcL2QuoteSnapshot(int32_t index)
 {
-	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
+	ZCEL2QuotSnapshotField_MY* md = md_producer_->GetL2QuoteSnapshot(index);
 
-	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
+	clog_debug("[%s] [ProcL2QuoteSnapshot] index: %d; contract: %s", module_name_, index, md->ContractID);
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
@@ -297,63 +288,12 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-		if (strcmp(strategy.GetContract(), md->Contract) == 0){
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-			ProcSigs(strategy, sig_cnt, sig_buffer_);
-		}
-	}
-#endif
-
-}
-
-void UniConsumer::ProcOrderStatistic(int32_t index)
-{
-	MDOrderStatistic_MY* md = md_producer_->GetOrderStatistic(index);
-
-	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
-
-#if FIND_STRATEGIES == 1 // unordered_multimap
-	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-	int32_t key1,key2;
-	int32_t sig_cnt = 0;
-	GetKeys(md->ContractID,key1,key2);
-	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-	if (cur_node >= 0){
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] >= 0){
-				int32_t stra_idx = stra_idx_table_[cur_node][i];
-				Strategy &strategy = stra_table_[stra_idx];
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			} else { break; }		
-		}
-	}
-#endif
-
-#if FIND_STRATEGIES == 3 //strcmp
-	for(int i = 0; i < strategy_counter_; i++){ 
-		int sig_cnt = 0;
-		Strategy &strategy = stra_table_[i];
 		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
 #endif
-
-
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)
@@ -371,17 +311,15 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
-	if (rpt->OrderStatus == X1_FTDC_SPD_CANCELED ||
-			rpt->OrderStatus == X1_FTDC_SPD_PARTIAL_CANCELED ||
-			rpt->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
+	if (rpt->OrderStatus == TAPI_ORDER_STATE_CANCELED ||
+			rpt->OrderStatus == TAPI_ORDER_STATE_LEFTDELETED){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
 
-	if (rpt->OrderStatus==X1_FTDC_SPD_CANCELED ||
-			rpt->OrderStatus==X1_FTDC_SPD_FILLED ||
-			rpt->OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-			rpt->OrderStatus==X1_FTDC_SPD_ERROR ||
-			rpt->OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (rpt->OrderStatus==TAPI_ORDER_STATE_FINISHED ||
+			rpt->OrderStatus==TAPI_ORDER_STATE_CANCELED ||
+			rpt->OrderStatus==TAPI_ORDER_STATE_LEFTDELETED ||
+			rpt->OrderStatus==TAPI_ORDER_STATE_FAIL){
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
@@ -389,7 +327,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
 
-	// TODO:
 	if (!strategy.HasFrozenPosition()){
 		int i = 0;
 		for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
@@ -424,7 +361,6 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
-				// TODO:
 				int i = 0;
 				for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					if(pending_signals_[sig.st_id][i] < 0){

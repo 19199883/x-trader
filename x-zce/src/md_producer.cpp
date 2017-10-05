@@ -27,11 +27,8 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 
 	md_provider_ = build_quote_provider(subs_);
 
-	auto f_bestanddeep = std::bind(&MDProducer::OnMDBestAndDeep, this,_1);
-	md_provider_->SetQuoteDataHandler(f_bestanddeep);
-
-	auto f_orderstatics = std::bind(&MDProducer::OnMDOrderStatistic, this, _1);
-	md_provider_->SetQuoteDataHandler(f_orderstatics);
+	auto f_l2quotesnapshot = std::bind(&MDProducer::OnMD, this,_1);
+	md_provider_->SetQuoteDataHandler(f_l2quotesnapshot);
 }
 
 void MDProducer::ParseConfig()
@@ -53,12 +50,6 @@ MDProducer::~MDProducer(){
 		md_provider_ = NULL;
 		clog_info("[%s] release md_provider.", module_name_);
 	}
-
-//	if (this->producer_ != NULL){
-//		vrt_producer_free(this->producer_);
-//		this->producer_ = NULL;
-//		clog_info("[%s] release md_producer.", module_name_);
-//	}
 }
 
 MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) {
@@ -83,7 +74,7 @@ void MDProducer::End()
 	(vrt_producer_eof(producer_));
 }
 
-void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
+void MDProducer::OnMD(const ZCEL2QuotSnapshotField_MY* md)
 {
 	if (ended_) return;
 
@@ -101,75 +92,27 @@ void MDProducer::OnMDBestAndDeep(const MDBestAndDeep_MY* md)
 	(vrt_producer_claim(producer_, &vvalue));
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = push(*md);
-	ivalue->data = BESTANDDEEP;
-
-	clog_debug("[%s] rev MDBestAndDeep: index,%d; data,%d; contracr:%s; time: %s",
-				module_name_, ivalue->index, ivalue->data, md->Contract, md->GenTime);
-
+	ivalue->data = L2QUOTESNAPSHOT;
 	(vrt_producer_publish(producer_));
+
+	clog_debug("[%s] rev ZCEL2QuotSnapshotField: index,%d; data,%d; contract:%s; time: %s",
+				module_name_, ivalue->index, ivalue->data, md->ContractID, md->TimeStamp);
 }
 
-int32_t MDProducer::push(const MDBestAndDeep_MY& md){
-	static int32_t bestanddeep_cursor = MD_BUFFER_SIZE - 1;
-	bestanddeep_cursor++;
-	if (bestanddeep_cursor%MD_BUFFER_SIZE == 0){
-		bestanddeep_cursor = 0;
+int32_t MDProducer::push(const ZCEL2QuotSnapshotField_MY& md){
+	static int32_t l2quotesnapshot_cursor = MD_BUFFER_SIZE - 1;
+	l2quotesnapshot_cursor++;
+	if (l2quotesnapshot_cursor%MD_BUFFER_SIZE == 0){
+		l2quotesnapshot_cursor = 0;
 	}
-	bestanddeep_buffer_[bestanddeep_cursor] = md;
+	l2quotesnapshot_buffer_[l2quotesnapshot_cursor] = md;
 
-	clog_debug("[%s] push MDBestAndDeep: cursor,%d; contract:%s; time: %s",
-				module_name_, bestanddeep_cursor, md.Contract, md.GenTime);
-
-	return bestanddeep_cursor;
+	return l2quotesnapshot_cursor;
 }
 
-MDBestAndDeep_MY* MDProducer::GetBestAnddeep(int32_t index)
+ZCEL2QuotSnapshotField_MY* MDProducer::GetL2QuoteSnapshot(int32_t index)
 {
-	return &bestanddeep_buffer_[index];
+	return &l2quotesnapshot_buffer_[index];
 }
 
-void MDProducer::OnMDOrderStatistic(const MDOrderStatistic_MY* md)
-{
-	if (ended_) return;
 
-	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
-	if (strlen(md->ContractID) > 6) return;
-
-#ifdef LATENCY_MEASURE
-	static int cnt = 0;
-	perf_ctx::insert_t0(cnt);
-	cnt++;
-#endif
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = push(*md);
-	ivalue->data = ORDERSTATISTIC;
-
-	clog_debug("[%s] rev MDOrderStatistic: index,%d; data,%d; contracr:%s; time: %s",
-				module_name_, ivalue->index, ivalue->data, md->ContractID, "");
-
-	(vrt_producer_publish(producer_));
-}
-
-int32_t MDProducer::push(const MDOrderStatistic_MY& md){
-	static int32_t orderstatics_cursor = MD_BUFFER_SIZE - 1;
-	orderstatics_cursor++;
-	if (orderstatics_cursor%MD_BUFFER_SIZE == 0){
-		orderstatics_cursor = 0;
-	}
-	orderstatistic_buffer_[orderstatics_cursor] = md;
-
-
-	clog_debug("[%s] push MDOrderStatistic: cursor,%d; contract:%s; time: %s",
-				module_name_, orderstatics_cursor, md.ContractID, "");
-
-	return orderstatics_cursor;
-}
-
-MDOrderStatistic_MY* MDProducer::GetOrderStatistic(int32_t index)
-{
-	return &orderstatistic_buffer_[index];
-}

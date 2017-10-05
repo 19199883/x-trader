@@ -20,14 +20,11 @@ Strategy::Strategy()
 	cursor_ = 0;
 
 	pfn_init_;
-	pfn_feedbestanddeep_ = NULL;
-	pfn_feedorderstatistic_ = NULL;
+	pfn_feedl2quotesnapshot_ = NULL;
 	pfn_feedsignalresponse_ = NULL;
 	pfn_destroy_ = NULL;
 	pfn_feedinitposition_ = NULL;
 	pfn_destroy_ = NULL;
-	pfn_setlogfn1_ = NULL;
-	pfn_setlogfn2_ = NULL;
 
 	pproxy_ = NULL;
 
@@ -110,18 +107,12 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
 	}
 
-	pfn_feedbestanddeep_ = (FeedBestAndDeep_ptr)pproxy_->findObject(
-					this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP);
-	if (!pfn_feedbestanddeep_){
+	pfn_l2quotesnapshot_ = (FeedL2QuoteSnapshot_ptr)pproxy_->findObject(
+					this->setting_.file, STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT);
+	if (!pfn_l2quotesnapshot_){
 		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
-	}
-
-	pfn_feedorderstatistic_ = (FeedOrderStatistic_ptr)pproxy_->findObject(
-					this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS);
-	if (!pfn_feedorderstatistic_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
+					module_name_, this->setting_.file.c_str(), 
+					STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT, errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
@@ -145,25 +136,6 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_DESTROY, errno);
 	}
 	
-
-	pfn_setlogfn1_ = (SetLogFn1Ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN1);
-	if (!pfn_setlogfn1_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN1, errno);
-	} else {
-		//pfn_setlogfn1_(GetId(), StrategyLog::Log1);
-	}
-
-	pfn_setlogfn2_ = (SetLogFn2Ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN2);
-	if (!pfn_setlogfn2_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN2, errno);
-	} else {
-		//pfn_setlogfn2_(GetId(), StrategyLog::Log2);
-	}
-
 	string model_log = generate_log_name(setting_.config.log_name);
 	strcpy(setting_.config.log_name, model_log.c_str());
 	setting_.config.log_id = setting_.config.st_id;
@@ -217,17 +189,17 @@ void Strategy::FeedInitPosition()
 				second.long_volume, second.short_volume);
 }
 
-void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
+void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_debug("[%s] strategy id:%d;rev MDBestAndDeep_MY contract:%s; time:%s", 
-				module_name_,GetId(), md->Contract, md->GenTime);
+	clog_debug("[%s] strategy id:%d;rev ZCEL2QuotSnapshotField_MY contract:%s; time:%s", 
+				module_name_,GetId(),md->ContractID,md->TimeStamp);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	
 	*sig_cnt = 0;
-	this->pfn_feedbestanddeep_(md, sig_cnt, sigs, log_.data()+log_cursor_);
+	this->pfn_feedl2quotesnapshot_(md, sig_cnt, sigs, log_.data()+log_cursor_);
 	log_cursor_++;
 	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false);
 
@@ -245,41 +217,6 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
 					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_,GetId(), sigs[i].st_id, sigs[i].sig_id,
-					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
-					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
-	}
-}
-
-void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
-{
-	clog_debug("[%s] strategy id:%d;rev MDOrderStatistic_MY contract:%s", 
-				module_name_,GetId(), md->ContractID);
-
-#ifdef LATENCY_MEASURE
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-
-	*sig_cnt = 0;
-	this->pfn_feedorderstatistic_(md, sig_cnt, sigs, log_.data()+log_cursor_);
-	log_cursor_++;
-	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false);
-
-	for (int i = 0; i < *sig_cnt; i++ ){
-
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] strategy id:%d;strategy latency:%d us", 
-					module_name_,GetId(),latency); 
-#endif
-
-		sigs[i].st_id = this->GetId();
-
-		clog_debug("[%s] strategy id:%d;FeedMd MDOrderStatistic signal: strategy id:%d; sig_id:%d; "
-					"exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
-					"sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-					module_name_,GetId(),sigs[i].st_id, sigs[i].sig_id,
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
 					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
 					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
@@ -408,7 +345,8 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 
 	if (updated_vol > vol) updated_vol = vol; 
 
-	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
+	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; "
+			"current long:%d; current short:%d; "
 			"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 			"frozen_open_short:%d; updated vol:%d",
 			module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
@@ -486,7 +424,6 @@ void Strategy::Push(const signal_t &sig)
 				module_name_, sig.st_id, sig.sig_id, cursor_);
 }
 
-// TODO: 1
 void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig.sig_id];
@@ -498,7 +435,8 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
+	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; "
+				"cursor,%d; LocalOrderID:%ld;",
 				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
 
@@ -695,7 +633,7 @@ const char * Strategy::GetSymbol()
 void Strategy::WriteLog(bool isEnded)
 {
 #ifdef LATENCY_MEASURE
-	//high_resolution_clock::time_point t0 = high_resolution_clock::now();
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	log_ended_ = isEnded;
 	log_w_.swap(log_);
@@ -703,9 +641,9 @@ void Strategy::WriteLog(bool isEnded)
 	lock_log_.clear();
 	log_cursor_ = 0;
 #ifdef LATENCY_MEASURE
-	//	high_resolution_clock::time_point t1 = high_resolution_clock::now();
-	//	int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-	//	clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+	int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+	clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
 #endif
 }
 void Strategy::WriteLogTitle()
