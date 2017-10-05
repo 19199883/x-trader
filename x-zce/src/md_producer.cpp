@@ -79,7 +79,7 @@ void MDProducer::OnMD(const ZCEL2QuotSnapshotField_MY* md)
 	if (ended_) return;
 
 	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
-	if (strlen(md->Contract) > 6) return;
+	if (strlen(md->ContractID) > 6) return;
 
 #ifdef LATENCY_MEASURE
 	static int cnt = 0;

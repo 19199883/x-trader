@@ -4,8 +4,7 @@
 
 #include <set>
 #include <string>
-#include <boost/function.hpp>
-//#include <functional>
+#include <functional>
 #include "quote_interface_tap.h"
 
 #ifndef DLL_PUBLIC
@@ -29,10 +28,10 @@ public:
     MYQuoteData(const SubscribeContracts *subscribe_contracts, const std::string &provider_config_file);
 
     // czce market data handlers
-    void SetQuoteDataHandler(boost::function<void(const ZCEL2QuotSnapshotField_MY *)> quote_handler);
-    void SetQuoteDataHandler(boost::function<void(const ZCEQuotCMBQuotField_MY *)> quote_handler);
+    void SetQuoteDataHandler(std::function<void(const ZCEL2QuotSnapshotField_MY *)> quote_handler);
+    void SetQuoteDataHandler(std::function<void(const ZCEQuotCMBQuotField_MY *)> quote_handler);
 	
-	void SetQuoteDataHandler(boost::function<void(const int *)> quote_handler){}
+	void SetQuoteDataHandler(std::function<void(const int *)> quote_handler){}
 
     ~MYQuoteData();
 

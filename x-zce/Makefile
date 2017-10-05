@@ -11,7 +11,7 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lmy_quote_tap_lib -lTapQuoteAPI  -lmy_quote_czce_level2_jrudp_lib -ltinyxml -lutils -ldl \
+LIBS:=-lpthread -lmy_quote_tap_lib -lTapQuoteAPI -lTapTradeAPI  -lmy_quote_czce_level2_jrudp_lib -ltinyxml -lutils -ldl \
 	  -lssl -lbowsprit -lcheck -lclogger -lcork -lvrt  \
 	  -lmy_common_v2 -luuid -lboost_filesystem
 DEPS:=.depends

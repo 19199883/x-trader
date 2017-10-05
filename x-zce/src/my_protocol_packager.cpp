@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include "vrt_value_obj.h"
 
+TapAPINewOrder ESUNNYPacker::new_order_;
+
 // done
 void ESUNNYPacker::InitNewOrder(const char *account)
 {
