@@ -79,8 +79,6 @@ MYShfeMDManager::MYShfeMDManager(const ConfigData &cfg)
 
     pthread_attr_init(&data_process_thread_attr_);
     pthread_attr_setdetachstate(&data_process_thread_attr_, PTHREAD_CREATE_JOINABLE);
-
-    // start threads
     pthread_create(&data_process_thread_, &data_process_thread_attr_, (void * (*)(void *))ProcessThread, (void *)this);
 }
 
@@ -88,8 +86,7 @@ MYShfeMDManager::~MYShfeMDManager()
 {
     running_flag_ = false;
 
-    if (data_process_thread_ != 0)
-    {
+    if (data_process_thread_ != 0){
         pthread_join(data_process_thread_, NULL);
     }
 
@@ -102,12 +99,9 @@ void MYShfeMDManager::OnMBLData(const CShfeFtdcMBLMarketDataField* const pdata, 
 
     MYMutexGuard guard(mbl_mutex_);
 
-    if (pdata)
-    {
+    if (pdata){
         data_in_.push_back(SHFEQuote(*pdata, last_flag));
-    }
-    else if (last_flag)
-    {
+    }else if (last_flag){
         data_in_.push_back(SHFEQuote(true));
     }
 }
@@ -125,12 +119,10 @@ void* MYShfeMDManager::ProcessThread(MYShfeMDManager* p_mngr)
     char cur_dir = SHFE_FTDC_D_Buy;
     std::string cur_code;
 
-    while (p_mngr->running_flag_)
-    {
+    while (p_mngr->running_flag_){
         {
             // 数据交换
             MYMutexGuard guard(p_mngr->mbl_mutex_);
-
             if (!p_mngr->data_in_.empty()) {
                 p_mngr->data_in_.swap(p_mngr->data_handle_);
             }
@@ -163,18 +155,13 @@ void* MYShfeMDManager::ProcessThread(MYShfeMDManager* p_mngr)
                     p_mngr->SendToClient(cur_code, p_snapshot);
                 }
 
-                // 重置数据
                 p_mngr->ResetBuyCode();
-
                 continue;
             }
 
-            if (p->field.Volume > 0) {
-                // 有效数据
+            if (p->field.Volume > 0) { // 有效数据
                 cur_code = p->field.InstrumentID;
                 cur_dir = p->field.Direction;
-
-                // 数据记录
                 (void) p_mngr->PushDataToBuffer(cur_code, p);
 
                 // 买方向合约记录
@@ -182,18 +169,14 @@ void* MYShfeMDManager::ProcessThread(MYShfeMDManager* p_mngr)
 					// repairer 
 					if (p_mngr->FrameCutShort(cur_code)) { 
 						while (p_mngr->GetLeftCode(prev_code)) {
-							// debug
-							//MY_LOG_WARN("error:cur_dir == SHFE_FTDC_D_Buy");
-
 							SHFEMDQuoteSnapshot * p_snapshot_prev = p_mngr->GetDataCache(prev_code);
 							p_mngr->SendToClient(prev_code, p_snapshot_prev);
 						}
 					}
 
 					p_mngr->PushNewBuyDirCode(cur_code); 
-				}
-
-                else if (prev_dir == SHFE_FTDC_D_Buy && cur_dir == SHFE_FTDC_D_Sell) { // 第一个卖方向数据，核对前方是否有涨停合约，该类合约无卖方向数据，应该发出
+				}else if (prev_dir==SHFE_FTDC_D_Buy && 
+							cur_dir == SHFE_FTDC_D_Sell) { // 第一个卖方向数据，核对前方是否有涨停合约，该类合约无卖方向数据，应该发出
                     while (p_mngr->GetPrevCode(cur_code, prev_code)) {
                         SHFEMDQuoteSnapshot * p_snapshot_prev = p_mngr->GetDataCache(prev_code);
                         p_mngr->SendToClient(prev_code, p_snapshot_prev);
@@ -204,9 +187,6 @@ void* MYShfeMDManager::ProcessThread(MYShfeMDManager* p_mngr)
                     p_mngr->SendToClient(prev_code, p_snapshot_prev);
 
                     while (p_mngr->GetPrevCode(cur_code, prev_code)) {
-						// debug
-						//MY_LOG_WARN("error:prev_dir == SHFE_FTDC_D_Sell && p->field.Direction == SHFE_FTDC_D_Sell && prev_code != cur_code");
-
                         SHFEMDQuoteSnapshot * p_snapshot_prev = p_mngr->GetDataCache(prev_code);
                         p_mngr->SendToClient(prev_code, p_snapshot_prev);
                     }
@@ -229,14 +209,12 @@ void* MYShfeMDManager::ProcessThread(MYShfeMDManager* p_mngr)
 SHFEMDQuoteSnapshot* MYShfeMDManager::GetDataCache(const std::string& code)
 {
     CodeIndex::iterator it = code_index_.find(code);
-    if (it == code_index_.end())
-    {
+    if (it == code_index_.end()){
         // assign new index
         int new_index = last_code_index++;
 
         // enlarge code count
-        if (new_index >= code_count_max)
-        {
+        if (new_index >= code_count_max){
             MY_LOG_WARN("code count beyond: %d", code_count_max);
 
             SHFEMDQuoteSnapshot ** p_old = p_quote_buffer_;
@@ -249,9 +227,7 @@ SHFEMDQuoteSnapshot* MYShfeMDManager::GetDataCache(const std::string& code)
             // copy old data
             CopySnapshotBuffer(p_quote_buffer_, p_old, code_count_old, price_position_count_max);
 
-            // clear old data
-            for (int i = 0; i < code_count_old; ++i)
-            {
+            for (int i = 0; i < code_count_old; ++i){ // clear old data
                 delete[] p_old[i]->buy_price;
                 delete[] p_old[i]->buy_volume;
                 delete[] p_old[i]->sell_price;
@@ -264,8 +240,7 @@ SHFEMDQuoteSnapshot* MYShfeMDManager::GetDataCache(const std::string& code)
     }
 
     if (p_quote_buffer_[it->second]->buy_count >= price_position_count_max
-        || p_quote_buffer_[it->second]->sell_count >= price_position_count_max)
-    {
+        || p_quote_buffer_[it->second]->sell_count >= price_position_count_max){
         MY_LOG_WARN("price position count beyond: %d", price_position_count_max);
 
         // enlarge price position size
@@ -280,8 +255,7 @@ SHFEMDQuoteSnapshot* MYShfeMDManager::GetDataCache(const std::string& code)
         CopySnapshotBuffer(p_quote_buffer_, p_old, code_count_max, price_pos_count_old);
 
         // clear old data
-        for (int i = 0; i < code_count_max; ++i)
-        {
+        for (int i = 0; i < code_count_max; ++i){
             delete[] p_old[i]->buy_price;
             delete[] p_old[i]->buy_volume;
             delete[] p_old[i]->sell_price;
@@ -293,23 +267,18 @@ SHFEMDQuoteSnapshot* MYShfeMDManager::GetDataCache(const std::string& code)
     return p_quote_buffer_[it->second];
 }
 
-SHFEMDQuoteSnapshot *MYShfeMDManager::PushDataToBuffer(const std::string &cur_code, MBLDataCollection::iterator &p)
+SHFEMDQuoteSnapshot *MYShfeMDManager::PushDataToBuffer(const std::string &cur_code,
+			MBLDataCollection::iterator &p)
 {
     SHFEMDQuoteSnapshot * p_data = GetDataCache(cur_code);
-    if (!p_data)
-    {
+    if (!p_data){
         return p_data;
     }
 
-	// wangying, repairer, total sell volume, bug found on 2017-05-11
-	// new data on 2017-0625
-	// TODO: new data, debug, print
-	//MY_LOG_DEBUG("damaged: %d; instrument:%s", p->field.damaged, p->field.InstrumentID);
 	if (p->field.damaged){
 		p->field.Price = 0;
 		p->field.Volume = 0;	
 	}
-
 	p_data->damaged = p->field.damaged;
 
     if (p->field.Direction == SHFE_FTDC_D_Buy){
@@ -378,18 +347,15 @@ void MYShfeMDManager::SendToClient(const std::string &code, SHFEMDQuoteSnapshot 
     {
         MYMutexGuard guard(depth_mutex_);
         DepthDataQueueOfCode::iterator it = data_depth_.find(code);
-        if (it != data_depth_.end())
-        {
+        if (it != data_depth_.end()){
             for (DepthDataQueue::const_iterator d_cit = it->second.begin(); d_cit != it->second.end(); ++d_cit)
             {
                 memcpy(&my_data, &(*d_cit), sizeof(CDepthMarketDataField));
 
-                if (d_cit + 1 != it->second.end())
-                {
-					// send immediately when receiving CDepthMarketDataField, so do NOT send data here again.
-                }
-                else
-                {
+                if (d_cit + 1 != it->second.end()){
+					// send immediately when receiving CDepthMarketDataField,
+					// so do NOT send data here again.
+                }else{
                     // only combine the latest level one data with mbl data
                     //my_data.data_flag = 3;
                     my_data.data_flag = 6;
@@ -403,22 +369,28 @@ void MYShfeMDManager::SendToClient(const std::string &code, SHFEMDQuoteSnapshot 
 	// new data, copy 30 elements at the end on 2017-06-25
 	int buy_el_cpy_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT, p_data->buy_count);
 	if (buy_el_cpy_cnt==MY_SHFE_QUOTE_PRICE_POS_COUNT){
-		memcpy(my_data.buy_price,  p_data->buy_price  + (p_data->buy_count - buy_el_cpy_cnt), buy_el_cpy_cnt * sizeof(double));
-		memcpy(my_data.buy_volume, p_data->buy_volume + (p_data->buy_count - buy_el_cpy_cnt), buy_el_cpy_cnt * sizeof(int));
-	}
-	else{
-		memcpy(my_data.buy_price  + (MY_SHFE_QUOTE_PRICE_POS_COUNT - buy_el_cpy_cnt), p_data->buy_price , buy_el_cpy_cnt * sizeof(double));
-		memcpy(my_data.buy_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT - buy_el_cpy_cnt), p_data->buy_volume, buy_el_cpy_cnt * sizeof(int));
+		memcpy(my_data.buy_price,p_data->buy_price+(p_data->buy_count-buy_el_cpy_cnt),
+			buy_el_cpy_cnt * sizeof(double));
+		memcpy(my_data.buy_volume, p_data->buy_volume + (p_data->buy_count - buy_el_cpy_cnt),
+			buy_el_cpy_cnt * sizeof(int));
+	}else{
+		memcpy(my_data.buy_price  + (MY_SHFE_QUOTE_PRICE_POS_COUNT - buy_el_cpy_cnt),
+			p_data->buy_price , buy_el_cpy_cnt * sizeof(double));
+		memcpy(my_data.buy_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT - buy_el_cpy_cnt), 
+			p_data->buy_volume, buy_el_cpy_cnt * sizeof(int));
 	}
 
 	int sell_el_cpy_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT, p_data->sell_count);
 	if (sell_el_cpy_cnt==MY_SHFE_QUOTE_PRICE_POS_COUNT){
-		memcpy(my_data.sell_price,  p_data->sell_price  + (p_data->sell_count - sell_el_cpy_cnt), sell_el_cpy_cnt * sizeof(double));
-		memcpy(my_data.sell_volume, p_data->sell_volume + (p_data->sell_count - sell_el_cpy_cnt), sell_el_cpy_cnt * sizeof(int));
-	}
-	else{
-		memcpy(my_data.sell_price  + (MY_SHFE_QUOTE_PRICE_POS_COUNT - sell_el_cpy_cnt), p_data->sell_price, sell_el_cpy_cnt * sizeof(double));
-		memcpy(my_data.sell_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT - sell_el_cpy_cnt), p_data->sell_volume, sell_el_cpy_cnt * sizeof(int));
+		memcpy(my_data.sell_price,  p_data->sell_price  + (p_data->sell_count - sell_el_cpy_cnt),
+			sell_el_cpy_cnt * sizeof(double));
+		memcpy(my_data.sell_volume, p_data->sell_volume + (p_data->sell_count - sell_el_cpy_cnt),
+			sell_el_cpy_cnt * sizeof(int));
+	}else{
+		memcpy(my_data.sell_price + (MY_SHFE_QUOTE_PRICE_POS_COUNT - sell_el_cpy_cnt), 
+			p_data->sell_price, sell_el_cpy_cnt * sizeof(double));
+		memcpy(my_data.sell_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT - sell_el_cpy_cnt), 
+			p_data->sell_volume, sell_el_cpy_cnt * sizeof(int));
 	}
 
     FillStatisticFields(my_data, p_data);
@@ -427,14 +399,10 @@ void MYShfeMDManager::SendToClient(const std::string &code, SHFEMDQuoteSnapshot 
 	//ToString(my_data);
 
     // 发给数据客户
-    if (data_handler_)
-    {
+    if (data_handler_){
         data_handler_->OnMYShfeMDData(&my_data);
     }
 
-    //MY_LOG_DEBUG("snapshot, code: %s, buy_count: %d, sell_count: %d", code.c_str(), p_data->buy_count, p_data->sell_count);
-
-    // reset
     ResetSnapshot(p_data);
     PopFirstCode(code);
 }

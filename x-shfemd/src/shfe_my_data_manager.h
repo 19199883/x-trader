@@ -29,7 +29,6 @@ struct SHFEMDQuoteSnapshot
 
 	int		buy_count;
 	int		sell_count;
-
 	double *buy_price;
 	int    *buy_volume;
 	double *sell_price;
@@ -110,8 +109,7 @@ private:
 bool MYShfeMDManager::GetLeftCode(std::string &left_code)
 {
     bool ret = false;
-    if (buy_first_idx_ < buy_codes_.size())
-    {
+    if (buy_first_idx_ < buy_codes_.size()){
         ret =true;
         left_code = buy_codes_[buy_first_idx_];
     }
@@ -121,8 +119,7 @@ bool MYShfeMDManager::GetLeftCode(std::string &left_code)
 bool MYShfeMDManager::GetPrevCode( const std::string &cur_code, std::string &prev_code )
 {
 	bool ret = false;
-	if (buy_first_idx_ < buy_codes_.size() && cur_code > buy_codes_[buy_first_idx_])
-	{
+	if (buy_first_idx_ < buy_codes_.size() && cur_code > buy_codes_[buy_first_idx_]){
 		ret =true;
 		prev_code = buy_codes_[buy_first_idx_];
 	}
@@ -131,14 +128,12 @@ bool MYShfeMDManager::GetPrevCode( const std::string &cur_code, std::string &pre
 }
 void MYShfeMDManager::PushNewBuyDirCode( const std::string &cur_code)
 {
-	if (buy_codes_.empty())
-	{
+	if (buy_codes_.empty()){
 		buy_codes_.push_back(cur_code);
 		return;
 	}
 
-	if (cur_code != buy_codes_.back())
-	{
+	if (cur_code != buy_codes_.back()){
 		buy_codes_.push_back(cur_code);
 		return;
 	}
@@ -146,8 +141,7 @@ void MYShfeMDManager::PushNewBuyDirCode( const std::string &cur_code)
 
 void MYShfeMDManager::PopFirstCode( const std::string &cur_code)
 {
-	if (buy_first_idx_ < buy_codes_.size() && cur_code == buy_codes_[buy_first_idx_])
-	{
+	if (buy_first_idx_<buy_codes_.size() && cur_code==buy_codes_[buy_first_idx_]){
 		++buy_first_idx_;
 	}
 }
@@ -160,8 +154,7 @@ bool MYShfeMDManager::FrameCutShort(const std::string &cur_code)
 	else{
 		if (cur_code < buy_codes_.back()){// frame cut short due to package loss
 			return true;
-		}
-		else{ return false; }
+		}else{ return false; }
 	}
 }
 
