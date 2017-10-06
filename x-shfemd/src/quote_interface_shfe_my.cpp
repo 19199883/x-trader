@@ -19,15 +19,11 @@ void InitOnce()
     static volatile bool s_have_init = false;
     static std::mutex s_init_sync;
 
-    if (s_have_init)
-    {
+    if (s_have_init) {
         return;
-    }
-    else
-    {
+    } else {
 		std::lock_guard<std::mutex> lock(s_init_sync);
-        if (s_have_init)
-        {
+        if (s_have_init) {
             return;
         }
         std::string log_file_name = "my_quote_lib_" + my_cmn::GetCurrentDateTimeString();
@@ -44,8 +40,7 @@ MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe_contracts, const st
 
     InitOnce();
 
-    if (provider_config_file.empty())
-    {
+    if (provider_config_file.empty()) {
         MY_LOG_ERROR("no quote provider config file");
     }
 
@@ -54,12 +49,9 @@ MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe_contracts, const st
     ConfigData cfg;
     cfg.Load(provider_config_file);
     int provider_type = cfg.App_cfg().provider_type;
-    if (provider_type == QuoteProviderType::PROVIDERTYPE_MY_SHFE_MD)
-    {
+    if (provider_type == QuoteProviderType::PROVIDERTYPE_MY_SHFE_MD) {
         InitInterface(subscribe_contracts, cfg);
-    }
-    else
-    {
+    }else{
         MY_LOG_ERROR("not support quote provider type(%d), please check config file.", provider_type);
     }
 }
@@ -75,36 +67,27 @@ bool MYQuoteData::InitInterface(const SubscribeContracts *subscribe_contracts, c
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const SHFEQuote*)> quote_handler)
 {
-    if (interface_)
-    {
+    if (interface_){
         ((QuoteInterface_MY_SHFE_MD *)interface_)->SetQuoteDataHandler(quote_handler);
-    }
-    else
-    {
+    }else{
         MY_LOG_ERROR("SHFEQuote handler function not match quote provider.");
     }
 }
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const CDepthMarketDataField*)> quote_handler)
 {
-    if (interface_)
-    {
+    if (interface_){
         ((QuoteInterface_MY_SHFE_MD *)interface_)->SetQuoteDataHandler(quote_handler);
-    }
-    else
-    {
+    }else{
         MY_LOG_ERROR("SHFEQuote handler function not match quote provider.");
     }
 }
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const MYShfeMarketData*)> quote_handler)
 {
-    if (interface_)
-    {
+    if (interface_){
         ((QuoteInterface_MY_SHFE_MD *)interface_)->SetQuoteDataHandler(quote_handler);
-    }
-    else
-    {
+    }else{
         MY_LOG_ERROR("SHFEQuote handler function not match quote provider.");
     }
 }

@@ -7,8 +7,12 @@
 #define SHFE_PRICE_COUNT_INIT   600
 
 std::string MYShfeMDManager::ToString(const MYShfeMarketData &d) {
-	MY_LOG_DEBUG("MYShfeMarketData: instrument:%s, data_flag:%d,buy_total_volume:%d; sell_total_volume:%d; buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
-				d.InstrumentID, d.data_flag, d.buy_total_volume,d.sell_total_volume,d.buy_weighted_avg_price,d.sell_weighted_avg_price);
+	MY_LOG_DEBUG("MYShfeMarketData: instrument:%s, data_flag:%d,"
+		"buy_total_volume:%d; sell_total_volume:%d; "
+		"buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
+		d.InstrumentID, d.data_flag, d.buy_total_volume,
+		d.sell_total_volume,d.buy_weighted_avg_price,
+		d.sell_weighted_avg_price);
 
 	MY_LOG_DEBUG("dir:buy; price, volume");
 	for(int i = 0; i < 30; i++) {
@@ -297,7 +301,7 @@ SHFEMDQuoteSnapshot *MYShfeMDManager::PushDataToBuffer(const std::string &cur_co
         return p_data;
     }
 
-	// wangying, repairer, total sell volume, bug dound on 2017-05-11
+	// wangying, repairer, total sell volume, bug found on 2017-05-11
 	// new data on 2017-0625
 	// TODO: new data, debug, print
 	//MY_LOG_DEBUG("damaged: %d; instrument:%s", p->field.damaged, p->field.InstrumentID);
@@ -308,14 +312,11 @@ SHFEMDQuoteSnapshot *MYShfeMDManager::PushDataToBuffer(const std::string &cur_co
 
 	p_data->damaged = p->field.damaged;
 
-    if (p->field.Direction == SHFE_FTDC_D_Buy)
-    {
+    if (p->field.Direction == SHFE_FTDC_D_Buy){
         p_data->buy_price[p_data->buy_count] = p->field.Price;
         p_data->buy_volume[p_data->buy_count] = p->field.Volume;
         ++p_data->buy_count;
-    }
-    else
-    {
+    }else{
         p_data->sell_price[p_data->sell_count] = p->field.Price;
         p_data->sell_volume[p_data->sell_count] = p->field.Volume;
         ++p_data->sell_count;

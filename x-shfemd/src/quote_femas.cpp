@@ -2,10 +2,8 @@
 #include <iomanip>
 #include <vector>
 #include <iostream>     // std::cin, std::cout
-
 #include "quote_cmn_config.h"
 #include "quote_cmn_utility.h"
-
 
 using namespace my_cmn;
 using namespace std;
@@ -72,18 +70,9 @@ CMdclientHandler::~CMdclientHandler(void)
 
 void CMdclientHandler::OnRtnDepthMarketData(CDepthMarketDataField *p)
 {
-    try {
-        timeval t;
-        gettimeofday(&t, NULL);
-
-        RalaceInvalidValue_Femas(*p);
-        CDepthMarketDataField q_level1 = *p;
-        if (quote_data_handler_) { quote_data_handler_(&q_level1); }
-    }
-    catch (...) {
-        MY_LOG_FATAL("CMdclientApi- Unknown exception in OnRtnDepthMarketData.");
-    }
-
+	RalaceInvalidValue_Femas(*p);
+	CDepthMarketDataField q_level1 = *p;
+	if (quote_data_handler_) { quote_data_handler_(&q_level1); }
 }
 
 void CMdclientHandler::SetQuoteDataHandler(std::function<void(const CDepthMarketDataField *)> quote_data_handler)

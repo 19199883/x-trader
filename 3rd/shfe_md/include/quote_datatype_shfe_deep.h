@@ -60,6 +60,7 @@ struct DLL_PUBLIC CShfeFtdcMBLMarketDataField
 };
 
 
+// TODO:to be removed
 struct DLL_PUBLIC SHFEQuote
 {
     CShfeFtdcMBLMarketDataField field;

@@ -3,11 +3,13 @@
 #include "repairer.h"
 #include "quote_cmn_utility.h"
 
-
  std::string repairer::ToString(const MDPack &d) {
-	  MY_LOG_DEBUG("(server:%d) MDPack Data: instrument:%s islast:%d seqno:%d direction:%c count: %d", this->server_,d.instrument, (int)d.islast, d.seqno, d.direction, d.count);
+	  MY_LOG_DEBUG("(server:%d) MDPack Data: instrument:%s islast:%d"
+		  "seqno:%d direction:%c count: %d",
+		  this->server_,d.instrument, (int)d.islast, d.seqno, d.direction, d.count);
 	  for(int i = 0; i < d.count; i++) {
-	      MY_LOG_DEBUG("(server:%d) price%d: %lf, volume%d: %d",this->server_, i, d.data[i].price, i, d.data[i].volume);
+	      MY_LOG_DEBUG("(server:%d) price%d: %lf, volume%d: %d",
+			  this->server_, i, d.data[i].price, i, d.data[i].volume);
 	  }
 	 return "";
 }
@@ -23,12 +25,12 @@ bool repairer::lose_pkg(MDPack &data)
 {
 	if (-1 == this->seq_no_){// specially process for the first UPD data
 		return false;
-	}
-	else{
+	}else{
 		int new_sn = data.seqno / 10;
 
 		if ((this->seq_no_+1) != new_sn){
-			MY_LOG_WARN("(server:%d)package loss:sn from %d to %d", this->server_,this->seq_no_, new_sn);
+			MY_LOG_INFO("(server:%d)package loss:sn from %d to %d", 
+				this->server_,this->seq_no_, new_sn);
 		}
 	
 		return (this->seq_no_+1) != new_sn;
@@ -69,19 +71,16 @@ void repairer::pull_ready_data()
 		while (!this->buy_queue_.empty()){
 			if (strcmp(sell_queue_.front().content.instrument,this->buy_queue_.front().content.instrument)>0){
 				this->buy_queue_.pop_front();
-			}
-			else if (strcmp(sell_queue_.front().content.instrument,this->buy_queue_.front().content.instrument)==0){
+			}else if (strcmp(sell_queue_.front().content.instrument,this->buy_queue_.front().content.instrument)==0){
 				MDPackEx &new_data = this->buy_queue_.front();
 				if (new_data.damaged) damaged = true;
 				this->ready_queue_.push_back(new_data);
 				this->buy_queue_.pop_front();
 				ready_data_found = true;
-			}
-			else{ break;}
-
+			}else{ break;}
 		}
 
-		// add all sell data inti ready queue
+		// add all sell data into ready queue
 		if (ready_data_found ){
 			while (!this->sell_queue_.empty()){
 				MDPackEx &new_data = this->sell_queue_.front();
@@ -109,16 +108,17 @@ void repairer::normal_proc_buy_data(MDPack &data)
 {
 	if (this->buy_queue_.empty()){
 		if (!this->sell_queue_.empty()){
-			MY_LOG_ERROR("(server:%d)normal_proc_buy_data,error(sell queue in NOT empty),sn:%d",this->server_, data.seqno);
+			MY_LOG_ERROR("(server:%d)normal_proc_buy_data,"
+				"error(sell queue in NOT empty),sn:%d",
+				this->server_, data.seqno);
 		}
-	}
-	else{
+	}else{
 		if (strcmp(data.instrument,this->buy_queue_.back().content.instrument)>=0){ // in one patch
 			if (!this->sell_queue_.empty()){
-				MY_LOG_ERROR("(server:%d)normal_proc_buy_data,error(sell queue in NOT empty),sn:%d",this->server_, data.seqno);
+				MY_LOG_ERROR("(server:%d)normal_proc_buy_data,"
+					"error(sell queue in NOT empty),sn:%d",this->server_, data.seqno);
 			}
-		}
-		else{ // cross more than one patch
+		}else{ // cross more than one patch
 			// pull ready data
 			this->pull_ready_data();	
 			// remove un-integrity data from buy queue
@@ -149,7 +149,8 @@ void repairer::repair_sell_data(MDPack &data)
 {
 	if (strcmp(this->victim_.c_str(),data.instrument) != 0){
 		if (!this->sell_queue_.empty()) {
-			MY_LOG_ERROR("(server:%d)repair_sell_data,error, sell queue should be emptyr,sn:%d,victim:%s",this->server_, data.seqno,this->victim_.c_str());
+			MY_LOG_ERROR("(server:%d)repair_sell_data,error, sell queue should"
+				"be emptyr,sn:%d,victim:%s",this->server_, data.seqno,this->victim_.c_str());
 		}
 
 		this->sell_queue_.push_back(data);
@@ -188,7 +189,6 @@ void repairer::print_queue()
 	//	MY_LOG_DEBUG("(server:%d)sell queue:seqno:%d",this->server_, this->sell_queue_[i].content.seqno);
 	//}
 
-
 	int ready_size = this->ready_queue_.size();
 	//for (int i=0; i<size; i++){
 	//	MY_LOG_DEBUG("(server:%d)ready queue:seqno:%d",this->server_, this->ready_queue_[i].content.seqno);
@@ -221,8 +221,7 @@ void repairer::proc_pkg_loss(MDPack &data)
 				// clear previous frame of unsable data
 				this->buy_queue_.clear();
 				this->sell_queue_.clear();
-			}
-			else if (strcmp(data.instrument,this->sell_queue_.back().content.instrument)>=0){ // in one patch
+			}else if (strcmp(data.instrument,this->sell_queue_.back().content.instrument)>=0){ // in one patch
 				this->pull_ready_data();	
 			}
 		}
@@ -261,8 +260,7 @@ void repairer::rev(MDPack &data)
 				this->normal_proc_sell_data(data);
 			}
 		}
-	} // to here
-	else{ // enter receiving process
+	}else{ // enter receiving process
 		if (lose_pkg(data)){ // enter package loss process procedure
 			this->proc_pkg_loss(data);
 		}// end package loss process procedure
@@ -274,12 +272,10 @@ void repairer::rev(MDPack &data)
 				else if (SHFE_FTDC_D_Sell==data.direction){
 					this->normal_proc_sell_data(data);
 				}
-			}
-			else{ // enter data repaireing procedure
+			}else{ // enter data repaireing procedure
 				if (SHFE_FTDC_D_Buy==data.direction){
 					this->repair_buy_data(data);
-				}
-				else if (SHFE_FTDC_D_Sell==data.direction){
+				}else if (SHFE_FTDC_D_Sell==data.direction){
 					this->repair_sell_data(data);
 				}
 			} // end data repaireing procedure

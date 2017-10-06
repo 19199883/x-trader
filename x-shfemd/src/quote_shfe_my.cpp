@@ -12,68 +12,69 @@ using namespace std;
 using namespace my_cmn;
 using namespace std::placeholders;    // adds visibility of _1, _2, _3,...
 
-
 std::string QuoteInterface_MY_SHFE_MD::ToString(const MDPack &d) {
-	MY_LOG_DEBUG("server(%d)MDPack Data: \ninstrument: %s\nislast: %d\nseqno: %d\ndirection: %c\ncount: %d\n", this->server_,d.instrument, (int)d.islast, d.seqno, d.direction, d.count);
+	MY_LOG_DEBUG("server(%d)MDPack Data: \ninstrument: %s\n"
+				"islast: %d\nseqno: %d\ndirection: %c\ncount: %d\n",
+				this->server_,d.instrument, (int)d.islast, d.seqno,
+				d.direction, d.count);
 	for(int i = 0; i < d.count; i++) {
-		 MY_LOG_DEBUG("server(%d) price%d: %lf, volume%d: %d",this->server_, i, d.data[i].price, i, d.data[i].volume);
+		 MY_LOG_DEBUG("server(%d) price%d: %lf, volume%d: %d",
+				 this->server_, i, d.data[i].price, i, d.data[i].volume);
 	}
   
   return "";
 }
 
-QuoteInterface_MY_SHFE_MD::QuoteInterface_MY_SHFE_MD(const SubscribeContracts *subscribe_contracts, const ConfigData &cfg)
-    : cfg_(cfg), seq_no_(0), server_(0), p_shfe_deep_save_(NULL), p_shfe_ex_save_(NULL), p_my_shfe_md_save_(NULL),
+QuoteInterface_MY_SHFE_MD::QuoteInterface_MY_SHFE_MD(
+			const SubscribeContracts *subscribe_contracts, const ConfigData &cfg)
+    : cfg_(cfg), seq_no_(0), server_(0), p_shfe_deep_save_(NULL),
+	p_shfe_ex_save_(NULL), p_my_shfe_md_save_(NULL),
         p_mbl_handler_(NULL), my_shfe_md_inf_(cfg)
 {
-    if (subscribe_contracts)
-    {
+    if (subscribe_contracts){
         subscribe_contracts_ = *subscribe_contracts;
     }
 
-    if (subscribe_contracts_.empty())
-    {
+    if (subscribe_contracts_.empty()){
         MY_LOG_INFO("MY_SHFE_MD - subscribe all contract");
-    }
-    else
-    {
-        for (const std::string &v : subscribe_contracts_)
-        {
+    }else{
+        for (const std::string &v : subscribe_contracts_){
             MY_LOG_INFO("MY_SHFE_MD - subscribe: %s", v.c_str());
         }
     }
 
     running_flag_ = true;
 
-
-    p_shfe_deep_save_ = new QuoteDataSave<SHFEQuote>(cfg_, qtm_name_, "shfe_deep", SHFE_DEEP_QUOTE_TYPE, false);
-    p_shfe_ex_save_ = new QuoteDataSave<CDepthMarketDataField>(cfg_, qtm_name_, "quote_level1", SHFE_EX_QUOTE_TYPE, false);
-    p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>(cfg_, qtm_name_, "my_shfe_md", MY_SHFE_MD_QUOTE_TYPE);
+    p_shfe_deep_save_ = new QuoteDataSave<SHFEQuote>(cfg_, qtm_name_,
+				"shfe_deep", SHFE_DEEP_QUOTE_TYPE, false);
+    p_shfe_ex_save_ = new QuoteDataSave<CDepthMarketDataField>(
+				cfg_, qtm_name_, "quote_level1", SHFE_EX_QUOTE_TYPE, false);
+    p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>(
+				cfg_, qtm_name_, "my_shfe_md", MY_SHFE_MD_QUOTE_TYPE);
 
     my_shfe_md_inf_.SetDataHandler(this);
 
     // start recv threads
-    p_mbl_handler_ = new std::thread(std::bind(&QuoteInterface_MY_SHFE_MD::ShfeMBLHandler, this));
+    p_mbl_handler_ = new std::thread(std::bind(
+					&QuoteInterface_MY_SHFE_MD::ShfeMBLHandler, this));
 
     femas_inf_ = new CMdclientHandler(NULL, cfg_);
-    femas_inf_->SetQuoteDataHandler(std::bind(&QuoteInterface_MY_SHFE_MD::ShfeDepthMarketDataHandler, this, placeholders::_1));
+    femas_inf_->SetQuoteDataHandler(
+				std::bind(&QuoteInterface_MY_SHFE_MD::ShfeDepthMarketDataHandler, this, placeholders::_1));
 }
 
 QuoteInterface_MY_SHFE_MD::~QuoteInterface_MY_SHFE_MD()
 {
     // terminate all threads
     running_flag_ = false;
-    if (p_mbl_handler_)
-    {
+    if (p_mbl_handler_){
         //p_mbl_handler_->interrupt();
     }
 
-    if (femas_inf_)
-    {
+    if (femas_inf_){
         delete femas_inf_;
     }
 
-    // destroy all save object
     if (p_shfe_deep_save_)
         delete p_shfe_deep_save_;
 
@@ -99,43 +100,35 @@ void QuoteInterface_MY_SHFE_MD::ShfeMBLHandler()
         return;
     }
 
-
     int recv_struct_len = sizeof(MDPack);
     int ary_len = recv_struct_len;
     char *recv_buf = new char[ary_len];
     std::size_t recv_len = 0;
 
-	// wangying, repairer, unit test
+	// 假设最多支持10个全挡数据服务器
 	repairer repairers[10];
 	for (int i=0; i<10; i++) repairers[i].server_ = i;
 
-    while (running_flag_)
-    {
+    while (running_flag_){
         sockaddr_in fromAddr;
         int nFromLen = sizeof(fromAddr);
-        recv_len = recvfrom(udp_fd, recv_buf, ary_len, 0, (sockaddr *)&fromAddr, (socklen_t *)&nFromLen);
+        recv_len = recvfrom(udp_fd, recv_buf, ary_len, 0, 
+					(sockaddr *)&fromAddr, (socklen_t *)&nFromLen);
 
         if (recv_len == -1) {
             int error_no = errno;
-            if (error_no == 0 || error_no == 251 || error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
+            if (error_no == 0 || error_no == 251 || 
+						error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
                 continue;
-            }
-            else {
+            }else{
                 MY_LOG_ERROR("UDP - recvfrom failed, error_no=%d.", error_no);
                 continue;
             }
         }
-        //MY_LOG_DEBUG("recv_len: %d", recv_len);
 
-        // data handle
         MDPack *p = (MDPack *)recv_buf;
-
-		// TODO:debug
-		//ToString(*p);
-		
 		int new_svr = p->seqno % 10;
-        if (new_svr != server_) { MY_LOG_WARN("server from %d to %d", server_, new_svr); }
-		
+        if (new_svr != server_) { MY_LOG_INFO("server from %d to %d", server_, new_svr); }
 		repairers[new_svr].rev(*p);
 		
 		bool empty = true;
@@ -146,14 +139,13 @@ void QuoteInterface_MY_SHFE_MD::ShfeMBLHandler()
 		}
 
         server_ = new_svr;
-    }
+    } // while (running_flag_)
 }
 
 void QuoteInterface_MY_SHFE_MD::proc_udp_data(MDPackEx &data)
 {
-	timeval t;
-	gettimeofday(&t, NULL);
-
+	// TODO:不需要转换成SHFEQuote，而是直接传递MDPack
+	// use disruptor
 	SHFEQuote item;
 	memset(&item, 0, sizeof(item));
 	strcpy(item.field.InstrumentID, data.content.instrument);
@@ -166,14 +158,8 @@ void QuoteInterface_MY_SHFE_MD::proc_udp_data(MDPackEx &data)
 		if (data.content.islast == true && i == data.content.count - 1){ item.isLast = true; }
 		else { item.isLast = false; }
 
-		if (shfe_deep_data_handler_
-			&& (subscribe_contracts_.empty()
-				|| subscribe_contracts_.find(data.content.instrument) != subscribe_contracts_.end())){
-			shfe_deep_data_handler_(&item);
-		}
 		// wangying, total sell volume
 		my_shfe_md_inf_.OnMBLData(&item.field, item.isLast);
-		p_shfe_deep_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &item);
 	}
 }
 
@@ -208,6 +194,7 @@ void QuoteInterface_MY_SHFE_MD::OnMYShfeMDData(MYShfeMarketData *data)
     p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
 }
 
+// TODO:查哪种模式最时时
 int QuoteInterface_MY_SHFE_MD::CreateUdpFD(const std::string& addr_ip, unsigned short port)
 {
     // init udp socket
@@ -223,8 +210,7 @@ int QuoteInterface_MY_SHFE_MD::CreateUdpFD(const std::string& addr_ip, unsigned 
     servaddr.sin_addr.s_addr = inet_addr(addr_ip.c_str());
     servaddr.sin_port = htons(port);
 
-    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0)
-    {
+    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0){
         MY_LOG_FATAL("UDP - bind failed: %s:%d", addr_ip.c_str(), port);
         return -1;
     }
@@ -243,15 +229,13 @@ int QuoteInterface_MY_SHFE_MD::CreateUdpFD(const std::string& addr_ip, unsigned 
     // set buffer length
     int rcvbufsize = 1 * 1024 * 1024;
     int ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_RCVBUF, (const void *) &rcvbufsize, sizeof(rcvbufsize));
-    if (ret != 0)
-    {
+    if (ret != 0){
         MY_LOG_WARN("UDP - set SO_RCVBUF failed.");
     }
 
     int broadcast_on = 1;
     ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_BROADCAST, &broadcast_on, sizeof(broadcast_on));
-    if (ret != 0)
-    {
+    if (ret != 0){
         MY_LOG_WARN("UDP - set SO_RCVBUF failed.");
     }
 

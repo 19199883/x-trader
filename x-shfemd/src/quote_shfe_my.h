@@ -37,10 +37,6 @@ public:
     QuoteInterface_MY_SHFE_MD(const SubscribeContracts *subscribe_contracts, const ConfigData &cfg);
 
     // 数据处理回调函数设置
-    void SetQuoteDataHandler(std::function<void(const SHFEQuote *)> quote_data_handler)
-    {
-        shfe_deep_data_handler_ = quote_data_handler;
-    }
     void SetQuoteDataHandler(std::function<void(const CDepthMarketDataField *)> quote_data_handler)
     {
         shfe_ex_handler_ = quote_data_handler;
@@ -63,7 +59,6 @@ private:
 	void proc_udp_data(MDPackEx &data);
 
     // 数据处理函数对象
-    std::function<void(const SHFEQuote *)> shfe_deep_data_handler_;
     std::function<void(const CDepthMarketDataField *)> shfe_ex_handler_;
     std::function<void(const MYShfeMarketData *)> my_shfe_md_handler_;
 
