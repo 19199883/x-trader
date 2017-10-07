@@ -25,29 +25,39 @@ struct Mdconfig
 class MDProducer : public CMdclientSpi
 {
 	public:
-		MDProducer(const ConfigData &cfg,struct vrt_queue  *queue);
+		MDProducer(struct vrt_queue  *queue);
 		~MDProducer();
 
+		/*
+		 * 与逻辑处理相关
+		 */
 		MYShfeMarketData * GetShfeMarketData(int32_t index);
 		void End();
 
+		/*
+		 * 与API相关
+		 */
 		virtual void OnRtnDepthMarketData(CDepthMarketDataField *pDepthMarketData);
 
 	private:
+		/*
+		 * 与API相关
+		 */
 		void InitMDApi(const ConfigData &cfg);
-		void RalaceInvalidValue_Femas(CDepthMarketDataField &d);
+		CMdclientApi *api_;
 
-		void OnShfeMarketData(const MYShfeMarketData * md);
+		/*
+		 * 与逻辑处理相关
+		 */
+		void ParseConfig();
+		void RalaceInvalidValue_Femas(CDepthMarketDataField &d);
 		int32_t push(const MYShfeMarketData & md);
 
 		SubscribeContracts subs_;
 		const char *module_name_;  
 		bool ended_;
 		Mdconfig config_;
-		void ParseConfig();
 		ConfigData cfg_;
-	CMdclientApi *api_;
-
 		struct vrt_producer  *producer_;
 		std::array<MYShfeMarketData, MD_BUFFER_SIZE> shfemarketdata_buffer_;
 };

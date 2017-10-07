@@ -1,19 +1,18 @@
 #include <functional>   // std::bind
-#include "md_producer.h"
+#include "l1md_producer.h"
 #include "perfctx.h"
 
 using namespace std::placeholders;
 using namespace std;
 
-MDProducer::MDProducer(const ConfigData &cfg,struct vrt_queue  *queue)
-:module_name_("MDProducer"),cfg_(cfg)
+MDProducer::MDProducer(struct vrt_queue  *queue)
+:module_name_("MDProducer")
 {
 	ended_ = false;
     api_ = NULL;
 
-	InitMDApi(cfg)
-
 	ParseConfig();
+	InitMDApi(cfg)
 
 	clog_warning("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
@@ -26,23 +25,17 @@ MDProducer::MDProducer(const ConfigData &cfg,struct vrt_queue  *queue)
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		this->producer_ ->yield	 = vrt_yield_strategy_hybrid();
 	}
-
-	auto f_shfemarketdata = std::bind(&MDProducer::OnShfeMarketData, this,_1);
-	md_provider_->SetQuoteDataHandler(f_shfemarketdata);
 }
-
 
 void MDProducer::InitMDApi(const ConfigData &cfg)
 {
     const LogonConfig &logon_cfg = cfg_.Logon_config();
-    int topic = atoi(logon_cfg.topic.c_str());
-
 	int port = -1;
 	string ip = "";
     for(const std::string &v : logon_cfg.quote_provider_addrs) {
 		size_t ipstr_start = v.find("//")+2;
 		size_t ipstr_end = v.find(":",ipstr_start);
-		ip = v.substr (ipstr_start, ipstr_end-ipstr_start);
+		ip = v.substr(ipstr_start, ipstr_end-ipstr_start);
 		port = stoi(v.substr(ipstr_end+1));
 	}
 	char *ip_c_str = (char*)ip.c_str();
@@ -71,8 +64,7 @@ void MDProducer::InitMDApi(const ConfigData &cfg)
 			api_->Subscribe((char*)contr.c_str());
 			MY_LOG_INFO("CMdclientApi subscribe:%s",contr.c_str());
 		}
-	}
-	else { MY_LOG_INFO("CMdclientApi can't open: %s",contr_file.c_str()); }
+	}else { MY_LOG_ERROR("CMdclientApi can't open: %s",contr_file.c_str()); }
 
     int err = api_->Start();
 	MY_LOG_INFO("CMdclientApi start: %d",err);
@@ -103,6 +95,9 @@ void MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *p)
 {
 	RalaceInvalidValue_Femas(*p);
 	CDepthMarketDataField q_level1 = *p;
+
+	// TODO:加INFO日志，输出行情内容，看是否只接收订阅的合约的行情
+	
 	// TODO: send to disruptor queue
 	if (quote_data_handler_) { quote_data_handler_(&q_level1); }
 }
