@@ -5,10 +5,8 @@
 #include <mutex>          // std::mutex, std::lock_guard
 #include "my_cmn_util_funcs.h"
 #include "my_cmn_log.h"
-
 #include "quote_cmn_config.h"
 #include "quote_cmn_utility.h"
-
 #include "quote_shfe_my.h"
 
 using namespace std;
@@ -58,6 +56,7 @@ MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe_contracts, const st
 
 bool MYQuoteData::InitInterface(const SubscribeContracts *subscribe_contracts, const ConfigData &cfg)
 {
+	// TODO: init level 1 and full depth data provider
     // 连接服务
     MY_LOG_INFO("prepare to start shfe of my quote source data transfer");
     interface_ = new QuoteInterface_MY_SHFE_MD(subscribe_contracts, cfg);
@@ -67,15 +66,12 @@ bool MYQuoteData::InitInterface(const SubscribeContracts *subscribe_contracts, c
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const SHFEQuote*)> quote_handler)
 {
-    if (interface_){
-        ((QuoteInterface_MY_SHFE_MD *)interface_)->SetQuoteDataHandler(quote_handler);
-    }else{
-        MY_LOG_ERROR("SHFEQuote handler function not match quote provider.");
-    }
+	// TODO: do not support
 }
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const CDepthMarketDataField*)> quote_handler)
 {
+	// TODO: subscribe to data from consumer
     if (interface_){
         ((QuoteInterface_MY_SHFE_MD *)interface_)->SetQuoteDataHandler(quote_handler);
     }else{
@@ -85,6 +81,8 @@ void MYQuoteData::SetQuoteDataHandler(std::function<void(const CDepthMarketDataF
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const MYShfeMarketData*)> quote_handler)
 {
+	// TODO: subscribe to data from consumer
+    if (interface_){
     if (interface_){
         ((QuoteInterface_MY_SHFE_MD *)interface_)->SetQuoteDataHandler(quote_handler);
     }else{

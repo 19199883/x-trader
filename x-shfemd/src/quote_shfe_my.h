@@ -6,22 +6,15 @@
 #include <dirent.h>
 #include <string>
 #include <vector>
-
 #include <functional>   // std::bind
 #include <thread>         // std::thread
 #include <mutex>          // std::mutex, std::lock_guard
-
 #include "my_cmn_util_funcs.h"
 #include "quote_cmn_utility.h"
 #include "quote_cmn_config.h"
 #include "quote_cmn_save.h"
-
-#include "quote_datatype_shfe_my.h"
 #include "quote_datatype_shfe_deep.h"
-//#include "quote_datatype_level1.h"
-
 #include "quote_interface_shfe_my.h"
-
 #include "shfe_my_data_manager.h"
 #include "quote_femas.h"
 #include "repairer.h"
@@ -51,11 +44,9 @@ public:
 private:
     // quote data handlers
     void OnMYShfeMDData(MYShfeMarketData *data);
-    void ShfeDepthMarketDataHandler(const CDepthMarketDataField * data);
     void ShfeMBLHandler();
 
     int CreateUdpFD(const std::string &addr_ip, unsigned short port);
-
 	void proc_udp_data(MDPackEx &data);
 
     // 数据处理函数对象
@@ -64,28 +55,17 @@ private:
 
 	std::string ToString(const MDPack &d);
 
-    // 订阅合约集合
-    SubscribeContracts subscribe_contracts_;
-
     // 配置数据对象
     ConfigData cfg_;
-    char qtm_name_[32];
 
     int seq_no_;
     int server_;
-
-    // save assistant object
-    QuoteDataSave<SHFEQuote> *p_shfe_deep_save_;
-    QuoteDataSave<CDepthMarketDataField> *p_shfe_ex_save_;
-    QuoteDataSave<MYShfeMarketData> *p_my_shfe_md_save_;
 
     // receive threads
     volatile bool running_flag_;
     std::thread *p_mbl_handler_;
 
     MYShfeMDManager my_shfe_md_inf_;
-
-    CMdclientHandler *femas_inf_;
 };
 
 #endif

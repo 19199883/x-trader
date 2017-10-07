@@ -31,58 +31,19 @@ QuoteInterface_MY_SHFE_MD::QuoteInterface_MY_SHFE_MD(
 	p_shfe_ex_save_(NULL), p_my_shfe_md_save_(NULL),
         p_mbl_handler_(NULL), my_shfe_md_inf_(cfg)
 {
-    if (subscribe_contracts){
-        subscribe_contracts_ = *subscribe_contracts;
-    }
-
-    if (subscribe_contracts_.empty()){
-        MY_LOG_INFO("MY_SHFE_MD - subscribe all contract");
-    }else{
-        for (const std::string &v : subscribe_contracts_){
-            MY_LOG_INFO("MY_SHFE_MD - subscribe: %s", v.c_str());
-        }
-    }
-
     running_flag_ = true;
-
-    p_shfe_deep_save_ = new QuoteDataSave<SHFEQuote>(cfg_, qtm_name_,
-				"shfe_deep", SHFE_DEEP_QUOTE_TYPE, false);
-    p_shfe_ex_save_ = new QuoteDataSave<CDepthMarketDataField>(
-				cfg_, qtm_name_, "quote_level1", SHFE_EX_QUOTE_TYPE, false);
-    p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>(
-				cfg_, qtm_name_, "my_shfe_md", MY_SHFE_MD_QUOTE_TYPE);
-
     my_shfe_md_inf_.SetDataHandler(this);
 
-    // start recv threads
     p_mbl_handler_ = new std::thread(std::bind(
 					&QuoteInterface_MY_SHFE_MD::ShfeMBLHandler, this));
-
-    femas_inf_ = new CMdclientHandler(NULL, cfg_);
-    femas_inf_->SetQuoteDataHandler(
-				std::bind(&QuoteInterface_MY_SHFE_MD::ShfeDepthMarketDataHandler, this, placeholders::_1));
 }
 
 QuoteInterface_MY_SHFE_MD::~QuoteInterface_MY_SHFE_MD()
 {
-    // terminate all threads
     running_flag_ = false;
     if (p_mbl_handler_){
         //p_mbl_handler_->interrupt();
     }
-
-    if (femas_inf_){
-        delete femas_inf_;
-    }
-
-    if (p_shfe_deep_save_)
-        delete p_shfe_deep_save_;
-
-    if (p_shfe_ex_save_)
-        delete p_shfe_ex_save_;
-
-    if (p_my_shfe_md_save_)
-        delete p_my_shfe_md_save_;
 }
 
 void QuoteInterface_MY_SHFE_MD::ShfeMBLHandler()
@@ -93,7 +54,6 @@ void QuoteInterface_MY_SHFE_MD::ShfeMBLHandler()
     }
 
     IPAndPortNum ip_and_port = ParseIPAndPortNum(cfg_.Logon_config().mbl_data_addrs.front());
-
     int udp_fd = CreateUdpFD(ip_and_port.first, ip_and_port.second);
     if (udp_fd < 0) {
         MY_LOG_ERROR("MY_SHFE_MD - CreateUdpFD failed.");
@@ -109,12 +69,12 @@ void QuoteInterface_MY_SHFE_MD::ShfeMBLHandler()
 	repairer repairers[10];
 	for (int i=0; i<10; i++) repairers[i].server_ = i;
 
+	// TODO: disruptor
     while (running_flag_){
         sockaddr_in fromAddr;
         int nFromLen = sizeof(fromAddr);
         recv_len = recvfrom(udp_fd, recv_buf, ary_len, 0, 
-					(sockaddr *)&fromAddr, (socklen_t *)&nFromLen);
-
+			(sockaddr *)&fromAddr, (socklen_t *)&nFromLen);
         if (recv_len == -1) {
             int error_no = errno;
             if (error_no == 0 || error_no == 251 || 
@@ -163,35 +123,15 @@ void QuoteInterface_MY_SHFE_MD::proc_udp_data(MDPackEx &data)
 	}
 }
 
-void QuoteInterface_MY_SHFE_MD::ShfeDepthMarketDataHandler(const CDepthMarketDataField * data)
-{
-    timeval t;
-    gettimeofday(&t, NULL);
-    if (shfe_ex_handler_
-        && (subscribe_contracts_.empty()
-            || subscribe_contracts_.find(data->InstrumentID) != subscribe_contracts_.end()))
-    {
-        shfe_ex_handler_(data);
-    }
-
-    // send to data manager object
-    my_shfe_md_inf_.OnDepthMarketData(data);
-
-    // save
-    p_shfe_ex_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
-}
-
+// TODO: move to consumer
 void QuoteInterface_MY_SHFE_MD::OnMYShfeMDData(MYShfeMarketData *data)
 {
-    timeval t;
-    gettimeofday(&t, NULL);
     if (my_shfe_md_handler_
         && (subscribe_contracts_.empty()
             || subscribe_contracts_.find(data->InstrumentID) != subscribe_contracts_.end()))
     {
         my_shfe_md_handler_(data);
     }
-    p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
 }
 
 // TODO:查哪种模式最时时
@@ -209,7 +149,6 @@ int QuoteInterface_MY_SHFE_MD::CreateUdpFD(const std::string& addr_ip, unsigned 
     servaddr.sin_family = AF_INET; //IPv4协议
     servaddr.sin_addr.s_addr = inet_addr(addr_ip.c_str());
     servaddr.sin_port = htons(port);
-
     if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0){
         MY_LOG_FATAL("UDP - bind failed: %s:%d", addr_ip.c_str(), port);
         return -1;
@@ -228,7 +167,7 @@ int QuoteInterface_MY_SHFE_MD::CreateUdpFD(const std::string& addr_ip, unsigned 
 
     // set buffer length
     int rcvbufsize = 1 * 1024 * 1024;
-    int ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_RCVBUF, (const void *) &rcvbufsize, sizeof(rcvbufsize));
+    int ret = setsockopt(udp_client_fd,SOL_SOCKET,SO_RCVBUF,(const void *)&rcvbufsize,sizeof(rcvbufsize));
     if (ret != 0){
         MY_LOG_WARN("UDP - set SO_RCVBUF failed.");
     }
