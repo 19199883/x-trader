@@ -141,6 +141,7 @@ void repairer::repair_buy_data(MDPack &data)
 
 void repairer::normal_proc_sell_data(MDPack &data)
 {
+	// TODO:加一个判断：isLast==true
 	this->sell_queue_.push_back(data);
 	if (data.count<MAX_PAIR){ this->pull_ready_data(); } 
 }
