@@ -47,7 +47,11 @@ private:
     bool InitInterface(const SubscribeContracts *subscribe_contracts, const ConfigData &cfg);
 
 private:
+    // 数据处理函数对象
+    std::function<void(const CDepthMarketDataField *)> shfe_ex_handler_;
+    std::function<void(const MYShfeMarketData *)> my_shfe_md_handler_;
     void *interface_;
+    void OnMYShfeMDData(MYShfeMarketData *data);
 };
 
 #endif  //MY_QUOTE_INTERFACE_SHFE_MY_H_

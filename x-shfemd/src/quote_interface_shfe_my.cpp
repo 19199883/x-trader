@@ -32,6 +32,7 @@ void InitOnce()
     }
 }
 
+// TODO: 该类为消费者
 MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe_contracts, const std::string &provider_config_file)
 {
     interface_ = NULL;
@@ -94,3 +95,16 @@ MYQuoteData::~MYQuoteData()
 {
     if (interface_) delete ((QuoteInterface_MY_SHFE_MD *)interface_);
 }
+
+//
+// TODO: move to consumer
+void MYQuoteData::OnMYShfeMDData(MYShfeMarketData *data)
+{
+    if (my_shfe_md_handler_
+        && (subscribe_contracts_.empty()
+            || subscribe_contracts_.find(data->InstrumentID) != subscribe_contracts_.end()))
+    {
+        my_shfe_md_handler_(data);
+    }
+}
+

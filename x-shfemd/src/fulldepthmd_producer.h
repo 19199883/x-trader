@@ -1,5 +1,5 @@
-#ifndef __MD_PRODUCER_H__
-#define __MD_PRODUCER_H__
+#ifndef __FULLDEPTHMD_PRODUCER_H__
+#define __FULLDEPTHMD_PRODUCER_H__
 
 #include <functional>
 #include <array>
@@ -32,6 +32,13 @@ class MDProducer
 		void End();
 
 	private:
+		/*
+		 * 与API相关
+		 */
+		int CreateUdpFD(const std::string &addr_ip, unsigned short port);
+		void ShfeMBLHandler();
+
+		void proc_udp_data(MDPackEx &data);
 		MYQuoteData* build_quote_provider(SubscribeContracts &subscription);
 		
 		void OnShfeMarketData(const MYShfeMarketData * md);
@@ -43,6 +50,10 @@ class MDProducer
 		bool ended_;
 		Mdconfig config_;
 		void ParseConfig();
+    int seq_no_;
+    std::thread *p_mbl_handler_;
+	std::string ToString(const MDPack &d);
+    int server_;
 
 		struct vrt_producer  *producer_flag1_;
 		struct vrt_producer  *producer_flag_other_;
