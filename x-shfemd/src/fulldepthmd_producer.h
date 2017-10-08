@@ -9,24 +9,26 @@
 #include "quote_interface_shfe_my.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include <mutex> 
 
 /*
- * 10 power of 2
+ * 缓存的最大的行情数量
  */
-#define MD_BUFFER_SIZE 1000 
+#define FULL_DEPTH_MD_BUFFER_SIZE 1000 
 
-struct Mdconfig
+struct FulldepthMDConfig 
 {
-	// disruptor yield strategy
-	char yield[20];
+	string addr;
+	string ip[30];
+	int port;
+	string contracts_file[500];
+	string yield[20]; // disruptor yield strategy
 };
 
-class MDProducer
+class FullDepthMDProducer
 {
 	public:
-		MDProducer(struct vrt_queue  *queue);
-		~MDProducer();
+		FullDepthMDProducer(struct vrt_queue  *queue);
+		~FullDepthMDProducer();
 
 		MYShfeMarketData * GetShfeMarketData(int32_t index);
 		void End();
@@ -39,7 +41,6 @@ class MDProducer
 		void ShfeMBLHandler();
 
 		void proc_udp_data(MDPackEx &data);
-		MYQuoteData* build_quote_provider(SubscribeContracts &subscription);
 		
 		void OnShfeMarketData(const MYShfeMarketData * md);
 		int32_t push(const MYShfeMarketData & md);
@@ -48,15 +49,14 @@ class MDProducer
 		SubscribeContracts subs_;
 		const char *module_name_;  
 		bool ended_;
-		Mdconfig config_;
+		FulldepthMDConfig config_;
 		void ParseConfig();
-    int seq_no_;
-    std::thread *p_mbl_handler_;
-	std::string ToString(const MDPack &d);
-    int server_;
+		std::thread *p_mbl_handler_;
+		std::string ToString(const MDPack &d);
+		int server_;
+		int seq_no_;
 
-		struct vrt_producer  *producer_flag1_;
-		struct vrt_producer  *producer_flag_other_;
+		struct vrt_producer  *producer_;
 		std::array<MYShfeMarketData, MD_BUFFER_SIZE> shfemarketdata_buffer_;
 };
 

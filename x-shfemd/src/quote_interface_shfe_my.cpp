@@ -12,6 +12,10 @@
 using namespace std;
 using namespace my_cmn;
 
+// TODO:因消费者需要合并一档与全挡数据，所以需要考虑消费
+// 者如何引用缓存在一档生产者的数据，一档数据与全挡数据合并后，需清空
+// 一档行情缓存列表，合约映射 index（一档生产者缓存中的索引）
+
 void InitOnce()
 {
     static volatile bool s_have_init = false;
