@@ -1,11 +1,11 @@
 #include <functional>   // std::bind
 #include "l1md_producer.h"
+#include "quote_cmn_utility.h"
 
 using namespace std::placeholders;
 using namespace std;
 
-L1MDProducer::L1MDProducer(struct vrt_queue  *queue)
-:module_name_("L1MDProducer")
+L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProducer")
 {
 	ended_ = false;
     api_ = NULL;
@@ -103,7 +103,8 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 
 	RalaceInvalidValue_Femas(*data);
 
-	// TODO:加INFO日志，输出行情内容，看是否只接收订阅的合约的行情
+	clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
+			module_name_,data->InstrumentID,data.UpdateTime,data.UpdateMillisec);
 	
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;

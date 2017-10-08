@@ -12,10 +12,6 @@
 #include "mdclient.h"
 #include "quote_datatype_level1.h"
 
-// TODO:因消费者需要合并一档与全挡数据，所以需要考虑消费者如何引用缓存在一档生产者的数据，一档数据与全挡数据合并后，需清空
-
-
-
 /*
  * 10 power of 2
  */
@@ -61,12 +57,14 @@ class L1MDProducer : public CMdclientSpi
 		 */
 		void RalaceInvalidValue_Femas(CDepthMarketDataField &d);
 		int32_t push(const CDepthMarketDataField& md);
-
-		SubscribeContracts subs_;
-		const char *module_name_;  
 		bool ended_;
 		struct vrt_producer  *producer_;
 		std::array<CDepthMarketDataField, MD_BUFFER_SIZE> md_buffer_;
+
+		/*
+		 *日志相关
+		 */
+		const char *module_name_;  
 
 		/*
 		 * 配置相关
