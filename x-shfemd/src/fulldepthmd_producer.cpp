@@ -11,8 +11,6 @@ FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
 	ended_ = false;
 
 	ParseConfig();
-	InitMDApi();
-
 	clog_warning("[%s] FULL_DEPTH_MD_BUFFER_SIZE: %d;", module_name_, FULL_DEPTH_MD_BUFFER_SIZE);
 
 	this->producer_ = vrt_producer_new("fulldepthmd_producer", 1, queue);
@@ -24,46 +22,59 @@ FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
+
+	thread_rev_ = thread(FullDepthMDProducer::RevData);
+	thread_rev_.detach();
 }
 
 void FullDepthMDProducer::ParseConfig()
 {
-	TiXmlDocument config = TiXmlDocument("x-trader.config");
+	TiXmlDocument config = TiXmlDocument("x-shmd.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
 
 	// yield strategy
-    TiXmlElement *comp_node = RootElement->FirstChildElement("Disruptor");
-	if (comp_node != NULL){
-		strcpy(config_.yield, comp_node->Attribute("yield"));
-	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+    TiXmlElement *disruptor_node = RootElement->FirstChildElement("Disruptor");
+	if (disruptor_node != NULL){
+		config_.yield = disruptor_node->Attribute("yield");
+	} else { clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); }
+
+	// addr
+    TiXmlElement *fdmd_node = RootElement->FirstChildElement("FullDepthMd");
+	if (fdmd_node != NULL){
+		config_.addr = fdmd_node->Attribute("addr");
+	} else { clog_error("[%s] x-shmd.config error: FulldepthMd node missing.", module_name_); }
+
+	size_t ipstr_start = config_.addr.find("//")+2;
+	size_t ipstr_end = config_.addr.find(":",ipstr_start);
+	config_.ip = config_.addr.substr(ipstr_start,ipstr_end-ipstr_start);
+	config_.port = stoi(config_.addr.substr(ipstr_end+1));
 }
 
 FullDepthMDProducer::~FullDepthMDProducer()
 {
-
 }
 
-// TODO:查哪种模式最时时
 int FullDepthMDProducer::InitMDApi()
 {
     // init udp socket
     int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
     /* set reuse and non block for this socket */
     int son = 1;
-    setsockopt(udp_client_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &son, sizeof(son));
+    setsockopt(udp_client_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&son, sizeof(son));
 
     // bind address and port
     struct sockaddr_in servaddr;
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET; //IPv4协议
-    servaddr.sin_addr.s_addr = inet_addr(addr_ip.c_str());
-    servaddr.sin_port = htons(port);
+    servaddr.sin_addr.s_addr = inet_addr(config_.ip.c_str());
+    servaddr.sin_port = htons(config_.port);
     if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0){
-        MY_LOG_FATAL("UDP - bind failed: %s:%d", addr_ip.c_str(), port);
+        clog_error("[%s] UDP - bind failed:%s:%d",module_name_,config_.ip.c_str(),config_.port);
         return -1;
     }
 
+// TODO:查哪种模式最时时
     // set nonblock flag
 //    int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
 //    if (socket_ctl_flag < 0)
@@ -77,54 +88,26 @@ int FullDepthMDProducer::InitMDApi()
 
     // set buffer length
     int rcvbufsize = 1 * 1024 * 1024;
-    int ret = setsockopt(udp_client_fd,SOL_SOCKET,SO_RCVBUF,(const void *)&rcvbufsize,
-			sizeof(rcvbufsize));
+    int ret = setsockopt(udp_client_fd,SOL_SOCKET,SO_RCVBUF,
+				(const void *)&rcvbufsize,sizeof(rcvbufsize));
     if (ret != 0){
-        MY_LOG_WARN("UDP - set SO_RCVBUF failed.");
+        clog_error("[%a] UDP - set SO_RCVBUF failed.",module_name_);
     }
 
     int broadcast_on = 1;
     ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_BROADCAST, &broadcast_on, sizeof(broadcast_on));
     if (ret != 0){
-        MY_LOG_WARN("UDP - set SO_RCVBUF failed.");
+        clog_error("[%s] UDP - set SO_RCVBUF failed.",module_name_);
     }
 
     return udp_client_fd;
 }
 
-void FullDepthMDProducer::proc_udp_data(MDPackEx &data)
-{
-	// TODO:不需要转换成SHFEQuote，而是直接传递MDPack
-	// use disruptor
-	SHFEQuote item;
-	memset(&item, 0, sizeof(item));
-	strcpy(item.field.InstrumentID, data.content.instrument);
-	item.field.Direction = data.content.direction;
-	for (int i = 0; i < data.content.count; i++){
-		item.field.Price = data.content.data[i].price;
-		item.field.Volume = data.content.data[i].volume;
-		// wangying, repairer, total sell volume
-		item.field.damaged = data.damaged;
-		if (data.content.islast == true && i == data.content.count - 1){ item.isLast = true; }
-		else { item.isLast = false; }
-
-		// wangying, total sell volume
-		my_shfe_md_inf_.OnMBLData(&item.field, item.isLast);
-	}
-}
-
-// TODO:thread process method
 void FullDepthMDProducer::RevData()
 {
-    if (cfg_.Logon_config().mbl_data_addrs.size() != 1) {
-        MY_LOG_ERROR("MY_SHFE_MD - address of mbl is wrong, please check");
-        return;
-    }
-
-    IPAndPortNum ip_and_port = ParseIPAndPortNum(cfg_.Logon_config().mbl_data_addrs.front());
-    int udp_fd = CreateUdpFD(ip_and_port.first, ip_and_port.second);
+	int udp_fd = InitMDApi();
     if (udp_fd < 0) {
-        MY_LOG_ERROR("MY_SHFE_MD - CreateUdpFD failed.");
+        clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
         return;
     }
 
@@ -136,9 +119,7 @@ void FullDepthMDProducer::RevData()
 	// 假设最多支持10个全挡数据服务器
 	repairer repairers[10];
 	for (int i=0; i<10; i++) repairers[i].server_ = i;
-
-	// TODO: disruptor
-    while (running_flag_){
+    while (!ended_){
         sockaddr_in fromAddr;
         int nFromLen = sizeof(fromAddr);
         recv_len = recvfrom(udp_fd, recv_buf, ary_len, 0, 
@@ -146,10 +127,10 @@ void FullDepthMDProducer::RevData()
         if (recv_len == -1) {
             int error_no = errno;
             if (error_no == 0 || error_no == 251 || 
-						error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
+				error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
                 continue;
             }else{
-                MY_LOG_ERROR("UDP - recvfrom failed, error_no=%d.", error_no);
+                clog_error("[%s] UDP-recvfrom failed, error_no=%d.",module_name_,error_no);
                 continue;
             }
         }
@@ -160,14 +141,23 @@ void FullDepthMDProducer::RevData()
 		repairers[new_svr].rev(*p);
 		
 		bool empty = true;
-		MDPackEx data = repairers[new_svr].next(empty);
+		// TODO:here 一个行情只需一份，不用多分拷贝
+		MDPackEx &data = repairers[new_svr].next(empty);
 		while (!empty) { 
+			struct vrt_value  *vvalue;
+			struct vrt_hybrid_value  *ivalue;
+			vrt_producer_claim(producer_, &vvalue);
+			ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+			ivalue->index = Push(*md);
+			ivalue->data = FULL_DEPTH_MD;
+			vrt_producer_publish(producer_);
 			proc_udp_data(data);
+
 			data = repairers[new_svr].next(empty);
 		}
 
         server_ = new_svr;
-    } // while (running_flag_)
+    } // while (!ended_)
 }
 
 void FullDepthMDProducer::End()
@@ -179,26 +169,10 @@ void FullDepthMDProducer::End()
 	}
 }
 
-void FullDepthMDProducer::OnShfeMarketData(const MYShfeMarketData * md)
-{
-	if (ended_) return;
-
-	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
-	if (strlen(md->InstrumentID) > 6) return;
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = push(*md);
-	ivalue->data = SHFEMARKETDATA;
-	(vrt_producer_publish(producer_));
-}
-
-int32_t FullDepthMDProducer::push(const MYShfeMarketData& md){
-	static int32_t shfemarketdata_cursor = MD_BUFFER_SIZE - 1;
+int32_t FullDepthMDProducer::Push(const MYShfeMarketData& md){
+	static int32_t shfemarketdata_cursor = FULL_DEPTH_MD_BUFFER_SIZE - 1;
 	shfemarketdata_cursor++;
-	if (shfemarketdata_cursor%MD_BUFFER_SIZE == 0){
+	if (shfemarketdata_cursor%FULL_DEPTH_MD_BUFFER_SIZE == 0){
 		shfemarketdata_cursor = 0;
 	}
 	shfemarketdata_buffer_[shfemarketdata_cursor] = md;

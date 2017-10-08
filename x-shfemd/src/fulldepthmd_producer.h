@@ -37,27 +37,35 @@ class FullDepthMDProducer
 		/*
 		 * 与API相关
 		 */
-		int CreateUdpFD(const std::string &addr_ip, unsigned short port);
-		void ShfeMBLHandler();
+		int InitMDApi();
+		void RevData();
 
-		void proc_udp_data(MDPackEx &data);
-		
-		void OnShfeMarketData(const MYShfeMarketData * md);
-		int32_t push(const MYShfeMarketData & md);
-
-		MYQuoteData *md_provider_;
-		SubscribeContracts subs_;
-		const char *module_name_;  
-		bool ended_;
-		FulldepthMDConfig config_;
-		void ParseConfig();
-		std::thread *p_mbl_handler_;
-		std::string ToString(const MDPack &d);
+		/*
+		 * 逻辑相关
+		 */
+		std::thread thread_rev_;
 		int server_;
 		int seq_no_;
 
+		/*
+		 *disruptor相关
+		 */
+		int32_t Push(const MYShfeMarketData & md);
 		struct vrt_producer  *producer_;
 		std::array<MYShfeMarketData, MD_BUFFER_SIZE> shfemarketdata_buffer_;
+		bool ended_;
+
+		/*
+		 *日志相关
+		 */
+		std::string ToString(const MDPack &d);
+		const char *module_name_;  
+
+		/*
+		 * 配置相关
+		 */
+		FulldepthMDConfig config_;
+		void ParseConfig();
 };
 
 #endif

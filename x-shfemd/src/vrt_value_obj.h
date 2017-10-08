@@ -34,7 +34,6 @@ extern "C" {
 	enum HybridData {
 		L1_MD = 0, 
 		FULL_DEPTH_MD, 
-		MD_EOF, 
 	};
 
 	struct vrt_hybrid_value {

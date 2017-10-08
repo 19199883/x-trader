@@ -3,6 +3,13 @@
 #include "repairer.h"
 #include "quote_cmn_utility.h"
 
+/*
+ * TODO:
+ * 实现自定义dequeue，缓存足够长，这样，一个行情只需一份，不用多分拷贝
+ *
+ *
+ */
+
  std::string repairer::ToString(const MDPack &d) {
 	  MY_LOG_DEBUG("(server:%d) MDPack Data: instrument:%s islast:%d"
 		  "seqno:%d direction:%c count: %d",
@@ -229,7 +236,7 @@ void repairer::proc_pkg_loss(MDPack &data)
 	} // end else if (SHFE_FTDC_D_Sell==data.direction){
 }
 
-
+// TODO:return a pointer
 MDPackEx repairer::next(bool &empty)
 {
 	empty = true;
