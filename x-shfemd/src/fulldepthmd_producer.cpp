@@ -115,10 +115,6 @@ void FullDepthMDProducer::RevData()
     int ary_len = recv_struct_len;
     char *recv_buf = new char[ary_len];
     std::size_t recv_len = 0;
-
-	// 假设最多支持10个全挡数据服务器
-	repairer repairers[10];
-	for (int i=0; i<10; i++) repairers[i].server_ = i;
     while (!ended_){
         sockaddr_in fromAddr;
         int nFromLen = sizeof(fromAddr);
@@ -135,28 +131,14 @@ void FullDepthMDProducer::RevData()
             }
         }
 
-        MDPack *p = (MDPack *)recv_buf;
-		int new_svr = p->seqno % 10;
-        if (new_svr != server_) { MY_LOG_INFO("server from %d to %d", server_, new_svr); }
-		repairers[new_svr].rev(*p);
-		
-		bool empty = true;
-		// TODO:here 一个行情只需一份，不用多分拷贝
-		MDPackEx &data = repairers[new_svr].next(empty);
-		while (!empty) { 
-			struct vrt_value  *vvalue;
-			struct vrt_hybrid_value  *ivalue;
-			vrt_producer_claim(producer_, &vvalue);
-			ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-			ivalue->index = Push(*md);
-			ivalue->data = FULL_DEPTH_MD;
-			vrt_producer_publish(producer_);
-			proc_udp_data(data);
-
-			data = repairers[new_svr].next(empty);
-		}
-
-        server_ = new_svr;
+        MDPack *md = (MDPack *)recv_buf;
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+		ivalue->index = Push(*md);
+		ivalue->data = FULL_DEPTH_MD;
+		vrt_producer_publish(producer_);
     } // while (!ended_)
 }
 

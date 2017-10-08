@@ -106,3 +106,44 @@ void MYQuoteData::OnMYShfeMDData(MYShfeMarketData *data)
     }
 }
 
+// TODO:改成从disruptor中接收并处理数据
+// 在repairer等地方对MDPack数据，采用直接引用生产者缓存的数据，而不能再赋值一份
+void Proc()
+{
+	// 假设最多支持10个全挡数据服务器
+	repairer repairers[10];
+	for (int i=0; i<10; i++) repairers[i].server_ = i;
+    while (!ended_){
+        sockaddr_in fromAddr;
+        int nFromLen = sizeof(fromAddr);
+        recv_len = recvfrom(udp_fd, recv_buf, ary_len, 0, 
+			(sockaddr *)&fromAddr, (socklen_t *)&nFromLen);
+        if (recv_len == -1) {
+            int error_no = errno;
+            if (error_no == 0 || error_no == 251 || 
+				error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
+                continue;
+            }else{
+                clog_error("[%s] UDP-recvfrom failed, error_no=%d.",module_name_,error_no);
+                continue;
+            }
+        }
+
+        MDPack *p = (MDPack *)recv_buf;
+		int new_svr = p->seqno % 10;
+        if (new_svr != server_) { MY_LOG_INFO("server from %d to %d", server_, new_svr); }
+		repairers[new_svr].rev(*p);
+		
+		bool empty = true;
+		// TODO:here 一个行情只需一份，不用多分拷贝
+		MDPackEx &data = repairers[new_svr].next(empty);
+		while (!empty) { 
+			// TODO:生成最终的行情数据
+			proc_udp_data(data);
+
+			data = repairers[new_svr].next(empty);
+		}
+
+        server_ = new_svr;
+    } // while (!ended_)
+}
