@@ -8,23 +8,9 @@
 
 #define gettid() syscall(__NR_gettid)
 
-#define CLOG_CHANNEL  "x-trader"
+#define CLOG_CHANNEL  "x-shmd"
 
 //#define LATENCY_MEASURE
-
-#define COMPLIANCE_CHECK
-
-// 通过合约查找订阅该合约行情的方法:
-// 1: unordered_multimap  
-// 2: two-dimensional array
-// 3: strcmp
-#define FIND_STRATEGIES 3
-
-// 一个trader支持最多信号数 
-#define COUNTER_UPPER_LIMIT 15000
-
-// 满足一天足够的下单量，以空间换时间
-#define RPT_BUFFER_SIZE 15000
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,15 +28,13 @@ extern "C" {
 #endif /* __cplusplus */
 
 	/* --------------------------------------------------------------
-	 * x-trader varon-t value and type
+	 * x-shmd varon-t value and type
 	 */
 
 	enum HybridData {
-		SHFEMARKETDATA = 0, 
-		HybridData, 
-		PENDING_SIGNAL, 
-		TUNN_RPT, 
-		TRADER_EOF, 
+		L1_MD = 0, 
+		FULL_DEPTH_MD, 
+		MD_EOF, 
 	};
 
 	struct vrt_hybrid_value {

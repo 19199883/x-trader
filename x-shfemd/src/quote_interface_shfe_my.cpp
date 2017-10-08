@@ -72,12 +72,7 @@ void MYQuoteData::SetQuoteDataHandler(std::function<void(const SHFEQuote*)> quot
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const CDepthMarketDataField*)> quote_handler)
 {
-	// TODO: subscribe to data from consumer
-    if (interface_){
-        ((QuoteInterface_MY_SHFE_MD *)interface_)->SetQuoteDataHandler(quote_handler);
-    }else{
-        MY_LOG_ERROR("SHFEQuote handler function not match quote provider.");
-    }
+	// TODO: do not support
 }
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const MYShfeMarketData*)> quote_handler)
@@ -93,11 +88,10 @@ void MYQuoteData::SetQuoteDataHandler(std::function<void(const MYShfeMarketData*
 
 MYQuoteData::~MYQuoteData()
 {
-    if (interface_) delete ((QuoteInterface_MY_SHFE_MD *)interface_);
 }
 
 //
-// TODO: move to consumer
+// TODO: move to consumer process method
 void MYQuoteData::OnMYShfeMDData(MYShfeMarketData *data)
 {
     if (my_shfe_md_handler_
