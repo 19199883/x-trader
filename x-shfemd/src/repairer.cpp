@@ -242,6 +242,7 @@ MDPackEx repairer::next(bool &empty)
 	empty = true;
 
 	if (!this->ready_queue_.empty()){
+		// TODO:多一次至拷贝
 		MDPackEx data = this->ready_queue_.front();
 		empty = false;
 		this->ready_queue_.pop_front();
