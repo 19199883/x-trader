@@ -9,7 +9,7 @@ class MyIntDeque
 {
 	public:
 		MyIntDeque();
-		virtual ~MyIntDeque;
+		virtual ~MyIntDeque();
 		int Front();
 		int PopFront();
 		int Back();
@@ -21,9 +21,9 @@ class MyIntDeque
 
 	private:
 		int buffer_[MY_INT_DEQUE_CAPACITY];
-		int32_t front_index_;
-		int32_t back_index_;
-		static const int32_t npos;
+		int front_index_;
+		int back_index_;
+		static const int npos;
 };
 
 

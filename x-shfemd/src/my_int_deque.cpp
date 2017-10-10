@@ -1,14 +1,14 @@
 #include <stdexcept>      // std::logic_error
 #include "my_int_deque.h"
 
-int32_t MyIntDeque::npos = -1;
+const int MyIntDeque::npos = -1;
 
 MyIntDeque::MyIntDeque()
-:front_index(npos),back_index(npos)
+:front_index_(npos),back_index_(npos)
 {
 }
 
-MyIntDeque::~MyIntDeque
+MyIntDeque::~MyIntDeque()
 {
 }
 
@@ -69,7 +69,7 @@ int MyIntDeque::At(int position)
 	}else if(position >= Size()){
 		throw logic_error("MyIntDeque:out of range accessing to At().");
 	}else{
-		return buffer_[front_index_];
+		return buffer_[front_index_+position];
 	}
 }
 
