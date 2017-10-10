@@ -23,7 +23,6 @@ static void
 SIG_handler(int s)
 {
 	uniConsumer->Stop();
-	//exit(0);		/* call exit for the signal */
 }
 
 int main(/*int argc, const char **argv*/)

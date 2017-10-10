@@ -109,10 +109,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 // done
 TunnRptProducer::~TunnRptProducer()
 {
-    if (api_) {
-        api_->Disconnect();
-        api_ = NULL;
-    }
 }
 
 // done
@@ -226,7 +222,8 @@ void TunnRptProducer::OnAPIReady()
 // done
 void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
 {
-    clog_error("[%s] OnDisconnect, reasonCode:%d",module_name_,reasonCode);
+	// TODO:
+    //clog_error("[%s] OnDisconnect, reasonCode:%d",module_name_,reasonCode);
 }
 
 // done
@@ -294,6 +291,11 @@ void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
 // done
 void TunnRptProducer::End()
 {
+    if (api_) {
+		// TODO:
+        api_->Disconnect();
+        api_ = NULL;
+    }
 	ended_ = true;
 	(vrt_producer_eof(producer_));
 }
