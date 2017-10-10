@@ -292,7 +292,8 @@ void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
 void TunnRptProducer::End()
 {
     if (api_) {
-        api_->Disconnect();
+		// TODO:
+        // api_->Disconnect();
         api_ = NULL;
     }
 	ended_ = true;
