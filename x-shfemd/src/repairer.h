@@ -2,9 +2,10 @@
 #define REPAIRER_H
 #include <string>
 #include <queue>
-#include <deque>
 #include "quote_datatype_shfe_my.h"
 #include "quote_datatype_shfe_deep.h"
+#include "my_int_deque.h"
+#include "fulldepthmd_producer.h"
 
 using namespace std;
 
@@ -30,11 +31,11 @@ class MDPackEx
 class repairer
 {
 	public:
-		repairer();
+		repairer(FullDepthMDProducer *full_depth_md_producer);
 
 		/* receive data from UDP. repaires data if it is damaged
 		 */
-		void rev(MDPack &data);
+		void rev(MDPackEx &data);
 
 		/*		 
 		 * get next avaialble data
@@ -51,22 +52,22 @@ class repairer
 		/*		 
 		 * find normal data start point when system starts
 		 */
-		bool find_start_point(MDPack &data);
+		bool find_start_point(MDPackEx &data);
 
 		/* check whether package loss occurs
 		 * return true if package loss occurs; otherwise, false
 		 */
-		bool lose_pkg(MDPack &data);
+		bool lose_pkg(MDPackEx &data);
 
 		void print_queue();
 
 		/* 
 		 */
-		void normal_proc_buy_data(MDPack &data);
-		void repair_buy_data(MDPack &data);
-		void normal_proc_sell_data(MDPack &data);
-		void repair_sell_data(MDPack &data);
-		void proc_pkg_loss(MDPack &data);
+		void normal_proc_buy_data(MDPackEx &data);
+		void repair_buy_data(MDPackEx &data);
+		void normal_proc_sell_data(MDPackEx &data);
+		void repair_sell_data(MDPackEx &data);
+		void proc_pkg_loss(MDPackEx &data);
 
 		/*
 		 * pull data ready to send from buy/sell queue
@@ -78,21 +79,22 @@ class repairer
 		 */
 		void flag_damaged_data();
 
-		 std::string ToString(const MDPack &d);
+		 std::string ToString(const MDPackEx &d);
 
 		// record the contract of victim data when package loss occurs
 		string victim_;
 
-		deque<MDPackEx> buy_queue_;
-		deque<MDPackEx> sell_queue_;
+		MyIntDeque buy_queue_;
+		MyIntDeque sell_queue_;
 
 		// save data available for sending
-		deque<MDPackEx> ready_queue_;
+		MyIntDeque ready_queue_;
 
 		// initial value is false; it will become true when normal data start point is found.
 		bool working_;
 		// record current serial number of UDP data	
 		int seq_no_;
+		FullDepthMDProducer *full_depth_md_producer_;
 
 };
 

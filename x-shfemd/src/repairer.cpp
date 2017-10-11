@@ -21,47 +21,51 @@
 	 return "";
 }
 
-repairer::repairer()
+// done
+repairer::repairer(FullDepthMDProducer *full_depth_md_producer)
 {
+	full_depth_md_producer_ = full_depth_md_producer;
 	this->working_ = false;
 	this->seq_no_ = -1;
 	this->victim_ = "";
 }
 
-bool repairer::lose_pkg(MDPack &data)
+// done
+bool repairer::lose_pkg(MDPackEx* data)
 {
-	if (-1 == this->seq_no_){// specially process for the first UPD data
+	if (-1 == seq_no_){// specially process for the first UPD data
 		return false;
 	}else{
-		int new_sn = data.seqno / 10;
+		int new_sn = data->content.seqno / 10;
 
-		if ((this->seq_no_+1) != new_sn){
+		if ((seq_no_+1) != new_sn){
 			MY_LOG_INFO("(server:%d)package loss:sn from %d to %d", 
-				this->server_,this->seq_no_, new_sn);
+				server_,seq_no_, new_sn);
 		}
 	
-		return (this->seq_no_+1) != new_sn;
+		return (seq_no_+1) != new_sn;
 	}
 }
 
-bool repairer::find_start_point(MDPack &data)
+// done
+bool repairer::find_start_point(MDPackEx* data)
 {
 	bool found = false;
 
-	if (this->working_){
+	if (working_){
 		throw logic_error("wrong invoke find_start_point!");
 	}
 
 	if (lose_pkg(data)) this->victim_ = "";
 
-	if (""==this->victim_){
-		if (SHFE_FTDC_D_Buy==data.direction){ this->victim_ = data.instrument; }
+	if ("" == victim_){
+		if (SHFE_FTDC_D_Buy==data->.content.direction){ victim_ = data->content.instrument; }
 		found = false;
 	}else{
-		if (strcmp(data.instrument,this->victim_.c_str()) == 0){ found = false; }
+		if (strcmp(data->content.instrument,victim_.c_str()) == 0){ found = false; }
 		else{
-			this->working_ = true;
-			this->victim_ = "";
+			working_ = true;
+			victim_ = "";
 			found = true; 
 		}
 	}
@@ -69,130 +73,155 @@ bool repairer::find_start_point(MDPack &data)
 	return found;
 }
 
+// done
 void repairer::pull_ready_data()
 {
 	bool ready_data_found = false;
 	bool damaged = false;
 
-	if (!this->sell_queue_.empty()){
-		while (!this->buy_queue_.empty()){
-			if (strcmp(sell_queue_.front().content.instrument,this->buy_queue_.front().content.instrument)>0){
-				this->buy_queue_.pop_front();
-			}else if (strcmp(sell_queue_.front().content.instrument,this->buy_queue_.front().content.instrument)==0){
-				MDPackEx &new_data = this->buy_queue_.front();
+	if (!sell_queue_.Empty()){
+		while (!buy_queue_.Empty()){
+			int sell_index = sell_queue_.Front();
+			MDPackEx& sell = full_depth_md_producer_->GetShfeMarketData(sell_index);
+			int buy_index = buy_queue_.front();
+			MDPackEx& buy = full_depth_md_producer_->GetShfeMarketData(buy_index);
+			if (strcmp(sell.content.instrument,buy.content.instrument)>0){
+				buy_queue_.PopFront();
+			}else if (strcmp(sell.content.instrument,buy.content.instrument)==0){
+				MDPackEx &new_data = buy;
 				if (new_data.damaged) damaged = true;
-				this->ready_queue_.push_back(new_data);
-				this->buy_queue_.pop_front();
+				ready_queue_.PushBack(buy_index);
+				buy_queue_.PopFront();
 				ready_data_found = true;
 			}else{ break;}
 		}
 
 		// add all sell data into ready queue
 		if (ready_data_found ){
-			while (!this->sell_queue_.empty()){
-				MDPackEx &new_data = this->sell_queue_.front();
+			while (!sell_queue_.Empty()){
+				int sell_index = sell_queue_.front();
+				MDPackEx &new_data = full_depth_md_producer_->GetShfeMarketData(sell_index);
 				if (new_data.damaged) damaged = true;
-				this->ready_queue_.push_back(new_data);
-				this->sell_queue_.pop_front();
+				ready_queue_.PushBack(sell_index);
+				sell_queue_.PopFront();
 			}
 
 			// flag damaged data
 			if (damaged){
-				char *instrument = this->ready_queue_.back().content.instrument;
-				int idx = this->ready_queue_.size()-1;
-				while (idx>=0 && strcmp(this->ready_queue_[idx].content.instrument, instrument)==0){
-					this->ready_queue_[idx].damaged = true;
+				int back_index = ready_queue_.back();
+				MDPackEx &back_data = full_depth_md_producer_->GetShfeMarketData(back_index);
+				char *instrument = back_data.content.instrument;
+				int idx = ready_queue_.Size()-1;
+				while (idx >= 0){
+					int ready_index = ready_queue_.At(idx);
+					MDPackEx &redy_data = full_depth_md_producer_->GetShfeMarketData(ready_index);
+					if(strcmp(redy_data.content.instrument,instrument)==0){
+						redy_data.damaged = true;
+					}
 					idx--;
-				}
-			}
-		}
+				} // while (idx >= 0)
+			} // if (damaged)
+		} // if (ready_data_found )
 
-		this->sell_queue_.clear();
+		this->sell_queue_.Clear();
 	} // end if (!this->sell_queue_.empty()){
 }
 
-void repairer::normal_proc_buy_data(MDPack &data)
+// done
+void repairer::normal_proc_buy_data(int index)
 {
-	if (this->buy_queue_.empty()){
-		if (!this->sell_queue_.empty()){
+	MDPackEx* data = full_depth_md_producer_->GetShfeMarketData(index);
+	if (buy_queue_.Empty()){
+		if (!sell_queue_.Empty()){
 			MY_LOG_ERROR("(server:%d)normal_proc_buy_data,"
 				"error(sell queue in NOT empty),sn:%d",
-				this->server_, data.seqno);
+				server_, data->content.seqno);
 		}
 	}else{
-		if (strcmp(data.instrument,this->buy_queue_.back().content.instrument)>=0){ // in one patch
-			if (!this->sell_queue_.empty()){
+		if (strcmp(data->content.instrument,buy_queue_.Back().content.instrument)>=0){ // in one patch
+			if (!sell_queue_.Empty()){
 				MY_LOG_ERROR("(server:%d)normal_proc_buy_data,"
-					"error(sell queue in NOT empty),sn:%d",this->server_, data.seqno);
+					"error(sell queue in NOT empty),sn:%d",this->server_, data->content.seqno);
 			}
 		}else{ // cross more than one patch
 			// pull ready data
-			this->pull_ready_data();	
+			pull_ready_data();	
 			// remove un-integrity data from buy queue
-			this->buy_queue_.clear();
+			buy_queue_.clear();
 		}
 	}
 
 	// add new data into buy queue
-	this->buy_queue_.push_back(MDPackEx(data));
+	buy_queue_.push_back(index);
 }
 
-void repairer::repair_buy_data(MDPack &data)
+// done
+void repairer::repair_buy_data(int index)
 {
-	if (strcmp(this->victim_.c_str(),data.instrument) != 0){
-		normal_proc_buy_data(data);
+	MDPackEx* data = full_depth_md_producer_->GetShfeMarketData(index);
+	if (strcmp(victim_.c_str(),data->content.instrument) != 0){
+		normal_proc_buy_data(index);
 		this->victim_ = "";
 	}
 	else{ /* discard victim data */ }
 }
 
-void repairer::normal_proc_sell_data(MDPack &data)
+// done
+void repairer::normal_proc_sell_data(int index)
 {
-	// TODO:加一个判断：isLast==true
-	this->sell_queue_.push_back(data);
-	if (data.count<MAX_PAIR){ this->pull_ready_data(); } 
+	MDPackEx* data = full_depth_md_producer_->GetShfeMarketData(index);
+	// TODO:islast是字符型，需要看日志确认是否能转换成bool
+	sell_queue_.push_back(index);
+	if (data->content.count<MAX_PAIR || data->content.islast){
+		pull_ready_data(); 
+	} 
 }
 
-void repairer::repair_sell_data(MDPack &data)
+// done
+void repairer::repair_sell_data(int index)
 {
-	if (strcmp(this->victim_.c_str(),data.instrument) != 0){
-		if (!this->sell_queue_.empty()) {
+	MDPackEx* data = full_depth_md_producer_->GetShfeMarketData(index);
+
+	if (strcmp(victim_.c_str(),data->content.instrument) != 0){
+		if (!sell_queue_.empty()) {
 			MY_LOG_ERROR("(server:%d)repair_sell_data,error, sell queue should"
-				"be emptyr,sn:%d,victim:%s",this->server_, data.seqno,this->victim_.c_str());
+				"be emptyr,sn:%d,victim:%s",this->server_, data->content.seqno,victim_.c_str());
 		}
 
-		this->sell_queue_.push_back(data);
-		if (data.count < MAX_PAIR){ this->pull_ready_data(); }
+		sell_queue_.push_back(index);
+		if (data->content.count < MAX_PAIR){ pull_ready_data(); }
 
 		this->victim_ = "";
 	}
 	else{ /* discard victim data*/ }
 }
 
+// done
 void repairer::flag_damaged_data()
 {
-	if (!this->buy_queue_.empty()){
-		if (this->buy_queue_.back().content.count==MAX_PAIR){
-			this->buy_queue_.back().damaged = true;
-		}
+	if (!buy_queue_.Empty()){
+		int index = buy_queue_.back()
+		MDPackEx* data = full_depth_md_producer_->GetShfeMarketData(index);
+		if (data->content.count==MAX_PAIR){ data->content.damaged = true; }
 	}
 
-	if (!this->sell_queue_.empty()){
-		if (this->sell_queue_.back().content.count==MAX_PAIR){
-			this->sell_queue_.back().damaged = true;
-		}
+	if (!sell_queue_.Empty()){
+		int index = sell_queue_.back();
+		MDPackEx* data = full_depth_md_producer_->GetShfeMarketData(index);
+		if (data->content.count==MAX_PAIR){ data->content.damaged = true; }
 	}
 }
 
+// done
 void repairer::print_queue()
 {
-	int buy_size = this->buy_queue_.size();
+	int buy_size = this->buy_queue_.Size();
 	//for (int i=0; i<size; i++){
 	//	MY_LOG_DEBUG("(server:%d)buy queue:seqno:%d",this->server_, this->buy_queue_[i].content.seqno);
 	//}
 
 
-	int sell_size = this->sell_queue_.size();
+	int sell_size = this->sell_queue_.Size();
 	//for (int i=0; i<size; i++){
 	//	MY_LOG_DEBUG("(server:%d)sell queue:seqno:%d",this->server_, this->sell_queue_[i].content.seqno);
 	//}
@@ -203,94 +232,103 @@ void repairer::print_queue()
 	//}
 }
 
-void repairer::proc_pkg_loss(MDPack &data)
+// done
+void repairer::proc_pkg_loss(MDPackEx* data)
 {
-	this->victim_ = data.instrument;
+	victim_ = data->content.instrument;
+	flag_damaged_data();
 
-	this->flag_damaged_data();
-
-	if (SHFE_FTDC_D_Buy==data.direction){
-		if (!this->buy_queue_.empty()){
-			if (strcmp(data.instrument,this->buy_queue_.back().content.instrument)<0){ // cross more than one frame
+	if (SHFE_FTDC_D_Buy==data->content.direction){
+		if (!buy_queue_.Empty()){
+			int buy_index = buy_queue_.back();
+			MDPackEx &buy_data = full_depth_md_producer_->GetShfeMarketData(buy_index);
+			if (strcmp(data->content.instrument,buy_data.content.instrument)<0){ // cross more than one frame
 				// pull out previous frame of usable data
-				this->pull_ready_data();	
+				pull_ready_data();	
 				// clear previous frame of unusable data
-				this->buy_queue_.clear();
-				this->sell_queue_.clear();
+				buy_queue_.Clear();
+				sell_queue_.Clear();
 			}
-		} // end if (!this->buy_queue_.empty()){
+		} // end if (!this->buy_queue_.empty())
 
-	}// end if (SHFE_FTDC_D_Buy==data.direction){
-	else if (SHFE_FTDC_D_Sell==data.direction){
-		if (!this->sell_queue_.empty()){
-			if (strcmp(data.instrument,this->sell_queue_.back().content.instrument)<0){ // corss more than frame
+	}// end if (SHFE_FTDC_D_Buy==data.direction)
+	else if (SHFE_FTDC_D_Sell==data->content.direction){
+		if (!sell_queue_.Empty()){
+			int sell_index = sell_queue_.back();
+			MDPackEx &sell_data = full_depth_md_producer_->GetShfeMarketData(sell_index);
+			if (strcmp(data->content.instrument,sell_data .content.instrument)<0){ // corss more than frame
 				// pull out frevious frame of usable data
-				this->pull_ready_data();	
+				pull_ready_data();	
 				// clear previous frame of unsable data
-				this->buy_queue_.clear();
-				this->sell_queue_.clear();
-			}else if (strcmp(data.instrument,this->sell_queue_.back().content.instrument)>=0){ // in one patch
-				this->pull_ready_data();	
+				buy_queue_.Clear();
+				sell_queue_.Clear();
+			}else if (strcmp(data->content.instrument,sell_data.content.instrument)>=0){ // in one patch
+				pull_ready_data();	
 			}
 		}
-	} // end else if (SHFE_FTDC_D_Sell==data.direction){
+	} // end else if (SHFE_FTDC_D_Sell==data.direction)
 }
 
-// TODO:return a pointer
-MDPackEx repairer::next(bool &empty)
+// done
+MDPackEx *repairer::next(bool &empty)
 {
+	MDPackEx *data = NULL;
 	empty = true;
 
-	if (!this->ready_queue_.empty()){
-		// TODO:多一次至拷贝
-		MDPackEx data = this->ready_queue_.front();
+	if (!ready_queue_.Empty()){
+		int index = ready_queue_.Front();
+		data = full_depth_md_producer_->GetShfeMarketData(index);
 		empty = false;
-		this->ready_queue_.pop_front();
-		return data;
+		ready_queue_.PopFront();
 	}
+
+	return data;
 }
 
 // 
 // entrance of repairer class
-void repairer::rev(MDPack &data)
+// done
+void repairer::rev(int index)
 {
-	int new_sn = data.seqno / 10;
-	if ((this->seq_no_!=-1) && new_sn !=this->seq_no_ + 1) {
+	MDPackEx* data = full_depth_md_producer_->GetShfeMarketData(index);
+
+	int new_sn = data->content.seqno / 10;
+	if ((seq_no_!=-1) && new_sn != seq_no_+1) {
 		MY_LOG_WARN("seq no from %d to %d, packet loss", seq_no_,new_sn);
 	}
 
-	if (!this->working_){ // find normal data start point
-		this->find_start_point(data);
+	if (!working_){ // find normal data start point
+		find_start_point(data);
 
-		if (this->working_){ // the first normal UDP data as start point
-			if (SHFE_FTDC_D_Buy==data.direction){
-				this->normal_proc_buy_data(data);
-			}else if (SHFE_FTDC_D_Sell==data.direction){
-				this->normal_proc_sell_data(data);
+		if (working_){ // the first normal UDP data as start point
+			if (SHFE_FTDC_D_Buy==data->content.direction){
+				normal_proc_buy_data(index);
+			}else if (SHFE_FTDC_D_Sell==data->content.direction){
+				normal_proc_sell_data(index);
 			}
 		}
 	}else{ // enter receiving process
 		if (lose_pkg(data)){ // enter package loss process procedure
-			this->proc_pkg_loss(data);
+			proc_pkg_loss(data);
 		}// end package loss process procedure
 		else{ // enter package non-loss procedure
-			if (""==this->victim_){ // normal data process procedure 
-				if (SHFE_FTDC_D_Buy==data.direction){
-					this->normal_proc_buy_data(data);
+			if("" == victim_){ // normal data process procedure 
+				if(SHFE_FTDC_D_Buy==data->content.direction){
+					normal_proc_buy_data(data);
 				}
-				else if (SHFE_FTDC_D_Sell==data.direction){
-					this->normal_proc_sell_data(data);
+				else if (SHFE_FTDC_D_Sell==data->content.direction){
+					normal_proc_sell_data(data);
 				}
 			}else{ // enter data repaireing procedure
-				if (SHFE_FTDC_D_Buy==data.direction){
-					this->repair_buy_data(data);
-				}else if (SHFE_FTDC_D_Sell==data.direction){
-					this->repair_sell_data(data);
+				if (SHFE_FTDC_D_Buy==data->content.direction){
+					repair_buy_data(index);
+				}else if (SHFE_FTDC_D_Sell==data->content.direction){
+					repair_sell_data(index);
 				}
 			} // end data repaireing procedure
 		} // end package non-loss procedure
 	} // end enter receiving process
 
-	this->seq_no_ = new_sn;
+	seq_no_ = new_sn;
 }
 
