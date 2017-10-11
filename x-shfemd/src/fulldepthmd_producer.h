@@ -30,7 +30,7 @@ class FullDepthMDProducer
 		FullDepthMDProducer(struct vrt_queue  *queue);
 		~FullDepthMDProducer();
 
-		MYShfeMarketData * GetShfeMarketData(int32_t index);
+		MDPackEx* GetData(int32_t index);
 		void End();
 
 	private:
@@ -44,15 +44,13 @@ class FullDepthMDProducer
 		 * 逻辑相关
 		 */
 		std::thread thread_rev_;
-		int server_;
-		int seq_no_;
 
 		/*
 		 *disruptor相关
 		 */
-		int32_t Push(const MYShfeMarketData & md);
+		int32_t Push(const MDPackEx& md);
 		struct vrt_producer  *producer_;
-		std::array<MYShfeMarketData, MD_BUFFER_SIZE> shfemarketdata_buffer_;
+		std::array<MDPackEx, MD_BUFFER_SIZE> shfemarketdata_buffer_;
 		bool ended_;
 
 		/*

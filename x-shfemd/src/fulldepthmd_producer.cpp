@@ -6,7 +6,7 @@ using namespace std::placeholders;
 using namespace std;
 
 FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
-:module_name_("FullDepthProducer"),seq_no_(0),server_(0)
+:module_name_("FullDepthProducer"),
 {
 	ended_ = false;
 
@@ -162,7 +162,7 @@ int32_t FullDepthMDProducer::Push(const MYShfeMarketData& md){
 	return shfemarketdata_cursor;
 }
 
-MYShfeMarketData* FullDepthMDProducer::GetShfeMarketData(int32_t index)
+MDPackEx* FullDepthMDProducer::GetData(int32_t index)
 {
 	return &shfemarketdata_buffer_[index];
 }

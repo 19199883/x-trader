@@ -42,7 +42,7 @@ class repairer
 		 * return null if no available data
 		 *
 		 */
-		MDPackEx next(bool &empty);
+		MDPackEx* next(bool &empty);
 
 	private:
 		//
@@ -52,22 +52,22 @@ class repairer
 		/*		 
 		 * find normal data start point when system starts
 		 */
-		bool find_start_point(MDPackEx &data);
+		bool find_start_point(MDPackEx* data);
 
 		/* check whether package loss occurs
 		 * return true if package loss occurs; otherwise, false
 		 */
-		bool lose_pkg(MDPackEx &data);
+		bool lose_pkg(MDPackEx* data);
 
 		void print_queue();
 
 		/* 
 		 */
-		void normal_proc_buy_data(MDPackEx &data);
-		void repair_buy_data(MDPackEx &data);
-		void normal_proc_sell_data(MDPackEx &data);
-		void repair_sell_data(MDPackEx &data);
-		void proc_pkg_loss(MDPackEx &data);
+		void normal_proc_buy_data(int index);
+		void repair_buy_data(int index);
+		void normal_proc_sell_data(int index);
+		void repair_sell_data(int index);
+		void proc_pkg_loss(MDPackEx* data);
 
 		/*
 		 * pull data ready to send from buy/sell queue
@@ -79,7 +79,7 @@ class repairer
 		 */
 		void flag_damaged_data();
 
-		 std::string ToString(const MDPackEx &d);
+		 std::string ToString(const MDPack &d);
 
 		// record the contract of victim data when package loss occurs
 		string victim_;
