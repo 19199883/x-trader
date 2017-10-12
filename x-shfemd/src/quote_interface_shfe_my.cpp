@@ -144,12 +144,14 @@ void UniConsumer::Stop()
 	}
 }
 
-// done
+// done:
 void UniConsumer::ProcFullDepthData(int32_t index)
 {
 	MDPackEx* md = fulldepth_md_producer_->GetData(index);
-	int new_svr = p->seqno % 10;
-	if (new_svr != server_) { MY_LOG_INFO("server from %d to %d", server_, new_svr); }
+	int new_svr = p->content.seqno % 10;
+	if (new_svr != server_) { 
+		clog_info("[%s] server from %d to %d",module_name_ server_, new_svr); 
+	}
 
 	repairers[new_svr].rev(index);
 
@@ -158,6 +160,7 @@ void UniConsumer::ProcFullDepthData(int32_t index)
 	strcpy(cur_contract,"");
 	char new_contract[10];
 	strcpy(new_contract,"");
+	Reset();
 	MDPackEx* data = repairers[new_svr].next(empty);
 	while (!empty) { 
 		if(strcmp(cur_contract) == ""){
@@ -166,34 +169,74 @@ void UniConsumer::ProcFullDepthData(int32_t index)
 		strcpy(new_contract,data->instrument);
 
 		if(strcmp(cur_contract,new_contract) != 0){
-			Send(target_md_,cur_contract);
+			FillFullDepthInfo();
+			Send(cur_contract);
+			Reset();
 		}
 		
-		FillFullDepthInfo(target_md_,*data);
+		// 别放到买卖对用缓冲，待该合约的数据都接受完后，统一处理
+		if(data->direction == SHFE_FTDC_D_Buy){
+			buy_data_cursor_ = buy_data_cursor_ + 1;
+			buy_data_buffer_[buy_data_cursor_] = data;
+		}else if(data->direction == SHFE_FTDC_D_Sell){
+			sell_data_cursor_ = sell_data_cursor_ + 1;
+			sell_data_buffer_[sell_data_cursor_] = data;
+		}
 		strcpy(cur_contract,data->Instrument);
 
 		data = repairers[new_svr].next(empty);
-		if(empty){ Send(target_md_,cur_contract); }
+		if(empty){ 
+			FillFullDepthInfo();
+			Send(cur_contract); 
+			Reset();
+		}
 	}
 
 	server_ = new_svr;
 }
 
-void MYQuoteData::FillFullDepthInfo(MYShfeMarketData &target,MDPackEx &full_depth_data )
+// TODO: to here
+void MYQuoteData::FillFullDepthInfo(MYShfeMarketData &target,MDPackEx &src)
 {
-	// TODO:
+	// new data, copy 30 elements at the end on 2017-06-25
+	int buy_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT, src.buy_count);
+	if (buy_cnt == MY_SHFE_QUOTE_PRICE_POS_COUNT){
+		int price_num = buy_cnt * sizeof(double);
+		memcpy(my_data.buy_price, src.buy_price + (src.buy_count - buy_cnt),price_num);
+		int vol_num = buy_cnt * sizeof(int);
+		memcpy(my_data.buy_volume, src.buy_volume + (src.buy_count-buy_cnt),vol_num);
+	}else{
+		int price_num = src.buy_price,buy_cnt * sizeof(double);
+		memcpy(my_data.buy_price + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt),price_num);
+		int vol_num = src.buy_volume, buy_cnt * sizeof(int);
+		memcpy(my_data.buy_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt), vol_num);
+	}
+
+	int sell_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT,src.sell_count);
+	if (sell_cnt==MY_SHFE_QUOTE_PRICE_POS_COUNT){
+		int price_num = sell_cnt * sizeof(double);
+		memcpy(my_data.sell_price,src.sell_price+(src.sell_count-sell_cnt),price_num);
+		int vol_num = sell_cnt * sizeof(int);
+		memcpy(my_data.sell_volume,src.sell_volume+(src.sell_count-sell_cnt),vol_num);
+	}else{
+		int price_num = src.sell_price, sell_cnt * sizeof(double);
+		memcpy(my_data.sell_price+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_cnt),price_num);
+		int vol_num = src.sell_volume, sell_el_cpy_cnt * sizeof(int);
+		memcpy(my_data.sell_volume+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_cnt),vol_num);
+	}
+
+    FillStatisticFields(my_data, src);
 }
 
 // done
-void MYQuoteData::Send(MYShfeMarketData &data, const char* contract)
+void MYQuoteData::Send(const char* contract)
 {
 	// 合并一档行情
 	CDepthMarketDataField* l1_md = l1_md_producer_->GetLastData(contract);
 	if(NULL != l1_md){
-		my_data.data_flag = 6; 
-		memcpy(&data, l1_md, sizeof(CDepthMarketDataField));
-	}
-	else my_data.data_flag = 5; 
+		target_data_.data_flag = 6; 
+		memcpy(&target_data_, l1_md, sizeof(CDepthMarketDataField));
+	} else target_data_.data_flag = 5; 
 
 	// 发给数据客户
 	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_md_); }
@@ -209,4 +252,16 @@ void UniConsumer::ProcL1MdData(int32_t index)
 	target_md_.data_flag = 1;
 	// 发给数据客户
 	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_md_); }
+}
+
+// done
+void UniConsumer::Reset()
+{
+	memset(target_md_.buy_price, 0, sizeof(target_md_.buy_price));
+	memset(target_md_.buy_volume, 0, sizeof(target_md_.buy_volume));
+	memset(target_md_.sell_price, 0, sizeof(target_md_.sell_price));
+	memset(target_md_.sell_volume, 0, sizeof(target_md_.sell_volume));
+
+	buy_data_cursor_ = -1;
+	sell_data_cursor_ = -1;
 }

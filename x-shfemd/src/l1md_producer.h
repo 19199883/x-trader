@@ -38,6 +38,7 @@ class L1MDProducer : public CMdclientSpi
 		 * 与逻辑处理相关
 		 */
 		CDepthMarketDataField* GetData(int32_t index);
+		CDepthMarketDataField* GetLastData(const char *contract);
 		void End();
 
 		/*

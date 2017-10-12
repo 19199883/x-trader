@@ -81,7 +81,18 @@ private:
 	 * 使用full_depth_data填充target
 	 *
 	 */ 
-	void FillFullDepthInfo(MYShfeMarketData &target,MDPackEx &full_depth_data);
+	void FillFullDepthInfo();
+	/*
+	 * 将用于生成MYShfeMarketData过程中使用的成员数据重置成初始状态
+	 */
+	void Reset();
+	/*
+	 * 存储买方向MDPackEx数据在FullDepthProcuder缓冲区的索引。
+	 */	
+	MDPackEx* buy_data_buffer_[1200];
+	int buy_data_cursor_;
+	MDPackEx* sell_data_buffer_[1200];
+	int sell_data_cursor_;
 
 	/*
 	 * data:已经通过ProcFullDepthData函数填充了全挡数据内容 
@@ -89,7 +100,7 @@ private:
 	 * 该函数对data(已经通过ProcFullDepthData函数填充了全挡数据内容)
 	 * 填充对用合约的最新一档行情，然后发送给订阅者
 	 */
-	void Send(MYShfeMarketData &data, const char* contract)
+	void Send(const char* contract)
     // 数据处理函数对象
     std::function<void(const MYShfeMarketData *)> fulldepthmd_handler_;
 };
