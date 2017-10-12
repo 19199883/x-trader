@@ -78,13 +78,6 @@ void MYQuoteData::SetQuoteDataHandler(std::function<void(const MYShfeMarketData*
 	fulldepthmd_handler_ = quote_handler;
 }
 
-//
-// TODO: move to consumer process method
-void MYQuoteData::Send(MYShfeMarketData *data)
-{
-    if (NULL != my_shfe_md_handler_) { my_shfe_md_handler_(data); }
-}
-
 // TODO:改成从disruptor中接收并处理数据
 // 在repairer等地方对MDPack数据，采用直接引用生产者缓存的数据，而不能再赋值一份
 void Proc()
@@ -159,6 +152,7 @@ void UniConsumer::ProcFullDepthData(int32_t index)
 	if (new_svr != server_) { MY_LOG_INFO("server from %d to %d", server_, new_svr); }
 
 	repairers[new_svr].rev(index);
+
 	bool empty = true;
 	char cur_contract[10];
 	strcpy(cur_contract,"");
@@ -175,7 +169,7 @@ void UniConsumer::ProcFullDepthData(int32_t index)
 			Send(target_md_,cur_contract);
 		}
 		
-		proc_udp_data(target_md_,data);
+		FillFullDepthInfo(target_md_,*data);
 		strcpy(cur_contract,data->Instrument);
 
 		data = repairers[new_svr].next(empty);
@@ -185,10 +179,14 @@ void UniConsumer::ProcFullDepthData(int32_t index)
 	server_ = new_svr;
 }
 
+void MYQuoteData::FillFullDepthInfo(MYShfeMarketData &target,MDPackEx &full_depth_data )
+{
+	// TODO:
+}
+
+// done
 void MYQuoteData::Send(MYShfeMarketData &data, const char* contract)
 {
-	strcpy(data.InstrumentID,contract);
-
 	// 合并一档行情
 	CDepthMarketDataField* l1_md = l1_md_producer_->GetLastData(contract);
 	if(NULL != l1_md){
@@ -197,7 +195,8 @@ void MYQuoteData::Send(MYShfeMarketData &data, const char* contract)
 	}
 	else my_data.data_flag = 5; 
 
-		// TODO:生成最终的行情数据,注意合约赋值
+	// 发给数据客户
+	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_md_); }
 }
 
 // done

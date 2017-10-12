@@ -39,30 +39,30 @@ void MYShfeMDManager::SendToClient(const std::string &code, SHFEMDQuoteSnapshot 
     MYShfeMarketData my_data;
 
 	// new data, copy 30 elements at the end on 2017-06-25
-	int buy_el_cpy_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT, p_data->buy_count);
-	if (buy_el_cpy_cnt==MY_SHFE_QUOTE_PRICE_POS_COUNT){
-		memcpy(my_data.buy_price,p_data->buy_price+(p_data->buy_count-buy_el_cpy_cnt),
-			buy_el_cpy_cnt*sizeof(double));
-		memcpy(my_data.buy_volume, p_data->buy_volume+(p_data->buy_count-buy_el_cpy_cnt),
-			buy_el_cpy_cnt*sizeof(int));
+	int buy_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT, p_data->buy_count);
+	if (buy_cnt == MY_SHFE_QUOTE_PRICE_POS_COUNT){
+		int price_num = buy_cnt * sizeof(double);
+		memcpy(my_data.buy_price, p_data->buy_price+(p_data->buy_count-buy_cnt),price_num);
+		int vol_num = buy_cnt * sizeof(int);
+		memcpy(my_data.buy_volume, p_data->buy_volume + (p_data->buy_count-buy_cnt),vol_num);
 	}else{
-		memcpy(my_data.buy_price+(MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_el_cpy_cnt),
-			p_data->buy_price,buy_el_cpy_cnt * sizeof(double));
-		memcpy(my_data.buy_volume+(MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_el_cpy_cnt), 
-			p_data->buy_volume, buy_el_cpy_cnt*sizeof(int));
+		int price_num = p_data->buy_price,buy_cnt * sizeof(double);
+		memcpy(my_data.buy_price + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt),price_num);
+		int vol_num = p_data->buy_volume, buy_cnt * sizeof(int);
+		memcpy(my_data.buy_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt), vol_num);
 	}
 
-	int sell_el_cpy_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT,p_data->sell_count);
-	if (sell_el_cpy_cnt==MY_SHFE_QUOTE_PRICE_POS_COUNT){
-		memcpy(my_data.sell_price,p_data->sell_price+(p_data->sell_count-sell_el_cpy_cnt),
-			sell_el_cpy_cnt*sizeof(double));
-		memcpy(my_data.sell_volume,p_data->sell_volume+(p_data->sell_count-sell_el_cpy_cnt),
-			sell_el_cpy_cnt*sizeof(int));
+	int sell_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT,p_data->sell_count);
+	if (sell_cnt==MY_SHFE_QUOTE_PRICE_POS_COUNT){
+		int price_num = sell_cnt * sizeof(double);
+		memcpy(my_data.sell_price,p_data->sell_price+(p_data->sell_count-sell_cnt),price_num);
+		int vol_num = sell_cnt * sizeof(int);
+		memcpy(my_data.sell_volume,p_data->sell_volume+(p_data->sell_count-sell_cnt),vol_num);
 	}else{
-		memcpy(my_data.sell_price+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_el_cpy_cnt), 
-			p_data->sell_price,sell_el_cpy_cnt*sizeof(double));
-		memcpy(my_data.sell_volume+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_el_cpy_cnt), 
-			p_data->sell_volume,sell_el_cpy_cnt*sizeof(int));
+		int price_num = p_data->sell_price, sell_cnt * sizeof(double);
+		memcpy(my_data.sell_price+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_cnt),price_num);
+		int vol_num = p_data->sell_volume, sell_el_cpy_cnt * sizeof(int);
+		memcpy(my_data.sell_volume+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_cnt),vol_num);
 	}
 
     FillStatisticFields(my_data, p_data);

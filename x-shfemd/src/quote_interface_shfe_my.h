@@ -78,6 +78,12 @@ private:
 	Uniconfig config_;
 private:
 	/*
+	 * 使用full_depth_data填充target
+	 *
+	 */ 
+	void FillFullDepthInfo(MYShfeMarketData &target,MDPackEx &full_depth_data);
+
+	/*
 	 * data:已经通过ProcFullDepthData函数填充了全挡数据内容 
 	 * contract:数据所属的合约
 	 * 该函数对data(已经通过ProcFullDepthData函数填充了全挡数据内容)
