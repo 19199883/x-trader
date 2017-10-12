@@ -151,23 +151,15 @@ void UniConsumer::Stop()
 	}
 }
 
-void UniConsumer::ProcL1MdData(int32_t index)
-{
-	CDepthMarketDataField* md = md_producer_->GetData(index);
-	// TODO:全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
-}
-
+// done
 void UniConsumer::ProcFullDepthData(int32_t index)
 {
 	MDPackEx* md = fulldepth_md_producer_->GetData(index);
-	// TODO:
 	int new_svr = p->seqno % 10;
 	if (new_svr != server_) { MY_LOG_INFO("server from %d to %d", server_, new_svr); }
 
 	repairers[new_svr].rev(index);
 	bool empty = true;
-	// TODO:here 一个行情只需一份，不用多分拷贝
-	// TODO:此段代码要继续考虑如何写
 	char cur_contract[10];
 	strcpy(cur_contract,"");
 	char new_contract[10];
@@ -178,23 +170,44 @@ void UniConsumer::ProcFullDepthData(int32_t index)
 			strcpy(cur_contract,data->instrument);
 		}
 		strcpy(new_contract,data->instrument);
-		if(strcmp(cur_contract,new_contract) != 0){
-			// TODO: 合并一档行情
-			Send(target_md_);
-		}else{
-			// TODO:生成最终的行情数据
-			proc_udp_data(target_md_,data);
-		}
 
-		strcpy(cur_contract,data->Instrument);
-		data = repairers[new_svr].next(empty);
-		if(empty){
-			// TODO: 合并一档行情
-			Send(target_md_);
+		if(strcmp(cur_contract,new_contract) != 0){
+			Send(target_md_,cur_contract);
 		}
+		
+		proc_udp_data(target_md_,data);
+		strcpy(cur_contract,data->Instrument);
+
+		data = repairers[new_svr].next(empty);
+		if(empty){ Send(target_md_,cur_contract); }
 	}
 
 	server_ = new_svr;
 }
 
+void MYQuoteData::Send(MYShfeMarketData &data, const char* contract)
+{
+	strcpy(data.InstrumentID,contract);
 
+	// 合并一档行情
+	CDepthMarketDataField* l1_md = l1_md_producer_->GetLastData(contract);
+	if(NULL != l1_md){
+		my_data.data_flag = 6; 
+		memcpy(&data, l1_md, sizeof(CDepthMarketDataField));
+	}
+	else my_data.data_flag = 5; 
+
+		// TODO:生成最终的行情数据,注意合约赋值
+}
+
+// done
+void UniConsumer::ProcL1MdData(int32_t index)
+{
+	CDepthMarketDataField* md = md_producer_->GetData(index);
+
+	memcpy(target_md_.InstrumentID, md->InstrumentID, sizeof(target_md_.InstrumentID));
+	memcpy(&target_md_, md, sizeof(CDepthMarketDataField));
+	target_md_.data_flag = 1;
+	// 发给数据客户
+	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_md_); }
+}

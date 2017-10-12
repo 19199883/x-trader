@@ -172,3 +172,7 @@ CDepthMarketDataField* L1MDProducer::GetData(int32_t index)
 	return &md_buffer_[index];
 }
 
+CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract)
+{
+	// TODO:全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
+}

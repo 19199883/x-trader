@@ -77,6 +77,13 @@ private:
 	void ProcFullDepthData(int32_t index);
 	Uniconfig config_;
 private:
+	/*
+	 * data:已经通过ProcFullDepthData函数填充了全挡数据内容 
+	 * contract:数据所属的合约
+	 * 该函数对data(已经通过ProcFullDepthData函数填充了全挡数据内容)
+	 * 填充对用合约的最新一档行情，然后发送给订阅者
+	 */
+	void Send(MYShfeMarketData &data, const char* contract)
     // 数据处理函数对象
     std::function<void(const MYShfeMarketData *)> fulldepthmd_handler_;
 };
