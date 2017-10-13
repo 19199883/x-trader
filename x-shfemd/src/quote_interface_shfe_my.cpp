@@ -195,23 +195,52 @@ void UniConsumer::ProcFullDepthData(int32_t index)
 	server_ = new_svr;
 }
 
-// TODO: to here
-void MYQuoteData::FillFullDepthInfo(MYShfeMarketData &target,MDPackEx &src)
+void MYQuoteData::FillBuyFullDepthInfo()
 {
-	// new data, copy 30 elements at the end on 2017-06-25
-	int buy_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT, src.buy_count);
-	if (buy_cnt == MY_SHFE_QUOTE_PRICE_POS_COUNT){
-		int price_num = buy_cnt * sizeof(double);
-		memcpy(my_data.buy_price, src.buy_price + (src.buy_count - buy_cnt),price_num);
-		int vol_num = buy_cnt * sizeof(int);
-		memcpy(my_data.buy_volume, src.buy_volume + (src.buy_count-buy_cnt),vol_num);
-	}else{
-		int price_num = buy_cnt * sizeof(double);
-		memcpy(my_data.buy_price + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt),src.buy_price,price_num);
-		int vol_num =  buy_cnt * sizeof(int);
-		memcpy(my_data.buy_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt),src.buy_volume,vol_num);
-	}
+    target_data_.buy_total_volume = 0;
+    target_data_.buy_weighted_avg_price = 0;
+    double amount = 0;
 
+	// VPair数据计数器，用于计数从尾部开始最多30笔数据，用于复制盘口30档数据用
+	int price30_count = MY_SHFE_QUOTE_PRICE_POS_COUNT - 1; 
+	bool damaged = false;
+	double price30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
+	int vol30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
+	for(int i=buy_data_cursor_; i>=0; i--){ // 从尾部向前遍历MDPackEx数据 
+		for(int j=buy_data_buffer_[i].content.count-1; j>=0; j--){ //从尾部向前遍历PVPair数据 
+			MDPackEx &src_mdpackex_ = buy_data_buffer_[i];
+			PVPair &src_pvpaire = buy_data_buffer_[i].content.data[j];
+			if (src_mdpackex_->damaged) damaged = true;
+
+			// 处理30档买方向数据
+			if(price30_count >= 0){
+				price30[price30_count] = src_pvpaire.price;  
+				vol30[price30_count] = src_pvpaire.volume;  
+				price30_count = price30_count - 1;
+			}
+
+			// 计算总委买量
+			target_data_.buy_total_volume += src_pvpaire.volume;
+			amount += src_pvpaire.price * src_pvpaire.volume;
+		} // for(int j=buy_data_buffer_[i].content.count-1; j>=0; j--)//从尾部向前遍历PVPair数据 
+	} // for(int i=buy_data_cursor_; i>=0; i--) // 从尾部向前遍历MDPackEx数据 
+	
+	// TODO: 计算均价
+	if(damaged) target_data_.buy_total_volume = 0;
+	if (target_data_.buy_total_volume > 0){
+		target_data_.buy_weighted_avg_price = amount / target_data_.buy_total_volume;
+	}
+	// 拷贝盘口30档买方向数据
+	memcpy(target_data_.buy_volume, vol30, sizeof(vol30));
+	memcpy(target_data_.buy_price, price30, sizeof(price30));
+}
+
+void MYQuoteData::FillSellFullDepthInfo()
+{
+    target_data_.sell_total_volume = 0;
+    target_data_.sell_weighted_avg_price = 0;
+
+	// new data, copy 30 elements at the end on 2017-06-25
 	int sell_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT,src.sell_count);
 	if (sell_cnt==MY_SHFE_QUOTE_PRICE_POS_COUNT){
 		int price_num = sell_cnt * sizeof(double);
@@ -224,8 +253,14 @@ void MYQuoteData::FillFullDepthInfo(MYShfeMarketData &target,MDPackEx &src)
 		int vol_num = src.sell_volume, sell_el_cpy_cnt * sizeof(int);
 		memcpy(my_data.sell_volume+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_cnt),vol_num);
 	}
-
     FillStatisticFields(my_data, src);
+}
+
+// done
+void MYQuoteData::FillFullDepthInfo()
+{
+	FillBuyFullDepthInfo();
+	FillSellFullDepthInfo();
 }
 
 // done

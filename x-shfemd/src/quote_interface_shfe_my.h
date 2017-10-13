@@ -83,6 +83,14 @@ private:
 	 */ 
 	void FillFullDepthInfo();
 	/*
+	 * 向target_data_填充盘口30档忙方向数据，以及总委买量和均价
+	 */
+	void FillBuyFullDepthInfo();
+	/*
+	 * 向target_data_填充盘口30档卖方向数据，以及总委卖量和均价
+	 */
+	void FillSellFullDepthInfo();
+	/*
 	 * 将用于生成MYShfeMarketData过程中使用的成员数据重置成初始状态
 	 */
 	void Reset();

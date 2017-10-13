@@ -1,8 +1,4 @@
-﻿#include "shfe_my_data_manager.h"
-#include <algorithm>
-#include "quote_cmn_utility.h"
-
-static void FillStatisticFields(MYShfeMarketData &des_data, SHFEMDQuoteSnapshot * const src_data)
+﻿static void FillStatisticFields(MYShfeMarketData &des_data, SHFEMDQuoteSnapshot * const src_data)
 {
     des_data.buy_total_volume = 0;
     des_data.buy_weighted_avg_price = 0;
@@ -32,12 +28,5 @@ static void FillStatisticFields(MYShfeMarketData &des_data, SHFEMDQuoteSnapshot 
     if (des_data.sell_total_volume > 0){
         des_data.sell_weighted_avg_price = sum_pv / des_data.sell_total_volume;
     }
-}
-
-void MYShfeMDManager::SendToClient(const std::string &code, SHFEMDQuoteSnapshot * const p_data)
-{
-    MYShfeMarketData my_data;
-
-    if (data_handler_){ data_handler_->OnMYShfeMDData(&my_data); }
 }
 

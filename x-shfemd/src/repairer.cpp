@@ -73,7 +73,7 @@ bool repairer::find_start_point(MDPackEx* data)
 	return found;
 }
 
-// done
+// TODO: need a way to ignore the contracts not in dominant contract list
 void repairer::pull_ready_data()
 {
 	bool ready_data_found = false;
