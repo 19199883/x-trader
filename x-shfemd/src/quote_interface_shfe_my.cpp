@@ -206,10 +206,10 @@ void MYQuoteData::FillFullDepthInfo(MYShfeMarketData &target,MDPackEx &src)
 		int vol_num = buy_cnt * sizeof(int);
 		memcpy(my_data.buy_volume, src.buy_volume + (src.buy_count-buy_cnt),vol_num);
 	}else{
-		int price_num = src.buy_price,buy_cnt * sizeof(double);
-		memcpy(my_data.buy_price + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt),price_num);
-		int vol_num = src.buy_volume, buy_cnt * sizeof(int);
-		memcpy(my_data.buy_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt), vol_num);
+		int price_num = buy_cnt * sizeof(double);
+		memcpy(my_data.buy_price + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt),src.buy_price,price_num);
+		int vol_num =  buy_cnt * sizeof(int);
+		memcpy(my_data.buy_volume + (MY_SHFE_QUOTE_PRICE_POS_COUNT-buy_cnt),src.buy_volume,vol_num);
 	}
 
 	int sell_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT,src.sell_count);
