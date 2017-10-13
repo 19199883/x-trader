@@ -12,14 +12,8 @@ using namespace std;
 using namespace my_cmn;
 
 /* Note that the parameter for queue size is a power of 2. */
-#define  QUEUE_SIZE  4096
+#define  QUEUE_SIZE  8192
 
-// TODO:因消费者需要合并一档与全挡数据，所以需要考虑消费
-// 者如何引用缓存在一档生产者的数据，一档数据与全挡数据合并后，需清空
-// 一档行情缓存列表，合约映射 index（一档生产者缓存中的索引）
-
-
-// TODO: 该类为消费者
 MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe,const string &provider_config)
 	: module_name_("uni_consumer"),running_(true),seq_no_(0),server_(0)
 {
@@ -201,16 +195,17 @@ void MYQuoteData::FillBuyFullDepthInfo()
     target_data_.buy_weighted_avg_price = 0;
     double amount = 0;
 
+	bool damaged = false;
 	// VPair数据计数器，用于计数从尾部开始最多30笔数据，用于复制盘口30档数据用
 	int price30_count = MY_SHFE_QUOTE_PRICE_POS_COUNT - 1; 
-	bool damaged = false;
 	double price30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
 	int vol30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
 	for(int i=buy_data_cursor_; i>=0; i--){ // 从尾部向前遍历MDPackEx数据 
-		for(int j=buy_data_buffer_[i].content.count-1; j>=0; j--){ //从尾部向前遍历PVPair数据 
-			MDPackEx &src_mdpackex_ = buy_data_buffer_[i];
-			PVPair &src_pvpaire = buy_data_buffer_[i].content.data[j];
-			if (src_mdpackex_->damaged) damaged = true;
+		MDPackEx &src_mdpackex = buy_data_buffer_[i];
+		if (src_mdpackex_->damaged) damaged = true;
+
+		for(int j=src_mdpackex.content.count-1; j>=0; j--){ //从尾部向前遍历PVPair数据 
+			PVPair &src_pvpaire = src_mdpackex.content.data[j];
 
 			// 处理30档买方向数据
 			if(price30_count >= 0){
@@ -225,7 +220,7 @@ void MYQuoteData::FillBuyFullDepthInfo()
 		} // for(int j=buy_data_buffer_[i].content.count-1; j>=0; j--)//从尾部向前遍历PVPair数据 
 	} // for(int i=buy_data_cursor_; i>=0; i--) // 从尾部向前遍历MDPackEx数据 
 	
-	// TODO: 计算均价
+	// 计算均价
 	if(damaged) target_data_.buy_total_volume = 0;
 	if (target_data_.buy_total_volume > 0){
 		target_data_.buy_weighted_avg_price = amount / target_data_.buy_total_volume;
@@ -239,21 +234,41 @@ void MYQuoteData::FillSellFullDepthInfo()
 {
     target_data_.sell_total_volume = 0;
     target_data_.sell_weighted_avg_price = 0;
+    double amount = 0;
 
-	// new data, copy 30 elements at the end on 2017-06-25
-	int sell_cnt = std::min(MY_SHFE_QUOTE_PRICE_POS_COUNT,src.sell_count);
-	if (sell_cnt==MY_SHFE_QUOTE_PRICE_POS_COUNT){
-		int price_num = sell_cnt * sizeof(double);
-		memcpy(my_data.sell_price,src.sell_price+(src.sell_count-sell_cnt),price_num);
-		int vol_num = sell_cnt * sizeof(int);
-		memcpy(my_data.sell_volume,src.sell_volume+(src.sell_count-sell_cnt),vol_num);
-	}else{
-		int price_num = src.sell_price, sell_cnt * sizeof(double);
-		memcpy(my_data.sell_price+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_cnt),price_num);
-		int vol_num = src.sell_volume, sell_el_cpy_cnt * sizeof(int);
-		memcpy(my_data.sell_volume+(MY_SHFE_QUOTE_PRICE_POS_COUNT-sell_cnt),vol_num);
+	bool damaged = false;
+	// VPair数据计数器，用于计数从尾部开始最多30笔数据，用于复制盘口30档数据用
+	int price30_count = MY_SHFE_QUOTE_PRICE_POS_COUNT - 1; 
+	double price30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
+	int vol30[MY_SHFE_QUOTE_PRICE_POS_COUNT] = {0};
+	for(int i=sell_data_cursor_; i>=0; i--){ // 从尾部向前遍历MDPackEx数据 
+		MDPackEx &src_mdpackex = sell_data_buffer_[i];
+		if (src_mdpackex_->damaged) damaged = true;
+
+		for(int j=src_mdpackex.content.count-1; j>=0; j--){ //从尾部向前遍历PVPair数据 
+			PVPair &src_pvpaire = src_mdpackex.content.data[j];
+
+			// 处理30档卖方向数据
+			if(price30_count >= 0){
+				price30[price30_count] = src_pvpaire.price;  
+				vol30[price30_count] = src_pvpaire.volume;  
+				price30_count = price30_count - 1;
+			}
+
+			// 计算总委卖量
+			target_data_.sell_total_volume += src_pvpaire.volume;
+			amount += src_pvpaire.price * src_pvpaire.volume;
+		} // for(int j=sell_data_buffer_[i].content.count-1; j>=0; j--)//从尾部向前遍历PVPair数据 
+	} // for(int i=sell_data_cursor_; i>=0; i--) // 从尾部向前遍历MDPackEx数据 
+	
+	// 计算均价
+	if(damaged) target_data_.sell_total_volume = 0;
+	if (target_data_.sell_total_volume > 0){
+		target_data_.sell_weighted_avg_price = amount / target_data_.sell_total_volume;
 	}
-    FillStatisticFields(my_data, src);
+	// 拷贝盘口30档卖方向数据
+	memcpy(target_data_.sell_volume, vol30, sizeof(vol30));
+	memcpy(target_data_.sell_price, price30, sizeof(price30));
 }
 
 // done
