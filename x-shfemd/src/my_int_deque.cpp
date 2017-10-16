@@ -56,7 +56,7 @@ int MyIntDeque::Back()
 int MyIntDeque::Size()
 {
 	if(Empty()){
-		throw logic_error("MyIntDeque is empty, and you can't access Size().");
+		return 0;
 	}else{
 		return back_index_ - front_index_ + 1;
 	}
@@ -65,7 +65,7 @@ int MyIntDeque::Size()
 int MyIntDeque::At(int position)
 {
 	if(Empty()){
-		return 0;
+		throw logic_error("empty when accessing to At().");
 	}else if(position >= Size()){
 		throw logic_error("MyIntDeque:out of range accessing to At().");
 	}else{

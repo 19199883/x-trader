@@ -9,8 +9,8 @@
 
 #include <boost/date_time.hpp>
 
-#include "my_cmn_log.h"
-#include "my_cmn_util_funcs.h"
+//#include "my_cmn_log.h"
+//#include "my_cmn_util_funcs.h"
 
 #ifndef DLL_PUBLIC
 #define DLL_PUBLIC __attribute__ ((visibility ("default")))

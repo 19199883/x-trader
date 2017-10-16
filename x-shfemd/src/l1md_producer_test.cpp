@@ -43,7 +43,7 @@
 //
 // Don't forget gtest.h, which declares the testing framework.
 
-#include "./my_int_deque.h"
+#include "./l1md_producer.h"
 #include "gtest/gtest.h"
 
 
@@ -74,31 +74,70 @@
 
 // 
 
-TEST(MyIntDequeTest, Front) {
-	MyIntDeque my_deque;
-	ASSERT_THROW(my_deque.Front(), std::logic_error);
+TEST(L1MDProducerTest, GetLastDataImp) {
+	const char *contract = "pb1712";
+	int32_t dominant_contract_count = 3;
+	CDepthMarketDataField buffer[12];
+	int32_t buffer_size = sizeof(buffer];
 
-	my_deque.PushBack(1);
-	my_deque.PushBack(2);
-	EXPECT_EQ(1, my_deque.Front());
+	// 初始状态，还没有接收行情场景
+	memset(&buffer, 0, sizeof(buffer));
+	int32_t last_index = 0;
+	CDepthMarketDataField* data = GetLastDataImp(contract,last_index,buffer,buffer_size,
+		dominant_contract_count);
+	EXPECT_EQ(NULL, data);
+	
+	// 满足条件合约在查找范围外，验证是否只在范伟内查找
+	int32_t last_index = 4;
+	memset(&buffer, 0, sizeof(buffer));
+	strcpy(buffer[1].InstrumentID, contract);
+	CDepthMarketDataField* data = GetLastDataImp(contract,last_index,buffer,buffer_size,
+		dominant_contract_count);
+	EXPECT_EQ(NULL, data);
+
+	// 要查找的行情在最新情第一个位置(不跨越首尾连接点)
+	int32_t last_index = 3;
+	memset(&buffer, 0, sizeof(buffer));
+	strcpy(buffer[last_index].InstrumentID, contract);
+	CDepthMarketDataField* data = GetLastDataImp(contract,last_index,buffer,buffer_size,
+		dominant_contract_count);
+	EXPECT_NE(NULL, data);
+
+	// 要查找的行情在最后位置(不跨越首尾连接点)
+	int32_t last_index = 3;
+	memset(&buffer, 0, sizeof(buffer));
+	strcpy(buffer[1].InstrumentID, contract);
+	CDepthMarketDataField* data = GetLastDataImp(contract,last_index,buffer,buffer_size,
+		dominant_contract_count);
+	EXPECT_NE(NULL, data);
+
+	// 要查找的节点在最后位置，且位于缓存的0位置
+	int32_t last_index = 2;
+	memset(&buffer, 0, sizeof(buffer));
+	strcpy(buffer[0].InstrumentID, contract);
+	CDepthMarketDataField* data = GetLastDataImp(contract,last_index,buffer,buffer_size,
+		dominant_contract_count);
+	EXPECT_NE(NULL, data);
+
+	// 要查找的节点在最新主力合约最后位置，且位于缓存的最大索引位置(跨越首尾临界点)
+	int32_t last_index = 1;
+	memset(&buffer, 0, sizeof(buffer));
+	strcpy(buffer[sizeof(buffer) - 1].InstrumentID, contract);
+	CDepthMarketDataField* data = GetLastDataImp(contract,last_index,buffer,buffer_size,
+		dominant_contract_count);
+	EXPECT_NE(NULL, data);
+
+
+	// 最新行情位置从缓存尾部开始，且有2个目标合约相邻，验证是否查到目标合约立刻返回
+	int32_t last_index = sizeof(buffer) - 1;
+	memset(&buffer, 0, sizeof(buffer));
+	strcpy(buffer[sizeof(buffer) - 1].InstrumentID, contract);
+	buffer[sizeof(buffer) - 1].BidVolume1 = sizeof(buffer) - 1;
+	strcpy(buffer[sizeof(buffer) - 2].InstrumentID, contract);
+	buffer[sizeof(buffer) - 2].BidVolume1 = sizeof(buffer) - 2;
+	CDepthMarketDataField* data = GetLastDataImp(contract,last_index,buffer,buffer_size,
+		dominant_contract_count);
+	EXPECT_NE(NULL, data);
+	EXPECT_EQ(sizeof(buffer), data.BidVolume1);
 }
 
-TEST(MyIntDequeTest, PopFront) {
-	MyIntDeque my_deque;
-	ASSERT_THROW(my_deque.PopFront(), std::logic_error);
-
-	my_deque.PushBack(1);
-	my_deque.PushBack(2);
-	EXPECT_EQ(1, my_deque.PopFront());
-	EXPECT_EQ(2, my_deque.PopFront());
-	EXPECT_TRUE(true, my_deque.Empty());
-}
-
-TEST(MyIntDequeTest, Back) {
-	MyIntDeque my_deque;
-	ASSERT_THROW(my_deque.Back(), std::logic_error);
-
-	my_deque.PushBack(1);
-	my_deque.PushBack(2);
-	EXPECT_EQ(2, my_deque.Back());
-}

@@ -1,17 +1,23 @@
 #include <functional>   // std::bind
 #include "l1md_producer.h"
 #include "quote_cmn_utility.h"
+#include <tinyxml.h>
+#include <tinystr.h>
 
 using namespace std::placeholders;
 using namespace std;
 
 L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProducer")
 {
+	l1data_cursor_ = L1MD_BUFFER_SIZE - 1;
 	ended_ = false;
     api_ = NULL;
 
 	ParseConfig();
-	InitMDApi()
+	// TODO: init dominant contracts
+	//int32_t dominant_contract_count_;
+	memset(&md_buffer_, 0, sizeof(md_buffer_));
+	InitMDApi();
 
 	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",module_name_,L1MD_BUFFER_SIZE);
 
@@ -28,8 +34,8 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 
 void L1MDProducer::InitMDApi()
 {
-    api_ = CMdclientApi::Create(this,config_.port.c_str(),config_.ip.c_str());
-	clog_warning("CMdclientApi ip:%s, port:%d",config_.ip.c_str(),config_.port);
+    api_ = CMdclientApi::Create(this,config_.port,config_.ip);
+	clog_warning("CMdclientApi ip:%s, port:%d",config_.ip,config_.port);
 
 	std::ifstream is;
 	is.open (config_.contracts_file);
@@ -50,7 +56,7 @@ void L1MDProducer::InitMDApi()
 			api_->Subscribe((char*)contr.c_str());
 			clog_warning("CMdclientApi subscribe:%s",contr.c_str());
 		}
-	}else { clog_error("CMdclientApi can't open: %s",config_.contracts_file.c_str()); }
+	}else { clog_error("CMdclientApi can't open: %s",config_.contracts_file); }
 
     int err = api_->Start();
 	clog_warning("CMdclientApi start: %d",err);
@@ -97,6 +103,8 @@ L1MDProducer::~L1MDProducer(){
 void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 {
 	if (ended_) return;
+
+	// TODO:抛弃非主力合约
 
 	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
 	if (strlen(md->InstrumentID) > 6) return;
@@ -157,14 +165,13 @@ void L1MDProducer::End()
 	}
 }
 
-int32_t L1MDProducer::push(const CDepthMarketDataField& md){
-	static int32_t l1data_cursor = L1MD_BUFFER_SIZE - 1;
-	l1data_cursor++;
-	if (l1data_cursor % L1MD_BUFFER_SIZE == 0){
-		l1data_cursor = 0;
+int32_t L1MDProducer::Push(const CDepthMarketDataField& md){
+	l1data_cursor_++;
+	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0){
+		l1data_cursor_ = 0;
 	}
-	md_buffer_[l1data_cursor] = md;
-	return l1data_cursor;
+	md_buffer_[l1data_cursor_] = md;
+	return l1data_cursor_;
 }
 
 CDepthMarketDataField* L1MDProducer::GetData(int32_t index)
@@ -172,7 +179,28 @@ CDepthMarketDataField* L1MDProducer::GetData(int32_t index)
 	return &md_buffer_[index];
 }
 
-CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract)
+CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t last_index)
 {
-	// TODO:全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
+	CDepthMarketDataField* data = GetLastDataImp(contract, last_index, md_buffer_, L1MD_BUFFER_SIZE);
+	return data;
+}
+
+CDepthMarketDataField* L1MDProducer::GetLastDataImp(const char *contract, int32_t last_index,
+	CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count)
+{
+	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
+	for(i=0; i<dominant_contract_count; i++){
+		int data_index = last_index - i;
+		if(data_index < 0){
+			data_index = data_index + buffer_size;
+		}
+
+		CDepthMarketDataField &tmp = buffer[data_index];
+		if(strcmp(contract, tmp.InstrumentID)==0){
+			data = &tmp; 
+			break;
+		}
+	}
+
+	return data;
 }

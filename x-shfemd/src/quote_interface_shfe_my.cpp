@@ -17,6 +17,8 @@ using namespace my_cmn;
 MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe,const string &provider_config)
 	: module_name_("uni_consumer"),running_(true),seq_no_(0),server_(0)
 {
+	l1_md_last_index_ = -1;
+
 	// clog init
 	clog_set_minimum_level(CLOG_LEVEL_WARNING);
 	clog_fp_ = fopen("./x-shfemd.log","w+");
@@ -70,15 +72,6 @@ void MYQuoteData::SetQuoteDataHandler(std::function<void(const CDepthMarketDataF
 void MYQuoteData::SetQuoteDataHandler(std::function<void(const MYShfeMarketData*)> quote_handler)
 {
 	fulldepthmd_handler_ = quote_handler;
-}
-
-// TODO:改成从disruptor中接收并处理数据
-// 在repairer等地方对MDPack数据，采用直接引用生产者缓存的数据，而不能再赋值一份
-void Proc()
-{
-    while (!ended_){
-        MDPack *p = (MDPack *)recv_buf;
-    } // while (!ended_)
 }
 
 void UniConsumer::ParseConfig()
@@ -282,7 +275,7 @@ void MYQuoteData::FillFullDepthInfo()
 void MYQuoteData::Send(const char* contract)
 {
 	// 合并一档行情
-	CDepthMarketDataField* l1_md = l1_md_producer_->GetLastData(contract);
+	CDepthMarketDataField* l1_md = l1_md_producer_->GetLastData(contract, l1_md_last_index_);
 	if(NULL != l1_md){
 		target_data_.data_flag = 6; 
 		memcpy(&target_data_, l1_md, sizeof(CDepthMarketDataField));
@@ -295,6 +288,7 @@ void MYQuoteData::Send(const char* contract)
 // done
 void UniConsumer::ProcL1MdData(int32_t index)
 {
+	l1_md_last_index_ = index;
 	CDepthMarketDataField* md = md_producer_->GetData(index);
 
 	memcpy(target_md_.InstrumentID, md->InstrumentID, sizeof(target_md_.InstrumentID));

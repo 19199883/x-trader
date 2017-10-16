@@ -69,6 +69,7 @@ private:
 	FILE *clog_fp_;/*文件指针*/
 	FullDepthMDProducer* fulldepth_md_producer_;
 	L1MDProducer* l1_md_producer_;
+	int32_t l1_md_last_index_;
 
 	void ParseConfig();
 

@@ -70,13 +70,21 @@ gtest_main.a : gtest-all.o gtest_main.o
 # Builds a sample test.  A test should link with either gtest.a or
 # gtest_main.a, depending on whether it defines its own main()
 # function.
-
+#	@echo "ttttttttttttttttttttttttttttttttt"
+#	echo "wwwwwwwwwwwwwwwwwwwwwwwwwwwww$(USER_DIR)/../../3rd/tinyxml/include"
 my_int_deque.o : $(USER_DIR)/my_int_deque.cpp $(USER_DIR)/my_int_deque.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/my_int_deque.cpp
+l1md_producer.o : $(USER_DIR)/l1md_producer.cpp $(USER_DIR)/l1md_producer.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++11 -I"$(USER_DIR)/../../3rd/shfe_md/include" \
+	-I"$(USER_DIR)/../../3rd/tinyxml/include"  -c $(USER_DIR)/l1md_producer.cpp
 
 my_int_deque_test.o : $(USER_DIR)/my_int_deque_test.cpp \
-                     $(USER_DIR)/my_int_deque.h $(GTEST_HEADERS)
+	$(USER_DIR)/my_int_deque.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/my_int_deque_test.cpp
+l1md_producer_test.o : $(USER_DIR)/l1md_producer_test.cpp \
+	$(USER_DIR)/l1md_producer.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++11 -I"$(USER_DIR)/../../3rd/shfe_md/include"  \
+	-I"$(USER_DIR)/../../3rd/tinyxml/include"  -c $(USER_DIR)/l1md_producer_test.cpp
 
-my_int_deque_test : my_int_deque.o my_int_deque_test.o gtest_main.a
+my_int_deque_test : my_int_deque.o my_int_deque_test.o l1md_producer.o l1md_producer_test.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
