@@ -26,6 +26,13 @@ struct L1MDConfig
 	char yield[20]; // disruptor yield strategy
 };
 
+class L1MDProducerHelper
+{
+	public:
+	static CDepthMarketDataField* GetLastDataImp(const char *contract, int32_t last_index,
+		CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count);
+};
+
 class L1MDProducer : public CMdclientSpi
 {
 	public:
@@ -44,8 +51,6 @@ class L1MDProducer : public CMdclientSpi
 		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
 		 */
 		CDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
-		CDepthMarketDataField* GetLastDataImp(const char *contract, int32_t last_index,
-			CDepthMarketDataField *buffer, int32_t buffer_size);
 		void End();
 
 		/*

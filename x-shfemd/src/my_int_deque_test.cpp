@@ -105,7 +105,7 @@ TEST(MyIntDequeTest, Back) {
 
 TEST(MyIntDequeTest, Size) {
 	MyIntDeque my_deque;
-	ASSERT_THROW(my_deque.Size(), std::logic_error);
+	EXPECT_EQ(0, my_deque.Size());
 
 	my_deque.PushBack(1);
 	EXPECT_EQ(1, my_deque.Size());

@@ -7,6 +7,28 @@
 using namespace std::placeholders;
 using namespace std;
 
+CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, int32_t last_index,
+	CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count)
+{
+	CDepthMarketDataField* data = NULL;
+
+	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
+	for(int i=0; i<dominant_contract_count; i++){
+		int data_index = last_index - i;
+		if(data_index < 0){
+			data_index = data_index + buffer_size;
+		}
+
+		CDepthMarketDataField &tmp = buffer[data_index];
+		if(strcmp(contract, tmp.InstrumentID)==0){
+			data = &tmp; 
+			break;
+		}
+	}
+
+	return data;
+}
+
 L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProducer")
 {
 	l1data_cursor_ = L1MD_BUFFER_SIZE - 1;
@@ -71,7 +93,7 @@ void L1MDProducer::ParseConfig()
 	// yield strategy
     TiXmlElement *disruptor_node = RootElement->FirstChildElement("Disruptor");
 	if (disruptor_node != NULL){
-		config_.yield = disruptor_node->Attribute("yield");
+		strcpy(config_.yield, disruptor_node->Attribute("yield"));
 	} else { clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); }
 
 	// addr
@@ -83,12 +105,12 @@ void L1MDProducer::ParseConfig()
 	// contracts file
     TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
 	if (contracts_file_node != NULL){
-		config_.contracts_file = contracts_file_node->Attribute("contracts");
+		strcpy(config_.contracts_file, contracts_file_node->Attribute("contracts"));
 	} else { clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); }
 
 	size_t ipstr_start = config_.addr.find("//")+2;
 	size_t ipstr_end = config_.addr.find(":",ipstr_start);
-	config_.ip = config_.addr.substr(ipstr_start,ipstr_end-ipstr_start);
+	strcpy(config_.ip, config_.addr.substr(ipstr_start,ipstr_end-ipstr_start).c_str());
 	config_.port = stoi(config_.addr.substr(ipstr_end+1));
 }
 
@@ -107,18 +129,18 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 	// TODO:抛弃非主力合约
 
 	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
-	if (strlen(md->InstrumentID) > 6) return;
+	if (strlen(data->InstrumentID) > 6) return;
 
 	RalaceInvalidValue_Femas(*data);
 
 	clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-			module_name_,data->InstrumentID,data.UpdateTime,data.UpdateMillisec);
+			module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
 	
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);
 	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-	ivalue->index = push(*md);
+	ivalue->index = Push(*data);
 	ivalue->data = L1_MD;
 	vrt_producer_publish(producer_);
 }
@@ -181,26 +203,8 @@ CDepthMarketDataField* L1MDProducer::GetData(int32_t index)
 
 CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t last_index)
 {
-	CDepthMarketDataField* data = GetLastDataImp(contract, last_index, md_buffer_, L1MD_BUFFER_SIZE);
+	CDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(contract, last_index, md_buffer_,
+				L1MD_BUFFER_SIZE, dominant_contract_count_);
 	return data;
 }
 
-CDepthMarketDataField* L1MDProducer::GetLastDataImp(const char *contract, int32_t last_index,
-	CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count)
-{
-	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
-	for(i=0; i<dominant_contract_count; i++){
-		int data_index = last_index - i;
-		if(data_index < 0){
-			data_index = data_index + buffer_size;
-		}
-
-		CDepthMarketDataField &tmp = buffer[data_index];
-		if(strcmp(contract, tmp.InstrumentID)==0){
-			data = &tmp; 
-			break;
-		}
-	}
-
-	return data;
-}
