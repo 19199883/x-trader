@@ -1,14 +1,19 @@
 #ifndef __VRT_VALUE_OBJ_H_
 #define __VRT_VALUE_OBJ_H_
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include "quote_datatype_shfe_deep.h"
 
 #define gettid() syscall(__NR_gettid)
 
 #define CLOG_CHANNEL  "x-shmd"
+
+/* Note that the parameter for queue size is a power of 2. */
+#define  QUEUE_SIZE  8192
 
 //#define LATENCY_MEASURE
 
@@ -27,13 +32,27 @@ extern "C" {
 	};
 #endif /* __cplusplus */
 
+	class MDPackEx
+	{
+		public:
+			MDPackEx(): damaged(false) { }
+
+			MDPackEx(MDPack &cur_content): damaged(false)
+			{
+				this->content = cur_content;
+			}
+
+			MDPack content;
+			bool damaged;
+	};
+
 	/* --------------------------------------------------------------
 	 * x-shmd varon-t value and type
 	 */
 
 	enum HybridData {
 		L1_MD = 0, 
-		FULL_DEPTH_MD, 
+		FULL_DEPTH_MD 
 	};
 
 	struct vrt_hybrid_value {

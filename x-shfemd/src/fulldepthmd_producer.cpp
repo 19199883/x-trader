@@ -1,6 +1,5 @@
 #include <functional>   // std::bind
-#include "md_producer.h"
-#include "perfctx.h"
+#include "fulldepthmd_producer.h"
 
 using namespace std::placeholders;
 using namespace std;

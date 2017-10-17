@@ -1,27 +1,14 @@
-#ifndef REPAIRER_H
-#define REPAIRER_H
+#ifndef _REPAIRER_H_
+#define _REPAIRER_H_
+
 #include <string>
-#include <queue>
 #include "quote_datatype_shfe_my.h"
 #include "quote_datatype_shfe_deep.h"
 #include "my_int_deque.h"
 #include "fulldepthmd_producer.h"
+#include "vrt_value_obj.h"
 
 using namespace std;
-
-class MDPackEx
-{
-	public:
-		MDPackEx(): damaged(false) { }
-
-		MDPackEx(MDPack &cur_content): damaged(false)
-		{
-			this->content = cur_content;
-		}
-
-		MDPack content;
-		bool damaged;
-};
 
 /*
  * this class repaires data damaged for udp package loss.
@@ -35,7 +22,7 @@ class repairer
 
 		/* receive data from UDP. repaires data if it is damaged
 		 */
-		void rev(MDPackEx &data);
+		void rev(int32_t index);
 
 		/*		 
 		 * get next avaialble data
@@ -94,6 +81,7 @@ class repairer
 		bool working_;
 		// record current serial number of UDP data	
 		int seq_no_;
+		const char * module_name_;  
 		FullDepthMDProducer *full_depth_md_producer_;
 
 };

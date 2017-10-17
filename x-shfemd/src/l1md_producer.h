@@ -15,6 +15,11 @@
  */
 #define L1MD_BUFFER_SIZE 1000 
 
+/*
+ * 识Level行情处于未接收数居前的未知位置
+ */
+#define L1MD_NPOS -1 
+
 using namespace std;
 
 struct L1MDConfig 

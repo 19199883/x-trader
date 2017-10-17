@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <array>
+#include <string>
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
@@ -13,15 +14,17 @@
 /*
  * 缓存的最大的行情数量
  */
-#define FULL_DEPTH_MD_BUFFER_SIZE 1000 
+#define FULL_DEPTH_MD_BUFFER_SIZE 8192 
+
+using namespace std;
 
 struct FulldepthMDConfig 
 {
 	string addr;
-	string ip[30];
+	char ip[30];
 	int port;
-	string contracts_file[500];
-	string yield[20]; // disruptor yield strategy
+	char contracts_file[500];
+	char yield[20]; // disruptor yield strategy
 };
 
 class FullDepthMDProducer
@@ -50,7 +53,7 @@ class FullDepthMDProducer
 		 */
 		int32_t Push(const MDPackEx& md);
 		struct vrt_producer  *producer_;
-		std::array<MDPackEx, MD_BUFFER_SIZE> shfemarketdata_buffer_;
+		std::array<MDPackEx, FULL_DEPTH_MD_BUFFER_SIZE> shfemarketdata_buffer_;
 		bool ended_;
 
 		/*
