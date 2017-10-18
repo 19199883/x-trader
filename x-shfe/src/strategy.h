@@ -184,7 +184,7 @@ private:
 	 */
 	void UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt, const TunnRpt& tunnrpt);
 	void UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short sig_openclose, unsigned short int sig_act);
-	void FillPositionRpt(const TunnRpt& rpt, position_t& pos);
+	void FillPositionRpt(position_t& pos);
 	const char * GetSymbol();
 	bool Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol);
 };
