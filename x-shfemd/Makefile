@@ -3,9 +3,9 @@
 CC:=g++
 DEBUG:=n
 TOP:=..
-INCPATH:=-I$(TOP)/lib/include  -I$(TOP)/3rd/shfe_md/include \
+INCPATH:=-I$(TOP)/x-shfemd/include  -I$(TOP)/3rd/shfe_md/include \
 		 -I$(TOP)/3rd/tinyxml/include -I$(TOP)/include -I$(TOP)/3rd/clogger/include 
-LIBPATH:=
+LIBPATH:=-L$(TOP)/3rd/shfe_md/lib  -L$(TOP)/3rd/tinyxml/lib
 CFLAGS:= -fPIC -fvisibility=hidden
 LDFLAGS:= -shared -Wl,--exclude-libs,ALL
 OBJPATH:=./obj

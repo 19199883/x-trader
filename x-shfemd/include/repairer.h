@@ -14,7 +14,6 @@ using namespace std;
  * this class repaires data damaged for udp package loss.
  * for more detail to see 上期全挡行情(my_quote_shfe_my_jr_ex-spd_lib).docx
  */
-// TODO: dequeue to be replaced
 class repairer
 {
 	public:
@@ -30,11 +29,11 @@ class repairer
 		 *
 		 */
 		MDPackEx* next(bool &empty);
+		// udp server id
+		int server_;
 
 	private:
 		//
-		// udp server id
-		int server_;
 
 		/*		 
 		 * find normal data start point when system starts

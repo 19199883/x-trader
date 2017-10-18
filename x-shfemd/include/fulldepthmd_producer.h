@@ -7,7 +7,7 @@
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
-#include "quote_interface_shfe_my.h"
+#include "quote_datatype_shfe_deep.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 
@@ -46,7 +46,7 @@ class FullDepthMDProducer
 		/*
 		 * 逻辑相关
 		 */
-		std::thread thread_rev_;
+		std::thread *thread_rev_;
 
 		/*
 		 *disruptor相关
@@ -59,7 +59,7 @@ class FullDepthMDProducer
 		/*
 		 *日志相关
 		 */
-		std::string ToString(const MDPack &d);
+		//std::string ToString(const MDPack &d);
 		const char *module_name_;  
 
 		/*

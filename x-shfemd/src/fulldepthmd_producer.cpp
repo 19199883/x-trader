@@ -1,11 +1,14 @@
 #include <functional>   // std::bind
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 #include "fulldepthmd_producer.h"
 
 using namespace std::placeholders;
 using namespace std;
 
 FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
-:module_name_("FullDepthProducer"),
+:module_name_("FullDepthProducer")
 {
 	ended_ = false;
 
@@ -22,8 +25,8 @@ FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
 		producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
-	thread_rev_ = thread(FullDepthMDProducer::RevData);
-	thread_rev_.detach();
+	thread_rev_ = new std::thread(&FullDepthMDProducer::RevData, this);
+	thread_rev_->detach();
 }
 
 void FullDepthMDProducer::ParseConfig()
@@ -35,7 +38,7 @@ void FullDepthMDProducer::ParseConfig()
 	// yield strategy
     TiXmlElement *disruptor_node = RootElement->FirstChildElement("Disruptor");
 	if (disruptor_node != NULL){
-		config_.yield = disruptor_node->Attribute("yield");
+		strcpy(config_.yield, disruptor_node->Attribute("yield"));
 	} else { clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); }
 
 	// addr
@@ -46,7 +49,7 @@ void FullDepthMDProducer::ParseConfig()
 
 	size_t ipstr_start = config_.addr.find("//")+2;
 	size_t ipstr_end = config_.addr.find(":",ipstr_start);
-	config_.ip = config_.addr.substr(ipstr_start,ipstr_end-ipstr_start);
+	strcpy(config_.ip, config_.addr.substr(ipstr_start,ipstr_end-ipstr_start).c_str());
 	config_.port = stoi(config_.addr.substr(ipstr_end+1));
 }
 
@@ -66,10 +69,10 @@ int FullDepthMDProducer::InitMDApi()
     struct sockaddr_in servaddr;
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET; //IPv4协议
-    servaddr.sin_addr.s_addr = inet_addr(config_.ip.c_str());
+    servaddr.sin_addr.s_addr = inet_addr(config_.ip);
     servaddr.sin_port = htons(config_.port);
     if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0){
-        clog_error("[%s] UDP - bind failed:%s:%d",module_name_,config_.ip.c_str(),config_.port);
+        clog_error("[%s] UDP - bind failed:%s:%d",module_name_,config_.ip,config_.port);
         return -1;
     }
 
@@ -150,7 +153,7 @@ void FullDepthMDProducer::End()
 	}
 }
 
-int32_t FullDepthMDProducer::Push(const MYShfeMarketData& md){
+int32_t FullDepthMDProducer::Push(const MDPackEx& md){
 	static int32_t shfemarketdata_cursor = FULL_DEPTH_MD_BUFFER_SIZE - 1;
 	shfemarketdata_cursor++;
 	if (shfemarketdata_cursor%FULL_DEPTH_MD_BUFFER_SIZE == 0){
@@ -166,15 +169,15 @@ MDPackEx* FullDepthMDProducer::GetData(int32_t index)
 	return &shfemarketdata_buffer_[index];
 }
 
-std::string FullDepthMDProducer::ToString(const MDPack &d) {
-	MY_LOG_DEBUG("server(%d)MDPack Data: \ninstrument: %s\n"
-				"islast: %d\nseqno: %d\ndirection: %c\ncount: %d\n",
-				this->server_,d.instrument, (int)d.islast, d.seqno,
-				d.direction, d.count);
-	for(int i = 0; i < d.count; i++) {
-		 MY_LOG_DEBUG("server(%d) price%d: %lf, volume%d: %d",
-				 this->server_, i, d.data[i].price, i, d.data[i].volume);
-	}
-  
-  return "";
-}
+//std::string FullDepthMDProducer::ToString(const MDPack &d) {
+//	MY_LOG_DEBUG("server(%d)MDPack Data: \ninstrument: %s\n"
+//				"islast: %d\nseqno: %d\ndirection: %c\ncount: %d\n",
+//				server_,d.instrument, (int)d.islast, d.seqno,
+//				d.direction, d.count);
+//	for(int i = 0; i < d.count; i++) {
+//		 MY_LOG_DEBUG("server(%d) price%d: %lf, volume%d: %d",
+//				 this->server_, i, d.data[i].price, i, d.data[i].volume);
+//	}
+//  
+//  return "";
+//}

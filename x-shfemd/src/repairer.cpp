@@ -3,25 +3,17 @@
 #include "repairer.h"
 #include "quote_cmn_utility.h"
 
-/*
- * TODO:
- * 实现自定义dequeue，缓存足够长，这样，一个行情只需一份，不用多分拷贝
- *
- *
- */
+// std::string repairer::ToString(const MDPack &d) {
+//	  clog_debug("[%s] (server:%d) MDPack Data: instrument:%s islast:%d"
+//		  "seqno:%d direction:%c count: %d",module_name_,
+//		  this->server_,d.instrument, (int)d.islast, d.seqno, d.direction, d.count);
+//	  for(int i = 0; i < d.count; i++) {
+//	      clog_debug("[%s] (server:%d) price%d: %lf, volume%d: %d",module_name_,
+//			  this->server_, i, d.data[i].price, i, d.data[i].volume);
+//	  }
+//	 return "";
+//}
 
- std::string repairer::ToString(const MDPack &d) {
-	  clog_debug("[%s] (server:%d) MDPack Data: instrument:%s islast:%d"
-		  "seqno:%d direction:%c count: %d",module_name_,
-		  this->server_,d.instrument, (int)d.islast, d.seqno, d.direction, d.count);
-	  for(int i = 0; i < d.count; i++) {
-	      clog_debug("[%s] (server:%d) price%d: %lf, volume%d: %d",module_name_,
-			  this->server_, i, d.data[i].price, i, d.data[i].volume);
-	  }
-	 return "";
-}
-
-// done
 repairer::repairer(FullDepthMDProducer *full_depth_md_producer)
 :module_name_("repairer")
 {
@@ -318,10 +310,10 @@ void repairer::rev(int index)
 		else{ // enter package non-loss procedure
 			if("" == victim_){ // normal data process procedure 
 				if(SHFE_FTDC_D_Buy==data->content.direction){
-					normal_proc_buy_data(data);
+					normal_proc_buy_data(index);
 				}
 				else if (SHFE_FTDC_D_Sell==data->content.direction){
-					normal_proc_sell_data(data);
+					normal_proc_sell_data(index);
 				}
 			}else{ // enter data repaireing procedure
 				if (SHFE_FTDC_D_Buy==data->content.direction){
