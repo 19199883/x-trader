@@ -147,9 +147,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	LoadPosition();
 	
-	memset(&pos_cache_.s_pos[0], 0, sizeof(symbol_pos_t));
+	memset(&(pos_cache_.s_pos[0]), 0, sizeof(symbol_pos_t));
 	strcpy(pos_cache_.s_pos[0].symbol, GetSymbol());
 	pos_cache_.symbol_cnt = 1;
+	FillPositionRpt(pos_cache_);
 
 	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
@@ -465,7 +466,7 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	UpdatePosition(lastqty,rpt, sig.sig_openclose, sig.sig_act);
 	// fill signal position report by tunnel report
 	if (rpt.MatchedAmount > 0){
-		FillPositionRpt(rpt, pos_cache_);
+		FillPositionRpt(pos_cache_);
 	}
 
 	// update signal report
@@ -534,7 +535,7 @@ void Strategy::UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short
 				position_.frozen_open_long, position_.frozen_open_short);
 }
 
-void Strategy::FillPositionRpt(const TunnRpt& rpt, position_t &pos)
+void Strategy::FillPositionRpt(position_t &pos)
 {
 	pos.s_pos[0].long_volume = position_.cur_long;
 	pos.s_pos[0].short_volume = position_.cur_short;
