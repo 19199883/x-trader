@@ -83,7 +83,7 @@ void repairer::pull_ready_data()
 			}else if (strcmp(sell->content.instrument,buy->content.instrument)==0){
 				MDPackEx *new_data = buy;
 				if (new_data->damaged) damaged = true;
-				if(full_depth_md_producer_->IsDominant(buy->content.instrumen)){
+				if(full_depth_md_producer_->IsDominant(buy->content.instrument)){
 					ready_queue_.PushBack(buy_index);
 				}
 				buy_queue_.PopFront();
@@ -97,7 +97,7 @@ void repairer::pull_ready_data()
 				int sell_index = sell_queue_.Front();
 				MDPackEx *new_data = full_depth_md_producer_->GetData(sell_index);
 				if (new_data->damaged) damaged = true;
-				if(full_depth_md_producer_->IsDominant(new_data->content.instrumen)){
+				if(full_depth_md_producer_->IsDominant(new_data->content.instrument)){
 					ready_queue_.PushBack(sell_index);
 				}
 				sell_queue_.PopFront();

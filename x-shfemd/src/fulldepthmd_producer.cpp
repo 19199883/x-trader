@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include "fulldepthmd_producer.h"
+#include "quote_cmn_utility.h"
 
 using namespace std::placeholders;
 using namespace std;
@@ -11,15 +12,15 @@ FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
 :module_name_("FullDepthProducer")
 {
 	ended_ = false;
-
-	ParseConfig();
-	//
-	// init dominant contracts
-	memset(dominant_contracts_, 0, sizeof(dominant_contracts_);
-	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
-
 	clog_warning("[%s] FULL_DEPTH_MD_BUFFER_SIZE: %d;", module_name_, FULL_DEPTH_MD_BUFFER_SIZE);
 
+	ParseConfig();
+	
+	// init dominant contracts
+	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
+	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+
+	// disruptor
 	this->producer_ = vrt_producer_new("fulldepthmd_producer", 1, queue);
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
@@ -82,6 +83,7 @@ int FullDepthMDProducer::InitMDApi()
     servaddr.sin_family = AF_INET; //IPv4协议
     servaddr.sin_addr.s_addr = inet_addr(config_.ip);
     servaddr.sin_port = htons(config_.port);
+	clog_warning("[%s] UDP - bind:%s:%d",module_name_,config_.ip,config_.port);
     if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0){
         clog_error("[%s] UDP - bind failed:%s:%d",module_name_,config_.ip,config_.port);
         return -1;
@@ -122,7 +124,9 @@ void FullDepthMDProducer::RevData()
     if (udp_fd < 0) {
         clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
         return;
-    }
+    }else{
+        clog_warning("[%s] MY_SHFE_MD - CreateUdpFD succeeded.",module_name_);
+	}
 
     int recv_struct_len = sizeof(MDPack);
     int ary_len = recv_struct_len;

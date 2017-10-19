@@ -34,8 +34,12 @@ struct L1MDConfig
 class L1MDProducerHelper
 {
 	public:
-	static CDepthMarketDataField* GetLastDataImp(const char *contract, int32_t last_index,
-		CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count);
+		/*
+		 * 获取指定合约的最新行情。
+		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
+		 */
+		static CDepthMarketDataField* GetLastDataImp(const char *contract, int32_t last_index,
+			CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count);
 };
 
 class L1MDProducer : public CMdclientSpi
@@ -75,10 +79,10 @@ class L1MDProducer : public CMdclientSpi
 		 */
 		void RalaceInvalidValue_Femas(CDepthMarketDataField &d);
 		int32_t Push(const CDepthMarketDataField& md);
-		bool ended_;
 		struct vrt_producer  *producer_;
 		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
 		int32_t l1data_cursor_;
+		bool ended_;
 
 		/*
 		 * check whether the given contract is dominant.

@@ -6,6 +6,8 @@ MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe,const std::string &
 {
 	l1_md_last_index_ = L1MD_NPOS;
 
+    p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>("my_shfe_md", MY_SHFE_MD_QUOTE_TYPE);
+
 	// clog init
 	clog_set_minimum_level(CLOG_LEVEL_WARNING);
 	clog_fp_ = fopen("./x-shfemd.log","w+");
@@ -49,6 +51,8 @@ MYQuoteData::~MYQuoteData()
 		delete repairers_[i];
 	}
 
+    if (p_my_shfe_md_save_) delete p_my_shfe_md_save_;
+
 	fflush (clog_fp_);
 	clog_handler_free(clog_handler_);
 }
@@ -67,7 +71,6 @@ void MYQuoteData::SetQuoteDataHandler(std::function<void(const MYShfeMarketData*
 {
 	fulldepthmd_handler_ = quote_handler;
 }
-
 
 void MYQuoteData::ParseConfig()
 {
@@ -127,7 +130,6 @@ void MYQuoteData::Stop()
 	}
 }
 
-// done:
 void MYQuoteData::ProcFullDepthData(int32_t index)
 {
 	MDPackEx* md = fulldepth_md_producer_->GetData(index);
@@ -282,9 +284,14 @@ void MYQuoteData::Send(const char* contract)
 
 	// 发给数据客户
 	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
+
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
+#endif
 }
 
-// done
 void MYQuoteData::ProcL1MdData(int32_t index)
 {
 	l1_md_last_index_ = index;
@@ -297,7 +304,6 @@ void MYQuoteData::ProcL1MdData(int32_t index)
 	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
 }
 
-// done
 void MYQuoteData::Reset()
 {
 	memset(target_data_.buy_price, 0, sizeof(target_data_.buy_price));

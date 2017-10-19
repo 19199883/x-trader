@@ -1,6 +1,8 @@
 ﻿#ifndef MY_QUOTE_INTERFACE_SHFE_MY_H_
 #define MY_QUOTE_INTERFACE_SHFE_MY_H_
 
+#include <sys/types.h>
+#include <sys/time.h>
 #include <set>
 #include <string>
 #include <functional>   // std::bind
@@ -11,6 +13,11 @@
 #include "repairer.h"
 #include "fulldepthmd_producer.h"
 #include "vrt_value_obj.h"
+#include "quote_cmn_save.h"
+#include "my_cmn_util_funcs.h"
+#include "quote_cmn_utility.h"
+#include "quote_cmn_save.h"
+
 
 using namespace std;
 
@@ -27,7 +34,6 @@ class DLL_PUBLIC MYQuoteData
 {
 	public:
 
-		bool running_;
 		/**
 		 * @param subscribe_contracts 需要订阅的合约集合。
 		 * (指针为空指针，或集合为空，将返回行情接口接收到的所有合约数据)
@@ -115,6 +121,9 @@ class DLL_PUBLIC MYQuoteData
 	    // 数据处理函数对象
 	    std::function<void(const MYShfeMarketData *)> fulldepthmd_handler_;
 		const char *module_name_;  
+		bool running_;
+
+		QuoteDataSave<MYShfeMarketData> *p_my_shfe_md_save_;
 };
 
 #endif  //MY_QUOTE_INTERFACE_SHFE_MY_H_

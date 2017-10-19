@@ -35,18 +35,24 @@ class FullDepthMDProducer
 
 		MDPackEx* GetData(int32_t index);
 		void End();
+		/*
+		 * check whether the given contract is dominant.
+		 */
+		bool IsDominant(const char *contract);
 
 	private:
 		/*
 		 * 与API相关
 		 */
 		int InitMDApi();
-		void RevData();
 
 		/*
 		 * 逻辑相关
 		 */
+		void RevData();
 		std::thread *thread_rev_;
+		int32_t dominant_contract_count_;
+		char dominant_contracts_[20][10];
 
 		/*
 		 *disruptor相关
@@ -55,13 +61,6 @@ class FullDepthMDProducer
 		struct vrt_producer  *producer_;
 		std::array<MDPackEx, FULL_DEPTH_MD_BUFFER_SIZE> shfemarketdata_buffer_;
 		bool ended_;
-
-		/*
-		 * check whether the given contract is dominant.
-		 */
-		bool IsDominant(const char *contract);
-		int32_t dominant_contract_count_;
-		char dominant_contracts_[20][10];
 
 		/*
 		 *日志相关

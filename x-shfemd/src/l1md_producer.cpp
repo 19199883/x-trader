@@ -1,3 +1,5 @@
+#include <iostream>     // std::cout
+#include <fstream>      // std::ifstream
 #include <functional>   // std::bind
 #include "l1md_producer.h"
 #include "quote_cmn_utility.h"
@@ -13,7 +15,8 @@ CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, 
 	CDepthMarketDataField* data = NULL;
 
 	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
-	for(int i=0; i<dominant_contract_count; i++){
+	int i = 0;
+	for(; i<dominant_contract_count; i++){
 		int data_index = last_index - i;
 		if(data_index < 0){
 			data_index = data_index + buffer_size;
@@ -25,6 +28,8 @@ CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, 
 			break;
 		}
 	}
+	clog_info("GetLastDataImp:dominant_contract_count:%d;i:%d;contract:%s",
+		dominant_contract_count, i, contract);
 
 	return data;
 }
@@ -34,16 +39,16 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	l1data_cursor_ = L1MD_BUFFER_SIZE - 1;
 	ended_ = false;
     api_ = NULL;
+	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",module_name_,L1MD_BUFFER_SIZE);
 
 	ParseConfig();
+
 	// init dominant contracts
-	memset(dominant_contracts_, 0, sizeof(dominant_contracts_);
+	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
 	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
 
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
 	InitMDApi();
-
-	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",module_name_,L1MD_BUFFER_SIZE);
 
 	this->producer_ = vrt_producer_new("l1md_producer", 1, queue);
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
@@ -66,6 +71,7 @@ void L1MDProducer::InitMDApi()
 	string contrs = "";
 	if (is) {
 		getline(is, contrs);
+		contrs += " ";
 		size_t start_pos = 0;
 		size_t end_pos = 0;
 		string contr = "";
@@ -74,11 +80,6 @@ void L1MDProducer::InitMDApi()
 			api_->Subscribe((char*)contr.c_str());
 			clog_warning("CMdclientApi subscribe:%s",contr.c_str());
 			start_pos = end_pos + 1;
-		}
-		if(contr.size()>0){
-			string contr = contrs.substr(start_pos);
-			api_->Subscribe((char*)contr.c_str());
-			clog_warning("CMdclientApi subscribe:%s",contr.c_str());
 		}
 	}else { clog_error("CMdclientApi can't open: %s",config_.contracts_file); }
 
@@ -129,7 +130,7 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 	if (ended_) return;
 
 	// 抛弃非主力合约
-	if(!(IsDominant(data->InstrumentID)) return;
+	if(!(IsDominant(data->InstrumentID))) return;
 
 	RalaceInvalidValue_Femas(*data);
 
