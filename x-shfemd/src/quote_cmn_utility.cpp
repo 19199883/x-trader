@@ -1,4 +1,6 @@
-﻿#include "quote_cmn_utility.h"
+﻿#include <iostream>     // std::cin, std::cout
+#include <fstream>
+#include "quote_cmn_utility.h"
 #include "vrt_value_obj.h"
 
 using namespace std;
@@ -45,5 +47,46 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg)
     }
 
     return std::make_pair(addr_ip, addr_port);
+}
+
+int32_t LoadDominantContracts(string file, char buffer[20][10])
+{
+	int32_t count = 0;
+
+	std::ifstream is;
+	is.open (file);
+	string contrs = "";
+	if (is) {
+		getline(is, contrs);
+		contrs += " ";
+		size_t start_pos = 0;
+		size_t end_pos = 0;
+		string contr = "";
+		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
+			contr = contrs.substr (start_pos, end_pos-start_pos);
+			strcpy(buffer[count], contr.c_str());
+			clog_warning("LoadDominantContracts:dominant contract:%s",contr.c_str());
+
+			start_pos = end_pos + 1;
+			count++;
+		}
+	}
+	else { clog_error("LoadDominantContracts: can't open: %s", file.c_str()); }
+
+	return count;
+}
+
+bool IsDominantImp(const char *contract, char buffer[20][10], int32_t buffer_size)
+{
+	bool is_dominant = false;
+
+	for(int i=0; i<buffer_size; i++){
+		if(strcmp(buffer[i], contract) == 0){
+			is_dominant = true;
+			break;
+		}
+	}
+
+	return is_dominant;
 }
 

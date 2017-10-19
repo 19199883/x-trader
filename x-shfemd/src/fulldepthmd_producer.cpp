@@ -13,6 +13,11 @@ FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
 	ended_ = false;
 
 	ParseConfig();
+	//
+	// init dominant contracts
+	memset(dominant_contracts_, 0, sizeof(dominant_contracts_);
+	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+
 	clog_warning("[%s] FULL_DEPTH_MD_BUFFER_SIZE: %d;", module_name_, FULL_DEPTH_MD_BUFFER_SIZE);
 
 	this->producer_ = vrt_producer_new("fulldepthmd_producer", 1, queue);
@@ -46,6 +51,12 @@ void FullDepthMDProducer::ParseConfig()
 	if (fdmd_node != NULL){
 		config_.addr = fdmd_node->Attribute("addr");
 	} else { clog_error("[%s] x-shmd.config error: FulldepthMd node missing.", module_name_); }
+
+	// contracts file
+    TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
+	if (contracts_file_node != NULL){
+		strcpy(config_.contracts_file, contracts_file_node->Attribute("contracts"));
+	} else { clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); }
 
 	size_t ipstr_start = config_.addr.find("//")+2;
 	size_t ipstr_end = config_.addr.find(":",ipstr_start);
@@ -169,6 +180,10 @@ MDPackEx* FullDepthMDProducer::GetData(int32_t index)
 	return &shfemarketdata_buffer_[index];
 }
 
+bool FullDepthMDProducer::IsDominant(const char *contract)
+{
+	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
+}
 //std::string FullDepthMDProducer::ToString(const MDPack &d) {
 //	MY_LOG_DEBUG("server(%d)MDPack Data: \ninstrument: %s\n"
 //				"islast: %d\nseqno: %d\ndirection: %c\ncount: %d\n",

@@ -66,7 +66,7 @@ bool repairer::find_start_point(MDPackEx* data)
 	return found;
 }
 
-// TODO: need a way to ignore the contracts not in dominant contract list
+// ignore the contracts not in dominant contract list
 void repairer::pull_ready_data()
 {
 	bool ready_data_found = false;
@@ -83,7 +83,9 @@ void repairer::pull_ready_data()
 			}else if (strcmp(sell->content.instrument,buy->content.instrument)==0){
 				MDPackEx *new_data = buy;
 				if (new_data->damaged) damaged = true;
-				ready_queue_.PushBack(buy_index);
+				if(full_depth_md_producer_->IsDominant(buy->content.instrumen)){
+					ready_queue_.PushBack(buy_index);
+				}
 				buy_queue_.PopFront();
 				ready_data_found = true;
 			}else{ break;}
@@ -95,7 +97,9 @@ void repairer::pull_ready_data()
 				int sell_index = sell_queue_.Front();
 				MDPackEx *new_data = full_depth_md_producer_->GetData(sell_index);
 				if (new_data->damaged) damaged = true;
-				ready_queue_.PushBack(sell_index);
+				if(full_depth_md_producer_->IsDominant(new_data->content.instrumen)){
+					ready_queue_.PushBack(sell_index);
+				}
 				sell_queue_.PopFront();
 			}
 
@@ -166,7 +170,6 @@ void repairer::repair_buy_data(int index)
 void repairer::normal_proc_sell_data(int index)
 {
 	MDPackEx* data = full_depth_md_producer_->GetData(index);
-	// TODO:islast是字符型，需要看日志确认是否能转换成bool
 	sell_queue_.PushBack(index);
 	if (data->content.count<MAX_PAIR || data->content.islast){
 		pull_ready_data(); 

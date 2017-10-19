@@ -13,9 +13,9 @@ MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe,const std::string &
 	clog_handler_push_process(clog_handler_);
 
 	ParseConfig();
-	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-
+	
 	// disruptor init
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	queue_ = vrt_queue_new("x-shfemd queue",vrt_hybrid_value_type(),QUEUE_SIZE);
 	fulldepth_md_producer_ = new FullDepthMDProducer(queue_);
 	l1_md_producer_ = new L1MDProducer(queue_);
@@ -82,6 +82,7 @@ void MYQuoteData::ParseConfig()
 		strcpy(config_.yield, comp_node->Attribute("yield"));
 		clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+
 }
 
 void MYQuoteData::Start()

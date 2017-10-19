@@ -36,8 +36,10 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
     api_ = NULL;
 
 	ParseConfig();
-	// TODO: init dominant contracts
-	//int32_t dominant_contract_count_;
+	// init dominant contracts
+	memset(dominant_contracts_, 0, sizeof(dominant_contracts_);
+	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
 	InitMDApi();
 
@@ -126,10 +128,8 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 {
 	if (ended_) return;
 
-	// TODO:抛弃非主力合约
-
-	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
-	if (strlen(data->InstrumentID) > 6) return;
+	// 抛弃非主力合约
+	if(!(IsDominant(data->InstrumentID)) return;
 
 	RalaceInvalidValue_Femas(*data);
 
@@ -208,3 +208,7 @@ CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t l
 	return data;
 }
 
+bool L1MDProducer::IsDominant(const char *contract)
+{
+	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
+}

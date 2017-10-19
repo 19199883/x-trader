@@ -79,8 +79,13 @@ class L1MDProducer : public CMdclientSpi
 		struct vrt_producer  *producer_;
 		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
 		int32_t l1data_cursor_;
-		// TODO:
+
+		/*
+		 * check whether the given contract is dominant.
+		 */
+		bool IsDominant(const char *contract);
 		int32_t dominant_contract_count_;
+		char dominant_contracts_[20][10];
 
 		/*
 		 *日志相关

@@ -7,11 +7,6 @@
 #include <set>
 #include <float.h>
 
-#include <boost/date_time.hpp>
-
-//#include "my_cmn_log.h"
-//#include "my_cmn_util_funcs.h"
-
 #ifndef DLL_PUBLIC
 #define DLL_PUBLIC __attribute__ ((visibility ("default")))
 #endif
@@ -47,5 +42,19 @@ typedef std::pair<std::string, std::string> IPAndPortStr;
 IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
 
 void QuoteUpdateState(const char *name, int s);
+
+/*
+ * 从文件file中读取主力合约，并存储到buffer中。
+ * 假设主力合约最多20个。
+ * 查找主力合约时，从位置0开始查找，遇到第一个空字符串止
+ * 调用者需要对buffer清零
+ * @return:返回主力合约个数
+ */
+int32_t LoadDominantContracts(string file, char buffer[20][10]);
+
+/*
+* check whether the given contract is dominant.
+*/
+bool IsDominantImp(const char *contract, char buffer[20][10], int32_t buffer_size);
 
 #endif  //

@@ -57,6 +57,13 @@ class FullDepthMDProducer
 		bool ended_;
 
 		/*
+		 * check whether the given contract is dominant.
+		 */
+		bool IsDominant(const char *contract);
+		int32_t dominant_contract_count_;
+		char dominant_contracts_[20][10];
+
+		/*
 		 *日志相关
 		 */
 		//std::string ToString(const MDPack &d);
