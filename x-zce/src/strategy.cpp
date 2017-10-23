@@ -465,7 +465,7 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	// update strategy's position
 	UpdatePosition(lastqty,rpt, sig.sig_openclose, sig.sig_act);
 	// fill signal position report by tunnel report
-	if (rpt.MatchedAmount > 0){
+	if (lastqty > 0){
 		FillPositionRpt(pos_cache_);
 	}
 
@@ -543,9 +543,11 @@ void Strategy::FillPositionRpt(position_t &pos)
 }
 void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
 {
-	sigrpt.exec_volume = lastqty;
-	sigrpt.acc_volume += lastqty;
-
+	if(lastqty > 0){
+		sigrpt.exec_volume = lastqty;
+		sigrpt.acc_volume += lastqty;
+	}
+	
 	if (tunnrpt.OrderStatus==TAPI_ORDER_STATE_CANCELED ||
 		tunnrpt.OrderStatus==TAPI_ORDER_STATE_LEFTDELETED){
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
