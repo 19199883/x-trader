@@ -86,6 +86,8 @@ class DLL_PUBLIC MYQuoteData
 		void ProcL1MdData(int32_t index);
 		void ProcFullDepthData(int32_t index);
 	private:
+		std::string ToString(const MYShfeMarketData &d);
+
 		/*
 		 * 使用full_depth_data填充target
 		 *

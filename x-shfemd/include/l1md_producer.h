@@ -67,6 +67,8 @@ class L1MDProducer : public CMdclientSpi
 		 */
 		virtual void OnRtnDepthMarketData(CDepthMarketDataField *pDepthMarketData);
 
+		void ToString(CDepthMarketDataField &data);
+
 	private:
 		/*
 		 * 与API相关

@@ -1,18 +1,18 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=../..
 DIST_DIR:=$(TOP)/x-shfemd/dist
 INCPATH:=-I$(TOP)/3rd/tinyxml/include  -I$(TOP)/x-shfemd/include -I$(TOP)/3rd/shfe_md/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/x-shfemd/dist/my_quote_shfe_my_jrcmcc_lib
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/x-shfemd/bin
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lpthread -ltinyxml -lutils -lssl -lbowsprit -lclogger -lcork -lvrt -lmy_quote_shfe_my_jrcmcc_lib \
-	 -lboost_filesystem -lmdclient
+	 -lboost_filesystem -lmdclient -lboost_system
 DEPS:=.depends
 OUT:=x-shfemd
 PACKAGE_NAME:=$(OUT)
@@ -56,7 +56,7 @@ $(DEPS):$(SRCS)
 dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/x-shfemd/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-shfemd/service/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 
 distclean:
 

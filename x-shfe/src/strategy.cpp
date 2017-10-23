@@ -472,11 +472,11 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	int32_t lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
 	// update strategy's position
 	UpdatePosition(lastqty,rpt, sig.sig_openclose, sig.sig_act);
-	// fill signal position report by tunnel report
-	if (rpt.MatchedAmount > 0){
+	if (lastqty > 0){
+		// fill signal position report by tunnel report
 		FillPositionRpt(pos_cache_);
 	}
-
+	
 	// update signal report
 	UpdateSigrptByTunnrpt(lastqty,sigrpt, rpt);
 
@@ -559,8 +559,10 @@ void Strategy::FillPositionRpt(position_t &pos)
 }
 void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
 {
-	sigrpt.exec_volume = lastqty;
-	sigrpt.acc_volume += lastqty;
+	if (lastqty > 0){
+		sigrpt.exec_volume = lastqty;
+		sigrpt.acc_volume += lastqty;
+	}
 
 	if (tunnrpt.OrderStatus == USTP_FTDC_OS_Canceled){
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;

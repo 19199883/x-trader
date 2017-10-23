@@ -3,16 +3,16 @@
 #include "repairer.h"
 #include "quote_cmn_utility.h"
 
-// std::string repairer::ToString(const MDPack &d) {
-//	  clog_debug("[%s] (server:%d) MDPack Data: instrument:%s islast:%d"
-//		  "seqno:%d direction:%c count: %d",module_name_,
-//		  this->server_,d.instrument, (int)d.islast, d.seqno, d.direction, d.count);
-//	  for(int i = 0; i < d.count; i++) {
-//	      clog_debug("[%s] (server:%d) price%d: %lf, volume%d: %d",module_name_,
-//			  this->server_, i, d.data[i].price, i, d.data[i].volume);
-//	  }
-//	 return "";
-//}
+ std::string repairer::ToString(const MDPack &d) {
+	  clog_debug("[%s] (server:%d) MDPack Data: instrument:%s islast:%d"
+		  "seqno:%d direction:%c count: %d",module_name_,
+		  this->server_,d.instrument, (int)d.islast, d.seqno, d.direction, d.count);
+	  for(int i = 0; i < d.count; i++) {
+	      clog_debug("[%s] (server:%d) price%d: %lf, volume%d: %d",module_name_,
+			  this->server_, i, d.data[i].price, i, d.data[i].volume);
+	  }
+	 return "";
+}
 
 repairer::repairer(FullDepthMDProducer *full_depth_md_producer)
 :module_name_("repairer")
@@ -103,8 +103,7 @@ void repairer::pull_ready_data()
 				sell_queue_.PopFront();
 			}
 
-			// flag damaged data
-			if (damaged){
+			if (!ready_queue_.Empty() && damaged){ // flag damaged data
 				int back_index = ready_queue_.Back();
 				MDPackEx *back_data = full_depth_md_producer_->GetData(back_index);
 				char *instrument = back_data->content.instrument;
@@ -290,6 +289,13 @@ MDPackEx *repairer::next(bool &empty)
 void repairer::rev(int index)
 {
 	MDPackEx* data = full_depth_md_producer_->GetData(index);
+
+	// TODO:
+	//ToString(data->content);
+	int new_svr = data->content.seqno % 10;
+	if(new_svr != server_){
+		throw logic_error("rev: server changed!");
+	}
 
 	int new_sn = data->content.seqno / 10;
 	if ((seq_no_!=-1) && new_sn != seq_no_+1) {

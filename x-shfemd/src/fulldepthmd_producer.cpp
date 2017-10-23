@@ -149,6 +149,10 @@ void FullDepthMDProducer::RevData()
         }
 
         MDPack *md = (MDPack *)recv_buf;
+	
+		// TODO:
+		//ToString(*md);
+
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
@@ -188,15 +192,30 @@ bool FullDepthMDProducer::IsDominant(const char *contract)
 {
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
 }
-//std::string FullDepthMDProducer::ToString(const MDPack &d) {
-//	MY_LOG_DEBUG("server(%d)MDPack Data: \ninstrument: %s\n"
-//				"islast: %d\nseqno: %d\ndirection: %c\ncount: %d\n",
-//				server_,d.instrument, (int)d.islast, d.seqno,
-//				d.direction, d.count);
-//	for(int i = 0; i < d.count; i++) {
-//		 MY_LOG_DEBUG("server(%d) price%d: %lf, volume%d: %d",
-//				 this->server_, i, d.data[i].price, i, d.data[i].volume);
-//	}
-//  
-//  return "";
-//}
+
+std::string FullDepthMDProducer::ToString(const MDPack &d) {
+	clog_info("MDPack Data: \ninstrument: %s\n;"
+		"islast:%d\nseqno:%d\ndirection:%c\ncount:%d\n",
+		d.instrument, (int)d.islast, d.seqno,
+		d.direction, d.count);
+	for(int i = 0; i < d.count; i++) {
+		 clog_info("price%d: %lf, volume%d: %d",
+			 i, d.data[i].price, i, d.data[i].volume);
+	}
+  
+  return "";
+}
+
+std::string FullDepthMDProducer::ToString(const MDPackEx &d) 
+{
+	clog_info("MDPack Data: \ninstrument: %s\n; damaged:%d;"
+		"islast:%d\nseqno:%d\ndirection:%c\ncount:%d\n",
+		d.content.instrument, d.damaged, (int)d.content.islast, d.content.seqno,
+		d.content.direction, d.content.count);
+	for(int i = 0; i < d.content.count; i++) {
+		 clog_info("price%d: %lf, volume%d: %d",
+			 i, d.content.data[i].price, i, d.content.data[i].volume);
+	}
+  
+  return "";
+}

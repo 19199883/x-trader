@@ -40,6 +40,9 @@ class FullDepthMDProducer
 		 */
 		bool IsDominant(const char *contract);
 
+		std::string ToString(const MDPackEx &d);
+		std::string ToString(const MDPack &d);
+
 	private:
 		/*
 		 * 与API相关
@@ -65,7 +68,6 @@ class FullDepthMDProducer
 		/*
 		 *日志相关
 		 */
-		//std::string ToString(const MDPack &d);
 		const char *module_name_;  
 
 		/*

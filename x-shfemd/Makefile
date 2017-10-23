@@ -4,8 +4,7 @@ CC:=g++
 DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/x-shfemd/dist
-INCPATH:=-I$(TOP)/x-shfemd/include  -I$(TOP)/3rd/shfe_md/include \
-		 -I$(TOP)/3rd/tinyxml/include -I$(TOP)/include -I$(TOP)/3rd/clogger/include 
+INCPATH:=-I$(TOP)/x-shfemd/include  -I$(TOP)/3rd/tinyxml/include -I$(TOP)/include -I$(TOP)/3rd/clogger/include 
 LIBPATH:=-L$(TOP)/3rd/shfe_md/lib  -L$(TOP)/3rd/tinyxml/lib
 CFLAGS:= -fPIC -fvisibility=hidden
 LDFLAGS:= -shared -Wl,--exclude-libs,ALL

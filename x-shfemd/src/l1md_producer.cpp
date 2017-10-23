@@ -28,8 +28,10 @@ CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, 
 			break;
 		}
 	}
-	clog_info("GetLastDataImp:dominant_contract_count:%d;i:%d;contract:%s",
-		dominant_contract_count, i, contract);
+
+	// TODO:
+	//clog_info("GetLastDataImp:dominant_contract_count:%d;i:%d;contract:%s",
+	//	dominant_contract_count, i, contract);
 
 	return data;
 }
@@ -133,10 +135,12 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 	if(!(IsDominant(data->InstrumentID))) return;
 
 	RalaceInvalidValue_Femas(*data);
-
-	clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-			module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
 	
+	// TODO:
+	clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
+		module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
+	ToString(*data);
+
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);
@@ -212,4 +216,96 @@ CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t l
 bool L1MDProducer::IsDominant(const char *contract)
 {
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
+}
+
+void L1MDProducer::ToString(CDepthMarketDataField &data)
+{
+	clog_info("CDepthMarketDataField\n"
+		"TradingDay:%s\n"
+		"SettlementGroupID:%s\n"
+		"SettlementID:%d\n"
+		"LastPrice:%f \n"
+		"PreSettlementPrice:%f \n"
+		"PreClosePrice:%f \n"
+		"PreOpenInterest:%f \n"
+		"OpenPrice:%f \n"
+		"HighestPrice:%f \n"
+		"LowestPrice:%f \n"
+		"Volume:%d \n"
+		"Turnover:%f \n"
+		"OpenInterest:%f \n"
+		"ClosePrice:%f \n"
+		"SettlementPrice:%f \n"
+		"UpperLimitPrice:%f \n"
+		"LowerLimitPrice:%f \n"
+		"PreDelta:%f \n"
+		"CurrDelta:%f \n"
+		"UpdateTime[9]:%s \n"
+		"UpdateMillisec:%d \n"
+		"InstrumentID:%s \n"
+		"BidPrice1:%f \n"
+		"BidVolume1:%d \n"
+		"AskPrice1:%f \n"
+		"AskVolume1:%d \n"
+		"BidPrice2:%f \n"
+		"BidVolume2:%d \n"
+		"AskPrice2:%f \n"
+		"AskVolume2:%d \n"
+		"BidPrice3:%f \n"
+		"BidVolume3:%d \n"
+		"AskPrice3:%f \n"
+		"AskVolume3:%d \n"
+		"BidPrice4:%f \n"
+		"BidVolume4:%d \n"
+		"AskPrice4:%f \n"
+		"AskVolume4:%d \n"
+		"BidPrice5:%f \n"
+		"BidVolume5:%d \n"
+		"AskPrice5:%f \n"
+		"AskVolume5:%d \n"
+		"ActionDay:%s \n",
+		data.TradingDay,
+		data.SettlementGroupID,
+		data.SettlementID,
+		data.LastPrice,
+		data.PreSettlementPrice,
+		data. PreClosePrice,
+		data.PreOpenInterest,
+		data.OpenPrice,
+		data. HighestPrice,
+		data. LowestPrice,
+		data.Volume,
+		data.Turnover,
+		data.OpenInterest,
+		data.ClosePrice,
+		data.SettlementPrice,
+		data.UpperLimitPrice,
+		data.LowerLimitPrice,
+		data.PreDelta,
+		data.CurrDelta,
+		data.UpdateTime,
+		data.UpdateMillisec,
+		data.InstrumentID,
+		data.BidPrice1,
+		data.BidVolume1,
+		data.AskPrice1,
+		data.AskVolume1,
+		data.BidPrice2,
+		data.BidVolume2,
+		data.AskPrice2,
+		data.AskVolume2,
+		data.BidPrice3,
+		data.BidVolume3,
+		data.AskPrice3,
+		data.AskVolume3,
+		data.BidPrice4,
+		data.BidVolume4,
+		data.AskPrice4,
+		data.AskVolume4,
+		data.BidPrice5,
+		data.BidVolume5,
+		data.AskPrice5,
+		data.AskVolume5,
+		data.ActionDay);
+
 }
