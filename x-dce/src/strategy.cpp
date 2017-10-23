@@ -612,8 +612,10 @@ void Strategy::FillPositionRpt(position_t &pos)
 }
 void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
 {
-	sigrpt.exec_volume = tunnrpt.MatchedAmount;
-	sigrpt.acc_volume += tunnrpt.MatchedAmount;
+	if(tunnrpt.MatchedAmount > 0){
+		sigrpt.exec_volume = tunnrpt.MatchedAmount;
+		sigrpt.acc_volume += tunnrpt.MatchedAmount;
+	}
 
 	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
 		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
