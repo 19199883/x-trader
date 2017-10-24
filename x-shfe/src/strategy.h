@@ -184,7 +184,8 @@ private:
 	 */
 	void UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, signal_resp_t& sigrpt, 
 			TUstpFtdcOrderStatusType status, TUstpFtdcErrorIDType err);
-	void UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short sig_openclose, unsigned short int sig_act);
+	void UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status, unsigned short sig_openclose,
+			unsigned short int sig_act);
 	void FillPositionRpt(position_t& pos);
 	const char * GetSymbol();
 	bool Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol);

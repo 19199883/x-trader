@@ -307,7 +307,7 @@ void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
     //order_return.entrust_no     = atol(rsp->OrderSysID);
 	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 	rpt.OrderStatus = TUNN_ORDER_STATUS_UNDEFINED;
-	rpt.MatchedAmount = pfield->VolumeTraded;
+	rpt.MatchedAmount = pfield->TradeVolume;
 	rpt.TradePrice= pfield->TradePrice;
 
 	struct vrt_value  *vvalue;

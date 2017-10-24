@@ -602,7 +602,7 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_pr
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}
 	else{
-		clog_error("[%s] unexpected status:%d", tunnrpt.OrderStatus);
+		clog_error("[%s] unexpected status:%d", status);
 	}
 }
 
