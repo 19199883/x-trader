@@ -30,6 +30,7 @@ struct TunnRpt
 	TX1FtdcLocalOrderIDType               LocalOrderID;                 ///< 本地委托号
 	TX1FtdcOrderAnswerStatusType          OrderStatus;                  ///< 委托状态
 	TX1FtdcAmountType                     MatchedAmount;                ///< 成交数量
+	TX1FtdcPriceType                      MatchedPrice;                 ///< 成交价格
 	TX1FtdcErrorIDType                    ErrorID;                      ///< 错误ID
 };
 

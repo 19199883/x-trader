@@ -613,6 +613,7 @@ void Strategy::FillPositionRpt(position_t &pos)
 void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
 {
 	if(tunnrpt.MatchedAmount > 0){
+		sigrpt.exec_price = tunnrpt.MatchedPrice;
 		sigrpt.exec_volume = tunnrpt.MatchedAmount;
 		sigrpt.acc_volume += tunnrpt.MatchedAmount;
 	}

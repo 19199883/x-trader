@@ -390,6 +390,7 @@ void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfiel
 	rpt.LocalOrderID = pfield->LocalOrderID;
 	rpt.OrderStatus = pfield->OrderStatus;
 	rpt.MatchedAmount = pfield->MatchedAmount;
+	rpt.MatchedPrice = pfield->MatchedPrice;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
