@@ -30,6 +30,7 @@ struct TunnRpt
 	int									LocalOrderID;                 ///< 本地委托号
 	TUstpFtdcOrderStatusType			OrderStatus;                  ///< 委托状态
 	TUstpFtdcVolumeType					MatchedAmount;                ///< 成交数量
+	TUstpFtdcPriceType					TradePrice;					  ///< 成交价格
 	TUstpFtdcErrorIDType				ErrorID;                      ///< 错误ID
 };
 

@@ -302,7 +302,21 @@ void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
     clog_info("[%s] OnRtnTrade:%s", 
 				module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
 
-	// 忽略该回报，因为OrderReturn有成交信息
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+    //order_return.entrust_no     = atol(rsp->OrderSysID);
+	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
+	rpt.OrderStatus = TUNN_ORDER_STATUS_UNDEFINED;
+	rpt.MatchedAmount = pfield->VolumeTraded;
+	rpt.TradePrice= pfield->TradePrice;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
 }
 
 void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
@@ -316,7 +330,6 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
     //order_return.entrust_no     = atol(rsp->OrderSysID);
 	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 	rpt.OrderStatus = pfield->OrderStatus;
-	rpt.MatchedAmount = pfield->VolumeTraded;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;

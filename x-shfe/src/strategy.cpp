@@ -460,7 +460,7 @@ int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
 	return (local_ord_id - GetId()) / 1000;
 }
 
-void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
+void Strategy::FeedTunnRpt(const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
 	// get signal report by LocalOrderID
 	int32_t counter = GetCounterByLocalOrderID(rpt.LocalOrderID);
@@ -468,17 +468,30 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	signal_resp_t& sigrpt = sigrpt_table_[index];
 	signal_t& sig = sig_table_[index];
 
-	// 使MatchedAmount为最后一次的成交量
-	int32_t lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
+	TUstpFtdcOrderStatusType status = rpt.OrderStatus;
+	// 状态是未知状态时，表示成交阶段的返回,OnRtnOrder已经返回了部分成交或全部成交状态，
+	// 故从缓存的状态还原其状态
+	if(status == TUNN_ORDER_STATUS_UNDEFINED ){
+		if (sigrpt.status ==if_sig_state_t::SIG_STATUS_SUCCESS){
+			status = USTP_FTDC_OS_AllTraded;
+		}else if (sigrpt.status ==if_sig_state_t::SIG_STATUS_PARTED){
+			status = USTP_FTDC_OS_PartTradedQueueing;
+		}
+	}
+	// update signal report
+	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.TradePrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
-	UpdatePosition(lastqty,rpt, sig.sig_openclose, sig.sig_act);
-	if (lastqty > 0){
+	UpdatePosition(rpt.MatchedAmount, status, sig.sig_openclose, sig.sig_act);
+	if (rpt.MatchedAmount > 0){
 		// fill signal position report by tunnel report
 		FillPositionRpt(pos_cache_);
 	}
-	
-	// update signal report
-	UpdateSigrptByTunnrpt(lastqty,sigrpt, rpt);
+
+	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
+	if(rpt.OrderStatus==USTP_FTDC_OS_AllTraded ||
+		rpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){ 
+		return;
+	}
 
 	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
 
@@ -505,7 +518,8 @@ bool Strategy::HasFrozenPosition()
 
 }
 
-void Strategy::UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short sig_openclose, unsigned short int sig_act)
+void Strategy::UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status,
+			unsigned short sig_openclose, unsigned short int sig_act)
 {
 	if (lastqty > 0){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
@@ -526,9 +540,9 @@ void Strategy::UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
-	if (rpt.OrderStatus==USTP_FTDC_OS_AllTraded ||
-		rpt.OrderStatus==USTP_FTDC_OS_PartTradedNotQueueing ||
-		rpt.OrderStatus==USTP_FTDC_OS_Canceled){
+	if (status==USTP_FTDC_OS_AllTraded ||
+		status==USTP_FTDC_OS_PartTradedNotQueueing ||
+		status==USTP_FTDC_OS_Canceled){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
 			position_.frozen_open_long = 0;
 		}
@@ -557,32 +571,34 @@ void Strategy::FillPositionRpt(position_t &pos)
 	pos.s_pos[0].short_volume = position_.cur_short;
 	pos.s_pos[0].changed = 1;
 }
-void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
+void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, 
+			signal_resp_t& sigrpt, TUstpFtdcOrderStatusType status, TUstpFtdcErrorIDType err)
 {
 	if (lastqty > 0){
+		sigrpt.exec_price = last_price;
 		sigrpt.exec_volume = lastqty;
 		sigrpt.acc_volume += lastqty;
 	}
 
-	if (tunnrpt.OrderStatus == USTP_FTDC_OS_Canceled){
+	if (status == USTP_FTDC_OS_Canceled){
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
 	}else{ sigrpt.killed = 0; }
 
 	sigrpt.rejected = 0; 
-	sigrpt.error_no = tunnrpt.ErrorID;
+	sigrpt.error_no = err;
 
-	if (tunnrpt.OrderStatus==USTP_FTDC_OS_Canceled ||
-		tunnrpt.OrderStatus==USTP_FTDC_OS_PartTradedNotQueueing){
+	if (status == USTP_FTDC_OS_Canceled ||
+		status == USTP_FTDC_OS_PartTradedNotQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_CANCEL;
 	}
-	else if(tunnrpt.OrderStatus == USTP_FTDC_OS_AllTraded){
+	else if(status == USTP_FTDC_OS_AllTraded){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_SUCCESS;
 	}
-	else if(tunnrpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){
+	else if(status == USTP_FTDC_OS_PartTradedQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_PARTED;
 	}
-	else if(tunnrpt.OrderStatus == USTP_FTDC_OS_NoTradeQueueing || 
-			tunnrpt.OrderStatus == USTP_FTDC_OS_NoTradeNotQueueing){
+	else if(status== USTP_FTDC_OS_NoTradeQueueing || 
+			sigrpt.status == USTP_FTDC_OS_NoTradeNotQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}
 	else{

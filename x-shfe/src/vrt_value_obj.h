@@ -14,6 +14,8 @@
 
 #define COMPLIANCE_CHECK
 
+#define TUNN_ORDER_STATUS_UNDEFINED -1
+
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
 // 2: two-dimensional array

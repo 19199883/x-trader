@@ -111,7 +111,7 @@ public:
 	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act);
 	void PrepareForExecutingSig(long localorderid, const signal_t &sig,
 				int32_t actual_vol);
-	void FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
+	void FeedTunnRpt(const TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
 	bool HasFrozenPosition();
 	int32_t GetCounterByLocalOrderID(long local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
@@ -182,7 +182,8 @@ private:
 	/*
 	 * 
 	 */
-	void UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt, const TunnRpt& tunnrpt);
+	void UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, signal_resp_t& sigrpt, 
+			TUstpFtdcOrderStatusType status, TUstpFtdcErrorIDType err);
 	void UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short sig_openclose, unsigned short int sig_act);
 	void FillPositionRpt(position_t& pos);
 	const char * GetSymbol();
