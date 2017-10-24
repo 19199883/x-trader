@@ -357,6 +357,12 @@ void MYQuoteData::ProcL1MdData(int32_t index)
 	target_data_.data_flag = 1;
 	// 发给数据客户
 	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
+
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
+#endif
 }
 
 void MYQuoteData::Reset()
