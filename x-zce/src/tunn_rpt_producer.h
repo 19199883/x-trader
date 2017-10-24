@@ -31,6 +31,7 @@ struct TunnRpt
 	long				    LocalOrderID;       ///< 本地委托号
 	TAPIOrderStateType	    OrderStatus;        ///< 委托状态
 	TAPIUINT32		        MatchedAmount;      ///< 成交数量
+	TAPIREAL64				OrderMatchPrice;				///< 成交价1
 	TAPIUINT32			    ErrorID;            ///< 错误ID
 	TAPICHAR				ServerFlag;			///< 服务器标识
 	TAPISTR_20				OrderNo;			///< 委托编码

@@ -332,6 +332,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 
 		tunnrpt.OrderStatus = info->OrderInfo->OrderState;
 		tunnrpt.MatchedAmount = info->OrderInfo->OrderMatchQty;
+		tunnrpt.OrderMatchPrice = info->OrderInfo->OrderMatchPrice;
 	}
 
 	struct vrt_value  *vvalue;

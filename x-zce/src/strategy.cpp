@@ -544,6 +544,7 @@ void Strategy::FillPositionRpt(position_t &pos)
 void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt,const  TunnRpt& tunnrpt)
 {
 	if(lastqty > 0){
+		sigrpt.exec_price = tunnrpt.OrderMatchPrice;
 		sigrpt.exec_volume = lastqty;
 		sigrpt.acc_volume += lastqty;
 	}
