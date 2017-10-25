@@ -103,7 +103,9 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     result = api_->Login(&stLoginAuth);
     if (TAPIERROR_SUCCEED != result) {
         clog_error("[%s] Login Error, result:%d",module_name_,result);
-    }
+    }else{
+        clog_info("[%s] Login success", module_name_);
+	}
 }
 
 // done
