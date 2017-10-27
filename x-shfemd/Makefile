@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/x-shfemd/dist
 INCPATH:=-I$(TOP)/x-shfemd/include  -I$(TOP)/3rd/tinyxml/include -I$(TOP)/include -I$(TOP)/3rd/clogger/include 

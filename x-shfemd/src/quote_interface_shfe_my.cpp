@@ -23,17 +23,21 @@ MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe,const std::string &
 {
 	l1_md_last_index_ = L1MD_NPOS;
 
+#ifdef PERSISTENCE_ENABLED 
     p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>("my_shfe_md", MY_SHFE_MD_QUOTE_TYPE);
+#endif
 
+	// TODO:
 	// clog init
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
-	clog_fp_ = fopen("./x-shfemd.log","w+");
-	clog_handler_ = clog_stream_handler_new_fp(clog_fp_, true, "%l %m");
-	clog_handler_push_process(clog_handler_);
+	//clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	//clog_fp_ = fopen("./x-shfemd.log","w+");
+	//clog_handler_ = clog_stream_handler_new_fp(clog_fp_, true, "%l %m");
+	//clog_handler_push_process(clog_handler_);
 
 	ParseConfig();
 	
 	// disruptor init
+	// TODO:
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	queue_ = vrt_queue_new("x-shfemd queue",vrt_hybrid_value_type(),QUEUE_SIZE);
 	fulldepth_md_producer_ = new FullDepthMDProducer(queue_);
@@ -68,7 +72,9 @@ MYQuoteData::~MYQuoteData()
 		delete repairers_[i];
 	}
 
+#ifdef PERSISTENCE_ENABLED 
     if (p_my_shfe_md_save_) delete p_my_shfe_md_save_;
+#endif
 
 	clog_warning("[%s] ~MYQuoteData invoked.", module_name_);
 
@@ -112,6 +118,20 @@ void MYQuoteData::ParseConfig()
 void MYQuoteData::Start()
 {
 	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
+	// disruptor init
+	// TODO:
+	//clog_warning("[%s] yield:%s", module_name_, config_.yield); 
+	//queue_ = vrt_queue_new("x-shfemd queue",vrt_hybrid_value_type(),QUEUE_SIZE);
+	//fulldepth_md_producer_ = new FullDepthMDProducer(queue_);
+	//l1_md_producer_ = new L1MDProducer(queue_);
+	//consumer_ = vrt_consumer_new(module_name_, queue_);
+	//if(strcmp(config_.yield, "threaded") == 0){
+	//	consumer_ ->yield = vrt_yield_strategy_threaded();
+	//}else if(strcmp(config_.yield, "spin") == 0){
+	//	consumer_ ->yield = vrt_yield_strategy_spin_wait();
+	//}else if(strcmp(config_.yield, "hybrid") == 0){
+	//	consumer_ ->yield = vrt_yield_strategy_hybrid();
+	//}
 
 	running_  = true;
 	int rc = 0;
@@ -161,7 +181,6 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 		clog_info("[%s] server from %d to %d",module_name_, server_, new_svr); 
 	}
 
-	// TODO:
 	//clog_info("[%s] ProcFullDepthData", module_name_);
 	//fulldepth_md_producer_->ToString(*md);
 //	clog_info("[%s] ProcFullDepthData :contract:%s;seqno:%d;direction:%c;count:%d;islast:%c;damaged:%c",
@@ -178,9 +197,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 	Reset();
 	MDPackEx* data = repairers_[new_svr]->next(empty);
 	while (!empty) { 
-		// TODO:
-		clog_info("[%s] ProcFullDepthData while", module_name_);
-		fulldepth_md_producer_->ToString(*data);
+		//fulldepth_md_producer_->ToString(*data);
 		//clog_info("[%s] ProcFullDepthData :contract:%s;seqno:%d;direction:%c;count:%d;islast:%c;damaged:%c",
 		//		module_name_, data->content.instrument, data->content.seqno,
 		//		data->content.direction, data->content.count, data->content.islast, data->damaged); 
@@ -311,7 +328,6 @@ void MYQuoteData::Send(const char* contract)
 {
 	CDepthMarketDataField* l1_md = NULL;
 
-	// TODO:
 	//clog_info("[%s] Send,l1_md_last_index_:%d;", module_name_, l1_md_last_index_);
 
 	// 合并一档行情
@@ -319,7 +335,6 @@ void MYQuoteData::Send(const char* contract)
 		 l1_md =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);
 	}
 	if(NULL != l1_md){
-		// TODO:
 		//clog_info("[%s] Send", module_name_);
 		//l1_md_producer_->ToString(*l1_md);
 
@@ -329,10 +344,6 @@ void MYQuoteData::Send(const char* contract)
 		strcpy(target_data_.InstrumentID, contract);
 		target_data_.data_flag = 5; 
 	}
-
-	// TODO:
-	clog_info("[%s] Send", module_name_);
-	ToString(target_data_);
 
 	// 发给数据客户
 	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
@@ -350,7 +361,6 @@ void MYQuoteData::ProcL1MdData(int32_t index)
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 
 	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
-	// TODO:
 	//l1_md_producer_->ToString(*md);
 
 	memcpy(&target_data_, md, sizeof(CDepthMarketDataField));

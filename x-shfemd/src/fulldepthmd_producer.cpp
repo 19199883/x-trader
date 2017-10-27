@@ -149,9 +149,6 @@ void FullDepthMDProducer::RevData()
         }
 
         MDPack *md = (MDPack *)recv_buf;
-	
-		// TODO:
-		//ToString(*md);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -194,8 +191,8 @@ bool FullDepthMDProducer::IsDominant(const char *contract)
 }
 
 std::string FullDepthMDProducer::ToString(const MDPack &d) {
-	clog_info("MDPack Data: \ninstrument: %s\n;"
-		"islast:%d\nseqno:%d\ndirection:%c\ncount:%d\n",
+	clog_info("MDPack Data:instrument:%s;"
+		"islast:%d seqno:%d direction:%c count:%d",
 		d.instrument, (int)d.islast, d.seqno,
 		d.direction, d.count);
 	for(int i = 0; i < d.count; i++) {
@@ -208,8 +205,8 @@ std::string FullDepthMDProducer::ToString(const MDPack &d) {
 
 std::string FullDepthMDProducer::ToString(const MDPackEx &d) 
 {
-	clog_info("MDPack Data: \ninstrument: %s\n; damaged:%d;"
-		"islast:%d\nseqno:%d\ndirection:%c\ncount:%d\n",
+	clog_info("MDPackEx Data: instrument:%s; damaged:%d;"
+		"islast:%d seqno:%d direction:%c count:%d",
 		d.content.instrument, d.damaged, (int)d.content.islast, d.content.seqno,
 		d.content.direction, d.content.count);
 	for(int i = 0; i < d.content.count; i++) {

@@ -290,7 +290,6 @@ void repairer::rev(int index)
 {
 	MDPackEx* data = full_depth_md_producer_->GetData(index);
 
-	// TODO:
 	//ToString(data->content);
 	int new_svr = data->content.seqno % 10;
 	if(new_svr != server_){
