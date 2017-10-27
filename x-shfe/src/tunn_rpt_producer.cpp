@@ -66,6 +66,7 @@ void TunnRptProducer::ParseConfig()
 	if (tunn_node != NULL){
 		this->config_.address = tunn_node->Attribute("address");
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
+		this->config_.investorid = tunn_node->Attribute("investorid");
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
 

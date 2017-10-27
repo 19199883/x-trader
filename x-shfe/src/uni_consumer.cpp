@@ -1,4 +1,5 @@
 #include <thread>         
+#include <functional>   // std::bind
 #include <chrono>        
 #include <algorithm>    
 #include "uni_consumer.h"
@@ -7,13 +8,16 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 
+using namespace std::placeholders; 
+
 CUstpFtdcInputOrderField FemasFieldConverter::new_order_;
 CUstpFtdcOrderActionField FemasFieldConverter::cancel_order_;
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
-			TunnRptProducer *tunn_rpt_producer)
+UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
+	L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
-  md_producer_(md_producer),
+  fulldepth_md_producer_(fulldepth_md_producer),
+  l1_md_producer_(l1_md_producer),
   tunn_rpt_producer_(tunn_rpt_producer)
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
@@ -39,7 +43,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
-
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->consumer_ ->yield = vrt_yield_strategy_threaded();
@@ -78,6 +81,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 UniConsumer::~UniConsumer()
 {
 	running_ = false;
+
+	delete fulldepth_md_producer_;
+	delete l1_md_producer_;
 
 	if (pproxy_ != NULL){
 		pproxy_->DeleteLoadLibraryProxy();
@@ -218,6 +224,10 @@ void UniConsumer::Start()
 
 	running_  = true;
 
+	MYQuoteData myquotedata(fulldepth_md_producer_, l1_md_producer_);
+	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
+	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
+
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
@@ -225,8 +235,11 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
-				case SHFEMARKETDATA:
-					ProcShfeMarketData(ivalue->index);
+				case L1_MD:
+					myquotedata.ProcL1MdData(ivalue->index);
+					break;
+				case FULL_DEPTH_MD:
+					myquotedata.ProcFullDepthData(ivalue->index);
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -248,7 +261,8 @@ void UniConsumer::Stop()
 {
 	if(running_){
 		running_ = false;
-		md_producer_->End();
+		l1_md_producer_->End();
+		fulldepth_md_producer_->End();
 		tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
 		compliance_.Save();
@@ -261,13 +275,8 @@ void UniConsumer::Stop()
 	}
 }
 
-void UniConsumer::ProcShfeMarketData(int32_t index)
+void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 {
-	MYShfeMarketData* md = md_producer_->GetShfeMarketData(index);
-
-	clog_debug("[%s] [ProcBestAndDeep] index:%d; contract:%s; time:%s",
-				module_name_, index, md->InstrumentID,md->GetQuoteTime().c_str());
-
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->InstrumentID);
 	for_each (

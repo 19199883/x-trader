@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include "quote_datatype_shfe_deep.h"
 
 #define gettid() syscall(__NR_gettid)
 
@@ -25,6 +26,9 @@
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 15000
 
+// 行情持久化开关
+#define PERSISTENCE_ENABLED
+
 // 满足一天足够的下单量，以空间换时间
 #define RPT_BUFFER_SIZE 15000
 
@@ -43,12 +47,26 @@ extern "C" {
 	};
 #endif /* __cplusplus */
 
+	class MDPackEx
+	{
+		public:
+			MDPackEx(): damaged(false) { }
+
+			MDPackEx(MDPack &cur_content): damaged(false)
+			{
+				this->content = cur_content;
+			}
+
+			MDPack content;
+			bool damaged;
+	};
 	/* --------------------------------------------------------------
 	 * x-trader varon-t value and type
 	 */
 
 	enum HybridData {
-		SHFEMARKETDATA = 0, 
+		L1_MD = 0, 
+		FULL_DEPTH_MD,
 		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 

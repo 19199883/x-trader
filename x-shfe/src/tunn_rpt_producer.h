@@ -17,6 +17,7 @@ struct Tunnconfig
 {
 	string address;
 	string brokerid;
+	string investorid;
 	string userid;
 	string password;
 	char exchange;

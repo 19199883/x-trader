@@ -9,13 +9,15 @@
 #include <unordered_map>
 #include "vrt_value_obj.h"
 #include "strategy.h"
-#include "md_producer.h"
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "compliance.h"
+#include "quote_interface_shfe_my.h"
+#include "fulldepthmd_producer.h"
+#include "l1md_producer.h"
 
 /*
  * 最多支持策略数量
@@ -48,7 +50,7 @@ class FemasFieldConverter
 			strncpy(new_order_.BrokerID, cfg.brokerid.c_str(), 
 						sizeof(TUstpFtdcBrokerIDType));
 			strncpy(new_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
-			strncpy(new_order_.InvestorID, cfg.userid.c_str(), sizeof(TUstpFtdcInvestorIDType));
+			strncpy(new_order_.InvestorID, cfg.investorid.c_str(), sizeof(TUstpFtdcInvestorIDType));
 			strncpy(new_order_.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
 			new_order_.OrderPriceType = USTP_FTDC_OPT_LimitPrice; 
 			new_order_.HedgeFlag = USTP_FTDC_CHF_Speculation;
@@ -96,7 +98,7 @@ class FemasFieldConverter
 			// 原报单交易所标识
 			strncpy(cancel_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
 			strncpy(cancel_order_.BrokerID, cfg.brokerid.c_str(), sizeof(TUstpFtdcBrokerIDType));
-			strncpy(cancel_order_.InvestorID, cfg.userid.c_str(), sizeof(TUstpFtdcInvestorIDType));
+			strncpy(cancel_order_.InvestorID, cfg.investorid.c_str(), sizeof(TUstpFtdcInvestorIDType));
 			strncpy(cancel_order_.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
 			// order.OrderSysID);
 			cancel_order_.ActionFlag = USTP_FTDC_AF_Delete;
@@ -125,8 +127,8 @@ class FemasFieldConverter
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
-					TunnRptProducer *tunn_rpt_producer);
+		UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
+			L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();
@@ -136,7 +138,8 @@ class UniConsumer
 		bool running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		MDProducer *md_producer_;
+		FullDepthMDProducer *fulldepth_md_producer_;
+		L1MDProducer *l1_md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;
@@ -165,7 +168,7 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcShfeMarketData(int32_t index);
+		void ProcShfeMarketData(MYShfeMarketData* md);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
