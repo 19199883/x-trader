@@ -27,17 +27,15 @@ MYQuoteData::MYQuoteData(const SubscribeContracts *subscribe,const std::string &
     p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>("my_shfe_md", MY_SHFE_MD_QUOTE_TYPE);
 #endif
 
-	// TODO:
 	// clog init
-	//clog_set_minimum_level(CLOG_LEVEL_WARNING);
-	//clog_fp_ = fopen("./x-shfemd.log","w+");
-	//clog_handler_ = clog_stream_handler_new_fp(clog_fp_, true, "%l %m");
-	//clog_handler_push_process(clog_handler_);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
+	clog_fp_ = fopen("./x-shfemd.log","w+");
+	clog_handler_ = clog_stream_handler_new_fp(clog_fp_, true, "%l %m");
+	clog_handler_push_process(clog_handler_);
 
 	ParseConfig();
 	
 	// disruptor init
-	// TODO:
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	queue_ = vrt_queue_new("x-shfemd queue",vrt_hybrid_value_type(),QUEUE_SIZE);
 	fulldepth_md_producer_ = new FullDepthMDProducer(queue_);
@@ -118,20 +116,6 @@ void MYQuoteData::ParseConfig()
 void MYQuoteData::Start()
 {
 	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
-	// disruptor init
-	// TODO:
-	//clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	//queue_ = vrt_queue_new("x-shfemd queue",vrt_hybrid_value_type(),QUEUE_SIZE);
-	//fulldepth_md_producer_ = new FullDepthMDProducer(queue_);
-	//l1_md_producer_ = new L1MDProducer(queue_);
-	//consumer_ = vrt_consumer_new(module_name_, queue_);
-	//if(strcmp(config_.yield, "threaded") == 0){
-	//	consumer_ ->yield = vrt_yield_strategy_threaded();
-	//}else if(strcmp(config_.yield, "spin") == 0){
-	//	consumer_ ->yield = vrt_yield_strategy_spin_wait();
-	//}else if(strcmp(config_.yield, "hybrid") == 0){
-	//	consumer_ ->yield = vrt_yield_strategy_hybrid();
-	//}
 
 	running_  = true;
 	int rc = 0;
@@ -181,12 +165,6 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 		clog_info("[%s] server from %d to %d",module_name_, server_, new_svr); 
 	}
 
-	//clog_info("[%s] ProcFullDepthData", module_name_);
-	//fulldepth_md_producer_->ToString(*md);
-//	clog_info("[%s] ProcFullDepthData :contract:%s;seqno:%d;direction:%c;count:%d;islast:%c;damaged:%c",
-//				module_name_, data->content.instrument, data->content.seqno,
-//				data->content.direction, data->content.count, data->content.islast, data->damaged); 
-
 	repairers_[new_svr]->rev(index);
 
 	bool empty = true;
@@ -197,10 +175,6 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 	Reset();
 	MDPackEx* data = repairers_[new_svr]->next(empty);
 	while (!empty) { 
-		//fulldepth_md_producer_->ToString(*data);
-		//clog_info("[%s] ProcFullDepthData :contract:%s;seqno:%d;direction:%c;count:%d;islast:%c;damaged:%c",
-		//		module_name_, data->content.instrument, data->content.seqno,
-		//		data->content.direction, data->content.count, data->content.islast, data->damaged); 
 
 		if(strcmp(cur_contract, "") == 0){ // 为空，表示第一次进入循环
 			strcpy(cur_contract,data->content.instrument);
@@ -328,15 +302,11 @@ void MYQuoteData::Send(const char* contract)
 {
 	CDepthMarketDataField* l1_md = NULL;
 
-	//clog_info("[%s] Send,l1_md_last_index_:%d;", module_name_, l1_md_last_index_);
-
 	// 合并一档行情
 	if(l1_md_last_index_ != L1MD_NPOS){
 		 l1_md =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);
 	}
 	if(NULL != l1_md){
-		//clog_info("[%s] Send", module_name_);
-		//l1_md_producer_->ToString(*l1_md);
 
 		target_data_.data_flag = 6; 
 		memcpy(&target_data_, l1_md, sizeof(CDepthMarketDataField));
@@ -347,6 +317,10 @@ void MYQuoteData::Send(const char* contract)
 
 	// 发给数据客户
 	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
+
+	  // TODO:
+	  clog_info("[%s] MYQuoteData Send", module_name_);
+	  ToString(target_data_);
 
 #ifdef PERSISTENCE_ENABLED 
     timeval t;
@@ -360,13 +334,14 @@ void MYQuoteData::ProcL1MdData(int32_t index)
 	l1_md_last_index_ = index;
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 
-	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
-	//l1_md_producer_->ToString(*md);
-
 	memcpy(&target_data_, md, sizeof(CDepthMarketDataField));
 	target_data_.data_flag = 1;
 	// 发给数据客户
 	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
+
+	  // TODO:
+	  clog_info("[%s] ProcL1MdData", module_name_);
+	  ToString(target_data_);
 
 #ifdef PERSISTENCE_ENABLED 
     timeval t;

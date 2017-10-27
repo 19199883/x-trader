@@ -15,7 +15,7 @@
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  8192
 
-//#define PERSISTENCE_ENABLED
+#define PERSISTENCE_ENABLED
 
 //#define LATENCY_MEASURE
 

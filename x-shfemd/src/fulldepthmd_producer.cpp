@@ -150,6 +150,10 @@ void FullDepthMDProducer::RevData()
 
         MDPack *md = (MDPack *)recv_buf;
 
+		// TODO:
+		clog_info("[%s] FullDepthMDProducer RevData", module_name_);
+		ToString(*md);
+
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);

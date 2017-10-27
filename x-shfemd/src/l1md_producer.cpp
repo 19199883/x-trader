@@ -29,9 +29,6 @@ CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, 
 		}
 	}
 
-	//clog_info("GetLastDataImp:dominant_contract_count:%d;i:%d;contract:%s",
-	//	dominant_contract_count, i, contract);
-
 	return data;
 }
 
@@ -135,8 +132,9 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 
 	RalaceInvalidValue_Femas(*data);
 	
-	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
+	// TODO:
+	clog_info("[%s] L1MDProducer RevData", module_name_);
+	ToString(*data);
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
