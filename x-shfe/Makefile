@@ -12,7 +12,7 @@ LDFLAGS:=
 OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lpthread -lUSTPtraderapi -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lclogger -lcork -lvrt -lmy_quote_shfe_my_jrcmcc_lib \
-	  -lmy_common_v2 -lboost_filesystem -lmdclient
+	  -lmy_common_v2 -lboost_filesystem -lmdclient -lboost_system 
 DEPS:=.depends
 OUT:=x-shfe
 PACKAGE_NAME:=$(OUT)

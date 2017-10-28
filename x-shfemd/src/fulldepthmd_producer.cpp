@@ -152,7 +152,9 @@ void FullDepthMDProducer::RevData()
 
 		// TODO:
 		clog_info("[%s] FullDepthMDProducer RevData", module_name_);
-		ToString(*md);
+		if(IsDominant(md->instrument)){
+			ToString(*md);
+		}
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
