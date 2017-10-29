@@ -151,8 +151,8 @@ void FullDepthMDProducer::RevData()
         MDPack *md = (MDPack *)recv_buf;
 
 		// TODO:
-		clog_info("[%s] FullDepthMDProducer RevData", module_name_);
 		if(IsDominant(md->instrument)){
+			clog_info("[%s] FullDepthMDProducer RevData", module_name_);
 			ToString(*md);
 		}
 
