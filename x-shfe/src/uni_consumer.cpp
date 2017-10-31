@@ -326,7 +326,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%d;"
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; MatchedAmount:%d;"
 				"ErrorID:%d ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
 				 rpt->ErrorID);

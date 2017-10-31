@@ -214,6 +214,9 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
 
+	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
+				module_name_, md->data_flag, GetId());				
+
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
@@ -462,6 +465,11 @@ int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
 
 void Strategy::FeedTunnRpt(const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
+	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
+	if(rpt.OrderStatus==USTP_FTDC_OS_AllTraded || rpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){ 
+		return;
+	}
+
 	// get signal report by LocalOrderID
 	int32_t counter = GetCounterByLocalOrderID(rpt.LocalOrderID);
 	int32_t index = localorderid_sigandrptidx_map_table_[counter];
@@ -469,15 +477,6 @@ void Strategy::FeedTunnRpt(const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	signal_t& sig = sig_table_[index];
 
 	TUstpFtdcOrderStatusType status = rpt.OrderStatus;
-	// 状态是未知状态时，表示成交阶段的返回,OnRtnOrder已经返回了部分成交或全部成交状态，
-	// 故从缓存的状态还原其状态
-	if(status == TUNN_ORDER_STATUS_UNDEFINED ){
-		if (sigrpt.status ==if_sig_state_t::SIG_STATUS_SUCCESS){
-			status = USTP_FTDC_OS_AllTraded;
-		}else if (sigrpt.status ==if_sig_state_t::SIG_STATUS_PARTED){
-			status = USTP_FTDC_OS_PartTradedQueueing;
-		}
-	}
 	// update signal report
 	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.TradePrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
@@ -485,12 +484,6 @@ void Strategy::FeedTunnRpt(const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	if (rpt.MatchedAmount > 0){
 		// fill signal position report by tunnel report
 		FillPositionRpt(pos_cache_);
-	}
-
-	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
-	if(rpt.OrderStatus==USTP_FTDC_OS_AllTraded ||
-		rpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){ 
-		return;
 	}
 
 	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
@@ -572,12 +565,19 @@ void Strategy::FillPositionRpt(position_t &pos)
 	pos.s_pos[0].changed = 1;
 }
 void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, 
-			signal_resp_t& sigrpt, TUstpFtdcOrderStatusType status, TUstpFtdcErrorIDType err)
+			signal_resp_t& sigrpt, TUstpFtdcOrderStatusType &status, TUstpFtdcErrorIDType err)
 {
 	if (lastqty > 0){
 		sigrpt.exec_price = last_price;
 		sigrpt.exec_volume = lastqty;
 		sigrpt.acc_volume += lastqty;
+	}
+	if(status==TUNN_ORDER_STATUS_UNDEFINED){
+		if (sigrpt.acc_volume == sigrpt.order_volume ){
+			status = USTP_FTDC_OS_AllTraded;
+		}else{ 
+			status = USTP_FTDC_OS_PartTradedQueueing;
+		}
 	}
 
 	if (status == USTP_FTDC_OS_Canceled){

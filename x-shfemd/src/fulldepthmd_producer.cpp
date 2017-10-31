@@ -139,6 +139,7 @@ void FullDepthMDProducer::RevData()
 			(sockaddr *)&fromAddr, (socklen_t *)&nFromLen);
         if (recv_len == -1) {
             int error_no = errno;
+			clog_error("[%s] UDP-recvfrom failed, error_no=%d.",module_name_,error_no);
             if (error_no == 0 || error_no == 251 || 
 				error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
                 continue;

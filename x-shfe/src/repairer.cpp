@@ -298,7 +298,7 @@ void repairer::rev(int index)
 
 	int new_sn = data->content.seqno / 10;
 	if ((seq_no_!=-1) && new_sn != seq_no_+1) {
-		clog_warning("[%s] seq no from %d to %d, packet loss",module_name_, seq_no_,new_sn);
+		clog_info("[%s] seq no from %d to %d, packet loss",module_name_, seq_no_,new_sn);
 	}
 
 	if (!working_){ // find normal data start point

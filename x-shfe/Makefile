@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=y
+DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/x-shfe/dist
 INCPATH:=-I$(TOP)/3rd/femas2.0/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include 
@@ -11,7 +11,7 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lUSTPtraderapi -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lclogger -lcork -lvrt -lmy_quote_shfe_my_jrcmcc_lib \
+LIBS:=-lpthread -lUSTPtraderapi -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lclogger -lcork -lvrt \
 	  -lmy_common_v2 -lboost_filesystem -lmdclient -lboost_system 
 DEPS:=.depends
 OUT:=x-shfe

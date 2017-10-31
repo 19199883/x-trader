@@ -183,7 +183,7 @@ private:
 	 * 
 	 */
 	void UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, signal_resp_t& sigrpt, 
-			TUstpFtdcOrderStatusType status, TUstpFtdcErrorIDType err);
+			TUstpFtdcOrderStatusType &status, TUstpFtdcErrorIDType err);
 	void UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status, unsigned short sig_openclose,
 			unsigned short int sig_act);
 	void FillPositionRpt(position_t& pos);
