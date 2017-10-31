@@ -157,7 +157,7 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 					module_name_,latency); 
 #endif
 	if (ret != 0){
-		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
+		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
 	}else {
 		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
@@ -224,7 +224,6 @@ void TunnRptProducer::OnAPIReady()
 // done
 void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
 {
-	// TODO:
     //clog_error("[%s] OnDisconnect, reasonCode:%d",module_name_,reasonCode);
 }
 
@@ -294,7 +293,6 @@ void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
 void TunnRptProducer::End()
 {
     if (api_) {
-		// TODO:
         // api_->Disconnect();
         api_ = NULL;
     }
