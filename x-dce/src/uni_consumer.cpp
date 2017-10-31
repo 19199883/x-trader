@@ -392,7 +392,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
 
-	// TODO:
 	if (!strategy.HasFrozenPosition()){
 		int i = 0;
 		for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
@@ -427,7 +426,6 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
-				// TODO:
 				int i = 0;
 				for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					if(pending_signals_[sig.st_id][i] < 0){
@@ -474,7 +472,6 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
-	// TODO: 1
 	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol);
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);

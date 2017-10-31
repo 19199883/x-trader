@@ -47,11 +47,11 @@ void Strategy::End(void)
 
 	WriteLog(true);
 	fclose(pfDayLogFile_);
-	clog_info("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
+	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
 
 	if (this->pfn_destroy_ != NULL){
 		//pfn_destroy_ ();
-		clog_info("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
+		clog_warning("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
 	}
 }
 
@@ -106,71 +106,52 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
 	}
 
 	pfn_feedbestanddeep_ = (FeedBestAndDeep_ptr)pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP);
 	if (!pfn_feedbestanddeep_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
 	}
 
 	pfn_feedorderstatistic_ = (FeedOrderStatistic_ptr)pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS);
 	if (!pfn_feedorderstatistic_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_INIT_POSITION, errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_SIG_RESP, errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_DESTROY, errno);
 	}
 	
-
-	pfn_setlogfn1_ = (SetLogFn1Ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN1);
-	if (!pfn_setlogfn1_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN1, errno);
-	} else {
-		//pfn_setlogfn1_(GetId(), StrategyLog::Log1);
-	}
-
-	pfn_setlogfn2_ = (SetLogFn2Ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN2);
-	if (!pfn_setlogfn2_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN2, errno);
-	} else {
-		//pfn_setlogfn2_(GetId(), StrategyLog::Log2);
-	}
-
 	string model_log = generate_log_name(setting_.config.log_name);
 	strcpy(setting_.config.log_name, model_log.c_str());
 	setting_.config.log_id = setting_.config.st_id;
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	WriteLogTitle();
-	clog_info("[%s] strategy id:%d;open log file:%s", module_name_,
+	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
 				GetId(),setting_.config.log_name);
 
 	LoadPosition();
@@ -213,7 +194,7 @@ void Strategy::FeedInitPosition()
 	log_cursor_++;
 	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false); 
 
-	clog_info("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
+	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
 				second.long_volume, second.short_volume);
 }
@@ -487,7 +468,6 @@ void Strategy::Push(const signal_t &sig)
 				module_name_, sig.st_id, sig.sig_id, cursor_);
 }
 
-// TODO: 1
 void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig.sig_id];
@@ -534,7 +514,7 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 
 	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
 
-	clog_debug("[%s] FeedTunnRpt:strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d;"
+	clog_info("[%s] FeedTunnRpt:strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d;"
 				"symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f;"
 				"exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
 				module_name_, setting_.config.st_id, pos_cache_.s_pos[0].symbol, pos_cache_.s_pos[0].long_volume, 
