@@ -214,7 +214,7 @@ void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sig
 
 		sigs[i].st_id = this->GetId();
 
-		 clog_debug("[%s] strategy id:%d;FeedMd MDBestAndDeep signal: strategy id:%d; sig_id:%d; "
+		 clog_info("[%s] strategy id:%d;FeedMd MDBestAndDeep signal: strategy id:%d; sig_id:%d; "
 					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
 					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_,GetId(), sigs[i].st_id, sigs[i].sig_id,
@@ -234,7 +234,7 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
 
-		clog_debug("[%s] feed_sig_respons esignal: strategy id:%d;  sig_id:%d; "
+		clog_info("[%s] feed_sig_respons esignal: strategy id:%d;  sig_id:%d; "
 					"exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
 					"sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_, sigs[i].st_id, sigs[i].sig_id,
@@ -291,7 +291,7 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 		position_.frozen_close_long += updated_vol;
 	}
 
-	clog_debug("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
+	clog_info("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
@@ -346,7 +346,7 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 
 	if (updated_vol > vol) updated_vol = vol; 
 
-	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; "
+	clog_info("[%s] GetAvailableVol: strategy id:%d; signal id:%d; "
 			"current long:%d; current short:%d; "
 			"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 			"frozen_open_short:%d; updated vol:%d",
@@ -387,7 +387,7 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 	}
 
 
-	clog_debug("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
+	clog_info("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 			"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 			"frozen_open_short:%d; ",
 			module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
@@ -436,7 +436,7 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; "
+	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; "
 				"cursor,%d; LocalOrderID:%ld;",
 				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
@@ -474,7 +474,7 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 
 	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
 
-	clog_debug("[%s] FeedTunnRpt:strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d;"
+	clog_info("[%s] FeedTunnRpt:strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d;"
 				"symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f;"
 				"exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
 				module_name_, setting_.config.st_id, pos_cache_.s_pos[0].symbol, 
@@ -527,7 +527,7 @@ void Strategy::UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short
 		}
 	}
 
-	clog_debug("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
+	clog_info("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,

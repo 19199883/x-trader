@@ -304,7 +304,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
 				" ErrorID:%u ", module_name_, index, rpt->LocalOrderID, 
 				rpt->OrderStatus, rpt->MatchedAmount, rpt->ErrorID);
 
@@ -336,7 +336,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				pending_signals_[st_id][i] = -1;
 				signal_t *sig = strategy.GetSignalBySigID(sig_id);
 				PlaceOrder(strategy, *sig);
-				 clog_debug("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
 							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
 							 "sig_act:%d; sig_openclose:%d; ",
 						module_name_, sig->st_id, sig->sig_id,
@@ -365,7 +365,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 				for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					if(pending_signals_[sig.st_id][i] < 0){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
-						clog_debug("[%s] pending_signals_ push st id:%d; sig id;%d", 
+						clog_info("[%s] pending_signals_ push st id:%d; sig id;%d", 
 									module_name_,sig.st_id,pending_signals_[sig.st_id][i]);
 						break;
 					}
@@ -382,7 +382,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	if (!strategy.HasFrozenPosition()){
-		clog_debug("[%s] strategy id:%d,sig id:%d. CancelOrder: ignore"
+		clog_info("[%s] strategy id:%d,sig id:%d. CancelOrder: ignore"
 					"request due to frozen position.", 
 					module_name_,sig.st_id,sig.sig_id); 
 		return;
@@ -390,7 +390,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	
 	long ori_localorderid = strategy.GetLocalOrderID(sig.orig_sig_id);
 	int32_t counter = strategy.GetCounterByLocalOrderID(ori_localorderid);
-	clog_debug("[%s] CancelOrder:strategy id:%d,sig id:%d,LocalOrderID:%ld; ", 
+	clog_info("[%s] CancelOrder:strategy id:%d,sig id:%d,LocalOrderID:%ld; ", 
 				module_name_,sig.st_id,sig.sig_id, ori_localorderid); 
 
 	this->tunn_rpt_producer_->ReqOrderAction(counter);

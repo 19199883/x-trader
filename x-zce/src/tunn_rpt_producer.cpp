@@ -160,7 +160,7 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
 				module_name_,ret, *session,localorderid);
 	}else {
-		clog_debug("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
+		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
 				module_name_,ret, *session,localorderid);
 	}
 
@@ -192,7 +192,7 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
 	} else {
-		clog_debug("[%s] CancelOrder - return:%d, session_id:%d, "
+		clog_info("[%s] CancelOrder - return:%d, session_id:%d, "
 			"counter of original order:%d,server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
@@ -304,7 +304,7 @@ void TunnRptProducer::End()
 
 void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 {
-    clog_debug("[%s] OnRtnOrder:%s",module_name_, 
+    clog_info("[%s] OnRtnOrder:%s",module_name_, 
 				ESUNNYDatatypeFormater::ToString(info).c_str());
 
 	if (ended_) return;
@@ -356,7 +356,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 void TunnRptProducer::OnRspOrderAction(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
 			const TapAPIOrderActionRsp* info)
 {
-    clog_debug("[%s] OnRspOrderAction:sessionID:%u,errorCode:%d, %s",
+    clog_info("[%s] OnRspOrderAction:sessionID:%u,errorCode:%d, %s",
         module_name_,sessionID, errorCode, ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
