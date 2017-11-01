@@ -19,24 +19,24 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 
 #if FIND_STRATEGIES == 1
 	unordered_multimap 
-	clog_info("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
+	clog_warning("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
 #endif
 
 #if FIND_STRATEGIES == 2 // two-dimensional array
 	memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
 	memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
-	clog_info("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
+	clog_warning("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
 #endif	
 
 #if FIND_STRATEGIES == 3 // strcmp
-	clog_info("[%s] method for finding strategies by contract:strcmp", module_name_);
+	clog_warning("[%s] method for finding strategies by contract:strcmp", module_name_);
 #endif
 
-	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
+	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
-	clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->consumer_->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -196,7 +196,7 @@ void UniConsumer::CreateStrategies()
 		}
 #endif
 
-		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
+		clog_warning("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),
 					stra_table_[strategy_counter_].GetContract(), 
 					stra_table_[strategy_counter_].GetMaxPosition(), 
@@ -224,14 +224,14 @@ void UniConsumer::Start()
 					ProcTunnRpt(ivalue->index);
 					break;
 				default:
-					clog_info("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
+					clog_error("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
 					break;
 			}
 		}
 	} // end while (running_ &&
 
 	if (rc == VRT_QUEUE_EOF) {
-		clog_info("[%s] [start] rev EOF.", module_name_);
+		clog_warning("[%s] [start] rev EOF.", module_name_);
 	}
 }
 

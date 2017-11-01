@@ -54,9 +54,9 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	ended_ = false;
 	memset(tunnrpt_table_,0,sizeof(tunnrpt_table_));
 	
-	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
+	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
     // check api version
-    clog_info("[%s] TapTradeAPIVersion:%s",module_name_,GetTapTradeAPIVersion());
+    clog_warning("[%s] TapTradeAPIVersion:%s",module_name_,GetTapTradeAPIVersion());
 
 	this->ParseConfig();
 	ESUNNYPacker::InitNewOrder(GetAccount());
@@ -64,7 +64,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
-	clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -76,7 +76,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	// create esunny object
     TapAPIApplicationInfo auth_info;
     std::string auth_code = ReadAuthCode();
-    clog_info("[%s] AuthCode: %s",module_name_,auth_code.c_str());
+    clog_warning("[%s] AuthCode: %s",module_name_,auth_code.c_str());
     strncpy(auth_info.AuthCode, auth_code.c_str(), sizeof(auth_info.AuthCode));
     strcpy(auth_info.KeyOperationLogPath, "");
     TAPIINT32 result;
@@ -89,7 +89,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	// address for front machine
 	IPAndPortNum ip_port = ParseIPAndPortNum(config_.address);
 	api_->SetHostAddress(ip_port.first.c_str(), ip_port.second);
-	clog_info("SetHostAddress, addr: %s:%d", ip_port.first.c_str(), ip_port.second);
+	clog_warning("SetHostAddress, addr: %s:%d", ip_port.first.c_str(), ip_port.second);
     //登录服务器
     TapAPITradeLoginAuth stLoginAuth;
     memset(&stLoginAuth, 0, sizeof(stLoginAuth));
@@ -104,7 +104,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     if (TAPIERROR_SUCCEED != result) {
         clog_error("[%s] Login Error, result:%d",module_name_,result);
     }else{
-        clog_info("[%s] Login success", module_name_);
+        clog_warning("[%s] Login success", module_name_);
 	}
 }
 
@@ -133,7 +133,7 @@ void TunnRptProducer::ParseConfig()
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
 
-		clog_info("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
+		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
 					module_name_, 
 					this->config_.address.c_str(), 
 					this->config_.brokerid.c_str(),
@@ -204,13 +204,13 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 // done
 void TunnRptProducer::OnConnect()
 {
-    clog_info("[%s] OnConnect.", module_name_);
+    clog_warning("[%s] OnConnect.", module_name_);
 }
 
 // done
 void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspInfo* loginRspInfo)
 {
-    clog_info("[%s] OnRspLogin: errorCode:%d,%s",
+    clog_warning("[%s] OnRspLogin: errorCode:%d,%s",
         module_name_,
 		errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
 }
@@ -218,7 +218,7 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
 // done
 void TunnRptProducer::OnAPIReady()
 {
-    clog_info("[%s] OnAPIReady",module_name_);	
+    clog_warning("[%s] OnAPIReady",module_name_);	
 }
 
 // done
@@ -230,14 +230,14 @@ void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
 // done
 void TunnRptProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode)
 {
-    clog_info("[%s] OnRspChangePassword.", module_name_);
+    clog_warning("[%s] OnRspChangePassword.", module_name_);
 }
 
 // done
 void TunnRptProducer::OnRspSetReservedInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			const TAPISTR_50 info)
 {
-    clog_info("[%s] OnRspSetReservedInfo.", module_name_);
+    clog_warning("[%s] OnRspSetReservedInfo.", module_name_);
 }
 
 // done
@@ -247,46 +247,28 @@ void TunnRptProducer::OnRspQryAccount(TAPIUINT32 sessionID, TAPIUINT32 errorCode
     clog_info("[%s] OnRspQryAccount.", module_name_);
 }
 
-// done
 void TunnRptProducer::OnRspQryFund(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPIFundData* info)
-{
-    clog_info("[%s] OnRspQryFund.", module_name_);
-}
+			TAPIYNFLAG isLast, const TapAPIFundData* info) { }
 
-// done
-void TunnRptProducer::OnRtnFund(const TapAPIFundData* info) 
-{
-    clog_info("[%s] OnRtnFund.", module_name_);
-}
+void TunnRptProducer::OnRtnFund(const TapAPIFundData* info) { }
 
-// done
 void TunnRptProducer::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPIExchangeInfo* info)
-{
-    clog_info("[%s] OnRspQryExchange.", module_name_);
-}
+			TAPIYNFLAG isLast, const TapAPIExchangeInfo* info) { }
 
-// done
 void TunnRptProducer::OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPICommodityInfo* info)
-{
-    clog_info("[%s] OnRspQryCommodity.", module_name_);
-}
+			TAPIYNFLAG isLast, const TapAPICommodityInfo* info) { }
 
-// done
 void TunnRptProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
 			TAPIYNFLAG isLast, const TapAPITradeContractInfo* info)
 {
-    clog_info("[%s] OnRspQryContract: sessionID:%u, errorCode:%d, isLast:%c, %s",
+    clog_warning("[%s] OnRspQryContract: sessionID:%u, errorCode:%d, isLast:%c, %s",
         module_name_,sessionID, errorCode, isLast, 
 		ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
-// done
 void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
 {
-    clog_info("[%s] OnRtnContract.", module_name_);
+    clog_warning("[%s] OnRtnContract.", module_name_);
 }
 
 // done

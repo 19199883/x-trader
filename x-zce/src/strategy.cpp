@@ -44,11 +44,11 @@ void Strategy::End(void)
 
 	WriteLog(true);
 	fclose(pfDayLogFile_);
-	clog_info("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
+	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
 
 	if (this->pfn_destroy_ != NULL){
 		//pfn_destroy_ ();
-		clog_info("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
+		clog_warning("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
 	}
 }
 
@@ -103,14 +103,14 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
 	}
 
 	pfn_feedl2quotesnapshot_ = (FeedL2QuoteSnapshot_ptr)pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT);
 	if (!pfn_feedl2quotesnapshot_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), 
 					STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT, errno);
 	}
@@ -118,21 +118,21 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_INIT_POSITION, errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_SIG_RESP, errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
-		clog_info("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_DESTROY, errno);
 	}
 	
@@ -142,7 +142,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	WriteLogTitle();
-	clog_info("[%s] strategy id:%d;open log file:%s", module_name_,
+	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
 				GetId(),setting_.config.log_name);
 
 	LoadPosition();
@@ -185,7 +185,7 @@ void Strategy::FeedInitPosition()
 	log_cursor_++;
 	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false); 
 
-	clog_info("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
+	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
 				second.long_volume, second.short_volume);
 }

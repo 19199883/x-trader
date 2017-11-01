@@ -12,11 +12,11 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 
 	ParseConfig();
 
-	clog_info("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
+	clog_warning("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
 	(this->producer_ = vrt_producer_new("md_producer", 1, queue));
 
-	clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -48,7 +48,7 @@ MDProducer::~MDProducer(){
 	if (md_provider_ != NULL){
 		delete md_provider_;
 		md_provider_ = NULL;
-		clog_info("[%s] release md_provider.", module_name_);
+		clog_warning("[%s] release md_provider.", module_name_);
 	}
 }
 
@@ -59,7 +59,7 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
 	TiXmlElement* MarketData = RootElement->FirstChildElement("MarketData");
 	if (NULL != MarketData) {
 		string md_config = MarketData->Attribute("config");
-		clog_info("[%s] MarketData.config: %s", module_name_, md_config.c_str());
+		clog_warning("[%s] MarketData.config: %s", module_name_, md_config.c_str());
 		return new MYQuoteData(&subs_, md_config);
 	}
 	else{
