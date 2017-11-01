@@ -25,8 +25,6 @@ Strategy::Strategy()
 	pfn_destroy_ = NULL;
 	pfn_feedinitposition_ = NULL;
 	pfn_destroy_ = NULL;
-	pfn_setlogfn1_ = NULL;
-	pfn_setlogfn2_ = NULL;
 
 	pproxy_ = NULL;
 
