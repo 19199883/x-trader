@@ -39,6 +39,11 @@ Strategy::Strategy()
 	log_ended_ = false;
 	log_write_count_ = 0;
 	cur_ntick_ = -1;
+
+
+	memset(localorderid_sigandrptidx_map_table_, 0, sizeof(localorderid_sigandrptidx_map_table_));
+	memset(sigid_localorderid_map_table_, 0, sizeof(sigid_localorderid_map_table_));
+	memset(sigid_sigidx_map_table_, 0, sizeof(sigid_sigidx_map_table_));
 }
 
 void Strategy::End(void)
@@ -136,25 +141,6 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	if (!pfn_destroy_){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_DESTROY, errno);
-	}
-	
-
-	pfn_setlogfn1_ = (SetLogFn1Ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN1);
-	if (!pfn_setlogfn1_ ){
-		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN1, errno);
-	} else {
-		//pfn_setlogfn1_(GetId(), StrategyLog::Log1);
-	}
-
-	pfn_setlogfn2_ = (SetLogFn2Ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_SET_LOG_FN2);
-	if (!pfn_setlogfn2_ ){
-		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_SET_LOG_FN2, errno);
-	} else {
-		//pfn_setlogfn2_(GetId(), StrategyLog::Log2);
 	}
 
 	string model_log = generate_log_name(setting_.config.log_name);
@@ -448,8 +434,8 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
-				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
+	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d;"
+		"LocalOrderID:%ld;", module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
 
 

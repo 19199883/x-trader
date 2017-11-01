@@ -414,11 +414,25 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 				ori_local_order_id);
 	int rtn = tunn_rpt_producer_->ReqOrderAction(order);
 
+	// TODO: debug
+	if(0 == ori_local_order_id){
+		clog_warning("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
+			module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+
+		signal_t* ori_sig = GetSignalBySigID(sig.orig_sig_id);
+		 clog_warning("[%s] CancelOrder ori signal: strategy id:%d; sig_id:%d; "
+			 " symbol:%s; open_volume:%d; buy_price:%f; "
+			 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+			module_name_, ori_sig.st_id, ori_sig.sig_id, sig.symbol, ori_sig.open_volume, 
+			ori_sig.buy_price, ori_sig.close_volume, ori_sig.sell_price, ori_sig.sig_act, 
+			ori_sig.sig_openclose, ori_sig.orig_sig_id); 
+	}
+
 	clog_info("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-				module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+		module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
 	if(rtn != 0){
 		clog_error("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-				module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+			module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
 	}
 
 

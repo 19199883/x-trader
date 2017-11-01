@@ -19,8 +19,6 @@ using namespace std;
 #define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_init_position_"
-#define STRATEGY_METHOD_SET_LOG_FN1 "SetLogFn1_"
-#define STRATEGY_METHOD_SET_LOG_FN2 "SetLogFn2_"
 
 // 假设一个策略最多产生3000个信号
 #define SIGANDRPT_TABLE_SIZE 1000
@@ -86,8 +84,6 @@ public:
 				symbol_pos_t *pos, int *sig_cnt, signal_t* sigs, struct strat_out_log *log);
 	typedef void (*Destroy_ptr)();
 	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data, struct strat_out_log *log);
-	typedef void ( *SetLogFn1Ptr )( int strategy_id, LogFn1Ptr fn_ptr );
-	typedef void ( *SetLogFn2Ptr )( int strategy_id, LogFn2Ptr fn_ptr );
 
 public:
 	Strategy();
@@ -137,8 +133,6 @@ private:
 	FeedSignalResponse_ptr pfn_feedsignalresponse_;
 	Destroy_ptr pfn_destroy_;
 	FeedInitPosition_ptr pfn_feedinitposition_;
-	SetLogFn1Ptr pfn_setlogfn1_;
-	SetLogFn2Ptr pfn_setlogfn2_;
 
 	long GetLocalOrderIDByCounter(long counter);
 
