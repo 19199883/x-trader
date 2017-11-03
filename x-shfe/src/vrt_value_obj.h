@@ -27,7 +27,7 @@
 #define COUNTER_UPPER_LIMIT 15000
 
 // 行情持久化开关
-#define PERSISTENCE_ENABLED
+//#define PERSISTENCE_ENABLED
 
 // 满足一天足够的下单量，以空间换时间
 #define RPT_BUFFER_SIZE 15000
