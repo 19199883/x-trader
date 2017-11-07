@@ -132,9 +132,9 @@ void FullDepthMDProducer::RevData()
     int ary_len = recv_struct_len;
     char *recv_buf = new char[ary_len];
     std::size_t recv_len = 0;
+	sockaddr_in fromAddr;
+	int nFromLen = sizeof(fromAddr);
     while (!ended_){
-        sockaddr_in fromAddr;
-        int nFromLen = sizeof(fromAddr);
         recv_len = recvfrom(udp_fd, recv_buf, ary_len, 0, 
 			(sockaddr *)&fromAddr, (socklen_t *)&nFromLen);
         if (recv_len == -1) {
