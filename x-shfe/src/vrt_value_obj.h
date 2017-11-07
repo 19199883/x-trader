@@ -13,6 +13,7 @@
 
 //#define LATENCY_MEASURE
 
+// 合规检查开关
 #define COMPLIANCE_CHECK
 
 #define TUNN_ORDER_STATUS_UNDEFINED -1
