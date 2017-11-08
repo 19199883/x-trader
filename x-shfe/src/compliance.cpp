@@ -80,16 +80,14 @@ int Compliance::GetCancelTimes(const char* contract)
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			double price, TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset)
 {
-#ifdef LATENCY_MEASURE
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
     bool ret = true;
 
 	int32_t cancel_times = GetCancelTimes(contract);
 	if(offset==USTP_FTDC_OF_Open && cancel_times>=cancel_upper_limit_){
 		time_t rawtime;
 		time (&rawtime);
-		clog_error("[%s][%s] rejected for cancel upper limit.ord counter:%d;cur times:%d;ord counter:%d;",
+		clog_error("[%s][%s] rejected for cancel upper limit.ord counter:%d;"
+			"cur times:%d;ord counter:%d;",
 			module_name_,ctime (&rawtime),ord_counter,cancel_times,ord_counter);
 		return false;
 	}
@@ -117,7 +115,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 
 		OrderInfo& ord = ord_buffer_[ord_counter];
 		ord.valid = true;
-		strcmp(ord.contract, contract);
+		strcpy(ord.contract, contract);
 		ord.side = side;
 		ord.price = price;
 	}
@@ -125,11 +123,6 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 	clog_info("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
 				module_name_, ord_counter, min_counter_, max_counter_, ret);
 
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_info("[%s] TryReqOrderInsert latency:%d us", module_name_, latency); 
-#endif
     return ret;
 }
 
