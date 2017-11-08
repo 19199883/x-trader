@@ -32,8 +32,6 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 
-	// version
-	clog_warning("version:x-shfe_20171108"); 
 
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
@@ -51,6 +49,9 @@ int main(/*int argc, const char **argv*/)
 	fp=fopen("./x-trader.log","w+");
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
+
+	// version
+	clog_warning("version:x-shfe_20171108"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
