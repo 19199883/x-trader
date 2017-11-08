@@ -96,7 +96,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 
 		OrderInfo& ord = ord_buffer_[ord_counter];
 		ord.valid = true;
-		strcmp(ord.contract, contract);
+		strcpy(ord.contract, contract);
 		ord.side = side;
 		ord.price = price;
 	}
