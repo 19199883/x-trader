@@ -12,7 +12,7 @@ LDFLAGS:=
 OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lpthread -lUSTPtraderapi -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lclogger -lcork -lvrt \
-	  -lmy_common_v2 -lboost_filesystem -lmdclient -lboost_system 
+	  -lboost_filesystem -lmdclient -lboost_system 
 DEPS:=.depends
 OUT:=x-shfe
 PACKAGE_NAME:=$(OUT)

@@ -31,6 +31,10 @@ SIG_handler(int s)
 
 int main(/*int argc, const char **argv*/)
 {
+
+	// version
+	clog_warning("version:x-shfe_20171108"); 
+
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
 #endif
