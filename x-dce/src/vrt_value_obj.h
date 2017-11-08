@@ -43,7 +43,7 @@ extern "C" {
 
 	enum HybridData {
 		BESTANDDEEP = 0, 
-		ORDERSTATISTIC,
+		ORDERSTATISTIC_DATA,
 		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 

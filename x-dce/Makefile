@@ -4,15 +4,15 @@ CC:=g++
 DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/x-dce/dist
-INCPATH:=-I$(TOP)/3rd/x1/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/level2/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/x1/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/level2/lib
+INCPATH:=-I$(TOP)/3rd/x1/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/dce_md/include 
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/x1/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/dce_md/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lcheck -lclogger -lcork -lvrt -lmy_quote_dce_level2_jrudp_lib \
-	  -lmy_common_v2 -luuid -lboost_filesystem
+LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lcheck -lclogger -lcork -lvrt \
+	  -luuid -lboost_filesystem
 DEPS:=.depends
 OUT:=x-dce
 PACKAGE_NAME:=$(OUT)

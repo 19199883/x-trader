@@ -228,7 +228,7 @@ void UniConsumer::Start()
 				case BESTANDDEEP:
 					ProcBestAndDeep(ivalue->index);
 					break;
-				case ORDERSTATISTIC:
+				case ORDERSTATISTIC_DATA:
 					ProcOrderStatistic(ivalue->index);
 					break;
 				case TUNN_RPT:
