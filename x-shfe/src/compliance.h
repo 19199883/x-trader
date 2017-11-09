@@ -32,9 +32,31 @@ class Compliance
 		void Save();
 		void AccumulateCancelTimes(const char* contrace);
 
+		int GetMinCounter()		
+		{
+			return min_counter_;
+		}
+
+		int GetMaxCounter()		
+		{
+			return max_counter_;
+		}
+		OrderInfo *GetOrdBuffer()
+		{
+			return ord_buffer_;
+		}
+		char **GetContracts()
+		{
+			return (char **)contracts_;
+		}
+		int *GetCurCancelTimes()
+		{
+			return cur_cancel_times_;
+		}
+		int GetCancelTimes(const char* contract);
+		char contracts_[MAX_CONTRACT_NUMBER][12];
 	private:
 		void ParseConfig();
-		int GetCancelTimes(const char* contract);
 
 		// 记录未终结的中最小的counter
 		int min_counter_;
@@ -50,7 +72,6 @@ class Compliance
 		 * contracts存储不同的合约，合约在contracts的下标记为:n,
 		 * 那么cur_cancel_times_[n]用于记录该合约累计撤单数 
 		 */
-		char contracts_[MAX_CONTRACT_NUMBER][12];
 		int cur_cancel_times_[MAX_CONTRACT_NUMBER];
 };
 
