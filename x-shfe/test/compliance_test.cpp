@@ -80,16 +80,16 @@
 TEST(ComplianceTest, Constructor) {
 	Compliance com;
 
-	ASSERT_STREQ("", contracts_[0]);
-	ASSERT_STREQ("", contracts_[2]);
-	ASSERT_STREQ("", contracts_[MAX_CONTRACT_NUMBER - 1]);
+	ASSERT_STREQ("", com.contracts_[0]);
+	ASSERT_STREQ("", com.contracts_[2]);
+	ASSERT_STREQ("", com.contracts_[MAX_CONTRACT_NUMBER - 1]);
 
-	EXPECT_EQ(0, cur_cancel_times_[0]);
-	EXPECT_EQ(0, cur_cancel_times_[1]);
-	EXPECT_EQ(0, cur_cancel_times_[MAX_CONTRACT_NUMBER - 1]);
+	EXPECT_EQ(0, com.GetCurCancelTimes()[0]);
+	EXPECT_EQ(0, com.GetCurCancelTimes()[1]);
+	EXPECT_EQ(0, com.GetCurCancelTimes()[MAX_CONTRACT_NUMBER - 1]);
 
-	EXPECT_FALSE(ord_buffer_[0].valid);
-	EXPECT_FALSE(ord_buffer_[COUNTER_UPPER_LIMIT - 1].valid);
+	EXPECT_FALSE(com.GetOrdBuffer()[0].valid);
+	EXPECT_FALSE(com.GetOrdBuffer()[COUNTER_UPPER_LIMIT - 1].valid);
 }
 
 /*
@@ -149,7 +149,7 @@ TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_4) {
 /*
  * 其它都满足自成交，只是合约不同
  */
-TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_4) 
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_4_1) 
 {
 	Compliance com;
 
@@ -232,27 +232,65 @@ TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_8)
 	EXPECT_TRUE(rtn);
 }
 
-// TODO: here
 /*
  * 有多个挂单，不同合约，与第一个单自成交，与最后单自成交
  */
-TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_9) {
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_9) 
+{
 	Compliance com;
 
 	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3471.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3472.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+
+	rtn = com.TryReqOrderInsert(4, "rb1801", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	rtn = com.TryReqOrderInsert(5, "rb1801", 3471.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	rtn = com.TryReqOrderInsert(6, "rb1801", 3472.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+
+	rtn = com.TryReqOrderInsert(7, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+	rtn = com.TryReqOrderInsert(8, "rb1805", 3472.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+	rtn = com.TryReqOrderInsert(9, "rb1805", 3469.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
 	EXPECT_TRUE(rtn);
 
-	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	rtn = com.TryReqOrderInsert(10, "rb1801", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
 	EXPECT_FALSE(rtn);
-
-	com.End(1);
-	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	rtn = com.TryReqOrderInsert(11, "rb1801", 3472.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+	rtn = com.TryReqOrderInsert(12, "rb1801", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
 	EXPECT_TRUE(rtn);
 }
+
+
 /*
- * 单，结束，下单，自成交，下单，不自成交，结束等复杂场景
+ * 证拒绝的单不会放在挂单列表中
  */
-TEST(ComplianceTest, TryReqOrderInsert_5) {
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_10) 
+{
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3471.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	com.End(1);
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+	rtn = com.TryReqOrderInsert(4, "rb1805", 3471.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+/*
+ * 杂场景：混合下单，自成交，成交，多个合约等
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_11) 
+{
 	Compliance com;
 
 	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
@@ -263,129 +301,223 @@ TEST(ComplianceTest, TryReqOrderInsert_5) {
 
 	com.End(1);
 	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	com.End(3);
+	// buy queue, rb1805
+	rtn = com.TryReqOrderInsert(4, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+	rtn = com.TryReqOrderInsert(5, "rb1805", 3471.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+	// buy queue. rb1801
+	rtn = com.TryReqOrderInsert(6, "rb1801", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+	rtn = com.TryReqOrderInsert(7, "rb1801", 3471.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+	// sell queue, rb1805
+	rtn = com.TryReqOrderInsert(8, "rb1805", 3472.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+	rtn = com.TryReqOrderInsert(9, "rb1805", 3472.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	com.End(5);
+	rtn = com.TryReqOrderInsert(10, "rb1805", 3471.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(11, "rb1805", 3470.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+	com.End(4);
+	rtn = com.TryReqOrderInsert(12, "rb1805", 3470.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(13, "rb1801", 3471.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	com.End(6);
+	com.End(7);
+	com.End(8);
+	rtn = com.TryReqOrderInsert(14, "rb1805", 3472.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	com.End(9);
+	rtn = com.TryReqOrderInsert(15, "rb1805", 3472.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	com.End(10);
+	com.End(12);
+	rtn = com.TryReqOrderInsert(16, "rb1805", 3472.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
 	EXPECT_TRUE(rtn);
 }
 
 /*
  * 证min_counter_, max_counter_
  */
-TEST(ComplianceTest, TryReqOrderInsert_5) {
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_12)
+{
 	Compliance com;
 
-	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
-	EXPECT_TRUE(rtn);
+	// init value
+	EXPECT_EQ(0, com.GetMinCounter());
+	EXPECT_EQ(0, com.GetMaxCounter());
 
-	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_EQ(1, com.GetMinCounter());
+	EXPECT_EQ(1, com.GetMaxCounter());
+
+	com.TryReqOrderInsert(2, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_EQ(1, com.GetMinCounter());
+	EXPECT_EQ(2, com.GetMaxCounter());
+
+	com.TryReqOrderInsert(4, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_EQ(1, com.GetMinCounter());
+	EXPECT_EQ(4, com.GetMaxCounter());
+
+	// 成交不影响max_counter_
+	bool rtn = com.TryReqOrderInsert(5, "rb1805", 3470.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
 	EXPECT_FALSE(rtn);
+	EXPECT_EQ(1, com.GetMinCounter());
+	EXPECT_EQ(4, com.GetMaxCounter());
+
+	// 成交不影响max_counter_
+	com.TryReqOrderInsert(6, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_EQ(1, com.GetMinCounter());
+	EXPECT_EQ(6, com.GetMaxCounter());
+
+	com.End(4);
+	EXPECT_EQ(1, com.GetMinCounter());
+	EXPECT_EQ(6, com.GetMaxCounter());
 
 	com.End(1);
-	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
-	EXPECT_TRUE(rtn);
+	EXPECT_EQ(2, com.GetMinCounter());
+	EXPECT_EQ(6, com.GetMaxCounter());
+
+	com.End(2);
+	EXPECT_EQ(6, com.GetMinCounter());
+	EXPECT_EQ(6, com.GetMaxCounter());
+
+	com.End(6);
+	EXPECT_EQ(6, com.GetMinCounter());
+	EXPECT_EQ(6, com.GetMaxCounter());
+
+	com.TryReqOrderInsert(7, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_EQ(6, com.GetMinCounter());
+	EXPECT_EQ(7, com.GetMaxCounter());
+
+	com.End(7);
+	EXPECT_EQ(7, com.GetMinCounter());
+	EXPECT_EQ(7, com.GetMaxCounter());
+
+	com.TryReqOrderInsert(8, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_EQ(7, com.GetMinCounter());
+	EXPECT_EQ(8, com.GetMaxCounter());
+
+	com.TryReqOrderInsert(9, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_EQ(7, com.GetMinCounter());
+	EXPECT_EQ(9, com.GetMaxCounter());
+
+	com.End(9);
+	EXPECT_EQ(8, com.GetMinCounter());
+	EXPECT_EQ(9, com.GetMaxCounter());
+
+	com.End(8);
+	EXPECT_EQ(9, com.GetMinCounter());
+	EXPECT_EQ(9, com.GetMaxCounter());
 }
 
 /*
  * 证撤单合规
  */
-TEST(ComplianceTest, TryReqOrderInsert_CancelTimes_1) {
+TEST(ComplianceTest, AccumulateCancelTimes)
+{
 	Compliance com;
 
+	// init value
+	EXPECT_EQ(0, com.GetCancelTimes("rb1801"));
+	EXPECT_EQ(0, com.GetCancelTimes("rb1805"));
+
+	com.AccumulateCancelTimes("rb1805");
+	EXPECT_EQ(1, com.GetCancelTimes("rb1805"));
+	com.AccumulateCancelTimes("rb1801");
+	EXPECT_EQ(1, com.GetCancelTimes("rb1801"));
+
+	com.AccumulateCancelTimes("rb1805");
+	EXPECT_EQ(2, com.GetCancelTimes("rb1805"));
+	com.AccumulateCancelTimes("rb1801");
+	EXPECT_EQ(2, com.GetCancelTimes("rb1801"));
+
+	com.AccumulateCancelTimes("zn1805");
+	EXPECT_EQ(1, com.GetCancelTimes("zn1805"));
+}
+
+/*
+ * 证因撤单次数，拒绝(开仓)
+ * 要修改配置文件，将撤单上限改为：240
+ */
+TEST(ComplianceTest, TryReqOrderInsert_RejectForCancelTimes_1)
+{
+	Compliance com;
+
+	// rb1805
+	for(int i=0; i<239; i++){
+		com.AccumulateCancelTimes("rb1805");
+	}
+	EXPECT_EQ(239, com.GetCancelTimes("rb1805"));
 	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
 	EXPECT_TRUE(rtn);
+	EXPECT_EQ(1, com.GetMaxCounter());
 
-	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	com.AccumulateCancelTimes("rb1805");
+	EXPECT_EQ(240, com.GetCancelTimes("rb1805"));
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
 	EXPECT_FALSE(rtn);
+	EXPECT_EQ(1, com.GetMaxCounter());
 
 	com.End(1);
-	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	com.AccumulateCancelTimes("rb1805");
+	EXPECT_EQ(241, com.GetCancelTimes("rb1805"));
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+	EXPECT_EQ(1, com.GetMaxCounter());
+	// other contract
+	rtn = com.TryReqOrderInsert(4, "rb1801", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+	EXPECT_EQ(4, com.GetMaxCounter());
+
+	// rb1801
+	for(int i=0; i<239; i++){
+		com.AccumulateCancelTimes("rb1801");
+	}
+	EXPECT_EQ(239, com.GetCancelTimes("rb1801"));
+	rtn = com.TryReqOrderInsert(5, "rb1801", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+	EXPECT_EQ(5, com.GetMaxCounter());
+
+	com.AccumulateCancelTimes("rb1801");
+	EXPECT_EQ(240, com.GetCancelTimes("rb1801"));
+	rtn = com.TryReqOrderInsert(6, "rb1801", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+	EXPECT_EQ(5, com.GetMaxCounter());
+}
+
+
+/*
+ * 证因撤单次数,平仓不受影响
+ */
+TEST(ComplianceTest, TryReqOrderInsert_RejectForCancelTimes_2)
+{
+	Compliance com;
+
+	// rb1805
+	for(int i=0; i<239; i++){
+		com.AccumulateCancelTimes("rb1805");
+	}
+	EXPECT_EQ(239, com.GetCancelTimes("rb1805"));
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Close);
+	EXPECT_TRUE(rtn);
+
+	com.AccumulateCancelTimes("rb1805");
+	EXPECT_EQ(240, com.GetCancelTimes("rb1805"));
+	rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Close);
 	EXPECT_TRUE(rtn);
 }
-//TEST(MyIntDequeTest, PopFront) {
-//	MyIntDeque my_deque;
-//	ASSERT_THROW(my_deque.PopFront(), std::logic_error);
-//
-//	my_deque.PushBack(1);
-//	my_deque.PushBack(2);
-//	EXPECT_EQ(1, my_deque.PopFront());
-//	EXPECT_EQ(2, my_deque.PopFront());
-//	EXPECT_TRUE(my_deque.Empty());
-//}
-//
-//TEST(MyIntDequeTest, Back) {
-//	MyIntDeque my_deque;
-//	ASSERT_THROW(my_deque.Back(), std::logic_error);
-//
-//	my_deque.PushBack(1);
-//	my_deque.PushBack(2);
-//	EXPECT_EQ(2, my_deque.Back());
-//}
-//
-//TEST(MyIntDequeTest, Size) {
-//	MyIntDeque my_deque;
-//	EXPECT_EQ(0, my_deque.Size());
-//
-//	my_deque.PushBack(1);
-//	EXPECT_EQ(1, my_deque.Size());
-//	my_deque.PushBack(2);
-//	EXPECT_EQ(2, my_deque.Size());
-//}
-//
-//TEST(MyIntDequeTest, At) {
-//	MyIntDeque my_deque;
-//	ASSERT_THROW(my_deque.At(0), std::logic_error);
-//
-//	my_deque.PushBack(1);
-//	EXPECT_EQ(1, my_deque.At(0));
-//	my_deque.PushBack(2);
-//	EXPECT_EQ(1, my_deque.At(0));
-//	EXPECT_EQ(2, my_deque.At(1));
-//
-//	ASSERT_THROW(my_deque.At(3), std::logic_error);
-//}
-//
-//TEST(MyIntDequeTest, PushBack) {
-//	MyIntDeque my_deque;
-//	my_deque.PushBack(1);
-//	EXPECT_EQ(1, my_deque.At(0));
-//	EXPECT_EQ(1, my_deque.Size());
-//	EXPECT_EQ(1, my_deque.Front());
-//	EXPECT_EQ(1, my_deque.Back());
-//
-//	my_deque.PushBack(2);
-//	EXPECT_EQ(1, my_deque.At(0));
-//	EXPECT_EQ(2, my_deque.At(1));
-//	EXPECT_EQ(2, my_deque.Size());
-//	EXPECT_EQ(1, my_deque.Front());
-//	EXPECT_EQ(2, my_deque.Back());
-//}
-//
-//TEST(MyIntDequeTest, Clear) {
-//	MyIntDeque my_deque;
-//
-//	my_deque.Clear();
-//	EXPECT_TRUE(my_deque.Empty());
-//
-//	my_deque.PushBack(1);
-//	my_deque.Clear();
-//	EXPECT_TRUE(my_deque.Empty());
-//
-//	my_deque.PushBack(1);
-//	my_deque.PushBack(1);
-//	my_deque.Clear();
-//	EXPECT_TRUE(my_deque.Empty());
-//}
-//
-//TEST(MyIntDequeTest, Empty) {
-//	MyIntDeque my_deque;
-//	EXPECT_TRUE(my_deque.Empty());
-//
-//	my_deque.PushBack(1);
-//	EXPECT_FALSE(my_deque.Empty());
-//	my_deque.Clear();
-//	EXPECT_TRUE(my_deque.Empty());
-//
-//	my_deque.PushBack(1);
-//	my_deque.PushBack(1);
-//	EXPECT_FALSE(my_deque.Empty());
-//	my_deque.Clear();
-//	EXPECT_TRUE(my_deque.Empty());
-//}
+
