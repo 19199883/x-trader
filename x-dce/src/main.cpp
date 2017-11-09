@@ -45,6 +45,9 @@ int main(/*int argc, const char **argv*/)
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
+	// version
+	clog_warning("version:x-shfe_20171108"); 
+
 	struct vrt_queue  *queue;
 	int64_t  result;
 
