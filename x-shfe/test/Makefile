@@ -72,12 +72,12 @@ gtest_main.a : gtest-all.o gtest_main.o
 # function.
 compliance.o : $(USER_DIR)/src/compliance.cpp $(USER_DIR)/src/compliance.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++11 -I"$(USER_DIR)/../3rd/shfe_md/include" \
-	-I"$(USER_DIR)/../3rd/tinyxml/include"  -c $(USER_DIR)/src/compliance.cpp
+	-I$(USER_DIR)/src -I"$(USER_DIR)/../3rd/tinyxml/include"  -c $(USER_DIR)/src/compliance.cpp 
 
 compliance_test.o : $(USER_DIR)/test/compliance_test.cpp \
 	$(USER_DIR)/src/compliance.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -std=c++11 -I"$(USER_DIR)/../3rd/shfe_md/include"  \
-	-I"$(USER_DIR)/../3rd/tinyxml/include"  -c $(USER_DIR)/test/compliance_test.cpp
+	-I$(USER_DIR)/src -I"$(USER_DIR)/../3rd/tinyxml/include"  -c $(USER_DIR)/test/compliance_test.cpp
 
 compliance_test :  compliance.o compliance_test.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@ -L"$(USER_DIR)/../3rd/tinyxml/lib" \

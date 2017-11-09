@@ -74,7 +74,40 @@
 
 // 
 
-TEST(ComplianceTest, TryReqOrderInsert) {
+/*
+ * 验证构造函数
+ */ 
+TEST(ComplianceTest, Constructor) {
+	Compliance com;
+
+	ASSERT_STREQ("", contracts_[0]);
+	ASSERT_STREQ("", contracts_[2]);
+	ASSERT_STREQ("", contracts_[MAX_CONTRACT_NUMBER - 1]);
+
+	EXPECT_EQ(0, cur_cancel_times_[0]);
+	EXPECT_EQ(0, cur_cancel_times_[1]);
+	EXPECT_EQ(0, cur_cancel_times_[MAX_CONTRACT_NUMBER - 1]);
+
+	EXPECT_FALSE(ord_buffer_[0].valid);
+	EXPECT_FALSE(ord_buffer_[COUNTER_UPPER_LIMIT - 1].valid);
+}
+
+/*
+ * 首次下单
+ *
+ */ 
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_1) {
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+/*
+ * 下2次单，是价格相等情况下的自成交
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MathWithSelf_2) 
+{
 	Compliance com;
 
 	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
@@ -84,6 +117,188 @@ TEST(ComplianceTest, TryReqOrderInsert) {
 	EXPECT_FALSE(rtn);
 }
 
+/*
+ *
+ * 下2次单，是价格不等情况下的自成交
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_3) {
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+}
+
+/*
+ *
+ * 下2次单，价格不满足自成交条件
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_4) {
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3471.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+
+/*
+ * 其它都满足自成交，只是合约不同
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_4) 
+{
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1801", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+/*
+ * 下一个单，下第二个单（与第一个单自成交），下第三个单（不发生自成交）
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_5) 
+{
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3471.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+/*
+ * 其它都满足自成交，只是方向不满足
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_6) 
+{
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1801", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+/*
+ * 满足自成交，看开平仓的影响
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_7)
+{
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Close);
+	EXPECT_FALSE(rtn);
+
+	rtn = com.TryReqOrderInsert(4, "rb1805", 3471.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(5, "rb1805", 3471.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Close);
+	EXPECT_TRUE(rtn);
+}
+
+/*
+ * 看最终状态的单是否会影响自成交
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_8)
+{
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	com.End(1);
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+// TODO: here
+/*
+ * 有多个挂单，不同合约，与第一个单自成交，与最后单自成交
+ */
+TEST(ComplianceTest, TryReqOrderInsert_MatchWithSelf_9) {
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	com.End(1);
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+/*
+ * 单，结束，下单，自成交，下单，不自成交，结束等复杂场景
+ */
+TEST(ComplianceTest, TryReqOrderInsert_5) {
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	com.End(1);
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+/*
+ * 证min_counter_, max_counter_
+ */
+TEST(ComplianceTest, TryReqOrderInsert_5) {
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	com.End(1);
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
+
+/*
+ * 证撤单合规
+ */
+TEST(ComplianceTest, TryReqOrderInsert_CancelTimes_1) {
+	Compliance com;
+
+	bool rtn = com.TryReqOrderInsert(1, "rb1805", 3470.000, USTP_FTDC_D_Buy, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+
+	rtn = com.TryReqOrderInsert(2, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_FALSE(rtn);
+
+	com.End(1);
+	rtn = com.TryReqOrderInsert(3, "rb1805", 3469.000, USTP_FTDC_D_Sell, USTP_FTDC_OF_Open);
+	EXPECT_TRUE(rtn);
+}
 //TEST(MyIntDequeTest, PopFront) {
 //	MyIntDeque my_deque;
 //	ASSERT_THROW(my_deque.PopFront(), std::logic_error);
