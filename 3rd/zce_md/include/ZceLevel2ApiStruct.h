@@ -97,7 +97,7 @@ const ZCEINT4 ZCEErrCode_ReachMaxLoginNum	= 11;	//登录失败，超出最大允
 #pragma pack(push,8)
 struct StdQuote5
 {
-	char instrument[32];
+	char instrument[32]; // e.g. SM1802
 	char updateTime[9];
 	// millisecond component of update time
 	int updateMS;
