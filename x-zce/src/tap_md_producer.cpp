@@ -1,12 +1,12 @@
 #include <functional>   // std::bind
-#include "md_producer.h"
+#include "tap_md_producer.h"
 #include "perfctx.h"
 
 using namespace std::placeholders;
 using namespace std;
 
-MDProducer::MDProducer(struct vrt_queue  *queue)
-:module_name_("MDProducer")
+TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
+:module_name_("TapMDProducer")
 {
 	ended_ = false;
 
@@ -25,13 +25,50 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
-	md_provider_ = build_quote_provider(subs_);
-
-	auto f_l2quotesnapshot = std::bind(&MDProducer::OnMD, this,_1);
-	md_provider_->SetQuoteDataHandler(f_l2quotesnapshot);
+    sID = new unsigned int;
+	InitApi();
+	Login();
 }
 
-void MDProducer::ParseConfig()
+void TapMDProducer::InitApi()
+{
+    /* 设置接口所需信息 */
+    struct TapAPIApplicationInfo p_info_;
+	strcpy(p_info_.AuthCode,
+        "B112F916FE7D27BCE7B97EB620206457946CED32E26C1EAC946CED32E26C1EAC946CED32E26C1EAC946CED32E26C1EAC5211AF9FEE541DDE123D2F2F8E7F3E4B946CED32E26C1EAC5A51B81D8526AB6A67D1B6302B4DDA7D946CED32E26C1EACD33D6030790F8965ABD9B8F170E14F8847D3EA0BF4E191F50905910EA362CB063C704B1E62DE54B938D80BD82C58B3980985E67B9910AF76A06C27260450E7F792D349532A6533D9952A55F6D7C8C437456145239FEDE5078EA7CBC5AB74E107BA8DC0B7CE56681E22C185C880AC2723510A31A504180EE423496CBBE968917E1A292DAECE9F5F491626856EE3C81F0C3F2F4454DC7EB391DA8AF4EC06A48782");
+	getcwd(p_info_.KeyOperationLogPath, 301);
+
+    int iResult = 0;
+    api_ = CreateTapQuoteAPI(&p_info_, iResult);
+    if ( NULL == api_) {
+        clog_error("[%s] TAP - CreateTapQuoteAPI failed, the error code is %d", 
+			module_name_, iResult);
+    }else{
+        api_->SetAPINotify(this);
+        char *addr_tmp = new char[sizeof(config_.addr)];
+        char *addr_tmp2, *port_tmp;
+        strcpy(addr_tmp, config_.addr);
+        clog_warning("[%s] TAP - prepare to connect quote provider: %s",
+			module_name_, config_.addr);
+        addr_tmp2 = strtok(addr_tmp, ":");
+        port_tmp = strtok(NULL, ":");
+		int result = api_->SetHostAddress(addr_tmp2, atoi(port_tmp))
+        if (0 != result){
+			clog_error("[%s] TAP - SetHostAddress failed:%d", module_name_, result);
+		}
+
+        delete[] addr_tmp;
+    }
+}
+
+void TapMDProducer::Login()
+{
+	// TODO: to here
+	// TODO:
+		// TODO: refer to login of tunnel
+}
+
+void TapMDProducer::ParseConfig()
 {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
     config.LoadFile();
@@ -44,7 +81,7 @@ void MDProducer::ParseConfig()
 	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
 }
 
-MDProducer::~MDProducer(){
+TapMDProducer::~TapMDProducer(){
 	if (md_provider_ != NULL){
 		delete md_provider_;
 		md_provider_ = NULL;
@@ -52,7 +89,7 @@ MDProducer::~MDProducer(){
 	}
 }
 
-MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) {
+MYQuoteData* TapMDProducer::build_quote_provider(SubscribeContracts &subscription) {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
@@ -68,13 +105,13 @@ MYQuoteData* MDProducer::build_quote_provider(SubscribeContracts &subscription) 
 	}
 }
 
-void MDProducer::End()
+void TapMDProducer::End()
 {
 	ended_ = true;
 	(vrt_producer_eof(producer_));
 }
 
-void MDProducer::OnMD(const ZCEL2QuotSnapshotField_MY* md)
+void TapMDProducer::OnMD(const ZCEL2QuotSnapshotField_MY* md)
 {
 	if (ended_) return;
 
@@ -99,7 +136,7 @@ void MDProducer::OnMD(const ZCEL2QuotSnapshotField_MY* md)
 				module_name_, ivalue->index, ivalue->data, md->ContractID, md->TimeStamp);
 }
 
-int32_t MDProducer::push(const ZCEL2QuotSnapshotField_MY& md){
+int32_t TapMDProducer::push(const ZCEL2QuotSnapshotField_MY& md){
 	static int32_t l2quotesnapshot_cursor = MD_BUFFER_SIZE - 1;
 	l2quotesnapshot_cursor++;
 	if (l2quotesnapshot_cursor%MD_BUFFER_SIZE == 0){
@@ -110,7 +147,7 @@ int32_t MDProducer::push(const ZCEL2QuotSnapshotField_MY& md){
 	return l2quotesnapshot_cursor;
 }
 
-ZCEL2QuotSnapshotField_MY* MDProducer::GetL2QuoteSnapshot(int32_t index)
+ZCEL2QuotSnapshotField_MY* TapMDProducer::GetL2QuoteSnapshot(int32_t index)
 {
 	return &l2quotesnapshot_buffer_[index];
 }

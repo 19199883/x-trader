@@ -1,5 +1,5 @@
-#ifndef __MD_PRODUCER_H__
-#define __MD_PRODUCER_H__
+#ifndef __TAP_MD_PRODUCER_H__
+#define __TAP_MD_PRODUCER_H__
 
 #include <functional>
 #include <array>
@@ -9,6 +9,8 @@
 #include "quote_interface_czce_level2.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "TapQuoteAPI.h"
+#include "quote_cmn_utility.h"
 
 /*
  * 10 power of 2
@@ -17,15 +19,20 @@
 
 struct Mdconfig
 {
-	// disruptor yield strategy
+	char user[50];
+	char password[250];
+	char addr[50];
+	char ip[30];
+	int port;
+	char contracts_file[500];
 	char yield[20];
 };
 
-class MDProducer
+class TapMDProducer : public ITapQuoteAPINotify
 {
 	public:
-		MDProducer(struct vrt_queue  *queue);
-		~MDProducer();
+		TapMDProducer(struct vrt_queue  *queue);
+		~TapMDProducer();
 
 		ZCEL2QuotSnapshotField_MY* GetL2QuoteSnapshot(int32_t index);
 		void End();

@@ -16,16 +16,9 @@
 #include <list>
 #include <time.h>
 
-#include "TapQuoteAPI.h"
-#include "quote_interface_tap.h"
-#include "quote_cmn_utility.h"
-
-class DLL_LOCAL MYTAPDataHandler: public ITapQuoteAPINotify
+class DLL_LOCAL MYTAPDataHandler: 
 {
 public:
-    /* 构造函数 */
-    MYTAPDataHandler(const SubscribeContracts *subscribe_contracts, const ConfigData &cfg);
-    virtual ~MYTAPDataHandler(void);
     /**
      * @brief	系统登录过程回调。
      * @details	此函数为Login()登录函数的回调，调用Login()成功后建立了链路连接，然后API将向服务器发送登录认证信息，
@@ -137,20 +130,11 @@ public:
 
 private:
     ITapQuoteAPI *api_;
-    std::string quote_addr_;
-    std::string user_;
-    std::string pswd_;
-    std::string exchange_no_;
-    char commodity_type_;
-    std::string commodity_no_;
-    std::string contract_no_;
-
     unsigned int *sID;
 
     /* 包装函数，方便线程调用 */
     void req_login(int wait_seconds);
     void subscribe_by_contract();
-    void subscribe_rtn_contract(const TapAPIContract &info);
     void subscribe_quote(TapAPIContract &contract);
 
     /* 订阅合约集合 */

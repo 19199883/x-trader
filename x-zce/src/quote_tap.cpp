@@ -3,51 +3,6 @@
 using namespace my_cmn;
 using namespace std;
 
-MYTAPDataHandler::MYTAPDataHandler(const SubscribeContracts *subscribe_contracts, const ConfigData &cfg)
-    : tap_handler_(NULL), cfg_(cfg)
-{
-    if (subscribe_contracts) {
-        subscribe_contracts_ = *subscribe_contracts;
-    }
-
-    /* 初始化 */
-    logoned_ = false;
-    in_login_flag_ = false;
-    api_ = NULL;
-    sID = new unsigned int;
-    check_login_ = false;
-
-    /* 设置接口所需信息 */
-    struct TapAPIApplicationInfo p_info_;
-	strcpy(p_info_.AuthCode,
-        "B112F916FE7D27BCE7B97EB620206457946CED32E26C1EAC946CED32E26C1EAC946CED32E26C1EAC946CED32E26C1EAC5211AF9FEE541DDE123D2F2F8E7F3E4B946CED32E26C1EAC5A51B81D8526AB6A67D1B6302B4DDA7D946CED32E26C1EACD33D6030790F8965ABD9B8F170E14F8847D3EA0BF4E191F50905910EA362CB063C704B1E62DE54B938D80BD82C58B3980985E67B9910AF76A06C27260450E7F792D349532A6533D9952A55F6D7C8C437456145239FEDE5078EA7CBC5AB74E107BA8DC0B7CE56681E22C185C880AC2723510A31A504180EE423496CBBE968917E1A292DAECE9F5F491626856EE3C81F0C3F2F4454DC7EB391DA8AF4EC06A48782");
-	getcwd(p_info_.KeyOperationLogPath, 301);
-
-    int iResult = 0;
-    api_ = CreateTapQuoteAPI(&p_info_, iResult);
-    if ( NULL == api_) {
-        MY_LOG_ERROR("TAP - CreateTapQuoteAPI failed, the error code is %d", iResult);
-        return;
-    }else{
-        api_->SetAPINotify(this);
-        char *addr_tmp = new char[quote_addr_.size() + 1];
-        char *addr_tmp2, *port_tmp;
-
-        memcpy(addr_tmp, quote_addr_.c_str(), quote_addr_.size() + 1);
-        MY_LOG_INFO("TAP - prepare to connect quote provider: %s", quote_addr_.c_str());
-        addr_tmp2 = strtok(addr_tmp, ":");
-        port_tmp = strtok(NULL, ":");
-
-        /* 设置服务器地址 */
-        if (0 == api_->SetHostAddress(addr_tmp2, atoi(port_tmp))) { }
-        else { return; }
-        delete[] addr_tmp;
-        sleep(1);
-
-		// TODO: refer to login of tunnel
-    }
-}
-
 void MYTAPDataHandler::req_login(int wait_seconds)
 {
 	/* 登录服务器 */
@@ -73,23 +28,13 @@ MYTAPDataHandler::~MYTAPDataHandler(void)
 
 bool MYTAPDataHandler::ParseConfig()
 {
-    /* 服务器地址 */
-    quote_addr_ = cfg_.Logon_config().quote_provider_addrs.front();
-
-    /* 用户名 密码 */
-    user_ = cfg_.Logon_config().account;
-    pswd_ = cfg_.Logon_config().password;
-
-    /* 订阅集合 */
     subscribe_contracts_ = cfg_.Subscribe_datas();
 }
 
 void MYTAPDataHandler::OnRspLogin(TAPIINT32 errorCode, const TapAPIQuotLoginRspInfo *info)
 {
     MY_LOG_INFO("TAP - OnRspLogin");
-    check_login_ = true;
     if (0 == errorCode){
-        logoned_ = true;
     } else {
         MY_LOG_WARN("TAP - login failed, ErrorCode = %d", errorCode);
     }
@@ -104,6 +49,11 @@ void MYTAPDataHandler::OnAPIReady()
     MY_LOG_INFO("TAP - OnAPIReady");
 
     for (SubscribeContracts::iterator it = subscribe_contracts_.begin(); it != subscribe_contracts_.end(); it++) {
+		std::string exchange_no_;
+		char commodity_type_;
+		std::string commodity_no_;
+		std::string contract_no_;
+
         int split_pos1 = it->find('.');
         int split_pos2 = it->substr(split_pos1 + 1).find('.');
         int split_pos3 = it->substr(split_pos1 + 1).substr(split_pos2 + 1).find('.');
