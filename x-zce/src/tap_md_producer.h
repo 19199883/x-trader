@@ -17,6 +17,13 @@
  */
 #define MD_BUFFER_SIZE 1000 
 
+/*
+ * 识Level行情处于未接收数居前的未知位置
+ */
+#define L1MD_NPOS -1 
+
+using namespace std;
+
 struct Mdconfig
 {
 	char user[50];
@@ -28,36 +35,74 @@ struct Mdconfig
 	char yield[20];
 };
 
+class L1MDProducerHelper
+{
+	public:
+		/*
+		 * 获取指定合约的最新行情。
+		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
+		 */
+		static TapAPIQuoteWhole_MY* GetLastDataImp(const char *contract, int32_t last_index,
+			TapAPIQuoteWhole_MY*buffer, int32_t buffer_size, int32_t dominant_contract_count);
+};
+
 class TapMDProducer : public ITapQuoteAPINotify
 {
 	public:
 		TapMDProducer(struct vrt_queue  *queue);
 		~TapMDProducer();
 
-		ZCEL2QuotSnapshotField_MY* GetL2QuoteSnapshot(int32_t index);
+		/*
+		 * 与逻辑处理相关
+		 */
+		TapAPIQuoteWhole_MY* GetData(int32_t index);
+
+		/*
+		 * contract: 要获取行情的合约
+		 * last_index;最新行情在缓存的位置
+		 * 获取指定合约最新的一档行情。
+		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
+		 */
+		TapAPIQuoteWhole_MY* GetLastData(const char *contract, int32_t last_index);
 		void End();
 
 	private:
+		/*
+		 * 与API相关
+		 */
 		ITapQuoteAPI *api_;
 		unsigned int *sID;
-
 		void InitApi();
 		void Login();
-		
-		void OnMD(const ZCEL2QuotSnapshotField_MY* md);
-		int32_t push(const ZCEL2QuotSnapshotField_MY& md);
 
-		MYQuoteData *md_provider_;
-		SubscribeContracts subs_;
-		const char *module_name_;  
-		bool ended_;
-		Mdconfig config_;
-		void ParseConfig();
-
+		/*
+		 * 与逻辑处理相关
+		 */
+		int32_t Push(const TapAPIQuoteWhole_MY& md);
 		struct vrt_producer  *producer_;
-		std::array<ZCEL2QuotSnapshotField_MY, MD_BUFFER_SIZE> l2quotesnapshot_buffer_;
+		TapAPIQuoteWhole_MY md_buffer_[MD_BUFFER_SIZE] ;
+		int32_t l1data_cursor_;
+		bool ended_;
+
+		/*
+		 * check whether the given contract is dominant.
+		 */
+		bool IsDominant(const char *contract);
+		int32_t dominant_contract_count_;
+		char dominant_contracts_[20][10];
 
 		void Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole_MY &my_data);
+
+		/*
+		 *日志相关
+		 */
+		const char *module_name_;  
+
+		/*
+		 * 配置相关
+		 */
+		Mdconfig config_;
+		void ParseConfig();
 
 		/*
 		 * API

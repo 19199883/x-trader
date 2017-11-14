@@ -1,21 +1,56 @@
-#include <functional>   // std::bind
+#include <functi1gt1gtonal>   // std::bind
 #include "tap_md_producer.h"
 #include "perfctx.h"
 
 using namespace std::placeholders;
 using namespace std;
 
+TapAPIQuoteWhole_MY* L1MDProducerHelper::GetLastDataImp(const char *contract, int32_t last_index,
+	TapAPIQuoteWhole_MY*buffer, int32_t buffer_size, int32_t dominant_contract_count)
+{
+	TapAPIQuoteWhole_MY* data = NULL;
+
+	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
+	int i = 0;
+	for(; i<dominant_contract_count; i++){
+		int data_index = last_index - i;
+		if(data_index < 0){
+			data_index = data_index + buffer_size;
+		}
+
+		TapAPIQuoteWhole_MY &tmp = buffer[data_index];
+		if(IsEqual(contract, tmp.CommodityNo, tmp.ContractNo1)){
+			data = &tmp; 
+			break;
+		}
+	}
+
+	//clog_info("GetLastDataImp:dominant_contract_count:%d;i:%d;contract:%s",
+	//	dominant_contract_count, i, contract);
+
+	return data;
+}
+
 TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
 :module_name_("TapMDProducer")
 {
+	l1data_cursor_ = L1MD_BUFFER_SIZE - 1;
 	ended_ = false;
+    api_ = NULL;
+	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",module_name_,L1MD_BUFFER_SIZE);
 
 	ParseConfig();
+	
+	// init dominant contracts
+	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
+	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
 
-	clog_warning("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
+	memset(&md_buffer_, 0, sizeof(md_buffer_));
+    sID = new unsigned int;
+	InitApi();
+	Login();
 
 	(this->producer_ = vrt_producer_new("md_producer", 1, queue));
-
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
@@ -24,10 +59,6 @@ TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
-
-    sID = new unsigned int;
-	InitApi();
-	Login();
 }
 
 void TapMDProducer::InitApi()
@@ -117,67 +148,26 @@ TapMDProducer::~TapMDProducer(){
     if (sID) { delete sID; }
 }
 
-MYQuoteData* TapMDProducer::build_quote_provider(SubscribeContracts &subscription) {
-	TiXmlDocument config = TiXmlDocument("x-trader.config");
-    config.LoadFile();
-    TiXmlElement *RootElement = config.RootElement();    
-	TiXmlElement* MarketData = RootElement->FirstChildElement("MarketData");
-	if (NULL != MarketData) {
-		string md_config = MarketData->Attribute("config");
-		clog_warning("[%s] MarketData.config: %s", module_name_, md_config.c_str());
-		return new MYQuoteData(&subs_, md_config);
-	}
-	else{
-		clog_error("[%s] can not find 'MarkerData' node.", module_name_);
-		return NULL;
-	}
-}
-
 void TapMDProducer::End()
 {
 	ended_ = true;
 	(vrt_producer_eof(producer_));
+	clog_warning("[%s] End exit", module_name_);
 }
 
-void TapMDProducer::OnMD(const ZCEL2QuotSnapshotField_MY* md)
-{
-	if (ended_) return;
-
-	// 目前三个市场，策略支持的品种的合约长度是：5或6个字符
-	if (strlen(md->ContractID) > 6) return;
-
-#ifdef LATENCY_MEASURE
-	static int cnt = 0;
-	perf_ctx::insert_t0(cnt);
-	cnt++;
-#endif
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = push(*md);
-	ivalue->data = L2QUOTESNAPSHOT;
-	(vrt_producer_publish(producer_));
-
-	clog_debug("[%s] rev ZCEL2QuotSnapshotField: index,%d; data,%d; contract:%s; time: %s",
-				module_name_, ivalue->index, ivalue->data, md->ContractID, md->TimeStamp);
-}
-
-int32_t TapMDProducer::push(const ZCEL2QuotSnapshotField_MY& md){
-	static int32_t l2quotesnapshot_cursor = MD_BUFFER_SIZE - 1;
-	l2quotesnapshot_cursor++;
-	if (l2quotesnapshot_cursor%MD_BUFFER_SIZE == 0){
-		l2quotesnapshot_cursor = 0;
+int32_t TapMDProducer::Push(const TapAPIQuoteWhole_MY& md){
+	l1data_cursor_++;
+	if (l1data_cursor_ % MD_BUFFER_SIZE == 0){
+		l1data_cursor_ = 0;
 	}
-	l2quotesnapshot_buffer_[l2quotesnapshot_cursor] = md;
+	md_buffer_[l1data_cursor_] = md;
 
-	return l2quotesnapshot_cursor;
+	return l1data_cursor_;
 }
 
-ZCEL2QuotSnapshotField_MY* TapMDProducer::GetL2QuoteSnapshot(int32_t index)
+TapAPIQuoteWhole_MY* TapMDProducer::GetData(int32_t index)
 {
-	return &l2quotesnapshot_buffer_[index];
+	return &md_buffer_[index];
 }
 
 void TapMDProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPIQuotLoginRspInfo *info)
@@ -260,12 +250,23 @@ void TapMDProducer::OnRtnContract(const TapAPIQuoteContractInfo *info) { }
 void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
 	TAPIYNFLAG isLast, const TapAPIQuoteWhole *info)
 {
+	if(ended_) return;
+
     clog_info("[%s] TAP - OnRspSubscribeQuote", module_name_);
 
     if (errorCode == 0 && NULL != info){
-		TapAPIQuoteWhole_MY data_my = Convert(*info);
+		// 抛弃非主力合约
+		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 
-		// TODO: disruptor
+		TapAPIQuoteWhole_MY data = Convert(*info);
+
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+		ivalue->index = Push(data);
+		ivalue->data = L1_MD;
+		vrt_producer_publish(producer_);
 
         clog_info("[%s] TAP - OnRspSubscribeQuote Successful, ExchangNo is %s, "
 			"CommodityNo is %s, ContractNo is %s.", module_name_,
@@ -277,15 +278,25 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
     }
 }
 
-
 void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 {
+	if(ended_) return;
+
     clog_info("[%s] TAP - OnRtnQuote", module_name_);
     if ( NULL != info) {
-		TapAPIQuoteWhole_MY data_my = Convert(*info);
+		// 抛弃非主力合约
+		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 
-		// TODO: disruptor
-		//
+		TapAPIQuoteWhole_MY data = Convert(*info);
+
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+		ivalue->index = Push(data);
+		ivalue->data = L1_MD;
+		vrt_producer_publish(producer_);
+		
         clog_info("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, CommodityNo is %s,"
 			"ContractNo is %s.",
             info->Contract.Commodity.ExchangeNo, info->Contract.Commodity.CommodityNo, 
@@ -361,3 +372,14 @@ void TapMDProducer::OnRspUnSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorC
 	TAPIYNFLAG isLast, const TapAPIContract *info) { }
 
 void TapMDProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode) { } 
+
+TapAPIQuoteWhole_MY* TapMDProducer::GetLastData(const char *contract, int32_t last_index)
+{
+	TapAPIQuoteWhole_MY* data = L1MDProducerHelper::GetLastDataImp(
+				contract, last_index, md_buffer_, L1MD_BUFFER_SIZE, dominant_contract_count_);
+	return data;
+}
+bool TapMDProducer::IsDominant(const char *contract)
+{
+	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
+}

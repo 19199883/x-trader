@@ -70,12 +70,12 @@ int32_t LoadDominantContracts(string file, char buffer[20][10])
 	return count;
 }
 
-bool IsDominantImp(const char *contract, char buffer[20][10], int32_t buffer_size)
+bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buffer[20][10], int32_t buffer_size)
 {
 	bool is_dominant = false;
 
 	for(int i=0; i<buffer_size; i++){
-		if(strcmp(buffer[i], contract) == 0){
+		if(IsEqual(buffer[i], commciodity_no, contract_no)){
 			is_dominant = true;
 			break;
 		}
@@ -84,3 +84,11 @@ bool IsDominantImp(const char *contract, char buffer[20][10], int32_t buffer_siz
 	return is_dominant;
 }
 
+bool IsEqual(const char *contract, const char*commciodity_no, const char* contract_no)
+{
+	if(strncmp(contract, commodity_no, 2) == 0 && strncmp(contract+2, contract_no, 3) == 0){
+		return true;
+	}else{
+		return false;
+	}
+}

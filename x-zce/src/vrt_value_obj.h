@@ -44,7 +44,7 @@ extern "C" {
 	 */
 
 	enum HybridData {
-		L2QUOTESNAPSHOT = 0, 
+		L1_MD = 0, 
 		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 

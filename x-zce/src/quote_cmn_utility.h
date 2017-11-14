@@ -58,4 +58,12 @@ int32_t LoadDominantContracts(string file, char buffer[20][10]);
 */
 bool IsDominantImp(const char *contract, char buffer[20][10], int32_t buffer_size);
 
+/*
+ * 判断commidity_no和contract_no代表的合约是否与contract指定的完整合约相等，如：
+ * commidity_no:SR
+ * contract_no:801
+ * contract:SR801
+ */
+bool IsEqual(const char *contract, const char*commidity_no, const char* contract_no);
+
 #endif  //
