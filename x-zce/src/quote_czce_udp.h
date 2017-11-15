@@ -11,19 +11,8 @@
 #include <mutex>
 #include <thread>
 
-#include "quote_cmn_utility.h"
-#include "quote_interface_tap.h"
-#include "ZceLevel2ApiStruct.h"
-
-using namespace std;
-
 class CzceUdpMD
 {
-public:
-    // 构造函数
-    CzceUdpMD(const SubscribeContracts *subscribe_contracts, const ConfigData &cfg);
-    virtual ~CzceUdpMD();
-
 private:
     // quote data handlers
     void UdpDataHandler();
@@ -32,13 +21,10 @@ private:
 	void OnTapAPIQuoteWhole_MY(const TapAPIQuoteWhole_MY *);
 
 	std::string ToString(const ZCEL2QuotSnapshotField_MY* p);
-	ZCEL2QuotSnapshotField_MY Convert(const StdQuote5 &other,TapAPIQuoteWhole_MY *tap_data );
 
     // receive threads
-    volatile bool running_flag_;
     std::thread *p_md_handler_;
 
-	TAP::MYQuoteData *lvl1_provider_;
 	// the first market data for TapAPIQuoteWhole_MY type
 	map<string,TapAPIQuoteWhole_MY> first_data_each_contract_;
 	mutex first_data_each_contract_lock_;

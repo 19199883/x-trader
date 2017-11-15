@@ -10,6 +10,11 @@
 
 #define COMPLIANCE_CHECK
 
+/*
+ * 行情UDP通讯设置成非阻塞模式
+ */
+//#define MD_UDP_NOBLOCK
+
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
 // 2: two-dimensional array
@@ -45,6 +50,7 @@ extern "C" {
 
 	enum HybridData {
 		L1_MD = 0, 
+		L2_MD = 0, 
 		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 
