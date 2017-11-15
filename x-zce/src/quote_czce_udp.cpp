@@ -9,58 +9,10 @@
 #include <ctime>
 #include <ratio>
 #include <chrono>
-int CzceUdpMD::CreateUdpFD(const std::string& addr_ip, unsigned short port)
-{
-    // init udp socket
-    int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
-    /* set reuse and non block for this socket */
-    int son = 1;
-    setsockopt(udp_client_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &son, sizeof(son));
-
-    // bind address and port
-    struct sockaddr_in servaddr;
-    memset(&servaddr, 0, sizeof(servaddr));
-    servaddr.sin_family = AF_INET; //IPv4协议
-    servaddr.sin_addr.s_addr = inet_addr(addr_ip.c_str());
-    servaddr.sin_port = htons(port);
-
-    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0)
-    {
-        MY_LOG_FATAL("UDP - bind failed: %s:%d", addr_ip.c_str(), port);
-        return -1;
-    }
-
-    // set nonblock flag
-//    int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
-//    if (socket_ctl_flag < 0)
-//    {
-//        MY_LOG_WARN("UDP - get socket control flag failed.");
-//    }
-//    if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0)
-//    {
-//        MY_LOG_WARN("UDP - set socket control flag with nonblock failed.");
-//    }
-
-    // set buffer length
-    int rcvbufsize = 1 * 1024 * 1024;
-    int ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_RCVBUF, (const void *) &rcvbufsize, sizeof(rcvbufsize));
-    if (ret != 0)
-    {
-        MY_LOG_WARN("UDP - set SO_RCVBUF failed.");
-    }
-
-    int broadcast_on = 1;
-    ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_BROADCAST, &broadcast_on, sizeof(broadcast_on));
-    if (ret != 0)
-    {
-        MY_LOG_WARN("UDP - set SO_BROADCAST failed.");
-    }
-
-    return udp_client_fd;
-}
 
 void CzceUdpMD::OnTapAPIQuoteWhole_MY(const TapAPIQuoteWhole_MY *data)	
 {
+	// the following need to be moved to consumer
 	string tap_contr = data->CommodityNo;
 	tap_contr += data->ContractNo1;
 
@@ -68,27 +20,20 @@ void CzceUdpMD::OnTapAPIQuoteWhole_MY(const TapAPIQuoteWhole_MY *data)
 	MY_LOG_INFO("CZCE_UDP - TapAPIQuoteWhole_MY comm:%s; contract:%s", data->CommodityNo, data->ContractNo1);
 
 	TapAPIQuoteWhole_MY *tap_data = NULL;
-	{
-		tap_data =  get_data_by_tap_contr(tap_contr);
-	}
-
-	if(tap_data != NULL)
-	{
+	tap_data =  get_data_by_tap_contr(tap_contr);
+	if(tap_data != NULL) {
 		return;
-	}
-	else
-	{
-		lock_guard<std::mutex> lck (first_data_each_contract_lock_);
+	} else {
 		first_data_each_contract_[tap_contr] = *data; 
-		memcpy(first_data_each_contract_[tap_contr].ContractNo1,tap_contr.c_str(),sizeof(tap_contr.c_str()));	
+		memcpy(first_data_each_contract_[tap_contr].ContractNo1,tap_contr.c_str(),
+			sizeof(tap_contr.c_str()));	
 	}
 }
 
 std::string CzceUdpMD::ToString(const ZCEL2QuotSnapshotField_MY * p)
 {
 	char buf[10240];
-	if (p)
-	{
+	if (p) {
 		snprintf(buf, sizeof(buf), "structName=ZCEL2QuotSnapshotField_MY\n"
 			"\tContractID=%s\n"
 			"\tTimeStamp=%s\n"

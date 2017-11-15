@@ -228,20 +228,20 @@ void L2MDProducer::End()
 	}
 }
 
-int32_t L2MDProducer::Push(const MDPackEx& md){
-	static int32_t shfemarketdata_cursor = FULL_DEPTH_MD_BUFFER_SIZE - 1;
-	shfemarketdata_cursor++;
-	if (shfemarketdata_cursor%FULL_DEPTH_MD_BUFFER_SIZE == 0){
-		shfemarketdata_cursor = 0;
+int32_t L2MDProducer::Push(const StdQuote5& md){
+	static int32_t md_cursor = L2_MD_BUFFER_SIZE - 1;
+	md_cursor++;
+	if (md_cursor % L2_MD_BUFFER_SIZE == 0){
+		md_cursor = 0;
 	}
-	shfemarketdata_buffer_[shfemarketdata_cursor] = md;
+	md_buffer_[md_cursor] = md;
 
-	return shfemarketdata_cursor;
+	return md_cursor;
 }
 
-MDPackEx* L2MDProducer::GetData(int32_t index)
+StdQuote5* L2MDProducer::GetData(int32_t index)
 {
-	return &shfemarketdata_buffer_[index];
+	return &md_buffer_[index];
 }
 
 bool L2MDProducer::IsDominant(const char *contract)
@@ -262,7 +262,7 @@ std::string L2MDProducer::ToString(const MDPack &d) {
   return "";
 }
 
-std::string L2MDProducer::ToString(const MDPackEx &d) 
+std::string L2MDProducer::ToString(const StdQuote5 &d) 
 {
 	clog_info("MDPackEx Data: instrument:%s; damaged:%d;"
 		"islast:%d seqno:%d direction:%c count:%d",

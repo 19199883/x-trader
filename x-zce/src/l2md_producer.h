@@ -35,7 +35,7 @@ class L2MDProducer
 		L2MDProducer(struct vrt_queue  *queue);
 		~L2MDProducer();
 
-		MDPackEx* GetData(int32_t index);
+		StdQuote5* GetData(int32_t index);
 		void End();
 		/*
 		 * check whether the given contract is dominant.
@@ -64,9 +64,9 @@ class L2MDProducer
 		/*
 		 *disruptor相关
 		 */
-		int32_t Push(const MDPackEx& md);
+		int32_t Push(const StdQuote5& md);
 		struct vrt_producer  *producer_;
-		std::array<MDPackEx, FULL_DEPTH_MD_BUFFER_SIZE> shfemarketdata_buffer_;
+		std::array<StdQuote5, L2_MD_BUFFER_SIZE> md_buffer_;
 		bool ended_;
 
 		/*
@@ -77,7 +77,7 @@ class L2MDProducer
 		/*
 		 * 配置相关
 		 */
-		FulldepthMDConfig config_;
+		L2MDConfig config_;
 		void ParseConfig();
 };
 
