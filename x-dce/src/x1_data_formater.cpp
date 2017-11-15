@@ -46,7 +46,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcInsertOrderField* p)
             "    speculator=%d "
             "    insertType=%d "
             "    orderType=%d "
-            "    orderProperty=%d "
+            "    orderProperty=%c "
             "    instrumentType=%d "
             "    lRequestID=%ld "
             "    customCategory=%s "

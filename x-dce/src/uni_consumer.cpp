@@ -366,7 +366,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
 				" ErrorID:%d ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
 				rpt->ErrorID);
@@ -401,7 +401,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				pending_signals_[st_id][i] = -1;
 				signal_t *sig = strategy.GetSignalBySigID(sig_id);
 				PlaceOrder(strategy, *sig);
-				 clog_debug("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
 							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
 							 "sig_act:%d; sig_openclose:%d; ",
 						module_name_, sig->st_id, sig->sig_id,
@@ -430,7 +430,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 				for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					if(pending_signals_[sig.st_id][i] < 0){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
-						clog_debug("[%s] pending_signals_ push st id:%d; sig id;%d", 
+						clog_info("[%s] pending_signals_ push st id:%d; sig id;%d", 
 									module_name_,sig.st_id,pending_signals_[sig.st_id][i]);
 						break;
 					}
@@ -446,7 +446,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	if (!strategy.HasFrozenPosition()){
-		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}
 	
@@ -458,7 +458,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	// TODO:验证是否需要合约
     strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
 
-	clog_debug("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
+	clog_info("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
 				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID, cancel_order.InstrumentID); 
 
 	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
