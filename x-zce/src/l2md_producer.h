@@ -1,3 +1,4 @@
+// done
 #ifndef __L2MD_PRODUCER_H__
 #define __L2MD_PRODUCER_H__
 
@@ -10,7 +11,6 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "quote_cmn_utility.h"
-#include "quote_interface_tap.h"
 #include "ZceLevel2ApiStruct.h"
 
 /*
@@ -42,9 +42,6 @@ class L2MDProducer
 		 */
 		bool IsDominant(const char *contract);
 
-		std::string ToString(const MDPackEx &d);
-		std::string ToString(const MDPack &d);
-
 	private:
 		/*
 		 * 与API相关
@@ -55,8 +52,7 @@ class L2MDProducer
 		 * 逻辑相关
 		 */
 		void RevData();
-		ZCEL2QuotSnapshotField_MY Convert(const StdQuote5 &other,TapAPIQuoteWhole_MY *tap_data,
-			ZCEL2QuotSnapshotField_MY &data);
+
 		std::thread *thread_rev_;
 		int32_t dominant_contract_count_;
 		char dominant_contracts_[20][10];

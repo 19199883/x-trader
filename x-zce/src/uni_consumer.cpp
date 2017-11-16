@@ -8,11 +8,10 @@
 #include <tinystr.h>
 #include "my_protocol_packager.h"
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
-			TunnRptProducer *tunn_rpt_producer)
-: module_name_("uni_consumer"),running_(true), 
-  md_producer_(md_producer),
-  tunn_rpt_producer_(tunn_rpt_producer)
+UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer, 
+	L2MDProducer l2md_producer, TunnRptProducer *tunn_rpt_producer)
+: module_name_("uni_consumer"),running_(true), l1md_producer_(l2md_producer),
+  l2md_producer_(l2md_producer), tunn_rpt_producer_(tunn_rpt_producer)
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
@@ -35,7 +34,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
-
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->consumer_->yield = vrt_yield_strategy_threaded();
@@ -210,6 +208,10 @@ void UniConsumer::Start()
 {
 	running_  = true;
 
+	MYQuoteData myquotedata(fulldepth_md_producer_, l1_md_producer_);
+	auto f_md = std::bind(&UniConsumer::ProcL2QuoteSnapshot, this,_1);
+	myquotedata.SetQuoteDataHandler(f_md);
+
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
@@ -217,8 +219,11 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
-				case L2QUOTESNAPSHOT:
-					ProcL2QuoteSnapshot(ivalue->index);
+				case L1_MD:
+					myquotedata.ProcL1MdData(ivalue->index);
+					break;
+				case L2_MD:
+					myquotedata.ProcL2Data(ivalue->index);
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -249,10 +254,8 @@ void UniConsumer::Stop()
 	}
 }
 
-void UniConsumer::ProcL2QuoteSnapshot(int32_t index)
+void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 {
-	ZCEL2QuotSnapshotField_MY* md = md_producer_->GetL2QuoteSnapshot(index);
-
 	clog_debug("[%s] [ProcL2QuoteSnapshot] index: %d; contract: %s", module_name_, index, md->ContractID);
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  

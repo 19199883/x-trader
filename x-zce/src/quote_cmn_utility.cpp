@@ -84,9 +84,13 @@ bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buff
 	return is_dominant;
 }
 
+/*
+ * e.g.: contract:SR1801, commciodity_no:SR, contract_no:801
+ *
+ */
 bool IsEqual(const char *contract, const char*commciodity_no, const char* contract_no)
 {
-	if(strncmp(contract, commodity_no, 2) == 0 && strncmp(contract+2, contract_no, 3) == 0){
+	if(strncmp(contract, commodity_no, 2) == 0 && strncmp(contract+3, contract_no, 3) == 0){
 		return true;
 	}else{
 		return false;

@@ -1,3 +1,4 @@
+// done
 #include <functi1gt1gtonal>   // std::bind
 #include "tap_md_producer.h"
 #include "perfctx.h"
@@ -10,7 +11,7 @@ TapAPIQuoteWhole_MY* L1MDProducerHelper::GetLastDataImp(const char *contract, in
 {
 	TapAPIQuoteWhole_MY* data = NULL;
 
-	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
+	// 需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
 	int i = 0;
 	for(; i<dominant_contract_count; i++){
 		int data_index = last_index - i;
@@ -157,7 +158,7 @@ void TapMDProducer::End()
 
 int32_t TapMDProducer::Push(const TapAPIQuoteWhole_MY& md){
 	l1data_cursor_++;
-	if (l1data_cursor_ % MD_BUFFER_SIZE == 0){
+	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0){
 		l1data_cursor_ = 0;
 	}
 	md_buffer_[l1data_cursor_] = md;
@@ -230,7 +231,6 @@ void TapMDProducer::OnAPIReady()
 	}
 }
 
-
 void TapMDProducer::OnDisconnect(TAPIINT32 reasonCode)
 {
     clog_error("[%s] TAP - OnDisconnect, reasonCode is %d, reconnecting.", module_name_, reasonCode);
@@ -258,13 +258,13 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 
-		TapAPIQuoteWhole_MY data = Convert(*info);
+		Convert(*info, target_data_);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-		ivalue->index = Push(data);
+		ivalue->index = Push(target_data_);
 		ivalue->data = L1_MD;
 		vrt_producer_publish(producer_);
 
@@ -287,13 +287,13 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 
-		TapAPIQuoteWhole_MY data = Convert(*info);
+		Convert(*info, target_data_);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-		ivalue->index = Push(data);
+		ivalue->index = Push(target_data_);
 		ivalue->data = L1_MD;
 		vrt_producer_publish(producer_);
 		

@@ -1,8 +1,9 @@
+// done
 #include <functional>   // std::bind
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include "fulldepthmd_producer.h"
+#include "l2md_producer.h"
 #include "quote_cmn_utility.h"
 
 using namespace std;
@@ -10,70 +11,12 @@ using namespace std::placeholders;
 using std::chrono::system_clock;
 using namespace my_cmn;
 
-void L2MDProducer::Convert(const StdQuote5 &other,
-	TapAPIQuoteWhole_MY *tap_data, ZCEL2QuotSnapshotField_MY &data)
-{
-	if(tap_data != NULL){ // contents from level1 
-		data.PreSettle = InvalidToZeroD(tap_data->QPreSettlePrice);	/*前结算价格*/
-		data.PreClose = InvalidToZeroD(tap_data->QPreClosingPrice);	/*前收盘价格*/
-		data.PreOpenInterest = (int)tap_data->QPrePositionQty;		/*previous days's positions */
-		data.OpenPrice = InvalidToZeroD(tap_data->QOpeningPrice);	/*开盘价*/
-		data.HighPrice = InvalidToZeroD(tap_data->QHighPrice);	    /*最高价*/
-		data.LowPrice = InvalidToZeroD(tap_data->QLowPrice);	        /*最低价*/
-		data.ClosePrice = InvalidToZeroD(tap_data->QClosingPrice);	    /*收盘价*/
-		data.SettlePrice = InvalidToZeroD(tap_data->QSettlePrice);	/*结算价*/
-		data.HighLimit = InvalidToZeroD(tap_data->QLimitUpPrice);	/*涨停板*/
-		data.LowLimit = InvalidToZeroD(tap_data->QLimitDownPrice);	/*跌停板*/
-		data.LifeHigh = InvalidToZeroD(tap_data->QHisHighPrice);	/*历史最高成交价格*/
-		data.LifeLow = InvalidToZeroD(tap_data->QHisLowPrice);	/*历史最低成交价格*/
-		data.AveragePrice = InvalidToZeroD(tap_data->QAveragePrice);	/*均价*/
-		data.OpenInterest = (int)tap_data->QPositionQty;	/*持仓量*/
-		strcpy(data.ContractID,tap_data->ContractNo1);		/*合约编码*/
-	}
-	 
-	//时间：如2014-02-03 13:23:45   
-	system_clock::time_point today = system_clock::now();
-	std::time_t tt = system_clock::to_time_t ( today );
-	strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S",localtime(&tt));
-	strcpy(data.TimeStamp+11,other.updateTime);
-	strcpy(data.TimeStamp+19,".");
-	sprintf(data.TimeStamp+20,"%03d",other.updateMS);
-
-	data.TotalBidLot = (int)other.totalbid;	/*委买总量*/
-	data.TotalAskLot = (int)other.totalask;	/*委卖总量*/
-
-	data.TotalVolume = other.volume;
-	data.ContractIDType = 0;			/*合约类型 0->目前应该为0， 扩充：0:期货,1:期权,2:组合*/
-	data.LastPrice = InvalidToZeroD(other.price);		/*最新价*/
-	data.BidPrice[0] = InvalidToZeroD(other.bidPrice1);     /*买入价格 下标从0开始*/
-	data.BidPrice[1] = InvalidToZeroD(other.bidPrice2);     /*买入价格 下标从0开始*/
-	data.BidPrice[2] = InvalidToZeroD(other.bidPrice3);     /*买入价格 下标从0开始*/
-	data.BidPrice[3] = InvalidToZeroD(other.bidPrice4);     /*买入价格 下标从0开始*/	
-	data.BidPrice[4] = InvalidToZeroD(other.bidPrice5);     /*买入价格 下标从0开始*/
-
-	data.AskPrice[0] = InvalidToZeroD(other.askPrice1);     /*卖出价 下标从0开始*/
-	data.AskPrice[1] = InvalidToZeroD(other.askPrice2);     /*卖出价 下标从0开始*/
-	data.AskPrice[2] = InvalidToZeroD(other.askPrice3);     /*卖出价 下标从0开始*/
-	data.AskPrice[3] = InvalidToZeroD(other.askPrice4);     /*卖出价 下标从0开始*/
-	data.AskPrice[4] = InvalidToZeroD(other.askPrice5);     /*卖出价 下标从0开始*/
-	data.BidLot[0] = other.bidVolume1;          /*买入数量 下标从0开始*/
-	data.BidLot[1] = other.bidVolume2;          /*买入数量 下标从0开始*/
-	data.BidLot[2] = other.bidVolume3;          /*买入数量 下标从0开始*/
-	data.BidLot[3] = other.bidVolume4;          /*买入数量 下标从0开始*/
-	data.BidLot[4] = other.bidVolume5;          /*买入数量 下标从0开始*/
-
-	data.AskLot[0] = other.askVolume1;          /*卖出数量 下标从0开始*/
-	data.AskLot[1] = other.askVolume2;          /*卖出数量 下标从0开始*/
-	data.AskLot[2] = other.askVolume3;          /*卖出数量 下标从0开始*/
-	data.AskLot[3] = other.askVolume4;          /*卖出数量 下标从0开始*/
-	data.AskLot[4] = other.askVolume5;          /*卖出数量 下标从0开始*/
-}
-
-L2MDProducer::L2MDProducer(struct vrt_queue  *queue)
-	: module_name_("FullDepthProducer")
+// done
+L2MDProducer::L2MDProducer(struct vrt_queue *queue)
+	: module_name_("L2MDProducer")
 {
 	ended_ = false;
-	clog_warning("[%s] FULL_DEPTH_MD_BUFFER_SIZE: %d;", module_name_, FULL_DEPTH_MD_BUFFER_SIZE);
+	clog_warning("[%s] L2_MD_BUFFER_SIZE: %d;", module_name_, L2_MD_BUFFER_SIZE);
 
 	ParseConfig();
 	
@@ -96,6 +39,7 @@ L2MDProducer::L2MDProducer(struct vrt_queue  *queue)
 	thread_rev_->detach();
 }
 
+// done
 void L2MDProducer::ParseConfig()
 {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
@@ -126,10 +70,12 @@ void L2MDProducer::ParseConfig()
 	config_.port = stoi(config_.addr.substr(ipstr_end+1));
 }
 
+// done
 L2MDProducer::~L2MDProducer()
 {
 }
 
+// done
 int L2MDProducer::InitMDApi()
 {
     // init udp socket
@@ -211,11 +157,6 @@ void L2MDProducer::RevData()
 		ivalue->index = Push(*md);
 		ivalue->data = L2_MD;
 		vrt_producer_publish(producer_);
-
-		// TODO: the following need to move to consumer
-		string udp_contr = p->instrument;
-		TapAPIQuoteWhole_MY *tap_data = get_data_by_udp_contr(udp_contr );
-		ZCEL2QuotSnapshotField_MY data_my = Convert(*p,tap_data );
     } // end while (!ended_) 
 }
 
@@ -249,29 +190,3 @@ bool L2MDProducer::IsDominant(const char *contract)
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
 }
 
-std::string L2MDProducer::ToString(const MDPack &d) {
-	clog_info("MDPack Data:instrument:%s;"
-		"islast:%d seqno:%d direction:%c count:%d",
-		d.instrument, (int)d.islast, d.seqno,
-		d.direction, d.count);
-	for(int i = 0; i < d.count; i++) {
-		 clog_info("price%d: %lf, volume%d: %d",
-			 i, d.data[i].price, i, d.data[i].volume);
-	}
-  
-  return "";
-}
-
-std::string L2MDProducer::ToString(const StdQuote5 &d) 
-{
-	clog_info("MDPackEx Data: instrument:%s; damaged:%d;"
-		"islast:%d seqno:%d direction:%c count:%d",
-		d.content.instrument, d.damaged, (int)d.content.islast, d.content.seqno,
-		d.content.direction, d.content.count);
-	for(int i = 0; i < d.content.count; i++) {
-		 clog_info("price%d: %lf, volume%d: %d",
-			 i, d.content.data[i].price, i, d.content.data[i].volume);
-	}
-  
-  return "";
-}

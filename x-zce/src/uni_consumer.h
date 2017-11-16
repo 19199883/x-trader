@@ -77,7 +77,7 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcL2QuoteSnapshot(int32_t index);
+		void ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md);
 		void FeedL2QuoteSnapshot(int32_t straidx);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);

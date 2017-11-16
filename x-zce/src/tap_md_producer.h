@@ -1,3 +1,5 @@
+// done
+//
 #ifndef __TAP_MD_PRODUCER_H__
 #define __TAP_MD_PRODUCER_H__
 
@@ -15,7 +17,7 @@
 /*
  * 10 power of 2
  */
-#define MD_BUFFER_SIZE 1000 
+#define L1MD_BUFFER_SIZE 1000 
 
 /*
  * 识Level行情处于未接收数居前的未知位置
@@ -24,7 +26,7 @@
 
 using namespace std;
 
-struct Mdconfig
+struct L1Mdconfig
 {
 	char user[50];
 	char password[250];
@@ -80,7 +82,7 @@ class TapMDProducer : public ITapQuoteAPINotify
 		 */
 		int32_t Push(const TapAPIQuoteWhole_MY& md);
 		struct vrt_producer  *producer_;
-		TapAPIQuoteWhole_MY md_buffer_[MD_BUFFER_SIZE] ;
+		TapAPIQuoteWhole_MY md_buffer_[L1MD_BUFFER_SIZE] ;
 		int32_t l1data_cursor_;
 		bool ended_;
 
@@ -92,6 +94,7 @@ class TapMDProducer : public ITapQuoteAPINotify
 		char dominant_contracts_[20][10];
 
 		void Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole_MY &my_data);
+		TapAPIQuoteWhole_MY target_data_;
 
 		/*
 		 *日志相关
@@ -101,7 +104,7 @@ class TapMDProducer : public ITapQuoteAPINotify
 		/*
 		 * 配置相关
 		 */
-		Mdconfig config_;
+		L1Mdconfig config_;
 		void ParseConfig();
 
 		/*
