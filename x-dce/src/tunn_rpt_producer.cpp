@@ -358,7 +358,7 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 	// TODO:DEBUG 之前出现过一次OnRtnErrorMsg，errorMsg=local order info invalid，nErrorID=24
 	// 可能与LocalOrderID一个会话内重复有关。但验证几次，无法重现。
 	// 故忽略OnRtnErrorMsg，继续观察
-	return;
+	// return;
 
 	int counter = GetCounterByLocalOrderID(pfield->RequestID);
 	if(cancel_requests_[counter]) return; // 对于撤单请求的错误，不需报给策略

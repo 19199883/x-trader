@@ -491,6 +491,9 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			rpt.LocalOrderID = ord->LocalOrderID;
 			rpt.OrderStatus = X1_FTDC_SPD_ERROR;
 			rpt.ErrorID = rtn;
+
+			compliance_.End(counter);
+
 			int sig_cnt = 0;
 			strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
