@@ -428,6 +428,9 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			rpt.LocalOrderID = localorderid;
 			rpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
 			rpt.ErrorID = rtn;
+
+			compliance_.End(counter);
+
 			int sig_cnt = 0;
 			strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
