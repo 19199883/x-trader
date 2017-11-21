@@ -1,4 +1,3 @@
-// done
 #ifndef __L2MD_PRODUCER_H__
 #define __L2MD_PRODUCER_H__
 
@@ -62,7 +61,7 @@ class L2MDProducer
 		 */
 		int32_t Push(const StdQuote5& md);
 		struct vrt_producer  *producer_;
-		std::array<StdQuote5, L2_MD_BUFFER_SIZE> md_buffer_;
+		std::array<StdQuote5, L2MD_BUFFER_SIZE> md_buffer_;
 		bool ended_;
 
 		/*

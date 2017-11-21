@@ -7,7 +7,8 @@
 
 #include <signal.h>     /* signal */
 #include "vrt_value_obj.h"
-#include "md_producer.h"
+#include "l2md_producer.h"
+#include "tap_md_producer.h"
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
 #include "pos_calcu.h"
@@ -17,7 +18,7 @@
 #define  QUEUE_SIZE  4096
 UniConsumer *uniConsumer = NULL;
 L2MDProducer *l2_md_producer = NULL;
-L1MDProducer *l1_md_producer = NULL; 
+TapMDProducer *l1_md_producer = NULL; 
 TunnRptProducer *tunnRptProducer = NULL;
 
 static void
@@ -53,9 +54,9 @@ int main(/*int argc, const char **argv*/)
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
 	l2_md_producer = new L2MDProducer(queue);
-	l1_md_producer = new L1MDProducer(queue);
+	l1_md_producer = new TapMDProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
-	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
+	uniConsumer = new UniConsumer (queue, l1_md_producer, l2_md_producer, tunnRptProducer);
 	uniConsumer->Start();
 	fflush (fp);
 

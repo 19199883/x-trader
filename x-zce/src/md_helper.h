@@ -1,5 +1,4 @@
-﻿// done
-#ifndef MD_HELPER_H_
+﻿#ifndef MD_HELPER_H_
 #define MD_HELPER_H_
 
 #include <sys/types.h>
@@ -11,8 +10,8 @@
 #include "tap_md_producer.h"
 #include "vrt_value_obj.h"
 #include "quote_cmn_save.h"
-#include "my_cmn_util_funcs.h"
 #include "quote_cmn_utility.h"
+#include "quote_datatype_czce_level2.h"
 #include "quote_cmn_save.h"
 
 using namespace std;
@@ -21,7 +20,7 @@ class MdHelper
 {
 	public:
 
-		MdHelper(L2MDProducer* l2_md_producer, L1MDProducer *l1_md_producer);
+		MdHelper(L2MDProducer* l2_md_producer, TapMDProducer *l1_md_producer);
 		~MdHelper();
 
 		void SetQuoteDataHandler(std::function<void(ZCEL2QuotSnapshotField_MY*)> quote_handler);
@@ -32,14 +31,14 @@ class MdHelper
 		MdHelper(const MdHelper & other);
 		MdHelper operator=(const MdHelper & other);
 	
-		ZCEL2QuotSnapshotField_MY Convert(const StdQuote5 &other,TapAPIQuoteWhole_MY *tap_data,
+		void Convert(const StdQuote5 &other,TapAPIQuoteWhole_MY *tap_data,
 			ZCEL2QuotSnapshotField_MY &data);
 		ZCEL2QuotSnapshotField_MY target_data_;
 	
 		std::string ToString(const ZCEL2QuotSnapshotField_MY* p);
 
 	    L2MDProducer* l2_md_producer_;
-		L1MDProducer* l1_md_producer_;
+		TapMDProducer * l1_md_producer_;
 		int32_t l1_md_last_index_;
 	
 	private:

@@ -50,7 +50,7 @@ extern "C" {
 
 	enum HybridData {
 		L1_MD = 0, 
-		L2_MD = 0, 
+		L2_MD, 
 		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 

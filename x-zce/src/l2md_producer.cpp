@@ -9,14 +9,13 @@
 using namespace std;
 using namespace std::placeholders;
 using std::chrono::system_clock;
-using namespace my_cmn;
 
 // done
 L2MDProducer::L2MDProducer(struct vrt_queue *queue)
 	: module_name_("L2MDProducer")
 {
 	ended_ = false;
-	clog_warning("[%s] L2_MD_BUFFER_SIZE: %d;", module_name_, L2_MD_BUFFER_SIZE);
+	clog_warning("[%s] L2_MD_BUFFER_SIZE: %d;", module_name_, L2MD_BUFFER_SIZE);
 
 	ParseConfig();
 	
@@ -138,7 +137,7 @@ void L2MDProducer::RevData()
     unsigned int addr_len = sizeof(sockaddr_in);
     while (!ended_){
         data_len = recvfrom(udp_fd, buf, 2048, 0, (sockaddr *)&src_addr, &addr_len);
-        if (recv_len == -1) {
+        if (data_len == -1) {
             int error_no = errno;
             if (error_no == 0 || error_no == 251 || 
 				error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
@@ -170,9 +169,9 @@ void L2MDProducer::End()
 }
 
 int32_t L2MDProducer::Push(const StdQuote5& md){
-	static int32_t md_cursor = L2_MD_BUFFER_SIZE - 1;
+	static int32_t md_cursor = L2MD_BUFFER_SIZE - 1;
 	md_cursor++;
-	if (md_cursor % L2_MD_BUFFER_SIZE == 0){
+	if (md_cursor % L2MD_BUFFER_SIZE == 0){
 		md_cursor = 0;
 	}
 	md_buffer_[md_cursor] = md;

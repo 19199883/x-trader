@@ -1,7 +1,12 @@
-// done
-#include <functi1gt1gtonal>   // std::bind
+#include <unistd.h>
+#include <functional>   // std::bind
+#include <fstream>      // std::fstream
+#include <iostream>
 #include "tap_md_producer.h"
+#include "TapQuoteAPI.h"
+#include "TapTradeAPIDataType.h"
 #include "perfctx.h"
+#include "TapAPIError.h"
 
 using namespace std::placeholders;
 using namespace std;
@@ -77,12 +82,12 @@ void TapMDProducer::InitApi()
         api_->SetAPINotify(this);
         char *addr_tmp = new char[sizeof(config_.addr)];
         char *addr_tmp2, *port_tmp;
-        strcpy(addr_tmp, config_.addr);
+        strcpy(addr_tmp, config_.addr.c_str());
         clog_warning("[%s] TAP - prepare to connect quote provider: %s",
-			module_name_, config_.addr);
+			module_name_, config_.addr.c_str());
         addr_tmp2 = strtok(addr_tmp, ":");
         port_tmp = strtok(NULL, ":");
-		int result = api_->SetHostAddress(addr_tmp2, atoi(port_tmp))
+		int result = api_->SetHostAddress(addr_tmp2, atoi(port_tmp));
         if (0 != result){
 			clog_error("[%s] TAP - SetHostAddress failed:%d", module_name_, result);
 		}
@@ -93,13 +98,13 @@ void TapMDProducer::InitApi()
 
 void TapMDProducer::Login()
 {
-    TapAPITradeLoginAuth stLoginAuth;
+    TapAPIQuoteLoginAuth stLoginAuth;
     memset(&stLoginAuth, 0, sizeof(stLoginAuth));
-    strcpy(stLoginAuth.UserNo, config_.userid.c_str());
-    strcpy(stLoginAuth.Password, config_.password.c_str());
+    strcpy(stLoginAuth.UserNo, config_.user);
+    strcpy(stLoginAuth.Password, config_.password);
     stLoginAuth.ISModifyPassword = APIYNFLAG_NO;
     stLoginAuth.ISDDA = APIYNFLAG_NO;
-    result = api_->Login(&stLoginAuth);
+    TAPIINT32 result = api_->Login(&stLoginAuth);
     if (TAPIERROR_SUCCEED != result) {
         clog_error("[%s] Login Error, result:%d",module_name_,result);
     }else{
@@ -123,6 +128,8 @@ void TapMDProducer::ParseConfig()
     TiXmlElement *l1md_node = RootElement->FirstChildElement("L1Md");
 	if (l1md_node != NULL){
 		config_.addr = l1md_node->Attribute("addr");
+		strcpy(config_.user, l1md_node->Attribute("user"));
+		strcpy(config_.password, l1md_node->Attribute("password"));
 	} else { clog_error("[%s] x-trader.config error: L1Md node missing.", module_name_); }
 	
 	// contracts file
@@ -139,12 +146,11 @@ void TapMDProducer::ParseConfig()
 
 TapMDProducer::~TapMDProducer(){
     if (api_){
-        /* 退出行情登录 */
-        MY_LOG_INFO("TAP - cancel subscribe...");
         api_->Disconnect();
     }
 
     if (sID) { delete sID; }
+	clog_warning("[%s] L1MD exited.", module_name_);
 }
 
 void TapMDProducer::End()
@@ -183,7 +189,7 @@ void TapMDProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPIQuotLoginRspInfo
 // contract：801
 void TapMDProducer::OnAPIReady()
 {
-    MY_LOG_INFO("TAP - OnAPIReady");
+    clog_warning("[%s] TAP - OnAPIReady", module_name_);
 
 	std::string exchange_no = "ZCE";
 	char commodity_type = TAPI_COMMODITY_TYPE_FUTURES;
@@ -271,7 +277,7 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
             info->Contract.Commodity.ExchangeNo, info->Contract.Commodity.CommodityNo, 
 			info->Contract.ContractNo1);
     }else{
-        clog_error("[%s] TAP - SubscribeQuote failed, the error code is %d.", nodule_name_,
+        clog_error("[%s] TAP - SubscribeQuote failed, the error code is %d.", module_name_,
 			errorCode);
     }
 }
@@ -380,6 +386,6 @@ TapAPIQuoteWhole_MY* TapMDProducer::GetLastData(const char *contract, int32_t la
 
 bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_no)
 {
-	return IsDominantImpSizec3(commciodity_no, contract_no, dominant_contracts_, 
+	return IsDominantImp(commciodity_no, contract_no, dominant_contracts_, 
 			dominant_contract_count_);
 }

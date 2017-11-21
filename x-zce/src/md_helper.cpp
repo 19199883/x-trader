@@ -1,8 +1,12 @@
-﻿// done
+﻿#include <ctime>
+#include <ratio>
+#include <chrono>
 #include <thread>         // std::thread
 #include "md_helper.h"
 
-MdHelper::MdHelper(L2MDProducer *l2_md_producer, L1MDProducer *l1_md_producer)
+using std::chrono::system_clock;
+
+MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 : l2_md_producer_(l2_md_producer), l1_md_producer_(l1_md_producer), 
   module_name_("MdHelper")
 {

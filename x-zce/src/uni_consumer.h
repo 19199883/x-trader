@@ -9,7 +9,8 @@
 #include <unordered_map>
 #include "vrt_value_obj.h"
 #include "strategy.h"
-#include "md_producer.h"
+#include "tap_md_producer.h"
+#include "l2md_producer.h"
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
@@ -37,8 +38,8 @@ struct Uniconfig
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
-					TunnRptProducer *tunn_rpt_producer);
+		UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer, 
+			L2MDProducer *l2md_producer, TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();

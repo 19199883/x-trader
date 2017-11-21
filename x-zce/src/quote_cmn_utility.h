@@ -38,6 +38,33 @@ inline float InvalidToZeroF(float fVal)
     return IsValidFloat(fVal) ? fVal : 0.0;
 }
 
+template<typename DataType>
+void MYUTIL_SaveDataToFile(const std::vector<DataType> &datas, int &data_count, FILE * pf)
+{
+    if (pf && !datas.empty())
+    {
+        fwrite(&(datas[0]), sizeof(DataType), datas.size(), pf);
+        data_count += datas.size();
+        fseek(pf, 0, SEEK_SET);
+        fwrite(&data_count, sizeof(data_count), 1, pf);
+        fseek(pf, 0, SEEK_END);
+        fflush(pf);
+    }
+}
+
+template<typename DataType, typename HeaderType>
+void MYUTIL_SaveFileHeader(int data_type, FILE * pf)
+{
+    if (pf)
+    {
+        HeaderType header;
+        header.data_count = 0;
+        header.data_type = short(data_type);
+        header.data_length = (short) (sizeof(DataType));
+        fwrite(&header, sizeof(HeaderType), 1, pf);
+    }
+}
+
 typedef std::pair<std::string, unsigned short> IPAndPortNum;
 IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg);
 
@@ -91,6 +118,6 @@ bool IsEqualSize4(const char *contract, const char*commciodity_no, const char* c
  * contract_size3:SR801
  * contract_size4:SR1801
  */
-bool IsEqual(const char *contract_size3, const char* contract_size4)
+bool IsEqual(const char *contract_size3, const char* contract_size4);
 
 #endif  //

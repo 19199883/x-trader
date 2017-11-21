@@ -7,11 +7,14 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "my_protocol_packager.h"
+#include "md_helper.h"
+
+using namespace std::placeholders; 
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer, 
-	L2MDProducer l2md_producer, TunnRptProducer *tunn_rpt_producer)
-: module_name_("uni_consumer"),running_(true), l1md_producer_(l1md_producer),
-  l2md_producer_(l2md_producer), tunn_rpt_producer_(tunn_rpt_producer)
+	L2MDProducer *l2md_producer, TunnRptProducer *tunn_rpt_producer)
+: module_name_("uni_consumer"),running_(true), l1_md_producer_(l1md_producer),
+  l2_md_producer_(l2md_producer), tunn_rpt_producer_(tunn_rpt_producer)
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
@@ -260,7 +263,7 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 {
-	clog_debug("[%s] [ProcL2QuoteSnapshot] index: %d; contract: %s", module_name_, index, md->ContractID);
+	// clog_debug("[%s] [ProcL2QuoteSnapshot] index: %d; contract: %s", module_name_, index, md->ContractID);
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);

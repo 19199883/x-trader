@@ -1,5 +1,3 @@
-// done
-//
 #ifndef __TAP_MD_PRODUCER_H__
 #define __TAP_MD_PRODUCER_H__
 
@@ -12,6 +10,9 @@
 #include <tinystr.h>
 #include "TapQuoteAPI.h"
 #include "quote_cmn_utility.h"
+#include "quote_datatype_tap.h"
+#include "quote_datatype_czce_level2.h"
+#include "ZceLevel2ApiStruct.h"
 
 /*
  * 10 power of 2
@@ -29,7 +30,7 @@ struct L1Mdconfig
 {
 	char user[50];
 	char password[250];
-	char addr[50];
+	string addr;
 	char ip[30];
 	int port;
 	char contracts_file[500];
@@ -87,6 +88,8 @@ class TapMDProducer : public ITapQuoteAPINotify
 		int32_t l1data_cursor_;
 		bool ended_;
 
+		void Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole_MY &data);
+
 		/*
 		 * check whether the given contract is dominant.
 		 * contract: e.g. SR801
@@ -95,10 +98,6 @@ class TapMDProducer : public ITapQuoteAPINotify
 		int32_t dominant_contract_count_;
 		char dominant_contracts_[20][10];
 
-		/*
-		 *
-		 */
-		void Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole_MY &my_data);
 		TapAPIQuoteWhole_MY target_data_;
 
 		/*
