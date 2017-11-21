@@ -7,7 +7,7 @@
 
 Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
 {
-	clog_info("[%s] Compliance on.", module_name_);
+	clog_warning("[%s] Compliance on.", module_name_);
 
 	ParseConfig();
 
@@ -26,7 +26,7 @@ void Compliance::Save()
 	for(; i < MAX_CONTRACT_NUMBER; i++){
 		if (strcmp(contracts_[i], "") == 0) break;
 
-		clog_info("[%s] contract:%s; cancel times:%d",
+		clog_warning("[%s] contract:%s; cancel times:%d",
 			module_name_, contracts_[i], cur_cancel_times_[i]);
 	}
 }
@@ -43,7 +43,7 @@ void Compliance::ParseConfig()
     TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
 	if (comp_node != NULL){
 		cancel_upper_limit_ = atoi(comp_node->Attribute("cancelUpperLimit"));
-		clog_info("[%s] cancelUpperLimit:%d;", module_name_, cancel_upper_limit_);
+		clog_warning("[%s] cancelUpperLimit:%d;", module_name_, cancel_upper_limit_);
 	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
 }
 
@@ -72,7 +72,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
     bool ret = true;
 
 	if(offset == X1_FTDC_SPD_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_)){
-		clog_warning("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
+		clog_error("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
 			module_name_, ord_counter, GetCancelTimes(contract));
 		return false;
 	}
@@ -101,7 +101,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		ord.price = price;
 	}
 
-	clog_debug("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
+	clog_info("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
 				module_name_, ord_counter, min_counter_, max_counter_, ret);
 
     return ret;
@@ -145,7 +145,7 @@ void Compliance::End(int ord_counter)
 		}
 	} // if (ord_counter == min_counter_)
 
-	clog_debug("[%s] End min counter:%d; max counter:%d; ord counter:%d",
+	clog_info("[%s] End min counter:%d; max counter:%d; ord counter:%d",
 				module_name_, min_counter_, max_counter_, ord_counter);
 }
 
