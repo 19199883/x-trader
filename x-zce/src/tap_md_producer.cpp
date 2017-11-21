@@ -83,11 +83,11 @@ void TapMDProducer::InitApi()
         char *addr_tmp = new char[sizeof(config_.addr)];
         char *addr_tmp2, *port_tmp;
         strcpy(addr_tmp, config_.addr.c_str());
-        clog_warning("[%s] TAP - prepare to connect quote provider: %s",
-			module_name_, config_.addr.c_str());
         addr_tmp2 = strtok(addr_tmp, ":");
         port_tmp = strtok(NULL, ":");
-		int result = api_->SetHostAddress(addr_tmp2, atoi(port_tmp));
+        clog_warning("[%s] TAP - prepare to connect quote provider: ip:%s %d",
+			module_name_, config_.ip, config_.port);
+		int result = api_->SetHostAddress(config_.ip, config_.port);
         if (0 != result){
 			clog_error("[%s] TAP - SetHostAddress failed:%d", module_name_, result);
 		}
@@ -256,8 +256,6 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 {
 	if(ended_) return;
 
-    clog_info("[%s] TAP - OnRspSubscribeQuote", module_name_);
-
     if (errorCode == 0 && NULL != info){
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
@@ -272,7 +270,7 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 		ivalue->data = L1_MD;
 		vrt_producer_publish(producer_);
 
-        clog_info("[%s] TAP - OnRspSubscribeQuote Successful, ExchangNo is %s, "
+        clog_debug("[%s] TAP - OnRspSubscribeQuote Successful, ExchangNo is %s, "
 			"CommodityNo is %s, ContractNo is %s.", module_name_,
             info->Contract.Commodity.ExchangeNo, info->Contract.Commodity.CommodityNo, 
 			info->Contract.ContractNo1);
@@ -286,7 +284,6 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 {
 	if(ended_) return;
 
-    clog_info("[%s] TAP - OnRtnQuote", module_name_);
     if ( NULL != info) {
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
@@ -301,8 +298,8 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		ivalue->data = L1_MD;
 		vrt_producer_publish(producer_);
 		
-        clog_info("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, CommodityNo is %s,"
-			"ContractNo is %s.",
+        clog_debug("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, CommodityNo is %s,"
+			"ContractNo is %s.", module_name_,
             info->Contract.Commodity.ExchangeNo, info->Contract.Commodity.CommodityNo, 
 			info->Contract.ContractNo1);
     } else {

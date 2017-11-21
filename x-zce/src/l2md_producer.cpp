@@ -52,10 +52,10 @@ void L2MDProducer::ParseConfig()
 	} else { clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); }
 
 	// addr
-    TiXmlElement *fdmd_node = RootElement->FirstChildElement("FullDepthMd");
+    TiXmlElement *fdmd_node = RootElement->FirstChildElement("L2Md");
 	if (fdmd_node != NULL){
 		config_.addr = fdmd_node->Attribute("addr");
-	} else { clog_error("[%s] x-shmd.config error: FulldepthMd node missing.", module_name_); }
+	} else { clog_error("[%s] x-shmd.config error: L2Md node missing.", module_name_); }
 
 	// contracts file
     TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
