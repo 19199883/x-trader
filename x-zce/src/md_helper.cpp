@@ -104,10 +104,10 @@ void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole_MY *tap_data,
 	data.AskLot[4] = other.askVolume5;          /*卖出数量 下标从0开始*/
 }
 
-void MdHelper::SetQuoteDataHandler(std::function<void(MYShfeMarketData*)> quote_handler)
+void MdHelper::SetQuoteDataHandler(std::function<void(ZCEL2QuotSnapshotField_MY*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
-	fulldepthmd_handler_ = quote_handler;
+	mymd_handler_= quote_handler;
 }
 
 void MdHelper::ProcL1MdData(int32_t index)

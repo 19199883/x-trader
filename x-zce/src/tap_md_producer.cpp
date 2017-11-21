@@ -20,14 +20,11 @@ TapAPIQuoteWhole_MY* L1MDProducerHelper::GetLastDataImp(const char *contract, in
 		}
 
 		TapAPIQuoteWhole_MY &tmp = buffer[data_index];
-		if(IsEqual(contract, tmp.CommodityNo, tmp.ContractNo1)){
+		if(IsEqualSize4(contract, tmp.CommodityNo, tmp.ContractNo1)){ // contract: e.g. SR1801
 			data = &tmp; 
 			break;
 		}
 	}
-
-	//clog_info("GetLastDataImp:dominant_contract_count:%d;i:%d;contract:%s",
-	//	dominant_contract_count, i, contract);
 
 	return data;
 }
@@ -46,6 +43,7 @@ TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
 	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
 
+	memset(&target_data_, 0, sizeof(target_data_));
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
     sID = new unsigned int;
 	InitApi();
@@ -379,7 +377,9 @@ TapAPIQuoteWhole_MY* TapMDProducer::GetLastData(const char *contract, int32_t la
 				contract, last_index, md_buffer_, L1MD_BUFFER_SIZE, dominant_contract_count_);
 	return data;
 }
-bool TapMDProducer::IsDominant(const char *contract)
+
+bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_no)
 {
-	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
+	return IsDominantImpSizec3(commciodity_no, contract_no, dominant_contracts_, 
+			dominant_contract_count_);
 }

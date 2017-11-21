@@ -8,7 +8,6 @@
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
-#include "quote_interface_czce_level2.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "TapQuoteAPI.h"
@@ -43,6 +42,7 @@ class L1MDProducerHelper
 		/*
 		 * 获取指定合约的最新行情。
 		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
+		 * contract: e.g. SR1801
 		 */
 		static TapAPIQuoteWhole_MY* GetLastDataImp(const char *contract, int32_t last_index,
 			TapAPIQuoteWhole_MY*buffer, int32_t buffer_size, int32_t dominant_contract_count);
@@ -60,10 +60,11 @@ class TapMDProducer : public ITapQuoteAPINotify
 		TapAPIQuoteWhole_MY* GetData(int32_t index);
 
 		/*
-		 * contract: 要获取行情的合约
+		 * contract: 要获取行情的合约, SR1801
 		 * last_index;最新行情在缓存的位置
 		 * 获取指定合约最新的一档行情。
 		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
+		 * contract: e.g. SR1801
 		 */
 		TapAPIQuoteWhole_MY* GetLastData(const char *contract, int32_t last_index);
 		void End();
@@ -88,11 +89,15 @@ class TapMDProducer : public ITapQuoteAPINotify
 
 		/*
 		 * check whether the given contract is dominant.
+		 * contract: e.g. SR801
 		 */
-		bool IsDominant(const char *contract);
+		bool IsDominant(const char*commciodity_no, const char* contract_no);
 		int32_t dominant_contract_count_;
 		char dominant_contracts_[20][10];
 
+		/*
+		 *
+		 */
 		void Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole_MY &my_data);
 		TapAPIQuoteWhole_MY target_data_;
 

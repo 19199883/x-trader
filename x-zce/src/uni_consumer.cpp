@@ -10,7 +10,7 @@
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer, 
 	L2MDProducer l2md_producer, TunnRptProducer *tunn_rpt_producer)
-: module_name_("uni_consumer"),running_(true), l1md_producer_(l2md_producer),
+: module_name_("uni_consumer"),running_(true), l1md_producer_(l1md_producer),
   l2md_producer_(l2md_producer), tunn_rpt_producer_(tunn_rpt_producer)
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
@@ -71,6 +71,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 UniConsumer::~UniConsumer()
 {
 	running_ = false;
+
+	delete l2_md_producer_;
+	delete l1_md_producer_;
 
 	if (pproxy_ != NULL){
 		pproxy_->DeleteLoadLibraryProxy();
@@ -208,7 +211,7 @@ void UniConsumer::Start()
 {
 	running_  = true;
 
-	MYQuoteData myquotedata(fulldepth_md_producer_, l1_md_producer_);
+	MdHelper myquotedata(l2_md_producer_, l1_md_producer_);
 	auto f_md = std::bind(&UniConsumer::ProcL2QuoteSnapshot, this,_1);
 	myquotedata.SetQuoteDataHandler(f_md);
 
@@ -243,7 +246,8 @@ void UniConsumer::Start()
 void UniConsumer::Stop()
 {
 	running_ = false;
-	md_producer_->End();
+	l1_md_producer_->End();
+	l2_md_producer_->End();
 	tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
 		compliance_.Save();

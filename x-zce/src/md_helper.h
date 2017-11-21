@@ -7,12 +7,8 @@
 #include <set>
 #include <string>
 #include <functional>   // std::bind
-#include "quote_datatype_shfe_my.h"
-#include "quote_datatype_shfe_deep.h"
-#include "quote_datatype_level1.h"
-#include "l1md_producer.h"
-#include "repairer.h"
-#include "fulldepthmd_producer.h"
+#include "l2md_producer.h"
+#include "tap_md_producer.h"
 #include "vrt_value_obj.h"
 #include "quote_cmn_save.h"
 #include "my_cmn_util_funcs.h"

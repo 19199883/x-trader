@@ -70,7 +70,8 @@ int32_t LoadDominantContracts(string file, char buffer[20][10])
 	return count;
 }
 
-bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buffer[20][10], int32_t buffer_size)
+bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buffer[20][10], 
+	int32_t buffer_size)
 {
 	bool is_dominant = false;
 
@@ -84,13 +85,47 @@ bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buff
 	return is_dominant;
 }
 
-/*
- * e.g.: contract:SR1801, commciodity_no:SR, contract_no:801
- *
- */
+bool IsDominantImp(const char* contract, char buffer[20][10], 
+	int32_t buffer_size)
+{
+	bool is_dominant = false;
+
+	for(int i=0; i<buffer_size; i++){
+		if(IsEqual(buffer[i], contract)){
+			is_dominant = true;
+			break;
+		}
+	}
+
+	return is_dominant;
+}
+
 bool IsEqual(const char *contract, const char*commciodity_no, const char* contract_no)
 {
-	if(strncmp(contract, commodity_no, 2) == 0 && strncmp(contract+3, contract_no, 3) == 0){
+	// contract:e.g. SR801
+	if(strncmp(contract, commodity_no, 2) == 0 && strncmp(contract+2, contract_no, 3) == 0){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool IsEqualSize4(const char *contract, const char*commciodity_no, const char* contract_no)
+{
+	// contract:e.g. SR801
+	if(strncmp(contract, commodity_no, 2) == 0 && 
+		strncmp(contract + 3, contract_no, 3) == 0){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool IsEqual(const char *contract_size3, const char* contract_size4)
+{
+	// contract:e.g. SR1801
+	if(strncmp(contract_size3, contract_size4, 2) == 0 && 
+		strncmp(contract_sie3 + 2, contract_size4 + 3, 3) == 0){
 		return true;
 	}else{
 		return false;

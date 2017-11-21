@@ -16,7 +16,8 @@
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
 UniConsumer *uniConsumer = NULL;
-MDProducer *mdproducer = NULL;
+L2MDProducer *l2_md_producer = NULL;
+L1MDProducer *l1_md_producer = NULL; 
 TunnRptProducer *tunnRptProducer = NULL;
 
 static void
@@ -45,23 +46,26 @@ int main(/*int argc, const char **argv*/)
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-shfe_20171108"); 
+	clog_warning("version:x-shfe_20171121"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
-	mdproducer = new MDProducer(queue);
+	l2_md_producer = new L2MDProducer(queue);
+	l1_md_producer = new L1MDProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
 	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
 	uniConsumer->Start();
+	fflush (fp);
 
   // free vrt_queue
 	vrt_queue_free(queue);
 
   delete uniConsumer;
   delete tunnRptProducer; 
-  delete mdproducer; 
+	delete l2_md_producer; 
+	delete l1_md_producer;
 
 // clog: free resources
 	pos_calc::destroy_instance();

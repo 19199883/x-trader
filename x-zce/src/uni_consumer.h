@@ -48,7 +48,8 @@ class UniConsumer
 		bool running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		MDProducer *md_producer_;
+		L2MDProducer *l2_md_producer_;
+		TapMDProducer *l1_md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;
