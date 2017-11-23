@@ -22,6 +22,7 @@ L2MDProducer::L2MDProducer(struct vrt_queue *queue)
 	// init dominant contracts
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
 	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+	clog_warning("[%s] dominant_contract_count_:%d;", module_name_, dominant_contract_count_);
 
 	// disruptor
 	this->producer_ = vrt_producer_new("fulldepthmd_producer", 1, queue);
@@ -150,8 +151,14 @@ void L2MDProducer::RevData()
 
 		StdQuote5* md = (StdQuote5 *)(buf);
 
+
+		// TODO:
+		bool dominant = IsDominant(md->instrument);
+		clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", module_name_, 
+			dominant, md->instrument, md->updateTime, md->updateMS);
+
 		// 抛弃非主力合约
-		if(!(IsDominant(md->instrument))) return;
+		if(!dominant) continue;
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;

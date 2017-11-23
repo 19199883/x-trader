@@ -263,6 +263,9 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 {
+	clog_info("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
+		md->ContractID, md->TimeStamp);
+		
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
 	for_each (

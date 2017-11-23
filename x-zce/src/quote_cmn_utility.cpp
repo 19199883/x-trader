@@ -90,7 +90,7 @@ bool IsDominantImp(const char* contract, char buffer[20][10],
 {
 	bool is_dominant = false;
 
-	for(int i=0; i<buffer_size; i++){
+	for(int i = 0; i < buffer_size; i++){
 		if(IsEqual(buffer[i], contract)){
 			is_dominant = true;
 			break;

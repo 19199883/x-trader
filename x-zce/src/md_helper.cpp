@@ -42,6 +42,9 @@ void MdHelper::ProcL2Data(int32_t index)
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
 
+		clog_info("[test] send [%s] contract:%s, time:%s", module_name_, 
+				target_data_.ContractID, target_data_.TimeStamp);
+
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);
@@ -138,10 +141,15 @@ void MdHelper::ProcL1MdData(int32_t index)
 	}
 
 	*old_l1_md = *new_l1_md;
+
+		clog_info("[%s] ProcL1MdData invoked. contract:%s%s", module_name_, new_l1_md->ContractNo1,
+			new_l1_md->CommodityNo);
 }
 
 TapAPIQuoteWhole_MY* MdHelper::GetData(const char *contract)
 {
+	clog_info("[%s] GetData invoked. contract:%s", module_name_, contract);
+
 	TapAPIQuoteWhole_MY* data = NULL;
 
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
