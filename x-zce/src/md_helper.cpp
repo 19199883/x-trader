@@ -42,10 +42,6 @@ void MdHelper::ProcL2Data(int32_t index)
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
 
-	// TODO: debug
-	clog_warning("[test] send [%s] contract:%s, time:%s", module_name_, 
-		target_data_.ContractID, target_data_.TimeStamp);
-
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);
@@ -142,21 +138,18 @@ void MdHelper::ProcL1MdData(int32_t index)
 	}
 
 	*old_l1_md = *new_l1_md;
-
-	// TODO:
-	clog_warning("[%s] ProcL1MdData invoked. contract:%s%s", module_name_, new_l1_md->ContractNo1,
-		new_l1_md->CommodityNo);
 }
 
 TapAPIQuoteWhole_MY* MdHelper::GetData(const char *contract)
 {
-	// TODO:
-	clog_warning("[%s] GetData invoked. contract:%s", module_name_, contract);
-
 	TapAPIQuoteWhole_MY* data = NULL;
 
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
 		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
+		if(strcmp(tmp.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+			break;
+		}
+
 		if(IsEqualSize4(contract, tmp.CommodityNo, tmp.ContractNo1)){ // contract: e.g. SR1801
 			data = &tmp; 
 			break;

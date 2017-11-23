@@ -240,10 +240,6 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 
 		Convert(*info, target_data_);
 
-		// TODO: debug
-		clog_warning("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
-			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
-
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
@@ -271,10 +267,6 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 
 		Convert(*info, target_data_);
-
-		// TODO: debug
-		clog_warning("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
-			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
