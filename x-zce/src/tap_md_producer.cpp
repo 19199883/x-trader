@@ -11,28 +11,6 @@
 using namespace std::placeholders;
 using namespace std;
 
-TapAPIQuoteWhole_MY* L1MDProducerHelper::GetLastDataImp(const char *contract, int32_t last_index,
-	TapAPIQuoteWhole_MY*buffer, int32_t buffer_size, int32_t dominant_contract_count)
-{
-	TapAPIQuoteWhole_MY* data = NULL;
-
-	// 需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
-	int i = 0;
-	for(; i<dominant_contract_count; i++){
-		int data_index = last_index - i;
-		if(data_index < 0){
-			data_index = data_index + buffer_size;
-		}
-
-		TapAPIQuoteWhole_MY &tmp = buffer[data_index];
-		if(IsEqualSize4(contract, tmp.CommodityNo, tmp.ContractNo1)){ // contract: e.g. SR1801
-			data = &tmp; 
-			break;
-		}
-	}
-
-	return data;
-}
 
 TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
 :module_name_("TapMDProducer")
@@ -262,6 +240,10 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 
 		Convert(*info, target_data_);
 
+		// TODO: debug
+		clog_warning("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
+			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
+
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
@@ -289,6 +271,10 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 
 		Convert(*info, target_data_);
+
+		// TODO: debug
+		clog_warning("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
+			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -373,13 +359,6 @@ void TapMDProducer::OnRspUnSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorC
 	TAPIYNFLAG isLast, const TapAPIContract *info) { }
 
 void TapMDProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode) { } 
-
-TapAPIQuoteWhole_MY* TapMDProducer::GetLastData(const char *contract, int32_t last_index)
-{
-	TapAPIQuoteWhole_MY* data = L1MDProducerHelper::GetLastDataImp(
-				contract, last_index, md_buffer_, L1MD_BUFFER_SIZE, dominant_contract_count_);
-	return data;
-}
 
 bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_no)
 {

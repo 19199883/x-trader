@@ -149,6 +149,11 @@ void L2MDProducer::RevData()
         }
 
 		StdQuote5* md = (StdQuote5 *)(buf);
+
+		// TODO: debug
+		clog_warning("[test] StdQuote5 rev [%s] contract:%s, time:%s %d", module_name_, 
+			md->instrument, md->updateTime, md->updateMS);
+
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);

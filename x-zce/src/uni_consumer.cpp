@@ -263,7 +263,9 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 {
-	// clog_debug("[%s] [ProcL2QuoteSnapshot] index: %d; contract: %s", module_name_, index, md->ContractID);
+	// TODO: debug
+	clog_warning("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
+		md->ContractID, md->TimeStamp);
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
@@ -314,7 +316,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; MatchedAmount:%u;"
 				" ErrorID:%u ", module_name_, index, rpt->LocalOrderID, 
 				rpt->OrderStatus, rpt->MatchedAmount, rpt->ErrorID);
 

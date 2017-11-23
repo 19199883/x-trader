@@ -14,6 +14,8 @@
 #include "quote_datatype_czce_level2.h"
 #include "quote_cmn_save.h"
 
+#define L1_DOMINANT_MD_BUFFER_SIZE 14
+
 using namespace std;
 
 class MdHelper
@@ -39,7 +41,13 @@ class MdHelper
 
 	    L2MDProducer* l2_md_producer_;
 		TapMDProducer * l1_md_producer_;
-		int32_t l1_md_last_index_;
+		/*
+		 * contract: 要获取行情的合约, SR1801
+		 * 获取指定合约最新的一档行情。
+		 * contract: e.g. SR1801
+		 */
+		TapAPIQuoteWhole_MY* GetData(const char *contract);
+		TapAPIQuoteWhole_MY md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
 	
 	private:
 		const char *module_name_;  

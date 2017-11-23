@@ -10,7 +10,12 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 : l2_md_producer_(l2_md_producer), l1_md_producer_(l1_md_producer), 
   module_name_("MdHelper")
 {
-	l1_md_last_index_ = L1MD_NPOS;
+	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
+		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
+		strcpy(tmp.CommodityNo, "");
+		strcpy(tmp.ContractNo1, "");
+	}
+
 
 #ifdef PERSISTENCE_ENABLED 
     p_md_save_ = new QuoteDataSave<ZCEL2QuotSnapshotField_MY>("czce_level2", 
@@ -27,26 +32,28 @@ MdHelper::~MdHelper()
 	clog_warning("[%s] ~MdHelper invoked.", module_name_);
 }
 
-// done
 void MdHelper::ProcL2Data(int32_t index)
 {
 	TapAPIQuoteWhole_MY* l1_md = NULL;
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
-	if(l1_md_last_index_ != L1MD_NPOS){
-		// md->instrument, e.g. SR1801
-		 l1_md =  l1_md_producer_->GetLastData(md->instrument, l1_md_last_index_);
-	}
+	l1_md =  GetData(md->instrument); // md->instrument, e.g. SR1801
 	if(NULL != l1_md){
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
+
+	// TODO: debug
+	clog_warning("[test] send [%s] contract:%s, time:%s", module_name_, 
+		target_data_.ContractID, target_data_.TimeStamp);
 
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);
 		p_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
 #endif
-	} 
+	}else{
+		clog_warning("[%s] ProcL2Data: L1 is null.", module_name_);
+	}
 }
 
 void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole_MY *tap_data,
@@ -67,7 +74,8 @@ void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole_MY *tap_data,
 		data.LifeLow = InvalidToZeroD(tap_data->QHisLowPrice);	/*历史最低成交价格*/
 		data.AveragePrice = InvalidToZeroD(tap_data->QAveragePrice);	/*均价*/
 		data.OpenInterest = (int)tap_data->QPositionQty;	/*持仓量*/
-		strcpy(data.ContractID,tap_data->ContractNo1);		/*合约编码*/
+		strcpy(data.ContractID, tap_data->CommodityNo);		/*合约编码*/
+		strcpy(data.ContractID + 2, tap_data->ContractNo1);		/*合约编码*/
 	}
 	 
 	//时间：如2014-02-03 13:23:45   
@@ -116,7 +124,46 @@ void MdHelper::SetQuoteDataHandler(std::function<void(ZCEL2QuotSnapshotField_MY*
 
 void MdHelper::ProcL1MdData(int32_t index)
 {
-	l1_md_last_index_ = index;
+	TapAPIQuoteWhole_MY *new_l1_md =  l1_md_producer_->GetData(index);
+
+	TapAPIQuoteWhole_MY *old_l1_md = NULL;
+	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
+		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
+		if(strcmp(tmp.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+			old_l1_md = &tmp; 
+			break;
+		}
+
+		if(strcmp(new_l1_md->CommodityNo, tmp.CommodityNo) == 0 &&
+			strcmp(new_l1_md->ContractNo1, tmp.ContractNo1) == 0){ // contract: e.g. SR1801
+			old_l1_md = &tmp; 
+			break;
+		}
+	}
+
+	*old_l1_md = *new_l1_md;
+
+	// TODO:
+	clog_warning("[%s] ProcL1MdData invoked. contract:%s%s", module_name_, new_l1_md->ContractNo1,
+		new_l1_md->CommodityNo);
+}
+
+TapAPIQuoteWhole_MY* MdHelper::GetData(const char *contract)
+{
+	// TODO:
+	clog_warning("[%s] GetData invoked. contract:%s", module_name_, contract);
+
+	TapAPIQuoteWhole_MY* data = NULL;
+
+	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
+		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
+		if(IsEqualSize4(contract, tmp.CommodityNo, tmp.ContractNo1)){ // contract: e.g. SR1801
+			data = &tmp; 
+			break;
+		}
+	}
+
+	return data;
 }
 
 std::string MdHelper::ToString(const ZCEL2QuotSnapshotField_MY * p)
