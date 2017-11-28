@@ -58,6 +58,7 @@ void TapMDProducer::InitApi()
 			module_name_, iResult);
     }else{
         api_->SetAPINotify(this);
+        SetTapQuoteAPILogLevel(APILOGLEVEL_NONE);
         char *addr_tmp = new char[sizeof(config_.addr)];
         char *addr_tmp2, *port_tmp;
         strcpy(addr_tmp, config_.addr.c_str());

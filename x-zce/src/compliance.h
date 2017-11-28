@@ -25,7 +25,6 @@ class Compliance
 		/*
 		 * 返回值：true表示成功；false表示失败 
 		 */
-		// TODO:here1
 		bool TryReqOrderInsert(int ord_counter, const char * contract, double price,
 					TAPISideType side,TAPIPositionEffectType offset);
 

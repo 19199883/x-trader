@@ -86,6 +86,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
         return;
     }
     api_->SetAPINotify(this);
+	SetTapTradeAPILogLevel(APILOGLEVEL_NONE);
 	// address for front machine
 	IPAndPortNum ip_port = ParseIPAndPortNum(config_.address);
 	api_->SetHostAddress(ip_port.first.c_str(), ip_port.second);
@@ -275,7 +276,7 @@ void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
 void TunnRptProducer::End()
 {
     if (api_) {
-        // api_->Disconnect();
+		FreeTapTradeAPI(api_);
         api_ = NULL;
     }
 	ended_ = true;
