@@ -110,7 +110,7 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
 
 	this->producer_ = vrt_producer_new("md_producer", 1, queue);
-	clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -213,8 +213,8 @@ void MDProducer::RevData()
         clog_warning("[%s] MY_SHFE_MD - CreateUdpFD succeeded.",module_name_);
 	}
 
-    clog_info("[%s] DCE_UDP-sizeof(MDBestAndDeep):%u", module_name_, sizeof(MDBestAndDeep));
-    clog_info("[%s] DCE_UDP-sizeof(MDOrderStatistic):%u", module_name_, sizeof(MDOrderStatistic));
+    clog_debug("[%s] DCE_UDP-sizeof(MDBestAndDeep):%u", module_name_, sizeof(MDBestAndDeep));
+    clog_debug("[%s] DCE_UDP-sizeof(MDOrderStatistic):%u", module_name_, sizeof(MDOrderStatistic));
 
     char buf[2048];
     int data_len = 0;

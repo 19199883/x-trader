@@ -335,7 +335,7 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 		position_.frozen_close_long += updated_vol;
 	}
 
-	clog_info("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
+	clog_debug("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
@@ -351,7 +351,7 @@ int Strategy::GetVol(const signal_t &sig)
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
 	} else{
-		clog_info("[%s] strategy id:%d;PlaceOrder: do support sig_openclose value:%d;", 
+		clog_error("[%s] strategy id:%d;PlaceOrder: do support sig_openclose value:%d;", 
 					module_name_,GetId(), sig.sig_openclose); 
 	}
 
@@ -430,7 +430,7 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 	}
 
 
-	clog_info("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
+	clog_debug("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 			"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 			"frozen_open_short:%d; ",
 			module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
@@ -479,7 +479,7 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
+	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
 				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
 
@@ -576,7 +576,7 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 	}
 
-	clog_info("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
+	clog_debug("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,

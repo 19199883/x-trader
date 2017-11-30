@@ -20,11 +20,11 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 	this->ParseConfig();
 
-	clog_info("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
+	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
-	clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -45,7 +45,8 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 		else break;
 	}
 
-	clog_info("[%s] X1 Api: connection to front machine succeeds.", module_name_);
+	api_->SubscribePrivateTopic(X1_PrivateFlow_Req_Quick, 0);
+	clog_warning("[%s] X1 Api: connection to front machine succeeds.", module_name_);
 }
 
 TunnRptProducer::~TunnRptProducer()
@@ -59,7 +60,7 @@ TunnRptProducer::~TunnRptProducer()
     if (api_) {
         api_->Release();
         api_ = NULL;
-		clog_info("[%s]api release.", module_name_);
+		clog_warning("[%s]api release.", module_name_);
     }
 }
 
@@ -82,7 +83,7 @@ void TunnRptProducer::ParseConfig()
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
 
-		clog_info("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
+		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
 					module_name_, 
 					this->config_.address.c_str(), 
 					this->config_.brokerid.c_str(),

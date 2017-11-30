@@ -38,7 +38,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
-	clog_info("[%s] yield:%s", module_name_, config_.yield); 
+	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->consumer_->yield = vrt_yield_strategy_threaded();
 	}else if(strcmp(config_.yield, "spin") == 0){
@@ -366,7 +366,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
+	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
 				" ErrorID:%d ",
 				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
 				rpt->ErrorID);
@@ -401,7 +401,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				pending_signals_[st_id][i] = -1;
 				signal_t *sig = strategy.GetSignalBySigID(sig_id);
 				PlaceOrder(strategy, *sig);
-				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+				 clog_debug("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
 							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
 							 "sig_act:%d; sig_openclose:%d; ",
 						module_name_, sig->st_id, sig->sig_id,
