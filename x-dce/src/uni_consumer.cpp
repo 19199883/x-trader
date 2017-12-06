@@ -401,7 +401,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				pending_signals_[st_id][i] = -1;
 				signal_t *sig = strategy.GetSignalBySigID(sig_id);
 				PlaceOrder(strategy, *sig);
-				 clog_debug("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
 							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
 							 "sig_act:%d; sig_openclose:%d; ",
 						module_name_, sig->st_id, sig->sig_id,
@@ -446,7 +446,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	if (!strategy.HasFrozenPosition()){
-		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}
 	
