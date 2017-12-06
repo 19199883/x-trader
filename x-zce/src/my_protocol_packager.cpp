@@ -52,7 +52,7 @@ TapAPINewOrder* ESUNNYPacker::OrderRequest(const signal_t& sig,const char *accou
 		new_order_.OrderPrice = sig.sell_price;
 		new_order_.OrderSide = TAPI_SIDE_SELL;
 	} else{
-		 clog_warning("do support BuySellType value:%d; sig id:%d",
+		 clog_error("do support BuySellType value:%d; sig id:%d",
 			sig.sig_act, sig.sig_id); 
 	}
 	// position effect
@@ -61,7 +61,7 @@ TapAPINewOrder* ESUNNYPacker::OrderRequest(const signal_t& sig,const char *accou
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		new_order_.PositionEffect = TAPI_PositionEffect_COVER;
 	} else{
-		 clog_warning("do support PositionEffect value:%d; sig id:%d",
+		 clog_error("do support PositionEffect value:%d; sig id:%d",
 			sig.sig_openclose, sig.sig_id); 
 	}
 	// volume

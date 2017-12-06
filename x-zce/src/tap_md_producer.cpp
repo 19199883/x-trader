@@ -241,7 +241,7 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 
 		Convert(*info, target_data_);
 
-		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
+		clog_debug("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
 			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
@@ -272,7 +272,7 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 
 		Convert(*info, target_data_);
 
-		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
+		clog_debug("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
 			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;

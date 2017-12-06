@@ -307,7 +307,7 @@ int Strategy::GetVol(const signal_t &sig)
 	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
 		vol = sig.close_volume;
 	} else{
-		clog_info("[%s] strategy id:%d;PlaceOrder: do support sig_openclose value:%d;", 
+		clog_error("[%s] strategy id:%d;PlaceOrder: do support sig_openclose value:%d;", 
 					module_name_,GetId(), sig.sig_openclose); 
 	}
 
@@ -571,7 +571,7 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt,const
 	}else if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_ACCEPT){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	}else{
-		clog_warning("[%s] unexpected status:%d", tunnrpt.OrderStatus);
+		clog_error("[%s] unexpected status:%d", tunnrpt.OrderStatus);
 	}
 }
 

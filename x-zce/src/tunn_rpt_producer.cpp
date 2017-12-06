@@ -154,11 +154,11 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_info("[%s] ReqOrderInsert latency:%d us", 
+		clog_warning("[%s] ReqOrderInsert latency:%d us", 
 					module_name_,latency); 
 #endif
 	if (ret != 0){
-		clog_warning("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
+		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
 	}else {
 		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
@@ -183,17 +183,17 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_info("[%s] ReqOrderAction latency:%d us", 
+		clog_warning("[%s] ReqOrderAction latency:%d us", 
 					module_name_,latency); 
 #endif
 
 	if (ret != 0){
-		clog_warning("[%s] CancelOrder - return:%d, session_id:%d, "
+		clog_error("[%s] CancelOrder - return:%d, session_id:%d, "
 			"counter of original order:%d,server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
 	} else {
-		clog_info("[%s] CancelOrder - return:%d, session_id:%d, "
+		clog_debug("[%s] CancelOrder - return:%d, session_id:%d, "
 			"counter of original order:%d,server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);

@@ -25,7 +25,7 @@
 #define COUNTER_UPPER_LIMIT 15000
 
 // 行情持久化开关
-#define PERSISTENCE_ENABLED
+//#define PERSISTENCE_ENABLED
 
 /*
  * 10 power of 2

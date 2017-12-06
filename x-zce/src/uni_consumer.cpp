@@ -263,7 +263,7 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 {
-	clog_info("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
+	clog_debug("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
 		md->ContractID, md->TimeStamp);
 		
 #if FIND_STRATEGIES == 1 //unordered_multimap  
@@ -382,7 +382,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 					}
 				}
 				if(i == MAX_PENDING_SIGNAL_COUNT){
-					clog_warning("[%s] pending_signals_ beyond;", module_name_);
+					clog_error("[%s] pending_signals_ beyond;", module_name_);
 				}
 			} else { PlaceOrder(strategy, sigs[i]); }
 		}
@@ -408,7 +408,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-        if(latency > 0) clog_info("[%s] cancel latency:%d us", module_name_, latency); 
+        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
 #endif
 }
 
@@ -461,7 +461,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 #ifdef LATENCY_MEASURE
   // latency measure
 	int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-	if(latency > 0) clog_info("[%s] place latency:%d us", module_name_, latency); 
+	if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
 #endif
 }
 

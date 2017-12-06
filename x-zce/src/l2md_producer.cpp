@@ -152,7 +152,7 @@ void L2MDProducer::RevData()
 		StdQuote5* md = (StdQuote5 *)(buf);
 
 		bool dominant = IsDominant(md->instrument);
-		clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", module_name_, 
+		clog_debug("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", module_name_, 
 			dominant, md->instrument, md->updateTime, md->updateMS);
 
 		// 抛弃非主力合约

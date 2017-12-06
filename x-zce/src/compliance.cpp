@@ -72,7 +72,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
     bool ret = true;
 
 	if(offset==TAPI_PositionEffect_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_)){
-		clog_warning("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
+		clog_error("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
 			module_name_, ord_counter, GetCancelTimes(contract));
 		return false;
 	}
@@ -101,7 +101,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		ord.price = price;
 	}
 
-	clog_info("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
+	clog_debug("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
 				module_name_, ord_counter, min_counter_, max_counter_, ret);
 
     return ret;
@@ -144,7 +144,7 @@ void Compliance::End(int ord_counter)
 		}
 	} // if (ord_counter == min_counter_)
 
-	clog_warning("[%s] End min counter:%d; max counter:%d; ord counter:%d",
+	clog_debug("[%s] End min counter:%d; max counter:%d; ord counter:%d",
 				module_name_, min_counter_, max_counter_, ord_counter);
 }
 
