@@ -390,26 +390,31 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	}
 #endif
 
-	strategy.FeedTunnRpt(*rpt, &sig_cnt, sig_buffer_);
+	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
+	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 
-	if (!strategy.HasFrozenPosition()){
-		int i = 0;
-		for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
-			int32_t st_id = strategy.GetId();
-			if(pending_signals_[st_id][i] >= 0){
-				int32_t sig_id = pending_signals_[st_id][i];
-				pending_signals_[st_id][i] = -1;
-				signal_t *sig = strategy.GetSignalBySigID(sig_id);
+	// TODO: improve place, cancel
+	// 虑当pending信号都处理了，如何标志
+	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
+		int32_t st_id = strategy.GetId();
+		int32_t sig_id = pending_signals_[st_id][i];
+		if(sig_id < 0){ // hit tail
+			break;
+		}else if(sig_id != INVALID_PENDING_SIGNAL){
+			signal_t *sig = strategy.GetSignalBySigID(sig_id);
+			if(!strategy.Deferred(sig->sig_id, sig->sig_openclose, sig->sig_act)){
+				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				PlaceOrder(strategy, *sig);
 				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
-							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; "
-							 "sig_act:%d; sig_openclose:%d; ",
-						module_name_, sig->st_id, sig->sig_id,
-						sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
-						sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose); 
-			} // if(pending_signals_[st_id][i] >= 0)
-		} // for(; i < 2; i++)
-	} // if (!strategy.HasFrozenPosition())
+							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
+							 "sell_price:%f; sig_act:%d; sig_openclose:%d;index:%d ",
+					module_name_, sig->st_id, sig->sig_id,
+					sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
+					sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose,i); 
+				 break;
+			}
+		} // if(pending_signals_[st_id][i] >= 0)
+	} // for(; i < 2; i++)
 
 	ProcSigs(strategy, sig_cnt, sig_buffer_);
 }
@@ -421,17 +426,18 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 	for (int i = 0; i < sig_cnt; i++){
 		if (sigs[i].sig_act == signal_act_t::cancel){
 			CancelOrder(strategy, sigs[i]);
-		}
-		else{
+		}else{
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
-				int i = 0;
-				for(; i < MAX_PENDING_SIGNAL_COUNT; i++){
-					if(pending_signals_[sig.st_id][i] < 0){
+				// TODO: improve place, cancel
+				// done
+				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
+					int32_t sig_id = pending_signals_[sig.st_id][i];
+					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
-						clog_info("[%s] pending_signals_ push st id:%d; sig id;%d", 
-									module_name_,sig.st_id,pending_signals_[sig.st_id][i]);
+						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
+									module_name_,sig.st_id,pending_signals_[sig.st_id][i],i);
 						break;
 					}
 				}
@@ -443,8 +449,51 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 	}
 }
 
+// TODO: improve place, cancel
+bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
+{
+	// TODO: remove from pending queue
+	// done
+	bool cancelled = false;
+	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
+    	int32_t st_id = strategy.GetId();
+		int32_t sig_id = pending_signals_[st_id][i];
+    	if(sig_id < 0){ // 尾部了
+			break;
+		}else if(sig_id != INVALID_PENDING_SIGNAL){
+			if(ori_sigid == sig_id){
+				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
+				cancelled = true;
+				clog_info("[%s] CancelPendingSig remove pending signal: strategy id:%d;"
+							"sig_id:%d;index:%d", st_id, sig_id, i);
+
+				break;
+			}
+		}
+	} // end for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++)
+
+	if(cancelled){
+		int sig_cnt = 0;
+		TunnRpt rpt;
+		memset(&rpt, 0, sizeof(rpt));
+		rpt.OrderStatus = X1_FTDC_SPD_CANCELED ;   
+		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
+		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
+		ProcSigs(strategy, sig_cnt, sig_buffer_);
+	}
+
+	return cancelled;
+}
+
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
+	// TODO: improve place, cancel
+	// done
+	//
+	int32_t ori_sigid = sig.orig_sig_id;
+	bool cancelled = CancelPendingSig(strategy, ori_sigid);
+	if(cancelled) return;
+
 	if (!strategy.HasFrozenPosition()){
 		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
@@ -476,6 +525,22 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
+	// TODO: vol:0, rejected
+	// TODO: improve place, cancel
+	if(updated_vol <= 0){
+		clog_info("[%s] rejected due to vol 0. strategy id:%d; sig id;%d", 
+			module_name_,sig.st_id, sig.sig_id);
+		int sig_cnt = 0;
+		TunnRpt rpt;
+		memset(&rpt, 0, sizeof(rpt));
+		rpt.OrderStatus = X1_FTDC_SPD_ERROR; 
+		rpt.ErrorID = -1; 
+		int32_t sigidx = strategy.GetSignalIdxBySigId(sig.sig_id);
+		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
+		ProcSigs(strategy, sig_cnt, sig_buffer_);
+		return;
+	}
+
 	CX1FtdcInsertOrderField *ord = X1FieldConverter::Convert(sig,localorderid,updated_vol);
 
 #ifdef COMPLIANCE_CHECK
@@ -495,7 +560,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			compliance_.End(counter);
 
 			int sig_cnt = 0;
-			strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
+			int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
+			strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 #ifdef COMPLIANCE_CHECK
@@ -509,7 +575,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
-		strategy.FeedTunnRpt(rpt, &sig_cnt, sig_buffer_);
+		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
+		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
 #endif

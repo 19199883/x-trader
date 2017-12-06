@@ -22,6 +22,8 @@
 // 满足一天足够的下单量，以空间换时间
 #define RPT_BUFFER_SIZE 15000
 
+#define INVALID_PENDING_SIGNAL 999999
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

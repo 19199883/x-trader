@@ -494,13 +494,26 @@ int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
 	return (local_ord_id - GetId()) / 1000;
 }
 
-void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
+// TODO: improve place, cancel
+int32_t Strategy::GetSignalIdxBySigId(long sigid)
+{
+	return sigid_sigidx_map_table_[sigid];
+}
+
+// TODO: improve place, cancel
+int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 {
 	// get signal report by LocalOrderID
-	int32_t counter = GetCounterByLocalOrderID(rpt.LocalOrderID);
+	int32_t counter = GetCounterByLocalOrderID(localordid);
 	int32_t index = localorderid_sigandrptidx_map_table_[counter];
-	signal_resp_t& sigrpt = sigrpt_table_[index];
-	signal_t& sig = sig_table_[index];
+	return index;
+}
+
+// TODO: improve place, cancel
+void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
+{
+	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
+	signal_t& sig = sig_table_[sigidx];
 
 	// update strategy's position
 	UpdatePosition(rpt, sig.sig_openclose, sig.sig_act);
@@ -517,7 +530,8 @@ void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 	clog_info("[%s] FeedTunnRpt:strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d;"
 				"symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f;"
 				"exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
-				module_name_, setting_.config.st_id, pos_cache_.s_pos[0].symbol, pos_cache_.s_pos[0].long_volume, 
+				module_name_, setting_.config.st_id, pos_cache_.s_pos[0].symbol,
+				pos_cache_.s_pos[0].long_volume, 
 				pos_cache_.s_pos[0].short_volume, sigrpt.sig_id, sigrpt.symbol,
 				sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
 				sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,sigrpt.rejected);
