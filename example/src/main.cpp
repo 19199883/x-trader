@@ -94,6 +94,7 @@ void CreateStrategySetting(StrategySetting &setting, string &sofile,
 
 int main(/*int argc, const char **argv*/)
 {
+	InitData();
 	// 以根据调试需要，修改合约，仓位等值
 	string sofile = "st_rb1801";	// 策略so文件名，不包括扩展名
 	string contract = "SR805";		// 合约	
@@ -113,7 +114,7 @@ int main(/*int argc, const char **argv*/)
 	// 初始化策略
 	strategy.Init(setting, pproxy);
 	// 推送行情
-	strategy.FeedMd(md, &sig_cnt, sig_buffer);
+	strategy.FeedMd(&md, &sig_cnt, sig_buffer);
 	// 推送回报
 	strategy.FeedTunnRpt(tunn_rpt, &sig_cnt, sig_buffer);
 
