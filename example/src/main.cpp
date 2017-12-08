@@ -1,3 +1,18 @@
+/* 
+ * 1.设置要调试的策略so：修改main函数中的sofile变量，并把so放到执行文件所在目录
+ * 2. 设置策略交易的合约，手数：修改main函数中的contract，position变量
+ * 3. 设置行情内容：修改InitData函数的md变量
+ * 4. 设置通道回报内容：修改tunn_rpt函数的md变量
+ * 5. 设置ev文件：修改main函数中的ev变量，并把ev放到相应目录，如：例子中，需放到ev子目录中
+ * 6. 策略日志：策略日志会存放在log子目录中
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -73,16 +88,16 @@ void InitData()
 }
 
 void CreateStrategySetting(StrategySetting &setting, string &sofile, 
-	string &contract, int position)
+	string &contract, int position, string &ev)
 {
 	setting.config.st_id = 1;
 	setting.file = sofile;
 	setting.config.log_id = setting.config.st_id *10 + 0;
-	strcpy(setting.config.log_name, "test");
+	strcpy(setting.config.log_name, "log");
 	setting.config.iv_id = setting.config.st_id *10 + 1;
 	strcpy(setting.config.iv_name, "iv_name");
 	setting.config.ev_id = setting.config.st_id *10 + 2;
-	strcpy(setting.config.ev_name, "ev_name");
+	strcpy(setting.config.ev_name, ev.c_str());
 
 	setting.config.symbols_cnt = 1;
 	symbol_t &tmp = setting.config.symbols[0];
@@ -96,13 +111,14 @@ int main(/*int argc, const char **argv*/)
 {
 	InitData();
 	// 以根据调试需要，修改合约，仓位等值
-	string sofile = "st_rb1801";	// 策略so文件名，不包括扩展名
+	string sofile = "st301t_zzsm_day";	// 策略so文件名，不包括扩展名
 	string contract = "SR805";		// 合约	
 	int32_t position = 10;			// 手数
+	string ev = "ev/ev.txt";		// 
 
 	// 始化策略设置
 	StrategySetting setting;
-	CreateStrategySetting(setting, sofile, contract, position);
+	CreateStrategySetting(setting, sofile, contract, position, ev);
 	// 加载策略
 	CLoadLibraryProxy *pproxy = CLoadLibraryProxy::CreateLoadLibraryProxy();
 	pproxy->setModuleLoadLibrary(new CModuleLoadLibraryLinux());
