@@ -354,7 +354,7 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 {
 	if (ended_) return;
 
-    clog_warning("[%s] OnRtnErrorMsg:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
+    clog_error("[%s] OnRtnErrorMsg:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
 
 	// TODO:DEBUG 之前出现过一次OnRtnErrorMsg，errorMsg=local order info invalid，nErrorID=24
 	// 可能与LocalOrderID一个会话内重复有关。但验证几次，无法重现。
@@ -362,6 +362,7 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 	// return;
 
 	int counter = GetCounterByLocalOrderID(pfield->RequestID);
+	if(0 == counter) return; // counter==0,表示不是对应下单请求的回报（下单/撤单请求，counter从1开始）
 	if(cancel_requests_[counter]) return; // 对于撤单请求的错误，不需报给策略
 
 	int32_t cursor = Push();
