@@ -173,6 +173,7 @@ class UniConsumer
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
 		void PlaceOrder(Strategy &strategy, const signal_t &sig);
+		bool CancelPendingSig(Strategy &strategy, int32_t ori_sigid);
 		signal_t sig_buffer_[SIG_BUFFER_SIZE];
 		Uniconfig config_;
 

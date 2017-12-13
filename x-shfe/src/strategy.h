@@ -107,7 +107,7 @@ public:
 	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act);
 	void PrepareForExecutingSig(long localorderid, const signal_t &sig,
 				int32_t actual_vol);
-	void FeedTunnRpt(const TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
+	void FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
 	bool HasFrozenPosition();
 	int32_t GetCounterByLocalOrderID(long local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
@@ -115,6 +115,8 @@ public:
 	int GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol);
 	int GetVol(const signal_t &sig);
 	void End(void);
+	int32_t GetSignalIdxBySigId(long sigid);
+	int32_t GetSignalIdxByLocalOrdId(long localordid);
 
 	// log
 	/*

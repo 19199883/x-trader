@@ -447,18 +447,31 @@ int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
 	return (local_ord_id - GetId()) / 1000;
 }
 
-void Strategy::FeedTunnRpt(const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
+// TODO: improve place, cancel
+int32_t Strategy::GetSignalIdxBySigId(long sigid)
+{
+	return sigid_sigidx_map_table_[sigid];
+}
+
+// TODO: improve place, cancel
+int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
+{
+	// get signal report by LocalOrderID
+	int32_t counter = GetCounterByLocalOrderID(localordid);
+	int32_t index = localorderid_sigandrptidx_map_table_[counter];
+	return index;
+}
+
+// TODO: improve place, cancel
+void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
 	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
 	if(rpt.OrderStatus==USTP_FTDC_OS_AllTraded || rpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){ 
 		return;
 	}
-
-	// get signal report by LocalOrderID
-	int32_t counter = GetCounterByLocalOrderID(rpt.LocalOrderID);
-	int32_t index = localorderid_sigandrptidx_map_table_[counter];
-	signal_resp_t& sigrpt = sigrpt_table_[index];
-	signal_t& sig = sig_table_[index];
+	
+	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
+	signal_t& sig = sig_table_[sigidx];
 
 	TUstpFtdcOrderStatusType status = rpt.OrderStatus;
 	// update signal report

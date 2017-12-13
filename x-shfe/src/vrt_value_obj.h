@@ -27,6 +27,8 @@
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 15000
 
+#define INVALID_PENDING_SIGNAL 999999
+
 // 行情持久化开关
 //#define PERSISTENCE_ENABLED
 
