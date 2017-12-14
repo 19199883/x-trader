@@ -422,7 +422,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.OrderStatus = X1_FTDC_SPD_CANCELED ;   
+		rpt.OrderStatus = TAPI_ORDER_STATE_CANCELED;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
