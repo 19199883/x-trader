@@ -463,7 +463,7 @@ int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 }
 
 // TODO: improve place, cancel
-void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
+void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
 	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
 	if(rpt.OrderStatus==USTP_FTDC_OS_AllTraded || rpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){ 

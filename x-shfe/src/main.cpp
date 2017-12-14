@@ -44,14 +44,14 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-shfe_20171117"); 
+	clog_warning("version:x-shfe_20171213_debug"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
