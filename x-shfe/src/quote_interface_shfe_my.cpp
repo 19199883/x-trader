@@ -2,17 +2,17 @@
 #include "quote_interface_shfe_my.h"
 
 std::string MYQuoteData::ToString(const MYShfeMarketData &d) {
-	clog_info("MYShfeMarketData: instrument:%s, data_flag:%d,buy_total_volume:%d; sell_total_volume:%d; buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
+	clog_debug("MYShfeMarketData: instrument:%s, data_flag:%d,buy_total_volume:%d; sell_total_volume:%d; buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
 				d.InstrumentID, d.data_flag, d.buy_total_volume,d.sell_total_volume,d.buy_weighted_avg_price,d.sell_weighted_avg_price);
 
-	clog_info("dir:buy; price, volume");
+	clog_debug("dir:buy; price, volume");
 	for(int i = 0; i < 30; i++) {
-		 clog_info("price%d: %lf, volume%d: %d\n", i, d.buy_price[i], i, d.buy_volume[i]);
+		 clog_debug("price%d: %lf, volume%d: %d\n", i, d.buy_price[i], i, d.buy_volume[i]);
 	}
 
-	clog_info("dir:sell; price, volume");
+	clog_debug("dir:sell; price, volume");
 	for(int i = 0; i < 30; i++) {
-		 clog_info("price%d: %lf, volume%d: %d\n", i, d.sell_price[i], i, d.sell_volume[i]);
+		 clog_debug("price%d: %lf, volume%d: %d\n", i, d.sell_price[i], i, d.sell_volume[i]);
 	}
   
   return "";
@@ -52,7 +52,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 	MDPackEx* md = fulldepth_md_producer_->GetData(index);
 	int new_svr = md->content.seqno % 10;
 	if (new_svr != server_) { 
-		clog_info("[%s] server from %d to %d",module_name_, server_, new_svr); 
+		clog_debug("[%s] server from %d to %d",module_name_, server_, new_svr); 
 	}
 
 	repairers_[new_svr]->rev(index);
@@ -224,7 +224,7 @@ void MYQuoteData::ProcL1MdData(int32_t index)
 	l1_md_last_index_ = index;
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 
-	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
+	clog_debug("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
 
 	memcpy(&target_data_, md, sizeof(CDepthMarketDataField));
 	target_data_.data_flag = 1;

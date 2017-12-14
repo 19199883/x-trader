@@ -198,7 +198,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
 
-	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
+	 clog_debug("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
 				module_name_, md->data_flag, GetId());				
 
 #ifdef LATENCY_MEASURE
@@ -215,7 +215,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_info("[%s] strategy latency:%d us", module_name_, latency); 
+		clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
 #endif
 
 		sigs[i].st_id = this->GetId();
@@ -346,7 +346,7 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 
 	if (updated_vol > vol) updated_vol = vol; 
 
-	clog_info("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
+	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 				"frozen_open_short:%d; updated vol:%d",
 				module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
@@ -386,7 +386,7 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 	}
 
 
-	clog_info("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
+	clog_debug("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
@@ -656,7 +656,7 @@ void Strategy::WriteLog(bool isEnded)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_info("[%s] WriteLog latency:%d us", module_name_, latency); 
+		clog_warning("[%s] WriteLog latency:%d us", module_name_, latency); 
 #endif
 }
 

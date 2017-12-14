@@ -29,9 +29,6 @@ CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, 
 		}
 	}
 
-	//clog_info("GetLastDataImp:dominant_contract_count:%d;i:%d;contract:%s",
-	//	dominant_contract_count, i, contract);
-
 	return data;
 }
 
@@ -217,7 +214,7 @@ bool L1MDProducer::IsDominant(const char *contract)
 
 void L1MDProducer::ToString(CDepthMarketDataField &data)
 {
-	clog_info("CDepthMarketDataField\n"
+	clog_debug("CDepthMarketDataField\n"
 		"TradingDay:%s\n"
 		"SettlementGroupID:%s\n"
 		"SettlementID:%d\n"

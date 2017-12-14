@@ -486,7 +486,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-        if(latency > 0) clog_info("[%s] cancel latency:%d us", module_name_, latency); 
+        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
 #endif
 }
 
@@ -558,7 +558,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 #ifdef LATENCY_MEASURE
 	int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-	if(latency > 0) clog_info("[%s] place latency:%d us", module_name_, latency); 
+	if(latency > 0) clog_debug("[%s] place latency:%d us", module_name_, latency); 
 #endif
 }
 

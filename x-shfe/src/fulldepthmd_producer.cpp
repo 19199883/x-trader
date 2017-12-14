@@ -191,12 +191,12 @@ bool FullDepthMDProducer::IsDominant(const char *contract)
 }
 
 std::string FullDepthMDProducer::ToString(const MDPack &d) {
-	clog_info("MDPack Data:instrument:%s;"
+	clog_debug("MDPack Data:instrument:%s;"
 		"islast:%d seqno:%d direction:%c count:%d",
 		d.instrument, (int)d.islast, d.seqno,
 		d.direction, d.count);
 	for(int i = 0; i < d.count; i++) {
-		 clog_info("price%d: %lf, volume%d: %d",
+		 clog_debug("price%d: %lf, volume%d: %d",
 			 i, d.data[i].price, i, d.data[i].volume);
 	}
   
@@ -205,12 +205,12 @@ std::string FullDepthMDProducer::ToString(const MDPack &d) {
 
 std::string FullDepthMDProducer::ToString(const MDPackEx &d) 
 {
-	clog_info("MDPackEx Data: instrument:%s; damaged:%d;"
+	clog_debug("MDPackEx Data: instrument:%s; damaged:%d;"
 		"islast:%d seqno:%d direction:%c count:%d",
 		d.content.instrument, d.damaged, (int)d.content.islast, d.content.seqno,
 		d.content.direction, d.content.count);
 	for(int i = 0; i < d.content.count; i++) {
-		 clog_info("price%d: %lf, volume%d: %d",
+		 clog_debug("price%d: %lf, volume%d: %d",
 			 i, d.content.data[i].price, i, d.content.data[i].volume);
 	}
   
