@@ -327,7 +327,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	vrt_producer_publish(producer_);
 
 	if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL){
-		clog_warning("[%s] OnRtnOrder:%s",module_name_, 
+		clog_error("[%s] OnRtnOrder:%s",module_name_, 
 				ESUNNYDatatypeFormater::ToString(info).c_str());
 	}
 }

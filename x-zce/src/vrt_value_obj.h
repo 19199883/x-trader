@@ -32,6 +32,8 @@
  */
 #define RPT_BUFFER_SIZE 15000
 
+#define INVALID_PENDING_SIGNAL 999999
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

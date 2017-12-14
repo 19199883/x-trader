@@ -291,7 +291,7 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 		position_.frozen_close_long += updated_vol;
 	}
 
-	clog_info("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
+	clog_debug("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
@@ -346,7 +346,7 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 
 	if (updated_vol > vol) updated_vol = vol; 
 
-	clog_info("[%s] GetAvailableVol: strategy id:%d; signal id:%d; "
+	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; "
 			"current long:%d; current short:%d; "
 			"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 			"frozen_open_short:%d; updated vol:%d",
@@ -387,7 +387,7 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 	}
 
 
-	clog_info("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
+	clog_debug("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 			"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 			"frozen_open_short:%d; ",
 			module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
@@ -452,13 +452,26 @@ int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
 	return (local_ord_id - GetId()) / 1000;
 }
 
-void Strategy::FeedTunnRpt(TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
+// TODO: improve place, cancel
+int32_t Strategy::GetSignalIdxBySigId(long sigid)
+{
+	return sigid_sigidx_map_table_[sigid];
+}
+
+// TODO: improve place, cancel
+int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 {
 	// get signal report by LocalOrderID
-	int32_t counter = GetCounterByLocalOrderID(rpt.LocalOrderID);
+	int32_t counter = GetCounterByLocalOrderID(localordid);
 	int32_t index = localorderid_sigandrptidx_map_table_[counter];
-	signal_resp_t& sigrpt = sigrpt_table_[index];
-	signal_t& sig = sig_table_[index];
+	return index;
+}
+
+// TODO: improve place, cancel
+void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
+{
+	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
+	signal_t& sig = sig_table_[sigidx];
 
 	// 使MatchedAmount为最后一次的成交量
 	int32_t lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
@@ -527,7 +540,7 @@ void Strategy::UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short
 		}
 	}
 
-	clog_info("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
+	clog_debug("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
 				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
@@ -591,7 +604,7 @@ void Strategy::LoadPosition()
 		cont = sett_cont;
 	}
 	if(sett_cont != cont){
-		clog_warning("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
+		clog_error("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
 			GetId(), cont.c_str(), sett_cont.c_str());
 	}
 }
