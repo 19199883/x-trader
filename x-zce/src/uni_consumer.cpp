@@ -75,9 +75,6 @@ UniConsumer::~UniConsumer()
 {
 	running_ = false;
 
-	delete l2_md_producer_;
-	delete l1_md_producer_;
-
 	if (pproxy_ != NULL){
 		pproxy_->DeleteLoadLibraryProxy();
 		pproxy_ = NULL;
