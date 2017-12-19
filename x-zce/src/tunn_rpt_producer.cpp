@@ -149,6 +149,7 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
+	clog_info("[%s] ReqInsertOrder-:%s", ESUNNYDatatypeFormater::ToString(p).c_str());
 	int ret = api_->InsertOrder(session,p);
 	session_localorderid_map_[*session] = localorderid;
 #ifdef LATENCY_MEASURE
@@ -161,7 +162,7 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
 	}else {
-		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%ld",
+		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
 	}
 
@@ -179,6 +180,7 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
     cancel_req_.ServerFlag = tunnrpt_table_[counter].ServerFlag;
     memcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].OrderNo, 
 				sizeof(cancel_req_.OrderNo));
+	clog_info("[%s] ReqOrderAction-:%s", ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
 	int ret = api_->CancelOrder(&sessionID,&cancel_req_);
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -303,6 +305,11 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	}
 
     if (info->ErrorCode != TAPIERROR_SUCCEED) {
+		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELED ||
+			info->OrderInfo->OrderState==TAPI_ORDER_STATE_LEFTDELETED){ // 略“撤单拒绝”回报
+			return;
+		}
+
 		tunnrpt.ErrorID = info->ErrorCode;
 		tunnrpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
     }else{
