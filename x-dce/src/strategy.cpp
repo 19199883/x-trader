@@ -150,6 +150,12 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	setting_.config.log_id = setting_.config.st_id;
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
+	if(NULL == pfDayLogFile_){
+		clog_error("[%s] strategy id:%d; failed to open log file:%s", module_name_,
+				GetId(),setting_.config.log_name);
+		return;	
+	}
+
 	WriteLogTitle();
 	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
 				GetId(),setting_.config.log_name);
