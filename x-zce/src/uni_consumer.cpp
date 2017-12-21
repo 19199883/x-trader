@@ -312,9 +312,11 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; MatchedAmount:%u;"
+	// TODO: debug
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; MatchedAmount:%u;"
 				" ErrorID:%u ", module_name_, index, rpt->LocalOrderID, 
 				rpt->OrderStatus, rpt->MatchedAmount, rpt->ErrorID);
+	fflush (Log::fp);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
@@ -354,6 +356,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 					module_name_, sig->st_id, sig->sig_id,
 					sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
 					sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose,i); 
+			fflush (Log::fp);
 				 break;
 			}
 		} // if(pending_signals_[st_id][i] >= 0)
@@ -381,11 +384,13 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 						pending_signals_[sig.st_id][i] = sig.sig_id;
 						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
 									module_name_,sig.st_id,pending_signals_[sig.st_id][i],i);
+						fflush (Log::fp);
 						break;
 					}
 				}
 				if(i == MAX_PENDING_SIGNAL_COUNT){
 					clog_error("[%s] pending_signals_ beyond;", module_name_);
+					fflush (Log::fp);
 				}
 			} else { PlaceOrder(strategy, sigs[i]); }
 		}
@@ -409,6 +414,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 				cancelled = true;
 				clog_info("[%s] CancelPendingSig remove pending signal: strategy id:%d;"
 							"sig_id:%d;index:%d", st_id, sig_id, i);
+				fflush (Log::fp);
 
 				break;
 			}
@@ -441,6 +447,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		clog_info("[%s] strategy id:%d,sig id:%d. CancelOrder: ignore"
 					"request due to frozen position.", 
 					module_name_,sig.st_id,sig.sig_id); 
+		fflush (Log::fp);
 		return;
 	}
 	
@@ -448,6 +455,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	int32_t counter = strategy.GetCounterByLocalOrderID(ori_localorderid);
 	clog_info("[%s] CancelOrder:strategy id:%d,sig id:%d,LocalOrderID:%ld; ", 
 				module_name_,sig.st_id,sig.sig_id, ori_localorderid); 
+	fflush (Log::fp);
 
 	this->tunn_rpt_producer_->ReqOrderAction(counter);
 
@@ -471,6 +479,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	if(updated_vol <= 0){
 		clog_info("[%s] rejected due to vol 0. strategy id:%d; sig id;%d", 
 			module_name_,sig.st_id, sig.sig_id);
+		fflush (Log::fp);
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
@@ -510,6 +519,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 #ifdef COMPLIANCE_CHECK
 	}else{
 		clog_warning("[%s] compliance checking failed:%ld", module_name_,localorderid);
+		fflush (Log::fp);
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));

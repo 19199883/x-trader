@@ -149,7 +149,8 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	clog_info("[%s] ReqInsertOrder-:%s", ESUNNYDatatypeFormater::ToString(p).c_str());
+	clog_info("[%s] ReqInsertOrder-:%s", module_name_, ESUNNYDatatypeFormater::ToString(p).c_str());
+	fflush (Log::fp);
 	int ret = api_->InsertOrder(session,p);
 	session_localorderid_map_[*session] = localorderid;
 #ifdef LATENCY_MEASURE
@@ -157,13 +158,16 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
 		clog_warning("[%s] ReqOrderInsert latency:%d us", 
 					module_name_,latency); 
+		fflush (Log::fp);
 #endif
 	if (ret != 0){
 		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
+		fflush (Log::fp);
 	}else {
 		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
+		fflush (Log::fp);
 	}
 
 	return ret;
@@ -178,15 +182,16 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 #endif
 	TAPIUINT32 sessionID;
     cancel_req_.ServerFlag = tunnrpt_table_[counter].ServerFlag;
-    memcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].OrderNo, 
-				sizeof(cancel_req_.OrderNo));
-	clog_info("[%s] ReqOrderAction-:%s", ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
+    strcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].OrderNo);
+	clog_info("[%s] ReqOrderAction-:%s", module_name_, ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
+	fflush (Log::fp);
 	int ret = api_->CancelOrder(&sessionID,&cancel_req_);
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
 		clog_warning("[%s] ReqOrderAction latency:%d us", 
 					module_name_,latency); 
+		fflush (Log::fp);
 #endif
 
 	if (ret != 0){
@@ -194,11 +199,13 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 			"counter of original order:%d,server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
+		fflush (Log::fp);
 	} else {
 		clog_debug("[%s] CancelOrder - return:%d, session_id:%d, "
 			"counter of original order:%d,server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
+		fflush (Log::fp);
 	}
 
 	return ret;
@@ -208,6 +215,7 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 void TunnRptProducer::OnConnect()
 {
     clog_warning("[%s] OnConnect.", module_name_);
+	fflush (Log::fp);
 }
 
 // done
@@ -216,12 +224,14 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
     clog_warning("[%s] OnRspLogin: errorCode:%d,%s",
         module_name_,
 		errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
+	fflush (Log::fp);
 }
 
 // done
 void TunnRptProducer::OnAPIReady()
 {
     clog_warning("[%s] OnAPIReady",module_name_);	
+	fflush (Log::fp);
 }
 
 // done
@@ -289,6 +299,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 {
     clog_info("[%s] OnRtnOrder:%s",module_name_, 
 				ESUNNYDatatypeFormater::ToString(info).c_str());
+	fflush (Log::fp);
 
 	if (ended_) return;
 
@@ -336,6 +347,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL){
 		clog_error("[%s] OnRtnOrder:%s",module_name_, 
 				ESUNNYDatatypeFormater::ToString(info).c_str());
+		fflush (Log::fp);
 	}
 }
 
@@ -346,6 +358,7 @@ void TunnRptProducer::OnRspOrderAction(TAPIUINT32 sessionID, TAPIUINT32 errorCod
 {
     clog_info("[%s] OnRspOrderAction:sessionID:%u,errorCode:%d, %s",
         module_name_,sessionID, errorCode, ESUNNYDatatypeFormater::ToString(info).c_str());
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnRspQryOrder(TAPIUINT32 sessionID, TAPIINT32 errorCode,

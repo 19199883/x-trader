@@ -53,6 +53,12 @@ extern "C" {
 	 * x-trader varon-t value and type
 	 */
 
+class Log
+{
+	public:
+		static FILE *fp;/*文件指针*/
+};
+
 	enum HybridData {
 		L1_MD = 0, 
 		L2_MD, 

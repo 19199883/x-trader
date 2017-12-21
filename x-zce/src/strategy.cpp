@@ -192,8 +192,10 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_debug("[%s] strategy id:%d;rev ZCEL2QuotSnapshotField_MY contract:%s; time:%s", 
+	// TODO: debug
+	clog_info("[%s] strategy id:%d;rev ZCEL2QuotSnapshotField_MY contract:%s; time:%s", 
 				module_name_,GetId(),md->ContractID,md->TimeStamp);
+	fflush (Log::fp);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -221,6 +223,7 @@ void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sig
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
 					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
 					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+		fflush (Log::fp);
 	}
 }
 
@@ -241,6 +244,7 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
 					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
 					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+		fflush (Log::fp);
 	}
 }
 
@@ -439,6 +443,7 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; "
 				"cursor,%d; LocalOrderID:%ld;",
 				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
+	fflush (Log::fp);
 }
 
 
@@ -495,6 +500,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 				pos_cache_.s_pos[0].short_volume, sigrpt.sig_id, sigrpt.symbol,
 				sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
 				sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,sigrpt.rejected);
+	fflush (Log::fp);
 }
 
 bool Strategy::HasFrozenPosition()
