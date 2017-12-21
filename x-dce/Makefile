@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=y
+DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/x-dce/dist
 INCPATH:=-I$(TOP)/3rd/x1/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/dce_md/include 
