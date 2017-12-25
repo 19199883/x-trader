@@ -96,6 +96,12 @@ class UniConsumer
 		 *								 */
 		int32_t pending_signals_[STRA_TABLE_SIZE][MAX_PENDING_SIGNAL_COUNT];
 
+		/*
+		 * 1.缓存所有的委托报告信息，用于撤单使用。
+		 * 访问一个委托单的报告，通过该委托单的LocalOrderID的counter作为数组下标
+		 */
+		TunnRpt tunnrpt_table_[RPT_BUFFER_SIZE];
+
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
 #endif

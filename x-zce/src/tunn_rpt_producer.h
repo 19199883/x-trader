@@ -53,7 +53,7 @@ class TunnRptProducer: public ITapTradeAPINotify
 		/*
 		 * counter:要撤单的委托单的counter of LocalOrderID
 		 */
-		int ReqOrderAction(int32_t counter);
+		int ReqOrderAction(TAPICHAR serverflag, const char* orderno);
 
 		/**
 		 * @brief 连接成功回调通知
@@ -364,11 +364,6 @@ private:
 
 	int32_t Push();
 
-	/*
-	 * 1.缓存所有的委托报告信息，用于撤单使用。
-	 * 访问一个委托单的报告，通过该委托单的LocalOrderID的counter作为数组下标
-	 */
-	TunnRpt tunnrpt_table_[RPT_BUFFER_SIZE];
 	/*
 	 * 用于通过disruptor传递数据给消费者
 	 */

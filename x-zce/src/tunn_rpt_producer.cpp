@@ -52,7 +52,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
 	ended_ = false;
-	memset(tunnrpt_table_,0,sizeof(tunnrpt_table_));
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 	
 	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
@@ -176,14 +175,16 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 
 // 撤单操作请求
 // done
-int TunnRptProducer::ReqOrderAction(int32_t counter)
+int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
 {
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	TAPIUINT32 sessionID;
-    cancel_req_.ServerFlag = tunnrpt_table_[counter].ServerFlag;
-    strcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].OrderNo);
+	// TODO:cancel done
+    cancel_req_.ServerFlag = serverflag;
+    strcpy(cancel_req_.OrderNo, orderno);
+
 	clog_info("[%s] ReqOrderAction-:%s", module_name_, ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
 	fflush (Log::fp);
 
@@ -315,16 +316,11 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	long localorderid = session_localorderid_map_[info->SessionID];
 	int32_t cursor = Push();
 	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
-	int32_t counter = GetCounterByLocalOrderID(localorderid);
-	TunnRpt &rptforcancel = tunnrpt_table_[counter];
-	if(strcmp(tunnrpt.OrderNo,"") == 0){
-		tunnrpt.SessionID = info->SessionID;
-		tunnrpt.LocalOrderID = localorderid;
-		if (info->ErrorCode == TAPIERROR_SUCCEED) {
-			rptforcancel.ServerFlag = info->OrderInfo->ServerFlag;
-			strcpy(rptforcancel.OrderNo,info->OrderInfo->OrderNo);
-		}
-	}
+	tunnrpt.SessionID = info->SessionID;
+	tunnrpt.LocalOrderID = localorderid;
+	// TODO:cancel done
+	tunnrpt.ServerFlag = info->OrderInfo->ServerFlag;
+	strcpy(tunnrpt.OrderNo,info->OrderInfo->OrderNo);
 
     if (info->ErrorCode != TAPIERROR_SUCCEED) {
 		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELED ||
@@ -351,7 +347,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = counter;
+	ivalue->index = cursor;
 	ivalue->data = TUNN_RPT;
 	vrt_producer_publish(producer_);
 
@@ -360,6 +356,10 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 				ESUNNYDatatypeFormater::ToString(info).c_str());
 		fflush (Log::fp);
 	}
+
+	clog_info("[%s] OnRtnOrder:%s",module_name_, 
+			ESUNNYDatatypeFormater::ToString(info).c_str());
+	fflush (Log::fp);
 }
 
 // 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.

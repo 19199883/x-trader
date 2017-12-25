@@ -17,6 +17,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
   l2_md_producer_(l2md_producer), tunn_rpt_producer_(tunn_rpt_producer)
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
+	// TODO: cancel
+	memset(tunnrpt_table_, 0, sizeof(tunnrpt_table_));
+
 	ParseConfig();
 
 #if FIND_STRATEGIES == 1
@@ -318,6 +321,19 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				rpt->OrderStatus, rpt->MatchedAmount, rpt->ErrorID);
 	fflush (Log::fp);
 
+	// TODO:cancel done
+	int32_t counter = tunn_rpt_producer_->GetCounterByLocalOrderID(rpt->LocalOrderID);
+	TunnRpt &rptforcancel = tunnrpt_table_[counter];
+	if(strcmp(rptforcancel.OrderNo,"") == 0){
+		if (rpt->ErrorCode == TAPIERROR_SUCCEED) {
+			rptforcancel.ServerFlag = rpt->ServerFlag;
+			strcpy(rptforcancel.OrderNo, rpt->OrderNo);
+		}
+	}
+	clog_info("[%s] ProcTunnRpt:counter=%d,ServerFlag=%c,OrderNo=%s", 
+		module_name_, counter, rptforcancel.ServerFlag, rptforcancel.OrderNo);
+	fflush (Log::fp);
+	
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
@@ -457,7 +473,11 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 				module_name_,sig.st_id,sig.sig_id, ori_localorderid); 
 	fflush (Log::fp);
 
-	this->tunn_rpt_producer_->ReqOrderAction(counter);
+	// TODO:cancel done
+	int32_t counter = tunn_rpt_producer_->GetCounterByLocalOrderID(ori_localorderid);
+	TunnRpt &rptforcancel = tunnrpt_table_[counter];
+
+	this->tunn_rpt_producer_->ReqOrderAction(rptforcancel.ServerFlag, rptforcancel.OrderNo);
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);

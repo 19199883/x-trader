@@ -193,8 +193,8 @@ void Strategy::FeedInitPosition()
 void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sigs)
 {
 	// TODO: debug
-	clog_info("[%s] strategy id:%d;rev ZCEL2QuotSnapshotField_MY contract:%s; time:%s", 
-				module_name_,GetId(),md->ContractID,md->TimeStamp);
+	//clog_info("[%s] strategy id:%d;rev ZCEL2QuotSnapshotField_MY contract:%s; time:%s", 
+	//			module_name_,GetId(),md->ContractID,md->TimeStamp);
 	fflush (Log::fp);
 
 #ifdef LATENCY_MEASURE
