@@ -422,7 +422,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				cancelled = true;
 				clog_info("[%s] CancelPendingSig remove pending signal: strategy id:%d;"
-							"sig_id:%d;index:%d", st_id, sig_id, i);
+							"sig_id:%d;index:%d", module_name_, st_id, sig_id, i);
 
 				break;
 			}
