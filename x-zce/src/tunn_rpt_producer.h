@@ -361,12 +361,18 @@ private:
 	 * things relating to x-trader internal logic
 	 */
 	struct vrt_producer  *producer_;
-	/* 有2各用途：
-	 * 1.缓存所有的委托报告信息，用于撤单使用。访问一个委托单的报告，
-	 * 通过该委托单的LocalOrderID的counter作为数组下标
-	 * 2.用于通过disruptor传递数据给消费者
+
+	int32_t Push();
+
+	/*
+	 * 1.缓存所有的委托报告信息，用于撤单使用。
+	 * 访问一个委托单的报告，通过该委托单的LocalOrderID的counter作为数组下标
 	 */
 	TunnRpt tunnrpt_table_[RPT_BUFFER_SIZE];
+	/*
+	 * 用于通过disruptor传递数据给消费者
+	 */
+	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
 
 	Tunnconfig config_;
 	const char * module_name_;  

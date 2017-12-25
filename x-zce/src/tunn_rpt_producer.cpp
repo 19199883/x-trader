@@ -53,6 +53,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 {
 	ended_ = false;
 	memset(tunnrpt_table_,0,sizeof(tunnrpt_table_));
+	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 	
 	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
     // check api version
@@ -312,14 +313,16 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	if (ended_) return;
 
 	long localorderid = session_localorderid_map_[info->SessionID];
+	int32_t cursor = Push();
+	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
 	int32_t counter = GetCounterByLocalOrderID(localorderid);
-	TunnRpt &tunnrpt = tunnrpt_table_[counter];
+	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 	if(strcmp(tunnrpt.OrderNo,"") == 0){
 		tunnrpt.SessionID = info->SessionID;
 		tunnrpt.LocalOrderID = localorderid;
 		if (info->ErrorCode == TAPIERROR_SUCCEED) {
-			tunnrpt.ServerFlag = info->OrderInfo->ServerFlag;
-			strcpy(tunnrpt.OrderNo,info->OrderInfo->OrderNo);
+			rptforcancel.ServerFlag = info->OrderInfo->ServerFlag;
+			strcpy(rptforcancel.OrderNo,info->OrderInfo->OrderNo);
 		}
 	}
 
@@ -427,7 +430,7 @@ const char* TunnRptProducer::GetAccount()
 
 TunnRpt* TunnRptProducer::GetRpt(int32_t index)
 {
-	return &(tunnrpt_table_[index]);
+	return &(rpt_buffer_[index]);
 }
 
 int32_t TunnRptProducer::GetStrategyID(TunnRpt& rpt)
@@ -439,3 +442,15 @@ int32_t TunnRptProducer::GetCounterByLocalOrderID(long local_ord_id)
 {
 	return local_ord_id/1000;
 }
+
+int32_t TunnRptProducer::Push()
+{
+	static int32_t cursor = RPT_BUFFER_SIZE - 1;
+	cursor++;
+	if (cursor%RPT_BUFFER_SIZE == 0){
+		cursor = 0;
+	}
+
+	return cursor;
+}
+
