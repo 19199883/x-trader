@@ -185,7 +185,15 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
     strcpy(cancel_req_.OrderNo,tunnrpt_table_[counter].OrderNo);
 	clog_info("[%s] ReqOrderAction-:%s", module_name_, ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
 	fflush (Log::fp);
+
+	clog_info("[%s]before ReqOrderAction", module_name_);
+	fflush (Log::fp);
+
 	int ret = api_->CancelOrder(&sessionID,&cancel_req_);
+
+	clog_info("[%s]after ReqOrderAction", module_name_);
+	fflush (Log::fp);
+
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -195,13 +203,13 @@ int TunnRptProducer::ReqOrderAction(int32_t counter)
 #endif
 
 	if (ret != 0){
-		clog_error("[%s] CancelOrder - return:%d, session_id:%d, "
+		clog_error("[%s] CancelOrder - return:%d, session_id:%u, "
 			"counter of original order:%d,server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
 		fflush (Log::fp);
 	} else {
-		clog_debug("[%s] CancelOrder - return:%d, session_id:%d, "
+		clog_info("[%s] CancelOrder - return:%d, session_id:%u, "
 			"counter of original order:%d,server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);

@@ -50,7 +50,7 @@ int main(/*int argc, const char **argv*/)
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-shfe_20171214_debug"); 
+	clog_warning("version:x-shfe_20171225_debug"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
@@ -61,6 +61,7 @@ int main(/*int argc, const char **argv*/)
 	tunnRptProducer = new TunnRptProducer(queue);
 	uniConsumer = new UniConsumer (queue, l1_md_producer, l2_md_producer, tunnRptProducer);
 	uniConsumer->Start();
+
 	fflush (fp);
 
   // free vrt_queue
