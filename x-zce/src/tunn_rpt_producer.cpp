@@ -206,14 +206,14 @@ int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
 
 	if (ret != 0){
 		clog_error("[%s] CancelOrder - return:%d, session_id:%u, "
-			"counter of original order:%d,server flag:%c,order no:%s", 
-			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
+			"server flag:%c,order no:%s", 
+			module_name_,ret,sessionID,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
 		fflush (Log::fp);
 	} else {
 		clog_info("[%s] CancelOrder - return:%d, session_id:%u, "
-			"counter of original order:%d,server flag:%c,order no:%s", 
-			module_name_,ret,sessionID,counter,cancel_req_.ServerFlag,
+			"server flag:%c,order no:%s", 
+			module_name_,ret,sessionID,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
 		fflush (Log::fp);
 	}

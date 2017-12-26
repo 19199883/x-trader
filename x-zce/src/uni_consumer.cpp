@@ -325,10 +325,8 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	int32_t counter = tunn_rpt_producer_->GetCounterByLocalOrderID(rpt->LocalOrderID);
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 	if(strcmp(rptforcancel.OrderNo,"") == 0){
-		if (rpt->ErrorCode == TAPIERROR_SUCCEED) {
-			rptforcancel.ServerFlag = rpt->ServerFlag;
-			strcpy(rptforcancel.OrderNo, rpt->OrderNo);
-		}
+		rptforcancel.ServerFlag = rpt->ServerFlag;
+		strcpy(rptforcancel.OrderNo, rpt->OrderNo);
 	}
 	clog_info("[%s] ProcTunnRpt:counter=%d,ServerFlag=%c,OrderNo=%s", 
 		module_name_, counter, rptforcancel.ServerFlag, rptforcancel.OrderNo);
@@ -474,7 +472,6 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	fflush (Log::fp);
 
 	// TODO:cancel done
-	int32_t counter = tunn_rpt_producer_->GetCounterByLocalOrderID(ori_localorderid);
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 
 	this->tunn_rpt_producer_->ReqOrderAction(rptforcancel.ServerFlag, rptforcancel.OrderNo);
