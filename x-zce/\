@@ -424,9 +424,9 @@ void Strategy::Push(const signal_t &sig)
 	}
 
 	// TODO:从pending队列中撤单 done
-	if (sig.sig_openclose == alloc_position_effect_t::open_){
+	if (sig_openclose==alloc_position_effect_t::open_){
 		sigrpt_table_[cursor_].order_volume = sig.open_volume;
-	}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+	}else if (sig_openclose==alloc_position_effect_t::close_){
 		sigrpt_table_[cursor_].order_volume = sig.close_volume;
 	}
 

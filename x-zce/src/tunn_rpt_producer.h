@@ -8,6 +8,8 @@
 #include "TapTradeAPI.h"
 #include "TapTradeAPIDataType.h"
 
+#define CANCELLED_FROM_PENDING 99999999
+
 using namespace std;
 
 typedef std::pair<std::string, unsigned short> IPAndPortNum;
