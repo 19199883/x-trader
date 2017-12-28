@@ -322,13 +322,13 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	tunnrpt.ServerFlag = info->OrderInfo->ServerFlag;
 	strcpy(tunnrpt.OrderNo,info->OrderInfo->OrderNo);
 
-    if (info->ErrorCode != TAPIERROR_SUCCEED) {
+    if (info->OrderInfo->ErrorCode != TAPIERROR_SUCCEED) {
 		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELED ||
 			info->OrderInfo->OrderState==TAPI_ORDER_STATE_LEFTDELETED){ // 略“撤单拒绝”回报
 			return;
 		}
 
-		tunnrpt.ErrorID = info->ErrorCode;
+		tunnrpt.ErrorID = info->OrderInfo->ErrorCode;
 		tunnrpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
     }else{
 		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_SUBMIT ||
