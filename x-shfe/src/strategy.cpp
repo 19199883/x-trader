@@ -484,7 +484,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 	// update signal report
 	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.TradePrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
-	UpdatePosition(rpt.MatchedAmount, status, sig.sig_openclose, sig.sig_act);
+	UpdatePosition(rpt.MatchedAmount, status, sig.sig_openclose, sig.sig_act, rpt.ErrorID);
 	if (rpt.MatchedAmount > 0){
 		// fill signal position report by tunnel report
 		FillPositionRpt(pos_cache_);
@@ -516,7 +516,7 @@ bool Strategy::HasFrozenPosition()
 }
 
 void Strategy::UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status,
-			unsigned short sig_openclose, unsigned short int sig_act)
+			unsigned short sig_openclose, unsigned short int sig_act, TUstpFtdcErrorIDType err)
 {
 	if (lastqty > 0){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
@@ -538,7 +538,7 @@ void Strategy::UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status,
 	} //end if (rpt.MatchedAmount > 0)
 
 	// TODO: 从pending队列中撤单 done
-	if (rpt.ErrorID != CANCELLED_FROM_PENDING){
+	if (err != CANCELLED_FROM_PENDING){
 		if (status==USTP_FTDC_OS_AllTraded ||
 			status==USTP_FTDC_OS_PartTradedNotQueueing ||
 			status==USTP_FTDC_OS_Canceled){ // 释放冻结仓位
