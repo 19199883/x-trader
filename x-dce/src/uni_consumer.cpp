@@ -476,6 +476,10 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
+		
+		// TODO: 从pending队列中撤单
+		rpt.ErrorID = CANCELLED_FROM_PENDING;   
+
 		rpt.OrderStatus = X1_FTDC_SPD_CANCELED ;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);

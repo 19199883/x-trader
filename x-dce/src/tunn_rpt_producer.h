@@ -9,6 +9,8 @@
 using namespace std;
 using namespace x1ftdcapi;
 
+#define CANCELLED_FROM_PENDING 99999999
+
 /*
  * 10 power of 2
  */

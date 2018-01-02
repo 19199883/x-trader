@@ -468,6 +468,13 @@ void Strategy::Push(const signal_t &sig)
 		sigrpt_table_[cursor_].order_price = sig.sell_price;
 	}
 
+	// TODO:从pending队列中撤单 done
+	if (sig.sig_openclose == alloc_position_effect_t::open_){
+		sigrpt_table_[cursor_].order_volume = sig.open_volume;
+	}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+		sigrpt_table_[cursor_].order_volume = sig.close_volume;
+	}
+
 	cursor_++;
 
 	clog_debug("[%s] push: strategy id:%d; sig id: %d; cursor,%d; ",
@@ -578,21 +585,24 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
-	if (rpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
-		rpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-		rpt.OrderStatus==X1_FTDC_SPD_ERROR ||
-		rpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){
-		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
-			position_.frozen_open_long = 0;
-		}
-		else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
-			position_.frozen_open_short = 0;
-		}
-		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
-			position_.frozen_close_short = 0;
-		}
-		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
-			position_.frozen_close_long = 0;
+	// TODO: 从pending队列中撤单 done
+	if (rpt.ErrorID != CANCELLED_FROM_PENDING){
+		if (rpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
+			rpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
+			rpt.OrderStatus==X1_FTDC_SPD_ERROR ||
+			rpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){ // 释放冻结仓位
+			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
+				position_.frozen_open_long = 0;
+			}
+			else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
+				position_.frozen_open_short = 0;
+			}
+			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
+				position_.frozen_close_short = 0;
+			}
+			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
+				position_.frozen_close_long = 0;
+			}
 		}
 	}
 
@@ -624,10 +634,12 @@ void Strategy::UpdateSigrptByTunnrpt(signal_resp_t& sigrpt,const  TunnRpt& tunnr
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
 	}else{ sigrpt.killed = 0; }
 
-	if (tunnrpt.OrderStatus==X1_FTDC_SPD_ERROR) sigrpt.rejected = sigrpt.order_volume;
-	else sigrpt.rejected = 0; 
-
-	sigrpt.error_no = tunnrpt.ErrorID;
+	if (tunnrpt.OrderStatus==X1_FTDC_SPD_ERROR){
+		sigrpt.error_no = tunnrpt.ErrorID;
+		sigrpt.rejected = sigrpt.order_volume;
+	}else{
+		sigrpt.rejected = 0; 
+	}
 
 	if (tunnrpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
 		tunnrpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
