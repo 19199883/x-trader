@@ -583,10 +583,13 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt,const
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
 	}else{ sigrpt.killed = 0; }
 
-	if (tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL) sigrpt.rejected = sigrpt.order_volume;
+	if (tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL){
+		// TODO:cancel
+		sigrpt.error_no = tunnrpt.ErrorID;
+		sigrpt.rejected = sigrpt.order_volume;
+	}
 	else sigrpt.rejected = 0; 
 
-	sigrpt.error_no = tunnrpt.ErrorID;
 
 	if (tunnrpt.OrderStatus==TAPI_ORDER_STATE_CANCELED ||
 		tunnrpt.OrderStatus==TAPI_ORDER_STATE_LEFTDELETED){

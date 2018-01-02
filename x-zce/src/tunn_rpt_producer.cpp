@@ -313,6 +313,11 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 
 	if (ended_) return;
 
+	auto it = session_localorderid_map_.find(info->SessionID);
+	if(it == session_localorderid_map_.end()){
+		clog_error("[%s] can not find localorderid by session:%u",module_name_, 
+			info->SessionID);
+	}
 	long localorderid = session_localorderid_map_[info->SessionID];
 	int32_t cursor = Push();
 	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
@@ -323,13 +328,9 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	strcpy(tunnrpt.OrderNo,info->OrderInfo->OrderNo);
 
     if (info->OrderInfo->ErrorCode != TAPIERROR_SUCCEED) {
-		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELED ||
-			info->OrderInfo->OrderState==TAPI_ORDER_STATE_LEFTDELETED){ // 略“撤单拒绝”回报
+		if (info->OrderInfo->OrderState != TAPI_ORDER_STATE_FAIL){ // 错误码不等于0，且状态不是“拒绝”状态的回报，都需迭起
 			return;
 		}
-
-		tunnrpt.ErrorID = info->OrderInfo->ErrorCode;
-		tunnrpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
     }else{
 		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_SUBMIT ||
 			info->OrderInfo->OrderState==TAPI_ORDER_STATE_QUEUED ||
@@ -337,11 +338,12 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 			) {// discard these reports
 			return;
 		}
-
-		tunnrpt.OrderStatus = info->OrderInfo->OrderState;
-		tunnrpt.MatchedAmount = info->OrderInfo->OrderMatchQty;
-		tunnrpt.OrderMatchPrice = info->OrderInfo->OrderMatchPrice;
 	}
+
+	tunnrpt.MatchedAmount = info->OrderInfo->OrderMatchQty;
+	tunnrpt.OrderMatchPrice = info->OrderInfo->OrderMatchPrice;
+	tunnrpt.ErrorID = info->OrderInfo->ErrorCode;
+	tunnrpt.OrderStatus = info->OrderInfo->OrderState;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -357,7 +359,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 		fflush (Log::fp);
 	}
 
-	clog_info("[%s] OnRtnOrder:%s",module_name_, 
+	clog_info("[%s] cursor:%d,OnRtnOrder:%s",module_name_,cursor, 
 			ESUNNYDatatypeFormater::ToString(info).c_str());
 	fflush (Log::fp);
 }
