@@ -1,3 +1,9 @@
+2018-1-2
+-zce:
+修复撤单bug
+当撤单拒绝时，API也会返回已撤单状态，需要根据ErrorID值，将多余的回报丢弃。但是之前错误的使用TapAPIOrderInfoNotice.ErrorCode
+修复：当TapAPIOrderInfo.ErrorID !=0 的已撤状态的回报丢弃
+
 2017-12-06
 x-dce:
 pending 信号撤单处理：
