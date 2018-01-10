@@ -1,3 +1,7 @@
+2018-1-8
+x-shfe
+升级Femas通道到：FemasAllFuturesAPI_1.01_20170526(fm4)
+
 2018-1-2
 -zce:
 修复撤单bug

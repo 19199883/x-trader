@@ -4,14 +4,14 @@ CC:=g++
 DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/x-shfe/dist
-INCPATH:=-I$(TOP)/3rd/femas2.0/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/femas2.0/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/shfe_md/lib
+INCPATH:=-I$(TOP)/3rd/femas_allfutures/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include 
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/femas_allfutures/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/shfe_md/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lUSTPtraderapi -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lclogger -lcork -lvrt \
+LIBS:=-lpthread -lUSTPtraderapiAF -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lclogger -lcork -lvrt \
 	  -lboost_filesystem -lmdclient -lboost_system 
 DEPS:=.depends
 OUT:=x-shfe
@@ -59,7 +59,7 @@ dist:
 	-cp -arf $(TOP)/x-shfe/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/x-shfe/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/x-shfe/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/femas2.0/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/femas_allfutures/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/shfe_md/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/shfe_md/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
