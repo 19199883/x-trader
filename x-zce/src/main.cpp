@@ -12,7 +12,7 @@
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
 #include "pos_calcu.h"
-
+#include "esunny_data_formater.h"
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  4096
@@ -51,7 +51,7 @@ int main(/*int argc, const char **argv*/)
 
 	// version
 	clog_warning("version:x-shfe_20180102_debug"); 
-
+	
 	struct vrt_queue  *queue;
 	int64_t  result;
 

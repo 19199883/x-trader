@@ -152,7 +152,10 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 	clog_info("[%s] ReqInsertOrder-:%s", module_name_, ESUNNYDatatypeFormater::ToString(p).c_str());
 	fflush (Log::fp);
 	int ret = api_->InsertOrder(session,p);
-	session_localorderid_map_[*session] = localorderid;
+	{
+		std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
+		session_localorderid_map_[*session] = localorderid;
+	}
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -313,10 +316,24 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 
 	if (ended_) return;
 
-	auto it = session_localorderid_map_.find(info->SessionID);
-	if(it == session_localorderid_map_.end()){
-		clog_error("[%s] can not find localorderid by session:%u",module_name_, 
-			info->SessionID);
+	bool session_found = false;
+	while(!session_found){
+		{
+			std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
+			auto it = session_localorderid_map_.find(info->SessionID);
+			if(it == session_localorderid_map_.end()){
+				// TODO: api_->InsertOrder函数返回，有时会后于OnRtnOrder到达
+				session_found = false;
+			}else{
+				session_found = true;
+			}
+		}
+
+		if (!session_found){
+			clog_error("[%s] can not find localorderid by session:%u",module_name_, 
+				info->SessionID);
+			std::this_thread::sleep_for (std::chrono::milliseconds(5));
+		}
 	}
 	long localorderid = session_localorderid_map_[info->SessionID];
 	int32_t cursor = Push();

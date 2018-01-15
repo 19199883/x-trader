@@ -1,6 +1,7 @@
 #ifndef __TUNN_RPT_PRODUCER_H__
 #define __TUNN_RPT_PRODUCER_H__
 
+#include <mutex>          // std::mutex, std::lock_guard
 #include <array>
 #include <string>
 #include <unordered_map>
@@ -370,6 +371,8 @@ private:
 	 * 用于通过disruptor传递数据给消费者
 	 */
 	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
+
+	std::mutex mtx_session_localorderid_;
 
 	Tunnconfig config_;
 	const char * module_name_;  
