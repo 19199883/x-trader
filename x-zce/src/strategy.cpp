@@ -485,6 +485,15 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
 
+	if(sigrpt.status == if_sig_state_t::SIG_STATUS_REJECTED ||
+		sigrpt.status == if_sig_state_t::SIG_STATUS_CANCEL ||
+		sigrpt.status == if_sig_state_t::SIG_STATUS_SUCCESS){ // 为委托单的状态会随着错误号多
+															 //次返回（如：撤单时，单已经成交，
+															 //那么成交状态可能会多次返回，
+															 //并带有错误号），所以要丢弃多余的状态回报
+		return;
+	}
+
 	// 使MatchedAmount为最后一次的成交量
 	int32_t lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
 	// update strategy's position

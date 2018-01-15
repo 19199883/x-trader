@@ -344,17 +344,11 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	tunnrpt.ServerFlag = info->OrderInfo->ServerFlag;
 	strcpy(tunnrpt.OrderNo,info->OrderInfo->OrderNo);
 
-    if (info->OrderInfo->ErrorCode != TAPIERROR_SUCCEED) {
-		if (info->OrderInfo->OrderState != TAPI_ORDER_STATE_FAIL){ // 错误码不等于0，且状态不是“拒绝”状态的回报，都需迭起
-			return;
-		}
-    }else{
-		if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_SUBMIT ||
-			info->OrderInfo->OrderState==TAPI_ORDER_STATE_QUEUED ||
-			info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELING
-			) {// discard these reports
-			return;
-		}
+	if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_SUBMIT ||
+		info->OrderInfo->OrderState==TAPI_ORDER_STATE_QUEUED ||
+		info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELING
+		) {// discard these reports
+		return;
 	}
 
 	tunnrpt.MatchedAmount = info->OrderInfo->OrderMatchQty;
