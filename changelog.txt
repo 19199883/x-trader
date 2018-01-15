@@ -1,3 +1,9 @@
+2018-1-15
+修复bug：trader要能处理这个场景：有时，易盛API，某个单已成交，但还未从交易所返回，此时撤单，单的已成状态和撤单报错会在一个回报中返回。
+
+2018-1-14
+api_->InsertOrder函数返回，有时会后于OnRtnOrder到达
+
 2018-1-8
 x-shfe
 升级Femas通道到：FemasAllFuturesAPI_1.01_20170526(fm4)
