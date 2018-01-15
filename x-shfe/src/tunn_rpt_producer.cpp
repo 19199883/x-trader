@@ -279,6 +279,10 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 		FEMASDatatypeFormater::ToString(pfield).c_str(),
 		FEMASDatatypeFormater::ToString(perror).c_str());
 
+	// 因OnRsp已经发送该错误了，所以此次错误回报是重复的，丢弃。
+	// 具体见《FemasAPI（四所版）开发技术指南.pdf》的“关于错单”
+	return;
+
 	if(pfield != NULL && perror != NULL){
 		int32_t cursor = Push();
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
