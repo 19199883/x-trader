@@ -414,6 +414,7 @@ void Strategy::Push(const signal_t &sig)
 
 	// signal response
 	memset(&(sigrpt_table_[cursor_]), 0, sizeof(signal_resp_t));
+	sigrpt_table_[cursor_].status = -1; 
 	sigrpt_table_[cursor_].sig_id = sig.sig_id;
 	sigrpt_table_[cursor_].sig_act = sig.sig_act;
 	strcpy(sigrpt_table_[cursor_].symbol, sig.symbol);
@@ -485,12 +486,26 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
 
+		clog_info("[%s] FeedTunnRpt:strategy id:%d; sig_id:%d;"
+					"symbol:%s; status:%d; ",
+					module_name_, setting_.config.st_id, 				
+					sigrpt.sig_id, sigrpt.symbol, sigrpt.status);
+		fflush (Log::fp);
+
 	if(sigrpt.status == if_sig_state_t::SIG_STATUS_REJECTED ||
 		sigrpt.status == if_sig_state_t::SIG_STATUS_CANCEL ||
 		sigrpt.status == if_sig_state_t::SIG_STATUS_SUCCESS){ // 为委托单的状态会随着错误号多
 															 //次返回（如：撤单时，单已经成交，
 															 //那么成交状态可能会多次返回，
 															 //并带有错误号），所以要丢弃多余的状态回报
+		clog_info("[%s] discard report:strategy id:%d; sig_id:%d;"
+					"symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f;"
+					"exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
+					module_name_, setting_.config.st_id, 				
+					sigrpt.sig_id, sigrpt.symbol,
+					sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
+					sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,sigrpt.rejected);
+		fflush (Log::fp);
 		return;
 	}
 
