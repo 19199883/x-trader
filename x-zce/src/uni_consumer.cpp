@@ -17,7 +17,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
   l2_md_producer_(l2md_producer), tunn_rpt_producer_(tunn_rpt_producer)
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
-	// TODO: cancel
 	memset(tunnrpt_table_, 0, sizeof(tunnrpt_table_));
 
 	ParseConfig();
@@ -248,7 +247,6 @@ void UniConsumer::Start()
 
 void UniConsumer::Stop()
 {
-	running_ = false;
 	l1_md_producer_->End();
 	l2_md_producer_->End();
 	tunn_rpt_producer_->End();
@@ -259,6 +257,8 @@ void UniConsumer::Stop()
 	for(int i=0; i<strategy_counter_; i++){
 		stra_table_[i].End();
 	}
+
+	running_ = false;
 }
 
 void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
@@ -315,13 +315,10 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	// TODO: debug
 	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; MatchedAmount:%u;"
 				" ErrorID:%u ", module_name_, index, rpt->LocalOrderID, 
 				rpt->OrderStatus, rpt->MatchedAmount, rpt->ErrorID);
-	fflush (Log::fp);
 
-	// TODO:cancel done
 	int32_t counter = tunn_rpt_producer_->GetCounterByLocalOrderID(rpt->LocalOrderID);
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 	if(strcmp(rptforcancel.OrderNo,"") == 0){
@@ -330,7 +327,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	}
 	clog_info("[%s] ProcTunnRpt:counter=%d,ServerFlag=%c,OrderNo=%s", 
 		module_name_, counter, rptforcancel.ServerFlag, rptforcancel.OrderNo);
-	fflush (Log::fp);
 	
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
@@ -352,7 +348,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 
-	// TODO: improve place, cancel
 	// 虑当pending信号都处理了，如何标志
 	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
 		int32_t st_id = strategy.GetId();
@@ -370,7 +365,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 					module_name_, sig->st_id, sig->sig_id,
 					sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
 					sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose,i); 
-			fflush (Log::fp);
 				 break;
 			}
 		} // if(pending_signals_[st_id][i] >= 0)
@@ -390,32 +384,25 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
-				// TODO: improve place, cancel
-				// done
 				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					int32_t sig_id = pending_signals_[sig.st_id][i];
 					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
 						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
 									module_name_,sig.st_id,pending_signals_[sig.st_id][i],i);
-						fflush (Log::fp);
 						break;
 					}
 				}
 				if(i == MAX_PENDING_SIGNAL_COUNT){
 					clog_error("[%s] pending_signals_ beyond;", module_name_);
-					fflush (Log::fp);
 				}
 			} else { PlaceOrder(strategy, sigs[i]); }
 		}
 	} // end for (int i = 0; i < sig_cnt; i++)
 }
 
-// TODO: improve place, cancel
 bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 {
-	// TODO: remove from pending queue
-	// done
 	bool cancelled = false;
 	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
     	int32_t st_id = strategy.GetId();
@@ -428,7 +415,6 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 				cancelled = true;
 				clog_info("[%s] CancelPendingSig remove pending signal: strategy id:%d;"
 							"sig_id:%d;index:%d", module_name_, st_id, sig_id, i);
-				fflush (Log::fp);
 
 				break;
 			}
@@ -440,7 +426,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		
-		// TODO: 从pending队列中撤单
+		// 从pending队列中撤单
 		rpt.ErrorID = CANCELLED_FROM_PENDING;   
 
 		rpt.OrderStatus = TAPI_ORDER_STATE_CANCELED;   
@@ -454,9 +440,6 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
-	// TODO: improve place, cancel
-	// done
-	//
 	int32_t ori_sigid = sig.orig_sig_id;
 	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
@@ -465,7 +448,6 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		clog_info("[%s] strategy id:%d,sig id:%d. CancelOrder: ignore"
 					"request due to frozen position.", 
 					module_name_,sig.st_id,sig.sig_id); 
-		fflush (Log::fp);
 		return;
 	}
 	
@@ -473,9 +455,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	int32_t counter = strategy.GetCounterByLocalOrderID(ori_localorderid);
 	clog_info("[%s] CancelOrder:strategy id:%d,sig id:%d,LocalOrderID:%ld; ", 
 				module_name_,sig.st_id,sig.sig_id, ori_localorderid); 
-	fflush (Log::fp);
 
-	// TODO:cancel done
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 
 	this->tunn_rpt_producer_->ReqOrderAction(rptforcancel.ServerFlag, rptforcancel.OrderNo);
@@ -495,12 +475,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
-	// TODO: vol:0, rejected
-	// TODO: improve place, cancel
+	// vol:0, rejected
 	if(updated_vol <= 0){
 		clog_info("[%s] rejected due to vol 0. strategy id:%d; sig id;%d", 
 			module_name_,sig.st_id, sig.sig_id);
-		fflush (Log::fp);
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
@@ -540,7 +518,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 #ifdef COMPLIANCE_CHECK
 	}else{
 		clog_warning("[%s] compliance checking failed:%ld", module_name_,localorderid);
-		fflush (Log::fp);
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));

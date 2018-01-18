@@ -32,9 +32,9 @@ Strategy::Strategy()
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 	log_cursor_ = 0;
 	pfDayLogFile_ = NULL;
-	lock_log_.test_and_set();
 	thread_log_ = new std::thread(&Strategy::WriteLogImp,this);
 	log_ended_ = false;
+	log_flushed_ = false;
 	log_write_count_ = 0;
 }
 
@@ -43,6 +43,10 @@ void Strategy::End(void)
 	if (valid_) SavePosition();
 
 	WriteLog(true);
+	while(!log_flushed_){
+		std::this_thread::sleep_for (std::chrono::seconds(1));
+	}
+
 	fclose(pfDayLogFile_);
 	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
 
@@ -141,6 +145,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	setting_.config.log_id = setting_.config.st_id;
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
+	
 	WriteLogTitle();
 	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
 				GetId(),setting_.config.log_name);
@@ -157,6 +162,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
+
 	log_cursor_++;
 	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false); 
 
@@ -192,11 +198,6 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	// TODO: debug
-	//clog_info("[%s] strategy id:%d;rev ZCEL2QuotSnapshotField_MY contract:%s; time:%s", 
-	//			module_name_,GetId(),md->ContractID,md->TimeStamp);
-	fflush (Log::fp);
-
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
@@ -223,7 +224,6 @@ void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sig
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
 					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
 					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
-		fflush (Log::fp);
 	}
 }
 
@@ -244,7 +244,6 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
 					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, 
 					sigs[i].sig_openclose, sigs[i].orig_sig_id); 
-		fflush (Log::fp);
 	}
 }
 
@@ -424,7 +423,7 @@ void Strategy::Push(const signal_t &sig)
 		sigrpt_table_[cursor_].order_price = sig.sell_price;
 	}
 
-	// TODO:从pending队列中撤单 done
+	// 从pending队列中撤单 
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		sigrpt_table_[cursor_].order_volume = sig.open_volume;
 	}else if (sig.sig_openclose == alloc_position_effect_t::close_){
@@ -451,7 +450,6 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; "
 				"cursor,%d; LocalOrderID:%ld;",
 				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
-	fflush (Log::fp);
 }
 
 
@@ -465,13 +463,11 @@ int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
 	return (local_ord_id - GetId()) / 1000;
 }
 
-// TODO: improve place, cancel
 int32_t Strategy::GetSignalIdxBySigId(long sigid)
 {
 	return sigid_sigidx_map_table_[sigid];
 }
 
-// TODO: improve place, cancel
 int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 {
 	// get signal report by LocalOrderID
@@ -480,7 +476,6 @@ int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 	return index;
 }
 
-// TODO: improve place, cancel
 void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
@@ -490,7 +485,6 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 					"symbol:%s; status:%d; ",
 					module_name_, setting_.config.st_id, 				
 					sigrpt.sig_id, sigrpt.symbol, sigrpt.status);
-		fflush (Log::fp);
 
 	if(sigrpt.status == if_sig_state_t::SIG_STATUS_REJECTED ||
 		sigrpt.status == if_sig_state_t::SIG_STATUS_CANCEL ||
@@ -505,7 +499,6 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 					sigrpt.sig_id, sigrpt.symbol,
 					sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
 					sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,sigrpt.rejected);
-		fflush (Log::fp);
 		return;
 	}
 
@@ -531,7 +524,6 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 				pos_cache_.s_pos[0].short_volume, sigrpt.sig_id, sigrpt.symbol,
 				sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
 				sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,sigrpt.rejected);
-	fflush (Log::fp);
 }
 
 bool Strategy::HasFrozenPosition()
@@ -563,7 +555,7 @@ void Strategy::UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
-	// TODO: 从pending队列中撤单 done
+	// 从pending队列中撤单 
 	if (rpt.ErrorID != CANCELLED_FROM_PENDING){
 		if(rpt.OrderStatus==TAPI_ORDER_STATE_CANCELED ||
 			rpt.OrderStatus==TAPI_ORDER_STATE_LEFTDELETED ||
@@ -608,7 +600,6 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt,const
 	}else{ sigrpt.killed = 0; }
 
 	if (tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL){
-		// TODO:cancel
 		sigrpt.error_no = tunnrpt.ErrorID;
 		sigrpt.rejected = sigrpt.order_volume;
 	}
@@ -676,11 +667,14 @@ void Strategy::WriteLog(bool isEnded)
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
+	
+	while (lock_log_.test_and_set()) {}
 	log_ended_ = isEnded;
 	log_w_.swap(log_);
 	log_write_count_ = log_cursor_ ;
 	lock_log_.clear();
 	log_cursor_ = 0;
+
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t1 = high_resolution_clock::now();
 	int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
@@ -703,16 +697,24 @@ void Strategy::WriteLogTitle()
 
 void Strategy::WriteLogImp()
 {
-	while(!log_ended_){
-		while (lock_log_.test_and_set()) {
-			std::this_thread::sleep_for (std::chrono::seconds(10));
-		}
+	while(true){
+		while (lock_log_.test_and_set()) { }
 
-		// content
 		for(int i = 0; i < log_write_count_; i++){
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
-	}
+		log_write_count_ = 0;
+
+		if(log_ended_){
+			lock_log_.clear();
+			break;
+		}
+
+		lock_log_.clear();
+		std::this_thread::sleep_for (std::chrono::seconds(60));
+	} // end while(true)
+
+	log_flushed_ = true;
 }
 
 void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)

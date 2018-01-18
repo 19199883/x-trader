@@ -150,7 +150,6 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	clog_info("[%s] ReqInsertOrder-:%s", module_name_, ESUNNYDatatypeFormater::ToString(p).c_str());
-	fflush (Log::fp);
 	int ret = api_->InsertOrder(session,p);
 	{
 		std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
@@ -161,16 +160,13 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
 		clog_warning("[%s] ReqOrderInsert latency:%d us", 
 					module_name_,latency); 
-		fflush (Log::fp);
 #endif
 	if (ret != 0){
 		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
-		fflush (Log::fp);
 	}else {
 		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
-		fflush (Log::fp);
 	}
 
 	return ret;
@@ -184,27 +180,22 @@ int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	TAPIUINT32 sessionID;
-	// TODO:cancel done
     cancel_req_.ServerFlag = serverflag;
     strcpy(cancel_req_.OrderNo, orderno);
 
 	clog_info("[%s] ReqOrderAction-:%s", module_name_, ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
-	fflush (Log::fp);
 
 	clog_info("[%s]before ReqOrderAction", module_name_);
-	fflush (Log::fp);
 
 	int ret = api_->CancelOrder(&sessionID,&cancel_req_);
 
 	clog_info("[%s]after ReqOrderAction", module_name_);
-	fflush (Log::fp);
 
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
 		clog_warning("[%s] ReqOrderAction latency:%d us", 
 					module_name_,latency); 
-		fflush (Log::fp);
 #endif
 
 	if (ret != 0){
@@ -212,13 +203,11 @@ int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
 			"server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
-		fflush (Log::fp);
 	} else {
 		clog_info("[%s] CancelOrder - return:%d, session_id:%u, "
 			"server flag:%c,order no:%s", 
 			module_name_,ret,sessionID,cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
-		fflush (Log::fp);
 	}
 
 	return ret;
@@ -228,7 +217,6 @@ int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
 void TunnRptProducer::OnConnect()
 {
     clog_warning("[%s] OnConnect.", module_name_);
-	fflush (Log::fp);
 }
 
 // done
@@ -237,14 +225,12 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
     clog_warning("[%s] OnRspLogin: errorCode:%d,%s",
         module_name_,
 		errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
-	fflush (Log::fp);
 }
 
 // done
 void TunnRptProducer::OnAPIReady()
 {
     clog_warning("[%s] OnAPIReady",module_name_);	
-	fflush (Log::fp);
 }
 
 // done
@@ -312,7 +298,6 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 {
     clog_info("[%s] OnRtnOrder:%s",module_name_, 
 				ESUNNYDatatypeFormater::ToString(info).c_str());
-	fflush (Log::fp);
 
 	if (ended_) return;
 
@@ -322,7 +307,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 			std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
 			auto it = session_localorderid_map_.find(info->SessionID);
 			if(it == session_localorderid_map_.end()){
-				// TODO: api_->InsertOrder函数返回，有时会后于OnRtnOrder到达
+				// api_->InsertOrder函数返回，有时会后于OnRtnOrder到达
 				session_found = false;
 			}else{
 				session_found = true;
@@ -340,7 +325,6 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
 	tunnrpt.SessionID = info->SessionID;
 	tunnrpt.LocalOrderID = localorderid;
-	// TODO:cancel done
 	tunnrpt.ServerFlag = info->OrderInfo->ServerFlag;
 	strcpy(tunnrpt.OrderNo,info->OrderInfo->OrderNo);
 
@@ -364,15 +348,14 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	ivalue->data = TUNN_RPT;
 	vrt_producer_publish(producer_);
 
-	if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL){
+	if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL ||
+		tunnrpt.ErrorID != TAPIERROR_SUCCEED){
 		clog_error("[%s] OnRtnOrder:%s",module_name_, 
 				ESUNNYDatatypeFormater::ToString(info).c_str());
-		fflush (Log::fp);
 	}
 
 	clog_info("[%s] cursor:%d,OnRtnOrder:%s",module_name_,cursor, 
 			ESUNNYDatatypeFormater::ToString(info).c_str());
-	fflush (Log::fp);
 }
 
 // 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.
@@ -382,7 +365,6 @@ void TunnRptProducer::OnRspOrderAction(TAPIUINT32 sessionID, TAPIUINT32 errorCod
 {
     clog_info("[%s] OnRspOrderAction:sessionID:%u,errorCode:%d, %s",
         module_name_,sessionID, errorCode, ESUNNYDatatypeFormater::ToString(info).c_str());
-	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnRspQryOrder(TAPIUINT32 sessionID, TAPIINT32 errorCode,

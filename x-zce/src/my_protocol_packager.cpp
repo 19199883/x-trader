@@ -67,9 +67,6 @@ TapAPINewOrder* ESUNNYPacker::OrderRequest(const signal_t& sig,const char *accou
 	// volume
     new_order_.OrderQty = vol;
 
-	// TODO: debug
-	fflush (Log::fp);
-
 	return &new_order_;
 }
 

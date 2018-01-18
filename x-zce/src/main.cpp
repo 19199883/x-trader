@@ -50,7 +50,7 @@ int main(/*int argc, const char **argv*/)
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-shfe_20180102_debug"); 
+	clog_warning("version:x-shfe_20180116_debug_hzp"); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;

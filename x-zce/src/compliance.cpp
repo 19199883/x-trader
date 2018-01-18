@@ -74,7 +74,6 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 	if(offset==TAPI_PositionEffect_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_)){
 		clog_error("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
 			module_name_, ord_counter, GetCancelTimes(contract));
-		fflush (Log::fp);
 		return false;
 	}
 
