@@ -34,7 +34,6 @@ Strategy::Strategy()
 	pfDayLogFile_ = NULL;
 	thread_log_ = new std::thread(&Strategy::WriteLogImp,this);
 	log_ended_ = false;
-	log_flushed_ = false;
 	log_write_count_ = 0;
 }
 
@@ -43,10 +42,7 @@ void Strategy::End(void)
 	if (valid_) SavePosition();
 
 	WriteLog(true);
-	while(!log_flushed_){
-		std::this_thread::sleep_for (std::chrono::seconds(1));
-	}
-
+	thread_log_ ->join();
 	fclose(pfDayLogFile_);
 	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
 
@@ -713,8 +709,6 @@ void Strategy::WriteLogImp()
 		lock_log_.clear();
 		std::this_thread::sleep_for (std::chrono::seconds(60));
 	} // end while(true)
-
-	log_flushed_ = true;
 }
 
 void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
