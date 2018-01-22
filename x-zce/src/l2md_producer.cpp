@@ -36,7 +36,7 @@ L2MDProducer::L2MDProducer(struct vrt_queue *queue)
 	}
 
 	thread_rev_ = new std::thread(&L2MDProducer::RevData, this);
-	thread_rev_->detach();
+	//thread_rev_->detach();
 }
 
 // done
@@ -166,12 +166,15 @@ void L2MDProducer::RevData()
 		ivalue->data = L2_MD;
 		vrt_producer_publish(producer_);
     } // end while (!ended_) 
+	clog_warning("[%s] RevData exit.",module_name_);
+
 }
 
 void L2MDProducer::End()
 {
 	if(!ended_){
 		ended_ = true;
+		thread_rev_->join();
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
 	}

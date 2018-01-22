@@ -32,7 +32,6 @@ Strategy::Strategy()
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 	log_cursor_ = 0;
 	pfDayLogFile_ = NULL;
-	thread_log_ = new std::thread(&Strategy::WriteLogImp,this);
 	log_ended_ = false;
 	log_write_count_ = 0;
 }
@@ -54,11 +53,6 @@ void Strategy::End(void)
 
 Strategy::~Strategy(void)
 {
-	if(thread_log_!=NULL && !thread_log_->joinable()){
-		delete thread_log_;
-		thread_log_ = NULL; 
-	}
-
 	if (pproxy_ != NULL){
 		pproxy_->deleteObject(this->setting_.file);
 		pproxy_ = NULL;
@@ -100,6 +94,8 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	// set breakpoint here
 	this->setting_ = setting;
 	this->pproxy_ = pproxy;
+
+	thread_log_ = new std::thread(&Strategy::WriteLogImp,this);
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
@@ -692,7 +688,9 @@ void Strategy::WriteLogTitle()
 }
 
 void Strategy::WriteLogImp()
-{
+{	
+	clog_warning("[%s] WriteLogImp enter", module_name_,log_ended_); 
+
 	while(true){
 		while (lock_log_.test_and_set()) { }
 
@@ -703,12 +701,14 @@ void Strategy::WriteLogImp()
 
 		if(log_ended_){
 			lock_log_.clear();
+			clog_warning("[%s] WriteLogImp log_ended_:%d", module_name_,log_ended_); 
 			break;
 		}
 
 		lock_log_.clear();
 		std::this_thread::sleep_for (std::chrono::seconds(60));
 	} // end while(true)
+	clog_warning("[%s] WriteLogImp exit", module_name_); 
 }
 
 void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)

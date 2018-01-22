@@ -217,7 +217,7 @@ void TapMDProducer::OnAPIReady()
 
 void TapMDProducer::OnDisconnect(TAPIINT32 reasonCode)
 {
-    clog_error("[%s] TAP - OnDisconnect, reasonCode is %d, reconnecting.", module_name_, reasonCode);
+    clog_error("[%s] TAP - OnDisconnect, reasonCode is %d", module_name_, reasonCode);
 }
 
 void TapMDProducer::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
