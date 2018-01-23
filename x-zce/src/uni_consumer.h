@@ -102,6 +102,18 @@ class UniConsumer
 		 */
 		TunnRpt tunnrpt_table_[RPT_BUFFER_SIZE];
 
+		// strategy log
+		void FlushStrategyLog();
+		void WriteLogTitle(FILE * pfDayLogFile);
+		void WriteLogImp();
+		void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
+		void WriteStrategyLog(Strategy &strategy);
+		std::atomic_flag lock_log_;
+		vector<strat_out_log> log_w_;
+		std::thread *thread_log_;
+		int32_t log_write_count_;
+		FILE * pfDayLogFile_;
+
 #ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
 #endif

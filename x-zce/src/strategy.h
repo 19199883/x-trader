@@ -26,7 +26,7 @@ using namespace std;
 // 一个x-trader最多支持100个策略
 #define MAX_STRATEGY_COUNT 100
 
-#define MAX_LINES_FOR_LOG 3500
+#define MAX_LINES_FOR_LOG 10000
 
 struct strat_out_log
 {
@@ -117,10 +117,11 @@ public:
 	/*
 	 * isEnded:true,表示写完日之后，退出写日志线程
 	 */ 
-	void WriteLog(bool isEnded);
-	void WriteLogImp();
-	void WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog);
-	void WriteLogTitle();
+	// log
+	void get_log(vector<strat_out_log> &log_buffer, int32_t &count);
+	bool IsLogFull();
+	int32_t FullLineCount();
+	FILE * get_log_file();
 
 private:
 	string generate_log_name(char * log_path);
@@ -150,14 +151,9 @@ private:
 	position_t pos_cache_;
 	
 	// log
-	std::atomic_flag lock_log_;
 	FILE * pfDayLogFile_;
 	vector<strat_out_log> log_;
 	int32_t log_cursor_;
-	vector<strat_out_log> log_w_;
-	int32_t log_write_count_;
-	std::thread *thread_log_;
-	bool log_ended_;
 
 	// be used to check whether the stategy is valid
 	bool valid_;

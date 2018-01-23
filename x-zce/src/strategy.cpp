@@ -14,7 +14,7 @@ using namespace std;
 using namespace std::chrono;
 
 Strategy::Strategy()
-: module_name_("Strategy"),lock_log_(ATOMIC_FLAG_INIT)
+: module_name_("Strategy")
 {
 	valid_ = false;
 	cursor_ = 0;
@@ -28,20 +28,16 @@ Strategy::Strategy()
 
 	pproxy_ = NULL;
 
+	// strategy log
 	log_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
-	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 	log_cursor_ = 0;
 	pfDayLogFile_ = NULL;
-	log_ended_ = false;
-	log_write_count_ = 0;
 }
 
 void Strategy::End(void)
 {
 	if (valid_) SavePosition();
 
-	WriteLog(true);
-	thread_log_ ->join();
 	fclose(pfDayLogFile_);
 	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
 
@@ -95,8 +91,6 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	this->setting_ = setting;
 	this->pproxy_ = pproxy;
 
-	thread_log_ = new std::thread(&Strategy::WriteLogImp,this);
-
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
@@ -136,9 +130,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.log_name, model_log.c_str());
 	setting_.config.log_id = setting_.config.st_id;
 
-	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	
-	WriteLogTitle();
 	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
 				GetId(),setting_.config.log_name);
 
@@ -152,11 +144,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
+	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
-
 	log_cursor_++;
-	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false); 
 
 	this->FeedInitPosition();
 }
@@ -181,7 +172,6 @@ void Strategy::FeedInitPosition()
 
 	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
 	log_cursor_++;
-	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false); 
 
 	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
@@ -197,7 +187,6 @@ void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sig
 	*sig_cnt = 0;
 	this->pfn_feedl2quotesnapshot_(md, sig_cnt, sigs, log_.data()+log_cursor_);
 	log_cursor_++;
-	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false);
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 
@@ -224,7 +213,6 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 	*sig_cnt = 0;
 	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, log_.data()+log_cursor_);
 	log_cursor_++;
-	if(log_cursor_ == MAX_LINES_FOR_LOG) WriteLog(false);
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
@@ -653,109 +641,36 @@ const char * Strategy::GetSymbol()
 	return setting_.config.symbols[0].name;
 }
 
-
-void Strategy::WriteLog(bool isEnded)
+// strategy log
+FILE * Strategy::get_log_file()
 {
-#ifdef LATENCY_MEASURE
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-	
-	while (lock_log_.test_and_set()) {}
-	log_ended_ = isEnded;
-	log_w_.swap(log_);
-	log_write_count_ = log_cursor_ ;
-	lock_log_.clear();
-	log_cursor_ = 0;
-
-#ifdef LATENCY_MEASURE
-	high_resolution_clock::time_point t1 = high_resolution_clock::now();
-	int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-	clog_warning("[%s] strategy latency:%d us", module_name_, latency); 
-#endif
-}
-void Strategy::WriteLogTitle()
-{
-	// title
-	fprintf (pfDayLogFile_, "exch_time  contract  n_tick  price  vol  bv1  bp1  sp1  sv1  amt  ");
-	fprintf (pfDayLogFile_, "oi buy_price  sell_price  open_vol  close_vol  ");
-	fprintf (pfDayLogFile_, "long_pos  short_pos  total_ordervol  total_cancelvol order_count cancel_count ");
-	fprintf (pfDayLogFile_, "cash live total_vol max_dd max_net_pos max_side_pos ");
-	for(int i=0; i< 11; i++)
-	{
-		fprintf(pfDayLogFile_,"sig%d ", i);
-	}
-	fprintf(pfDayLogFile_,"sig11\n");
+	return pfDayLogFile_;
 }
 
-void Strategy::WriteLogImp()
+/*
+ * 因为lock_log_并不能对不同策略间的日志读写缓存进行同步，
+ * 所以必须将不同的策略日志时间错开，保证一个策略日志落地后，
+ * 再落地另外策略的日志
+ *
+ */
+int32_t Strategy::FullLineCount()
 {	
-	clog_warning("[%s] WriteLogImp enter", module_name_,log_ended_); 
-
-	while(true){
-		while (lock_log_.test_and_set()) { }
-
-		for(int i = 0; i < log_write_count_; i++){
-			WriteOne(pfDayLogFile_, log_w_.data()+i);
-		}
-		log_write_count_ = 0;
-
-		if(log_ended_){
-			lock_log_.clear();
-			clog_warning("[%s] WriteLogImp log_ended_:%d", module_name_,log_ended_); 
-			break;
-		}
-
-		lock_log_.clear();
-		std::this_thread::sleep_for (std::chrono::seconds(60));
-	} // end while(true)
-	clog_warning("[%s] WriteLogImp exit", module_name_); 
+	return MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 50 + GetId() * 50;
 }
 
-void Strategy::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
+bool Strategy::IsLogFull()
 {
-	if(0==pstratlog->exch_time) return;
+	if(log_cursor_ == FullLineCount()) {
+		return true;
+	}else{
+		return false;
+	}
+}
 
-    fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
-            pstratlog->exch_time,
-            pstratlog->contract,
-            pstratlog->n_tick,
-            pstratlog->price,
-            pstratlog->vol);
-
-    fprintf(pfDayLogFile,"%d %12.4f %12.4f %d %ld %ld ",
-            pstratlog->bv1,
-            pstratlog->bp1,
-            pstratlog->sp1,
-            pstratlog->sv1,
-            pstratlog->amt,
-            pstratlog->oi);
-
-    fprintf(pfDayLogFile,"%12.4f %12.4f %d %d ",
-            pstratlog->buy_price,
-            pstratlog->sell_price,
-            pstratlog->open_vol,
-            pstratlog->close_vol);
-
-    fprintf(pfDayLogFile,"%d %d %d %d %d %d ",
-            pstratlog->long_pos,
-            pstratlog->short_pos,
-            pstratlog->tot_ordervol,
-            pstratlog->tot_cancelvol,
-            pstratlog->order_cnt,
-            pstratlog->cancel_cnt);
-
-    fprintf(pfDayLogFile,"%16.2f %16.2f %d %16.2f %d %d ",
-            pstratlog->cash,
-            pstratlog->live,
-            pstratlog->tot_vol,
-            pstratlog->max_dd,
-            pstratlog->max_net_pos,
-            pstratlog->max_side_pos);
-
-    for(int i=0; i< 11; i++)
-    {
-        fprintf(pfDayLogFile,"%0.2f ", pstratlog->sig[i]);
-    }
-    fprintf(pfDayLogFile,"%0.2f\n", pstratlog->sig[11]);
+void Strategy::get_log(vector<strat_out_log> &log_buffer, int32_t &count)
+{
+	log_buffer.swap(log_);
+	count = log_cursor_;
+	log_cursor_ = 0;
 }
 
