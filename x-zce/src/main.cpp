@@ -24,6 +24,10 @@ TunnRptProducer *tunnRptProducer = NULL;
 static void
 SIG_handler(int s)
 {
+	// TODO: debug
+	clog_warning("handling signal SIGUSR1"); 
+	fflush (Log::fp);
+
 	uniConsumer->Stop();
 }
 
@@ -62,6 +66,14 @@ int main(/*int argc, const char **argv*/)
 	uniConsumer = new UniConsumer (queue, l1_md_producer, l2_md_producer, tunnRptProducer);
 	uniConsumer->Start();
 
+	// TODO: debug
+	clog_warning("main exit."); 
+	fflush (fp);
+	//std::this_thread::sleep_for (std::chrono::seconds(60));
+	// TODO: debug
+	clog_warning("wake up."); 
+	fflush (fp);
+	
 	fflush (fp);
 
   // free vrt_queue

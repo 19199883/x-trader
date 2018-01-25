@@ -254,24 +254,29 @@ void UniConsumer::Start()
 	if (rc == VRT_QUEUE_EOF) {
 		clog_warning("[%s] [start] rev EOF.", module_name_);
 	}
+	clog_warning("[%s] [start] exit.", module_name_);
 }
 
 void UniConsumer::Stop()
 {
-	l1_md_producer_->End();
-	l2_md_producer_->End();
-	tunn_rpt_producer_->End();
+	if(running_){
+		l1_md_producer_->End();
+		l2_md_producer_->End();
+		tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
 		compliance_.Save();
 #endif
 
-	running_ = false;
-	thread_log_ ->join();
-	FlushStrategyLog();
-
-	for(int i=0; i<strategy_counter_; i++){
-		stra_table_[i].End();
+		running_ = false;
+		thread_log_ ->join();
+		FlushStrategyLog();
+		for(int i=0; i<strategy_counter_; i++){
+			stra_table_[i].End();
+		}
+		clog_warning("[%s] Stop exit.", module_name_);
 	}
+
+	fflush (Log::fp);
 }
 
 void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)

@@ -131,13 +131,17 @@ TapMDProducer::~TapMDProducer(){
 
 void TapMDProducer::End()
 {
-    if (api_){
-        api_->Disconnect();
-    }
+	if(!ended_){
+		if (api_){
+			api_->Disconnect();
+		}
 
-	ended_ = true;
-	(vrt_producer_eof(producer_));
-	clog_warning("[%s] End exit", module_name_);
+		ended_ = true;
+		(vrt_producer_eof(producer_));
+		clog_warning("[%s] End exit", module_name_);
+	}
+
+	fflush (Log::fp);
 }
 
 int32_t TapMDProducer::Push(const TapAPIQuoteWhole_MY& md){

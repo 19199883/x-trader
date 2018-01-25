@@ -1,10 +1,12 @@
 // done
 #include <functional>   // std::bind
+#include<unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include "l2md_producer.h"
 #include "quote_cmn_utility.h"
+#include "perfctx.h"
 
 using namespace std;
 using namespace std::placeholders;
@@ -18,7 +20,8 @@ L2MDProducer::L2MDProducer(struct vrt_queue *queue)
 	clog_warning("[%s] L2_MD_BUFFER_SIZE: %d;", module_name_, L2MD_BUFFER_SIZE);
 
 	ParseConfig();
-	
+	udp_client_fd_ = 0;
+
 	// init dominant contracts
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
 	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
@@ -126,6 +129,7 @@ int L2MDProducer::InitMDApi()
 void L2MDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
+	udp_client_fd_ = udp_fd;
     if (udp_fd < 0){
         clog_error("[%s] InitMDApi failed.",module_name_);
         return;
@@ -140,11 +144,12 @@ void L2MDProducer::RevData()
         data_len = recvfrom(udp_fd, buf, 2048, 0, (sockaddr *)&src_addr, &addr_len);
         if (data_len == -1) {
             int error_no = errno;
+			clog_error("[%s] UDP-recvfrom failed, error_no=%d.",module_name_,error_no);
+			fflush (Log::fp);
             if (error_no == 0 || error_no == 251 || 
 				error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
                 continue;
             }else{
-                clog_error("[%s] UDP-recvfrom failed, error_no=%d.",module_name_,error_no);
                 continue;
             }
         }
@@ -157,6 +162,11 @@ void L2MDProducer::RevData()
 
 		// 抛弃非主力合约
 		if(!dominant) continue;
+#ifdef LATENCY_MEASURE
+		 static int cnt = 0;
+		 perf_ctx::insert_t0(cnt);
+		 cnt++;
+#endif
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -174,10 +184,17 @@ void L2MDProducer::End()
 {
 	if(!ended_){
 		ended_ = true;
+		shutdown(udp_client_fd_, SHUT_RDWR);
+		int err = close(udp_client_fd_);
+		clog_warning("close udp:%d.", err); 
+		fflush (Log::fp);
+
 		thread_rev_->join();
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
 	}
+
+	fflush (Log::fp);
 }
 
 int32_t L2MDProducer::Push(const StdQuote5& md){

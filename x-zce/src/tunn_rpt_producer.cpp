@@ -286,12 +286,16 @@ void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
 // done
 void TunnRptProducer::End()
 {
-    if (api_) {
-		FreeTapTradeAPI(api_);
-        api_ = NULL;
-    }
-	ended_ = true;
-	(vrt_producer_eof(producer_));
+	if(!ended_){ 
+		if (api_) {
+			FreeTapTradeAPI(api_);
+			api_ = NULL;
+		}
+		ended_ = true;
+		(vrt_producer_eof(producer_));
+	}
+
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)

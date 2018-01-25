@@ -46,6 +46,7 @@ class L2MDProducer
 		 * 与API相关
 		 */
 		int InitMDApi();
+		int udp_client_fd_;
 
 		/*
 		 * 逻辑相关
