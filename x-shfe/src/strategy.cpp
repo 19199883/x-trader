@@ -390,6 +390,7 @@ void Strategy::Push(const signal_t &sig)
 
 	// signal response
 	memset(&(sigrpt_table_[cursor_]), 0, sizeof(signal_resp_t));
+	sigrpt_table_[cursor_].status = -1; 
 	sigrpt_table_[cursor_].sig_id = sig.sig_id;
 	sigrpt_table_[cursor_].sig_act = sig.sig_act;
 	strcpy(sigrpt_table_[cursor_].symbol, sig.symbol);
