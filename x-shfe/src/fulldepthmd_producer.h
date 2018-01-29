@@ -69,6 +69,7 @@ class FullDepthMDProducer
 		 *日志相关
 		 */
 		const char *module_name_;  
+		int udp_fd_;
 
 		/*
 		 * 配置相关

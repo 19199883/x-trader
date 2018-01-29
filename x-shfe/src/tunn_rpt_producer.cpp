@@ -44,10 +44,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 TunnRptProducer::~TunnRptProducer()
 {
-    if (api_) {
-        api_->Release();
-        api_ = NULL;
-    }
 }
 
 void TunnRptProducer::ParseConfig()
@@ -179,6 +175,12 @@ void TunnRptProducer::End()
 	if(!ended_){
 		clog_warning("[%s] last counter:%d", module_name_,counter_);
 		ended_ = true;
+
+		if (api_) {
+			api_->Release();
+			api_ = NULL;
+		}
+
 		(vrt_producer_eof(producer_));
 		clog_warning("[%s] End exit", module_name_);
 	}

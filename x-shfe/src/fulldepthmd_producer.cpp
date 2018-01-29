@@ -11,6 +11,7 @@ using namespace std;
 FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
 :module_name_("FullDepthProducer")
 {
+	udp_fd_ = 0;
 	ended_ = false;
 	clog_warning("[%s] FULL_DEPTH_MD_BUFFER_SIZE: %d;", module_name_, FULL_DEPTH_MD_BUFFER_SIZE);
 
@@ -32,7 +33,6 @@ FullDepthMDProducer::FullDepthMDProducer(struct vrt_queue  *queue)
 	}
 
 	thread_rev_ = new std::thread(&FullDepthMDProducer::RevData, this);
-	thread_rev_->detach();
 }
 
 void FullDepthMDProducer::ParseConfig()
@@ -121,6 +121,7 @@ int FullDepthMDProducer::InitMDApi()
 void FullDepthMDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
+	udp_fd_ = udp_fd; 
     if (udp_fd < 0) {
         clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
         return;
@@ -164,6 +165,13 @@ void FullDepthMDProducer::End()
 {
 	if(!ended_){
 		ended_ = true;
+
+		shutdown(udp_client_fd_, SHUT_RDWR);
+		int err = close(udp_client_fd_);
+		clog_warning("close udp:%d.", err); 
+		fflush (Log::fp);
+		thread_rev_->join();
+
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
 	}

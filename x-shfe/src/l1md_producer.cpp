@@ -116,11 +116,6 @@ void L1MDProducer::ParseConfig()
 }
 
 L1MDProducer::~L1MDProducer(){
-    if (api_) {
-		int err = api_->Stop();
-		clog_warning("CMdclientApi stop: %d",err);
-        api_ = NULL;
-    }
 }
 
 void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
@@ -181,6 +176,13 @@ void L1MDProducer::End()
 {
 	if(!ended_){
 		ended_ = true;
+
+		if (api_) {
+			int err = api_->Stop();
+			clog_warning("CMdclientApi stop: %d",err);
+			api_ = NULL;
+		}
+
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
 	}
