@@ -51,7 +51,7 @@ int main(/*int argc, const char **argv*/)
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-shfe_20171225_release"); 
+	clog_warning("version:x-shfe_20180129_d"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
