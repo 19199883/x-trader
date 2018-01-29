@@ -281,7 +281,11 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 {
-	clog_debug("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+	clog_info("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
 		md->ContractID, md->TimeStamp);
 		
 #if FIND_STRATEGIES == 1 //unordered_multimap  
@@ -337,10 +341,19 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 		}
 	}
 #endif
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcL2QuoteSnapshotlatency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)
 {
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	int sig_cnt = 0;
 
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
@@ -405,6 +418,12 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	} // for(; i < 2; i++)
 
 	ProcSigs(strategy, sig_cnt, sig_buffer_);
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcTunnRpt latency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
@@ -625,11 +644,6 @@ void UniConsumer::WriteLogImp()
 	while(true){
 		while (lock_log_.test_and_set()) { }
 
-		// TODO: debug
-		if(log_write_count_>0){
-			clog_info("[%s] WriteLogImp log_write_count_:%d", module_name_,log_write_count_);
-		}
-
 		for(int i = 0; i < log_write_count_; i++){
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
@@ -701,7 +715,7 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 		clog_info("[%s] WriteStrategyLog strategy:%d", module_name_,strategy.GetId()); 
-		// TODO: 在日志写线程睡眠时，日志缓存可能会被覆盖
+		// 在日志写线程睡眠时，日志缓存可能会被覆盖
 		while (lock_log_.test_and_set()) {}
 		pfDayLogFile_ = strategy.get_log_file();
 		strategy.get_log(log_w_, log_write_count_);
