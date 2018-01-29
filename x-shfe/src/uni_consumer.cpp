@@ -23,7 +23,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 
-	g_write_count_ = 0;
+	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
 	FemasFieldConverter::InitNewOrder(tunn_rpt_producer_->config_);
@@ -291,6 +291,12 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 {
+	clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
+		md->InstrumentID, md->GetQuoteTime().c_str());
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->InstrumentID);
 	for_each (
@@ -344,10 +350,19 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 		}
 	}
 #endif
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcL2QuoteSnapshot latency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)
 {
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	int sig_cnt = 0;
 
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
@@ -404,6 +419,12 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	} // for(; i < 2; i++)
 
 	ProcSigs(strategy, sig_cnt, sig_buffer_);
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcTunnRpt latency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)

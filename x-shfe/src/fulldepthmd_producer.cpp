@@ -166,10 +166,9 @@ void FullDepthMDProducer::End()
 	if(!ended_){
 		ended_ = true;
 
-		shutdown(udp_client_fd_, SHUT_RDWR);
-		int err = close(udp_client_fd_);
+		shutdown(udp_fd_, SHUT_RDWR);
+		int err = close(udp_fd_);
 		clog_warning("close udp:%d.", err); 
-		fflush (Log::fp);
 		thread_rev_->join();
 
 		vrt_producer_eof(producer_);
