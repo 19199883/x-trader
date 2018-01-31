@@ -295,6 +295,11 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 		md->InstrumentID, md->GetQuoteTime().c_str());
 
 #ifdef LATENCY_MEASURE
+		 static int cnt = 0;
+		 perf_ctx::insert_t0(cnt);
+		 cnt++;
+#endif
+#ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 #if FIND_STRATEGIES == 1 //unordered_multimap  

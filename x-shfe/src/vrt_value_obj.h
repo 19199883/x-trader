@@ -14,7 +14,7 @@
 */
 // 行情持久化开关
 //#define PERSISTENCE_ENABLED
-#define LATENCY_MEASURE
+//#define LATENCY_MEASURE
 
 
 // 合规检查开关
