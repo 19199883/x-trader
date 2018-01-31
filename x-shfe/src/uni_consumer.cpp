@@ -84,15 +84,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 
 UniConsumer::~UniConsumer()
 {
-	running_ = false;
-
-	delete fulldepth_md_producer_;
-	delete l1_md_producer_;
-
-	if (pproxy_ != NULL){
-		pproxy_->DeleteLoadLibraryProxy();
-		pproxy_ = NULL;
-	}
 }
 
 void UniConsumer::ParseConfig()
@@ -285,6 +276,12 @@ void UniConsumer::Stop()
 		for(int i=0; i<strategy_counter_; i++){
 			stra_table_[i].End();
 		}
+
+		if (pproxy_ != NULL){
+			pproxy_->DeleteLoadLibraryProxy();
+			pproxy_ = NULL;
+		}
+
 		clog_warning("[%s] End exit", module_name_);
 	}
 }

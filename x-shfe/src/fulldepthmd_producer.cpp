@@ -159,6 +159,8 @@ void FullDepthMDProducer::RevData()
 		ivalue->data = FULL_DEPTH_MD;
 		vrt_producer_publish(producer_);
     } // while (!ended_)
+
+	clog_warning("[%s] RevData exit.",module_name_);
 }
 
 void FullDepthMDProducer::End()

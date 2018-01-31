@@ -82,8 +82,8 @@ int main(/*int argc, const char **argv*/)
 
 	delete uniConsumer;
 	delete tunnRptProducer; 
-	delete fulldepth_md_producer; 
 	delete l1_md_producer;
+	 delete fulldepth_md_producer; 
 
 // clog: free resources
 	pos_calc::destroy_instance();
