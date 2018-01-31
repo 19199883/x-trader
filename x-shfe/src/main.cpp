@@ -35,8 +35,21 @@ int main(/*int argc, const char **argv*/)
 
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
+#else
+	clog_warning("latency measure off"); 
 #endif
 
+#ifdef COMPLIANCE_CHECK
+	clog_warning("COMPLIANCE_CHECK on"); 
+#else
+	clog_warning("COMPLIANCE_CHECK off"); 
+#endif
+
+#ifdef PERSISTENCE_ENABLED
+	clog_warning("PERSISTENCE_ENABLED on"); 
+#else
+	clog_warning("PERSISTENCE_ENABLEDon off"); 
+#endif
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);

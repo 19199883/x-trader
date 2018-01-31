@@ -9,29 +9,26 @@
 
 #define gettid() syscall(__NR_gettid)
 
-#define CLOG_CHANNEL  "x-trader"
+/*
+ * 如下宏根据情况进行定义
+*/
+// 行情持久化开关
+//#define PERSISTENCE_ENABLED
+#define LATENCY_MEASURE
 
-//#define LATENCY_MEASURE
 
 // 合规检查开关
 #define COMPLIANCE_CHECK
-
+#define CLOG_CHANNEL  "x-trader"
 #define TUNN_ORDER_STATUS_UNDEFINED -1
-
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
 // 2: two-dimensional array
 // 3: strcmp
 #define FIND_STRATEGIES 3
-
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 15000
-
 #define INVALID_PENDING_SIGNAL 999999
-
-// 行情持久化开关
-//#define PERSISTENCE_ENABLED
-
 // 满足一天足够的下单量，以空间换时间
 #define RPT_BUFFER_SIZE 15000
 
