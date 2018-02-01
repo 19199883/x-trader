@@ -30,6 +30,20 @@ int main(/*int argc, const char **argv*/)
 {
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
+#else
+	clog_warning("latency measure off"); 
+#endif
+
+#ifdef COMPLIANCE_CHECK
+	clog_warning("COMPLIANCE_CHECK on"); 
+#else
+	clog_warning("COMPLIANCE_CHECK off"); 
+#endif
+
+#ifdef PERSISTENCE_ENABLED
+	clog_warning("PERSISTENCE_ENABLED on"); 
+#else
+	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 
 	struct sigaction SIGINT_act;
@@ -39,14 +53,14 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-shfe_20171225_release"); 
+	clog_warning("version:dce_20180201_d"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
@@ -56,6 +70,8 @@ int main(/*int argc, const char **argv*/)
 	tunnRptProducer = new TunnRptProducer(queue);
 	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
 	uniConsumer->Start();
+
+	fflush (fp);
 
   // free vrt_queue
 	vrt_queue_free(queue);

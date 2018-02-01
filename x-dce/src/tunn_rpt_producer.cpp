@@ -57,11 +57,6 @@ TunnRptProducer::~TunnRptProducer()
 //		clog_info("[%s] release tunnrpt_producer.", module_name_);
 //	}
 
-    if (api_) {
-        api_->Release();
-        api_ = NULL;
-		clog_warning("[%s]api release.", module_name_);
-    }
 }
 
 void TunnRptProducer::ParseConfig()
@@ -188,34 +183,34 @@ void TunnRptProducer::ReqLogin()
     
 	int rtn = api_->ReqUserLogin(&login_data);
 
-    clog_info("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
-    clog_info("[%s] ReqLogin:   %s", 
+    clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
+    clog_warning("[%s] ReqLogin:   %s", 
 			module_name_, X1DatatypeFormater::ToString(&login_data).c_str());
 }
 
 void TunnRptProducer::OnFrontConnected()
 {
-    clog_info("[%s] OnFrontConnected.", module_name_);
+    clog_warning("[%s] OnFrontConnected.", module_name_);
 	this->ReqLogin();
 }
 
 void TunnRptProducer::OnFrontDisconnected(int nReason)
 {
-    clog_info("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
+    clog_error("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
 }
 
 void TunnRptProducer::OnRspUserLogin(struct CX1FtdcRspUserLoginField* pfield, struct CX1FtdcRspErrorField * perror)
 {
-    clog_info("[%s] OnRspUserLogin:%s %s",
+    clog_warning("[%s] OnRspUserLogin:%s %s",
         module_name_,
 		X1DatatypeFormater::ToString(pfield).c_str(),
         X1DatatypeFormater::ToString(perror).c_str());
 
     if (perror == NULL) {
-		clog_info("[%s] OnRspUserLogin,error: %d", module_name_, pfield->LoginResult);
+		clog_warning("[%s] OnRspUserLogin,error: %d", module_name_, pfield->LoginResult);
     }
     else {
-		clog_info("[%s] OnRspUserLogin, error: %d", module_name_, perror->ErrorID);
+		clog_error("[%s] OnRspUserLogin, error: %d", module_name_, perror->ErrorID);
     }
 }
 
@@ -230,8 +225,16 @@ void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, 
 
 void TunnRptProducer::End()
 {
-	ended_ = true;
-	(vrt_producer_eof(producer_));
+	if(!ended_){
+		ended_ = true;
+		if (api_) {
+			api_->Release();
+			api_ = NULL;
+			clog_warning("[%s]api release.", module_name_);
+		}
+		(vrt_producer_eof(producer_));
+		clog_warning("[%s] End exit", module_name_);
+	}
 }
 
 void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)

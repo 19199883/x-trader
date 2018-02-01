@@ -4,11 +4,10 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#define CLOG_CHANNEL  "x-trader"
-
-//#define LATENCY_MEASURE
-
-#define COMPLIANCE_CHECK
+// 延迟度量
+#define LATENCY_MEASURE
+// 行情持久化开关
+#define PERSISTENCE_ENABLED
 
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
@@ -16,6 +15,10 @@
 // 3: strcmp
 #define FIND_STRATEGIES 3
 
+// 合规检查
+#define COMPLIANCE_CHECK
+
+#define CLOG_CHANNEL  "x-trader"
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 15000
 

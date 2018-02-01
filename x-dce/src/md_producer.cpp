@@ -1,4 +1,6 @@
 #include <functional>   // std::bind
+#include <sys/types.h>
+#include <sys/time.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
@@ -100,6 +102,14 @@ static void Convert(const MDOrderStatistic &other, MDOrderStatistic_MY &data)
 MDProducer::MDProducer(struct vrt_queue  *queue)
 :module_name_("MDProducer")
 {
+#ifdef PERSISTENCE_ENABLED 
+	 p_save_best_and_deep_ = new QuoteDataSave<MDBestAndDeep_MY>(
+		 "bestanddeepquote", DCE_MDBESTANDDEEP_QUOTE_TYPE);
+	 p_save_order_statistic_ = new QuoteDataSave<MDOrderStatistic_MY>(
+		 "orderstatistic", DCE_MDORDERSTATISTIC_QUOTE_TYPE, false);	 
+#endif
+	udp_fd_ = 0;
+
 	ended_ = false;
 	clog_warning("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
@@ -120,7 +130,6 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 	}
 
     thread_rev_ = new std::thread(&MDProducer::RevData, this);
-	thread_rev_->detach();
 }
 
 void MDProducer::ParseConfig()
@@ -155,6 +164,10 @@ void MDProducer::ParseConfig()
 
 MDProducer::~MDProducer()
 {
+#ifdef PERSISTENCE_ENABLED 
+    if (p_save_best_and_deep_) delete p_save_best_and_deep_;
+    if (p_save_order_statistic_) delete p_save_order_statistic_;
+#endif
 }
 
 int MDProducer::InitMDApi()
@@ -206,6 +219,7 @@ int MDProducer::InitMDApi()
 void MDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
+	udp_fd_ = udp_fd; 
     if (udp_fd < 0) {
         clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
         return;
@@ -231,6 +245,11 @@ void MDProducer::RevData()
 
                 Convert(*p, bestanddeep_);
 
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_save_best_and_deep_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &bestanddeep_);
+#endif
 				struct vrt_value  *vvalue;
 				struct vrt_hybrid_value  *ivalue;
 				vrt_producer_claim(producer_, &vvalue);
@@ -245,6 +264,11 @@ void MDProducer::RevData()
 
                 Convert(*p, orderstatistic_);
 
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_save_order_statistic_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &orderstatistic_);
+#endif
 				struct vrt_value  *vvalue;
 				struct vrt_hybrid_value  *ivalue;
 				vrt_producer_claim(producer_, &vvalue);
@@ -255,6 +279,8 @@ void MDProducer::RevData()
             }
         }
     } // while (running_flag_)
+
+	clog_warning("[%s] RevData exit.",module_name_);
 }
 
 
@@ -262,6 +288,12 @@ void MDProducer::End()
 {
 	if(!ended_){
 		ended_ = true;
+
+		shutdown(udp_fd_, SHUT_RDWR);
+		int err = close(udp_fd_);
+		clog_warning("close udp:%d.", err); 
+		thread_rev_->join();
+
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
 	}

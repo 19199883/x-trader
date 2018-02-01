@@ -12,7 +12,7 @@ LDFLAGS:=
 OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lcheck -lclogger -lcork -lvrt \
-	  -luuid -lboost_filesystem
+	  -luuid -lboost_filesystem -lboost_system
 DEPS:=.depends
 OUT:=x-dce
 PACKAGE_NAME:=$(OUT)

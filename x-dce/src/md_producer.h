@@ -10,6 +10,8 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "quote_datatype_dce_level2.h"
+#include "quote_cmn_save.h"
+#include "quote_cmn_utility.h"
 
 /*
  * 10 power of 2
@@ -57,6 +59,8 @@ class MDProducer
 		int32_t Push(const MDOrderStatistic_MY& md);
 
 		const char *module_name_;  
+		int udp_fd_;
+
 		bool ended_;
 		Mdconfig config_;
 		void ParseConfig();
@@ -74,6 +78,12 @@ class MDProducer
 		struct vrt_producer  *producer_;
 		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> orderstatistic_buffer_;
 		std::array<MDBestAndDeep_MY, MD_BUFFER_SIZE> bestanddeep_buffer_;
+
+#ifdef PERSISTENCE_ENABLED 
+	QuoteDataSave<MDBestAndDeep_MY> *p_save_best_and_deep_;
+	QuoteDataSave<MDOrderStatistic_MY> *p_save_order_statistic_;
+
+#endif
 };
 
 #endif

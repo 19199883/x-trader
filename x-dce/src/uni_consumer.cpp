@@ -13,11 +13,14 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 			TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
   md_producer_(md_producer),
-  tunn_rpt_producer_(tunn_rpt_producer)
+  tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
 {
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 	X1FieldConverter::InitNewOrder(tunn_rpt_producer_->GetAccount());
+
+	log_write_count_ = 0;
+	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
 #if FIND_STRATEGIES == 1
 	unordered_multimap 
@@ -74,12 +77,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 
 UniConsumer::~UniConsumer()
 {
-	running_ = false;
 
-	if (pproxy_ != NULL){
-		pproxy_->DeleteLoadLibraryProxy();
-		pproxy_ = NULL;
-	}
 
 //	if (this->consumer_ != NULL){
 //		vrt_consumer_free(this->consumer_);
@@ -178,9 +176,14 @@ void UniConsumer::CreateStrategies()
 {
 	strategy_counter_ = 0;
 	for (auto &setting : this->strategy_settings_){
-		stra_table_[strategy_counter_].Init(setting, this->pproxy_);
+		Strategy &strategy = stra_table_[strategy_counter_];
+		strategy.Init(setting, this->pproxy_);
 		// mapping table
 		straid_straidx_map_table_[setting.config.st_id] = strategy_counter_ ;
+		// strategy log
+		FILE *log_file = strategy.get_log_file();
+		WriteLogTitle(log_file);
+		WriteStrategyLog(strategy);
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 		// only support one contract for one strategy
@@ -217,6 +220,8 @@ void UniConsumer::CreateStrategies()
 void UniConsumer::Start()
 {
 	running_  = true;
+	// strategy log
+	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
 	int rc = 0;
 	struct vrt_value  *vvalue;
@@ -248,20 +253,40 @@ void UniConsumer::Start()
 
 void UniConsumer::Stop()
 {
-	running_ = false;
-	md_producer_->End();
-	tunn_rpt_producer_->End();
+	if(running_){
+		md_producer_->End();
+		tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
-		compliance_.Save();
+			compliance_.Save();
 #endif
 
-	for(int i=0; i<strategy_counter_; i++){
-		stra_table_[i].End();
+		running_ = false;
+		thread_log_ ->join();
+		FlushStrategyLog();
+		for(int i=0; i<strategy_counter_; i++){
+			stra_table_[i].End();
+		}
+
+		if (pproxy_ != NULL){
+			pproxy_->DeleteLoadLibraryProxy();
+			pproxy_ = NULL;
+		}
+
+		clog_warning("[%s] End exit", module_name_);
 	}
 }
 
 void UniConsumer::ProcBestAndDeep(int32_t index)
 {
+#ifdef LATENCY_MEASURE
+		 static int cnt = 0;
+		 perf_ctx::insert_t0(cnt);
+		 cnt++;
+#endif
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+
 	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
 
 	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
@@ -273,7 +298,12 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 		range.second,
 		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
 			int sig_cnt = 0;
-			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
+			Strategy &strategy = stra_table_[x.second];
+			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+
+			// strategy log
+			WriteStrategyLog(strategy);
+
 			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
 		}
 	);
@@ -290,6 +320,10 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 				int32_t stra_idx = stra_idx_table_[cur_node][i];
 				Strategy &strategy = stra_table_[stra_idx];
 				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+
+				// strategy log
+				WriteStrategyLog(strategy);
+
 				ProcSigs(strategy, sig_cnt, sig_buffer_);
 			} else { break; }
 		}
@@ -302,15 +336,32 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 		Strategy &strategy = stra_table_[i];
 		if (strcmp(strategy.GetContract(), md->Contract) == 0){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+
+			// strategy log
+			WriteStrategyLog(strategy);
+
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
 #endif
 
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcBestAndDeep latency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::ProcOrderStatistic(int32_t index)
 {
+#ifdef LATENCY_MEASURE
+		 static int cnt = 0;
+		 perf_ctx::insert_t0(cnt);
+		 cnt++;
+#endif
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	MDOrderStatistic_MY* md = md_producer_->GetOrderStatistic(index);
 
 	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
@@ -322,7 +373,12 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 		range.second,
 		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
 			int sig_cnt = 0;
-			stra_table_[x.second].FeedMd(md, &sig_cnt, sig_buffer_);
+			Strategy &strategy = stra_table_[stra_idx];
+			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+
+			// strategy log
+			WriteStrategyLog(strategy);
+
 			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
 		}
 	);
@@ -339,6 +395,10 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 				int32_t stra_idx = stra_idx_table_[cur_node][i];
 				Strategy &strategy = stra_table_[stra_idx];
 				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+
+				// strategy log
+				WriteStrategyLog(strategy);
+
 				ProcSigs(strategy, sig_cnt, sig_buffer_);
 			} else { break; }		
 		}
@@ -351,16 +411,28 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 		Strategy &strategy = stra_table_[i];
 		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+
+			// strategy log
+			WriteStrategyLog(strategy);
+
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
 #endif
 
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcOrderStatistic latency:%d us", module_name_, latency); 
+#endif
 
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)
 {
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
 	int sig_cnt = 0;
 
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
@@ -393,6 +465,9 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 
+	// strategy log
+	WriteStrategyLog(strategy);
+
 	// TODO: improve place, cancel
 	// 虑当pending信号都处理了，如何标志
 	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
@@ -417,6 +492,12 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	} // for(; i < 2; i++)
 
 	ProcSigs(strategy, sig_cnt, sig_buffer_);
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcTunnRpt latency:%d us", module_name_, latency); 
+#endif
 }
 
 void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
@@ -483,6 +564,10 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		rpt.OrderStatus = X1_FTDC_SPD_CANCELED ;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
+
+		// strategy log
+		WriteStrategyLog(strategy);
+
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
 
@@ -541,6 +626,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		rpt.ErrorID = -1; 
 		int32_t sigidx = strategy.GetSignalIdxBySigId(sig.sig_id);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
+
+		// strategy log
+		WriteStrategyLog(strategy);
+
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 		return;
 	}
@@ -566,6 +655,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			int sig_cnt = 0;
 			int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
 			strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
+
+			// strategy log
+			WriteStrategyLog(strategy);
+
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 #ifdef COMPLIANCE_CHECK
@@ -581,6 +674,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		int sig_cnt = 0;
 		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
+
+		// strategy log
+		WriteStrategyLog(strategy);
+
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
 #endif
@@ -591,4 +688,129 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	if(latency > 0) clog_warning("[%s] place latency:%d us", module_name_, latency); 
 #endif
 }
+
+// 遍历策略，将缓存日志写到文件中
+void UniConsumer::FlushStrategyLog()
+{
+	for(int i = 0; i < strategy_counter_; i++){ 
+		Strategy &strategy = stra_table_[i];
+		pfDayLogFile_ = strategy.get_log_file();
+		strategy.get_log(log_w_, log_write_count_);
+
+		// TODO: debug
+		clog_info("[%s] FlushStrategyLog strategy:%d;log_write_count_:%d", 
+					module_name_, strategy.GetId(), log_write_count_);
+
+		for(int i = 0; i < log_write_count_; i++){
+			WriteOne(pfDayLogFile_, log_w_.data()+i);
+		}
+	} // end for(int i = 0; i < strategy_counter_; i++) 
+}
+	
+void UniConsumer::WriteLogTitle(FILE * pfDayLogFile)
+{
+	// title
+	fprintf (pfDayLogFile, "exch_time  contract  n_tick  price  vol  bv1  bp1  sp1  sv1  amt  ");
+	fprintf (pfDayLogFile, "oi buy_price  sell_price  open_vol  close_vol  ");
+	fprintf (pfDayLogFile, "long_pos  short_pos  total_ordervol  total_cancelvol order_count cancel_count ");
+	fprintf (pfDayLogFile, "cash live total_vol max_dd max_net_pos max_side_pos ");
+	for(int i=0; i< 11; i++)
+	{
+		fprintf(pfDayLogFile,"sig%d ", i);
+	}
+	fprintf(pfDayLogFile,"sig11\n");
+}
+
+void UniConsumer::WriteLogImp()
+{	
+	while(true){
+		while (lock_log_.test_and_set()) { }
+
+		for(int i = 0; i < log_write_count_; i++){
+			WriteOne(pfDayLogFile_, log_w_.data()+i);
+		}
+		log_write_count_ = 0;
+
+		if(!running_){
+			lock_log_.clear();
+			break;
+		}
+		lock_log_.clear();
+
+		std::this_thread::sleep_for (std::chrono::seconds(1));
+	} // end while(true)
+	clog_warning("[%s] WriteLogImp exit", module_name_); 
+}
+
+void UniConsumer::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
+{
+	if(0==pstratlog->exch_time) return;
+
+    fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
+            pstratlog->exch_time,
+            pstratlog->contract,
+            pstratlog->n_tick,
+            pstratlog->price,
+            pstratlog->vol);
+
+    fprintf(pfDayLogFile,"%d %12.4f %12.4f %d %ld %ld ",
+            pstratlog->bv1,
+            pstratlog->bp1,
+            pstratlog->sp1,
+            pstratlog->sv1,
+            pstratlog->amt,
+            pstratlog->oi);
+
+    fprintf(pfDayLogFile,"%12.4f %12.4f %d %d ",
+            pstratlog->buy_price,
+            pstratlog->sell_price,
+            pstratlog->open_vol,
+            pstratlog->close_vol);
+
+    fprintf(pfDayLogFile,"%d %d %d %d %d %d ",
+            pstratlog->long_pos,
+            pstratlog->short_pos,
+            pstratlog->tot_ordervol,
+            pstratlog->tot_cancelvol,
+            pstratlog->order_cnt,
+            pstratlog->cancel_cnt);
+
+    fprintf(pfDayLogFile,"%16.2f %16.2f %d %16.2f %d %d ",
+            pstratlog->cash,
+            pstratlog->live,
+            pstratlog->tot_vol,
+            pstratlog->max_dd,
+            pstratlog->max_net_pos,
+            pstratlog->max_side_pos);
+
+    for(int i=0; i< 11; i++)
+    {
+        fprintf(pfDayLogFile,"%0.2f ", pstratlog->sig[i]);
+    }
+    fprintf(pfDayLogFile,"%0.2f\n", pstratlog->sig[11]);
+}
+
+void UniConsumer::WriteStrategyLog(Strategy &strategy)
+{
+	if(strategy.IsLogFull()){
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+		clog_info("[%s] WriteStrategyLog strategy:%d", module_name_,strategy.GetId()); 
+		// 在日志写线程睡眠时，日志缓存可能会被覆盖
+		while (lock_log_.test_and_set()) {}
+		pfDayLogFile_ = strategy.get_log_file();
+		strategy.get_log(log_w_, log_write_count_);
+		lock_log_.clear();
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] WriteStrategyLog latency:%d us", module_name_, latency); 
+#endif
+	} // end if(strategy.IsLogFull())
+}
+
+
+
 

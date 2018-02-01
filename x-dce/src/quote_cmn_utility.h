@@ -58,4 +58,31 @@ int32_t LoadDominantContracts(string file, char buffer[20][10]);
 */
 bool IsDominantImp(const char *contract, char buffer[20][10], int32_t buffer_size);
 
+template<typename DataType>
+void MYUTIL_SaveDataToFile(const std::vector<DataType> &datas, int &data_count, FILE * pf)
+{
+    if (pf && !datas.empty())
+    {
+        fwrite(&(datas[0]), sizeof(DataType), datas.size(), pf);
+        data_count += datas.size();
+        fseek(pf, 0, SEEK_SET);
+        fwrite(&data_count, sizeof(data_count), 1, pf);
+        fseek(pf, 0, SEEK_END);
+        fflush(pf);
+    }
+}
+
+template<typename DataType, typename HeaderType>
+void MYUTIL_SaveFileHeader(int data_type, FILE * pf)
+{
+    if (pf)
+    {
+        HeaderType header;
+        header.data_count = 0;
+        header.data_type = short(data_type);
+        header.data_length = (short) (sizeof(DataType));
+        fwrite(&header, sizeof(HeaderType), 1, pf);
+    }
+}
+
 #endif  //
