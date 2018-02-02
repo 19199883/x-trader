@@ -125,8 +125,6 @@ void TapMDProducer::ParseConfig()
 
 TapMDProducer::~TapMDProducer(){
 
-    if (sID) { delete sID; }
-	clog_warning("[%s] L1MD exited.", module_name_);
 }
 
 void TapMDProducer::End()
@@ -135,7 +133,9 @@ void TapMDProducer::End()
 		if (api_){
 			api_->Disconnect();
 		}
+    if (sID) { delete sID; }
 
+	clog_warning("[%s] L1MD exited.", module_name_);
 		ended_ = true;
 		(vrt_producer_eof(producer_));
 		clog_warning("[%s] End exit", module_name_);

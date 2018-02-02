@@ -78,12 +78,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 
 UniConsumer::~UniConsumer()
 {
-	running_ = false;
-
-	if (pproxy_ != NULL){
-		pproxy_->DeleteLoadLibraryProxy();
-		pproxy_ = NULL;
-	}
 }
 
 void UniConsumer::ParseConfig()
@@ -273,6 +267,12 @@ void UniConsumer::Stop()
 		for(int i=0; i<strategy_counter_; i++){
 			stra_table_[i].End();
 		}
+
+		if (pproxy_ != NULL){
+			pproxy_->DeleteLoadLibraryProxy();
+			pproxy_ = NULL;
+		}
+
 		clog_warning("[%s] Stop exit.", module_name_);
 	}
 
