@@ -60,6 +60,13 @@ extern "C" {
 			MDPack content;
 			bool damaged;
 	};
+
+	class Log
+	{
+		public:
+			static FILE *fp;/*文件指针*/
+	};
+
 	/* --------------------------------------------------------------
 	 * x-trader varon-t value and type
 	 */

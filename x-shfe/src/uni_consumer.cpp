@@ -284,6 +284,7 @@ void UniConsumer::Stop()
 
 		clog_warning("[%s] End exit", module_name_);
 	}
+	fflush (Log::fp);
 }
 
 void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)

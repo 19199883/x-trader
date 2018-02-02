@@ -184,6 +184,7 @@ void TunnRptProducer::End()
 		(vrt_producer_eof(producer_));
 		clog_warning("[%s] End exit", module_name_);
 	}
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)

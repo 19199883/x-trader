@@ -186,6 +186,7 @@ void L1MDProducer::End()
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
 	}
+	fflush (Log::fp);
 }
 
 int32_t L1MDProducer::Push(const CDepthMarketDataField& md){

@@ -161,6 +161,7 @@ void FullDepthMDProducer::RevData()
     } // while (!ended_)
 
 	clog_warning("[%s] RevData exit.",module_name_);
+	fflush (Log::fp);
 }
 
 void FullDepthMDProducer::End()
@@ -176,6 +177,7 @@ void FullDepthMDProducer::End()
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);
 	}
+	fflush (Log::fp);
 }
 
 int32_t FullDepthMDProducer::Push(const MDPackEx& md){

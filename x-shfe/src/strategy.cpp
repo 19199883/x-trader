@@ -49,6 +49,7 @@ void Strategy::End(void)
 		//pfn_destroy_ ();
 		clog_warning("[%s] strategy(id:%d) destroyed", module_name_, this->setting_.config.st_id);
 	}
+	fflush (Log::fp);
 }
 
 Strategy::~Strategy(void)

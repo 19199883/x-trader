@@ -38,6 +38,8 @@ void Compliance::Save()
 
 	clog_warning("[%s] min counter:%d; max counter:%d;",
 			module_name_, min_counter_, max_counter_);
+
+	fflush (Log::fp);
 }
 
 Compliance::~Compliance()
