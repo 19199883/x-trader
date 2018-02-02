@@ -249,6 +249,7 @@ void UniConsumer::Start()
 	if (rc == VRT_QUEUE_EOF) {
 		clog_info("[%s] [start] rev EOF.", module_name_);
 	}
+	clog_info("[%s] [start] start exit.", module_name_);
 }
 
 void UniConsumer::Stop()

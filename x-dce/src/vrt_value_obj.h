@@ -7,7 +7,7 @@
 // 延迟度量
 #define LATENCY_MEASURE
 // 行情持久化开关
-#define PERSISTENCE_ENABLED
+//#define PERSISTENCE_ENABLED
 
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  

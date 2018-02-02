@@ -142,12 +142,6 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.log_name, model_log.c_str());
 	setting_.config.log_id = setting_.config.st_id;
 
-	if(NULL == pfDayLogFile_){
-		clog_error("[%s] strategy id:%d; failed to open log file:%s", module_name_,
-				GetId(),setting_.config.log_name);
-		return;	
-	}
-
 	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
 				GetId(),setting_.config.log_name);
 
@@ -162,6 +156,11 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
+	if(NULL == pfDayLogFile_){
+		clog_error("[%s] strategy id:%d; failed to open log file:%s", module_name_,
+				GetId(),setting_.config.log_name);
+		return;	
+	}
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
 	log_cursor_++;
