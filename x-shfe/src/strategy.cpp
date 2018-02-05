@@ -403,7 +403,7 @@ void Strategy::Push(const signal_t &sig)
 		sigrpt_table_[cursor_].order_price = sig.sell_price;
 	}
 
-	// TODO:从pending队列中撤单 done
+	// 从pending队列中撤单 done
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		sigrpt_table_[cursor_].order_volume = sig.open_volume;
 	}else if (sig.sig_openclose == alloc_position_effect_t::close_){
@@ -439,13 +439,13 @@ int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
 	return (local_ord_id - GetId()) / 1000;
 }
 
-// TODO: improve place, cancel
+// improve place, cancel
 int32_t Strategy::GetSignalIdxBySigId(long sigid)
 {
 	return sigid_sigidx_map_table_[sigid];
 }
 
-// TODO: improve place, cancel
+// improve place, cancel
 int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 {
 	// get signal report by LocalOrderID
@@ -454,7 +454,7 @@ int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 	return index;
 }
 
-// TODO: improve place, cancel
+// improve place, cancel
 void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
 	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
@@ -522,7 +522,7 @@ void Strategy::UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status,
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
-	// TODO: 从pending队列中撤单 done
+	// 从pending队列中撤单 done
 	if (err != CANCELLED_FROM_PENDING){
 		if (status==USTP_FTDC_OS_AllTraded ||
 			status==USTP_FTDC_OS_PartTradedNotQueueing ||

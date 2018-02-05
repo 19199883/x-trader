@@ -217,7 +217,6 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 
 	if (pfield != NULL){
 		int32_t cursor = Push();
-		// TODO: 考虑采用与x-zce一样的方式，使用cursor，这样可以去掉Push
 		// LocalOrderID也只需要赋值一次
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);

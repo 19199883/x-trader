@@ -17,7 +17,6 @@
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  32768
 UniConsumer *uniConsumer = NULL;
-// TODO:
 FullDepthMDProducer *fulldepth_md_producer = NULL;
 L1MDProducer *l1_md_producer = NULL; 
 TunnRptProducer *tunnRptProducer = NULL;

@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <array>
+#include <atomic>         // std::atomic
 #include <string>
 #include <list>
 #include <unordered_map>
@@ -135,7 +136,7 @@ class UniConsumer
 		void Stop();
 
 	private:
-		bool running_;
+		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
 		FullDepthMDProducer *fulldepth_md_producer_;
