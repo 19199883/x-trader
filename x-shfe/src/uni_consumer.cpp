@@ -272,7 +272,7 @@ void UniConsumer::Stop()
 		
 		running_ = false;
 
-		clog_warning("[%s] Stop running:%d", module_name_, running_); 
+		clog_warning("[%s] Stop running", module_name_); 
 
 		thread_log_ ->join();
 		FlushStrategyLog();
@@ -679,7 +679,7 @@ void UniConsumer::WriteLogImp()
 
 		if(!running_){
 			lock_log_.clear();
-			clog_warning("[%s] WriteLogImp running:%d", module_name_, running_); 
+			clog_warning("[%s] WriteLogImp running", module_name_); 
 			break;
 		}
 		lock_log_.clear();
