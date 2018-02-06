@@ -273,6 +273,7 @@ void UniConsumer::Stop()
 		running_ = false;
 
 		clog_warning("[%s] Stop running", module_name_); 
+		fflush (Log::fp);
 
 		thread_log_ ->join();
 		FlushStrategyLog();
@@ -638,16 +639,17 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 // 遍历策略，将缓存日志写到文件中
 void UniConsumer::FlushStrategyLog()
 {
+	int count = 0;
 	for(int i = 0; i < strategy_counter_; i++){ 
 		Strategy &strategy = stra_table_[i];
 		pfDayLogFile_ = strategy.get_log_file();
-		strategy.get_log(log_w_, log_write_count_);
+		strategy.get_log(log_w_, count);
 
 		// TODO: debug
-		clog_info("[%s] FlushStrategyLog strategy:%d;log_write_count_:%d", 
-					module_name_, strategy.GetId(), log_write_count_);
+		clog_info("[%s] FlushStrategyLog strategy:%d;count:%d", 
+					module_name_, strategy.GetId(), count);
 
-		for(int i = 0; i < log_write_count_; i++){
+		for(int i = 0; i < count; i++){
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
 	} // end for(int i = 0; i < strategy_counter_; i++) 
@@ -680,6 +682,7 @@ void UniConsumer::WriteLogImp()
 		if(!running_){
 			lock_log_.clear();
 			clog_warning("[%s] WriteLogImp running", module_name_); 
+			fflush (Log::fp);
 			break;
 		}
 		lock_log_.clear();
@@ -687,6 +690,7 @@ void UniConsumer::WriteLogImp()
 		std::this_thread::sleep_for (std::chrono::seconds(1));
 	} // end while(true)
 	clog_warning("[%s] WriteLogImp exit", module_name_); 
+	fflush (Log::fp);
 }
 
 void UniConsumer::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
