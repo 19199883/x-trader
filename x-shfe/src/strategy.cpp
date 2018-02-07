@@ -16,7 +16,6 @@ using namespace std::chrono;
 Strategy::Strategy()
 : module_name_("Strategy")
 {
-	setting_  = NULL;
 	valid_ = false;
 	cursor_ = 0;
 
