@@ -687,7 +687,13 @@ void UniConsumer::WriteLogImp()
 		}
 		lock_log_.clear();
 
+		// TODO: debug
+		clog_warning("[%s] WriteLogImp: is ready to sleep", module_name_); 
+
 		std::this_thread::sleep_for (std::chrono::seconds(1));
+		
+		// TODO: debug
+		clog_warning("[%s] WriteLogImp: wake up", module_name_); 
 	} // end while(true)
 	clog_warning("[%s] WriteLogImp exit", module_name_); 
 	fflush (Log::fp);
