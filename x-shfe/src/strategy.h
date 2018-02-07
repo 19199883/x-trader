@@ -26,7 +26,7 @@ using namespace std;
 // 一个x-trader最多支持100个策略
 #define MAX_STRATEGY_COUNT 100
 
-#define MAX_LINES_FOR_LOG 10000
+#define MAX_LINES_FOR_LOG 20000
 
 struct strat_out_log
 {
@@ -159,9 +159,11 @@ private:
 	vector<strat_out_log> log_;
 	int32_t log_cursor_;
 	int cur_ntick_;
+	int max_log_lines_;
 
 	// be used to check whether the stategy is valid
 	bool valid_;
+	int id_;
 
 
 	CLoadLibraryProxy *pproxy_;

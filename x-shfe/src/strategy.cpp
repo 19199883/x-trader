@@ -16,6 +16,7 @@ using namespace std::chrono;
 Strategy::Strategy()
 : module_name_("Strategy")
 {
+	setting_  = NULL;
 	valid_ = false;
 	cursor_ = 0;
 
@@ -32,6 +33,8 @@ Strategy::Strategy()
 	log_cursor_ = 0;
 	pfDayLogFile_ = NULL;
 	cur_ntick_ = -1;
+	max_log_lines_ = 0;
+	id_ = 0;
 
 	memset(localorderid_sigandrptidx_map_table_, 0, sizeof(localorderid_sigandrptidx_map_table_));
 	memset(sigid_localorderid_map_table_, 0, sizeof(sigid_localorderid_map_table_));
@@ -96,6 +99,9 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	this->setting_ = setting;
 	this->pproxy_ = pproxy;
 
+	max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
+	id_ = this->setting_.config.st_id;
+
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
@@ -149,7 +155,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
-	log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	this->FeedInitPosition();
 }
@@ -173,7 +179,7 @@ void Strategy::FeedInitPosition()
 	second.exchg_code = this->GetExchange(); 
 
 	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
-	log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
@@ -193,7 +199,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 	
 	*sig_cnt = 0;
 	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs, log_.data()+log_cursor_);
-	log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 
@@ -218,7 +224,7 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 {
 	*sig_cnt = 0;
 	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, log_.data()+log_cursor_);
-	log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
@@ -233,7 +239,7 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 
 int32_t Strategy::GetId()
 {
-	return this->setting_.config.st_id;
+	return id_;
 }
 
 const char* Strategy::GetContract()
@@ -651,7 +657,7 @@ FILE * Strategy::get_log_file()
  */
 int32_t Strategy::FullLineCount()
 {	
-	return MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 50 + GetId() * 50;
+	return max_log_lines_ ;
 }
 
 bool Strategy::IsLogFull()

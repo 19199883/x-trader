@@ -645,10 +645,6 @@ void UniConsumer::FlushStrategyLog()
 		pfDayLogFile_ = strategy.get_log_file();
 		strategy.get_log(log_w_, count);
 
-		// TODO: debug
-		clog_info("[%s] FlushStrategyLog strategy:%d;count:%d", 
-					module_name_, strategy.GetId(), count);
-
 		for(int i = 0; i < count; i++){
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
@@ -687,13 +683,7 @@ void UniConsumer::WriteLogImp()
 		}
 		lock_log_.clear();
 
-		// TODO: debug
-		clog_warning("[%s] WriteLogImp: is ready to sleep", module_name_); 
-
-		std::this_thread::sleep_for (std::chrono::seconds(1));
-		
-		// TODO: debug
-		clog_warning("[%s] WriteLogImp: wake up", module_name_); 
+		std::this_thread::sleep_for (std::chrono::milliseconds(10));
 	} // end while(true)
 	clog_warning("[%s] WriteLogImp exit", module_name_); 
 	fflush (Log::fp);
@@ -701,8 +691,6 @@ void UniConsumer::WriteLogImp()
 
 void UniConsumer::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 {
-	if(0==pstratlog->exch_time) return;
-
     fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
             pstratlog->exch_time,
             pstratlog->contract,
