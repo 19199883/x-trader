@@ -29,7 +29,9 @@ using namespace std;
 // 一个x-trader最多支持100个策略
 #define MAX_STRATEGY_COUNT 100
 
-#define MAX_LINES_FOR_LOG 10000
+// TODO: debug
+//#define MAX_LINES_FOR_LOG 10000
+#define MAX_LINES_FOR_LOG 5000
 
 struct strat_out_log
 {

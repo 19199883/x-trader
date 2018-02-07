@@ -5,7 +5,7 @@
 #include <pthread.h>
 
 // 延迟度量
-#define LATENCY_MEASURE
+//#define LATENCY_MEASURE
 // 行情持久化开关
 //#define PERSISTENCE_ENABLED
 
@@ -42,6 +42,11 @@ extern "C" {
 	};
 #endif /* __cplusplus */
 
+	class Log
+	{
+		public:
+			static FILE *fp;/*文件指针*/
+	};
 	/* --------------------------------------------------------------
 	 * x-trader varon-t value and type
 	 */

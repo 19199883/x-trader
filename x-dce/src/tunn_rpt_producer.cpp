@@ -257,7 +257,6 @@ void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, 
 	}
 
 	int32_t cursor = Push();
-	// TODO: 考虑采用与x-zce一样的方式，使用cursor，这样可以去掉Push
 	// LocalOrderID也只需要赋值一次
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	if (perror != NULL) {
@@ -359,7 +358,7 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 
     clog_error("[%s] OnRtnErrorMsg:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
 
-	// TODO:DEBUG 之前出现过一次OnRtnErrorMsg，errorMsg=local order info invalid，nErrorID=24
+	// :DEBUG 之前出现过一次OnRtnErrorMsg，errorMsg=local order info invalid，nErrorID=24
 	// 可能与LocalOrderID一个会话内重复有关。但验证几次，无法重现。
 	// 故忽略OnRtnErrorMsg，继续观察
 	// return;

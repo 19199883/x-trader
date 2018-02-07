@@ -275,6 +275,7 @@ void UniConsumer::Stop()
 
 		clog_warning("[%s] End exit", module_name_);
 	}
+	fflush (Log::fp);
 }
 
 void UniConsumer::ProcBestAndDeep(int32_t index)
@@ -336,6 +337,10 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 		if (strcmp(strategy.GetContract(), md->Contract) == 0){
+			// TODO:debug
+			clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", 
+				module_name_, index, md->Contract);
+
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
 			// strategy log
@@ -355,6 +360,9 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 
 void UniConsumer::ProcOrderStatistic(int32_t index)
 {
+	// TODO: debug
+	//return;
+
 #ifdef LATENCY_MEASURE
 		 static int cnt = 0;
 		 perf_ctx::insert_t0(cnt);
@@ -411,6 +419,9 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
+			clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", 
+				module_name_, index, md->ContractID);
+
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
 			// strategy log
@@ -727,9 +738,21 @@ void UniConsumer::WriteLogImp()
 	while(true){
 		while (lock_log_.test_and_set()) { }
 
+
 		for(int i = 0; i < log_write_count_; i++){
+			// TODO:debug
+			clog_info("[%s] WriteLogImp WriteOne. i:%d; pfDayLogFile_:%d",
+				module_name_, i, pfDayLogFile_); 
+
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
+
+		// TODO: debug
+		if(log_write_count_ > 0){
+			clog_info("[%s] WriteLogImp finishes. log_write_count_:%d",
+				module_name_, log_write_count_); 
+		}
+
 		log_write_count_ = 0;
 
 		if(!running_){
@@ -738,13 +761,15 @@ void UniConsumer::WriteLogImp()
 		}
 		lock_log_.clear();
 
-		std::this_thread::sleep_for (std::chrono::seconds(1));
+		std::this_thread::sleep_for (std::chrono::milliseconds(1));
 	} // end while(true)
 	clog_warning("[%s] WriteLogImp exit", module_name_); 
 }
 
 void UniConsumer::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 {
+	// TODO: debug
+	// TODO: improve: 源头过滤掉为0的数据
 	if(0==pstratlog->exch_time) return;
 
     fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
@@ -797,11 +822,14 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-		clog_info("[%s] WriteStrategyLog strategy:%d", module_name_,strategy.GetId()); 
 		// 在日志写线程睡眠时，日志缓存可能会被覆盖
 		while (lock_log_.test_and_set()) {}
 		pfDayLogFile_ = strategy.get_log_file();
 		strategy.get_log(log_w_, log_write_count_);
+
+		clog_info("[%s] WriteStrategyLog strategy:%d; log_write_count_:%d;pfDayLogFile_:%d ", 
+			module_name_,strategy.GetId(), log_write_count_, pfDayLogFile_ ); 
+
 		lock_log_.clear();
 
 #ifdef LATENCY_MEASURE

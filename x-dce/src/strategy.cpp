@@ -142,9 +142,6 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.log_name, model_log.c_str());
 	setting_.config.log_id = setting_.config.st_id;
 
-	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
-				GetId(),setting_.config.log_name);
-
 	LoadPosition();
 	
 	memset(&(pos_cache_.s_pos[0]), 0, sizeof(symbol_pos_t));
@@ -156,6 +153,8 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
+	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
+				GetId(),setting_.config.log_name);
 	if(NULL == pfDayLogFile_){
 		clog_error("[%s] strategy id:%d; failed to open log file:%s", module_name_,
 				GetId(),setting_.config.log_name);
@@ -163,6 +162,11 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	}
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
+	
+	// TODO: debug
+		clog_info("[%s] init log exch time:%d", 
+			module_name_, (log_.data()+log_cursor_)->exch_time); 
+	
 	log_cursor_++;
 
 	this->FeedInitPosition();
@@ -187,6 +191,11 @@ void Strategy::FeedInitPosition()
 	second.exchg_code = this->GetExchange(); 
 
 	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
+
+	// TODO: debug
+		clog_info("[%s] init log exch time:%d", 
+			module_name_, (log_.data()+log_cursor_)->exch_time); 
+
 	log_cursor_++;
 
 	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
@@ -196,17 +205,29 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_info("[%s] strategy id:%d;rev MDBestAndDeep_MY contract:%s; time:%s", 
-				module_name_,GetId(), md->Contract, md->GenTime);
+	//clog_info("[%s] strategy id:%d;rev MDBestAndDeep_MY contract:%s; time:%s", 
+	//			module_name_,GetId(), md->Contract, md->GenTime);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 	
 	*sig_cnt = 0;
+	// TODO: debug
+	(log_.data()+log_cursor_)->exch_time = 0;
+
 	this->pfn_feedbestanddeep_(md, sig_cnt, sigs, log_.data()+log_cursor_);
+
+	// TODO: debug
+		clog_info("[%s] init log exch time:%d", 
+			module_name_, (log_.data()+log_cursor_)->exch_time); 
+
 	log_cursor_++;
 
+	// TODO: debug
+	clog_info("[%s] strategy id:%d;MDBestAndDeep_MY log_cursor_:%d", 
+		module_name_,GetId(), log_cursor_);
+	
 	for (int i = 0; i < *sig_cnt; i++ ){
 
 #ifdef LATENCY_MEASURE
@@ -229,16 +250,28 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 
 void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_debug("[%s] strategy id:%d;rev MDOrderStatistic_MY contract:%s", 
-				module_name_,GetId(), md->ContractID);
+	//clog_debug("[%s] strategy id:%d;rev MDOrderStatistic_MY contract:%s", 
+	//			module_name_,GetId(), md->ContractID);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 
 	*sig_cnt = 0;
+	// TODO: debug
+	(log_.data()+log_cursor_)->exch_time = 0;
+
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs, log_.data()+log_cursor_);
+
+	// TODO: debug
+		clog_info("[%s] init log exch time:%d", 
+			module_name_, (log_.data()+log_cursor_)->exch_time); 
+
 	log_cursor_++;
+
+	// TODO: debug
+	clog_info("[%s] strategy id:%d;MDOrderStatistic_MY log_cursor_:%d", 
+		module_name_,GetId(), log_cursor_);
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 
@@ -265,6 +298,11 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 {
 	*sig_cnt = 0;
 	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, log_.data()+log_cursor_);
+
+	// TODO: debug
+		clog_info("[%s] init log exch time:%d", 
+			module_name_, (log_.data()+log_cursor_)->exch_time); 
+
 	log_cursor_++;
 
 	for (int i = 0; i < *sig_cnt; i++ ){
@@ -455,7 +493,7 @@ void Strategy::Push(const signal_t &sig)
 		sigrpt_table_[cursor_].order_price = sig.sell_price;
 	}
 
-	// TODO:从pending队列中撤单 done
+	// 从pending队列中撤单 done
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		sigrpt_table_[cursor_].order_volume = sig.open_volume;
 	}else if (sig.sig_openclose == alloc_position_effect_t::close_){
@@ -494,13 +532,13 @@ int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
 	return (local_ord_id - GetId()) / 1000;
 }
 
-// TODO: improve place, cancel
+// improve place, cancel
 int32_t Strategy::GetSignalIdxBySigId(long sigid)
 {
 	return sigid_sigidx_map_table_[sigid];
 }
 
-// TODO: improve place, cancel
+// improve place, cancel
 int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 {
 	// get signal report by LocalOrderID
@@ -509,7 +547,7 @@ int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 	return index;
 }
 
-// TODO: improve place, cancel
+// improve place, cancel
 void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
@@ -572,7 +610,7 @@ void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, 
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
-	// TODO: 从pending队列中撤单 done
+	// 从pending队列中撤单 done
 	if (rpt.ErrorID != CANCELLED_FROM_PENDING){
 		if (rpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
 			rpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
@@ -706,6 +744,7 @@ FILE * Strategy::get_log_file()
  */
 int32_t Strategy::FullLineCount()
 {	
+	// TODO: improve: init in constructor
 	return MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 50 + GetId() * 50;
 }
 
