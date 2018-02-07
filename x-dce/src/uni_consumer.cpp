@@ -337,15 +337,9 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 		if (strcmp(strategy.GetContract(), md->Contract) == 0){
-			// TODO:debug
-			clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", 
-				module_name_, index, md->Contract);
-
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
 			// strategy log
 			WriteStrategyLog(strategy);
-
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
@@ -360,9 +354,6 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 
 void UniConsumer::ProcOrderStatistic(int32_t index)
 {
-	// TODO: debug
-	//return;
-
 #ifdef LATENCY_MEASURE
 		 static int cnt = 0;
 		 perf_ctx::insert_t0(cnt);
@@ -480,7 +471,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	// strategy log
 	WriteStrategyLog(strategy);
 
-	// TODO: improve place, cancel
+	// improve place, cancel
 	// 虑当pending信号都处理了，如何标志
 	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
 		int32_t st_id = strategy.GetId();
@@ -523,8 +514,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
 			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
-				// TODO: improve place, cancel
-				// done
+				// improve place, cancel
 				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					int32_t sig_id = pending_signals_[sig.st_id][i];
 					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL){
@@ -542,11 +532,10 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 	}
 }
 
-// TODO: improve place, cancel
+// improve place, cancel
 bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 {
-	// TODO: remove from pending queue
-	// done
+	// remove from pending queue
 	bool cancelled = false;
 	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
     	int32_t st_id = strategy.GetId();
@@ -570,7 +559,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		
-		// TODO: 从pending队列中撤单
+		// 从pending队列中撤单
 		rpt.ErrorID = CANCELLED_FROM_PENDING;   
 
 		rpt.OrderStatus = X1_FTDC_SPD_CANCELED ;   
@@ -588,9 +577,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 
 void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
-	// TODO: improve place, cancel
-	// done
-	//
+	// improve place, cancel
 	int32_t ori_sigid = sig.orig_sig_id;
 	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
@@ -605,7 +592,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
 	cancel_order.RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
     cancel_order.X1OrderID = 0; // only use LocalOrderID to cancel order
-	// TODO:验证是否需要合约
+	// 验证是否需要合约
     strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
 
 	clog_info("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
@@ -626,8 +613,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
-	// TODO: vol:0, rejected
-	// TODO: improve place, cancel
+	// vol:0, rejected
+	// improve place, cancel
 	if(updated_vol <= 0){
 		clog_info("[%s] rejected due to vol 0. strategy id:%d; sig id;%d", 
 			module_name_,sig.st_id, sig.sig_id);
@@ -708,11 +695,6 @@ void UniConsumer::FlushStrategyLog()
 		Strategy &strategy = stra_table_[i];
 		pfDayLogFile_ = strategy.get_log_file();
 		strategy.get_log(log_w_, log_write_count_);
-
-		// TODO: debug
-		clog_info("[%s] FlushStrategyLog strategy:%d;log_write_count_:%d", 
-					module_name_, strategy.GetId(), log_write_count_);
-
 		for(int i = 0; i < log_write_count_; i++){
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
@@ -740,19 +722,8 @@ void UniConsumer::WriteLogImp()
 
 
 		for(int i = 0; i < log_write_count_; i++){
-			// TODO:debug
-			clog_info("[%s] WriteLogImp WriteOne. i:%d; pfDayLogFile_:%d",
-				module_name_, i, pfDayLogFile_); 
-
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
-
-		// TODO: debug
-		if(log_write_count_ > 0){
-			clog_info("[%s] WriteLogImp finishes. log_write_count_:%d",
-				module_name_, log_write_count_); 
-		}
-
 		log_write_count_ = 0;
 
 		if(!running_){
@@ -761,17 +732,13 @@ void UniConsumer::WriteLogImp()
 		}
 		lock_log_.clear();
 
-		std::this_thread::sleep_for (std::chrono::milliseconds(1));
+		std::this_thread::sleep_for (std::chrono::milliseconds(10));
 	} // end while(true)
 	clog_warning("[%s] WriteLogImp exit", module_name_); 
 }
 
 void UniConsumer::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 {
-	// TODO: debug
-	// TODO: improve: 源头过滤掉为0的数据
-	if(0==pstratlog->exch_time) return;
-
     fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
             pstratlog->exch_time,
             pstratlog->contract,

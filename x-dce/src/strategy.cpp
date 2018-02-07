@@ -34,6 +34,8 @@ Strategy::Strategy()
 	log_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 	log_cursor_ = 0;
 	pfDayLogFile_ = NULL;
+	max_log_lines_ = 0;
+	id_ = 0;
 
 	memset(localorderid_sigandrptidx_map_table_, 0, sizeof(localorderid_sigandrptidx_map_table_));
 	memset(sigid_localorderid_map_table_, 0, sizeof(sigid_localorderid_map_table_));
@@ -96,6 +98,9 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	// set breakpoint here
 	this->setting_ = setting;
 	this->pproxy_ = pproxy;
+
+	max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
+	id_ = this->setting_.config.st_id;
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
@@ -162,12 +167,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	}
 	int err = 0;
 	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
-	
-	// TODO: debug
-		clog_info("[%s] init log exch time:%d", 
-			module_name_, (log_.data()+log_cursor_)->exch_time); 
-	
-	log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	this->FeedInitPosition();
 }
@@ -191,12 +191,7 @@ void Strategy::FeedInitPosition()
 	second.exchg_code = this->GetExchange(); 
 
 	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
-
-	// TODO: debug
-		clog_info("[%s] init log exch time:%d", 
-			module_name_, (log_.data()+log_cursor_)->exch_time); 
-
-	log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
 				module_name_, GetId(), second.symbol, second.exchg_code, 
@@ -213,21 +208,11 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 #endif
 	
 	*sig_cnt = 0;
-	// TODO: debug
 	(log_.data()+log_cursor_)->exch_time = 0;
 
 	this->pfn_feedbestanddeep_(md, sig_cnt, sigs, log_.data()+log_cursor_);
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
-	// TODO: debug
-		clog_info("[%s] init log exch time:%d", 
-			module_name_, (log_.data()+log_cursor_)->exch_time); 
-
-	log_cursor_++;
-
-	// TODO: debug
-	clog_info("[%s] strategy id:%d;MDBestAndDeep_MY log_cursor_:%d", 
-		module_name_,GetId(), log_cursor_);
-	
 	for (int i = 0; i < *sig_cnt; i++ ){
 
 #ifdef LATENCY_MEASURE
@@ -258,20 +243,10 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 #endif
 
 	*sig_cnt = 0;
-	// TODO: debug
 	(log_.data()+log_cursor_)->exch_time = 0;
 
 	this->pfn_feedorderstatistic_(md, sig_cnt, sigs, log_.data()+log_cursor_);
-
-	// TODO: debug
-		clog_info("[%s] init log exch time:%d", 
-			module_name_, (log_.data()+log_cursor_)->exch_time); 
-
-	log_cursor_++;
-
-	// TODO: debug
-	clog_info("[%s] strategy id:%d;MDOrderStatistic_MY log_cursor_:%d", 
-		module_name_,GetId(), log_cursor_);
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 
@@ -298,12 +273,7 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 {
 	*sig_cnt = 0;
 	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, log_.data()+log_cursor_);
-
-	// TODO: debug
-		clog_info("[%s] init log exch time:%d", 
-			module_name_, (log_.data()+log_cursor_)->exch_time); 
-
-	log_cursor_++;
+	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
@@ -321,7 +291,7 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 
 int32_t Strategy::GetId()
 {
-	return this->setting_.config.st_id;
+	return id_;
 }
 
 const char* Strategy::GetContract()
@@ -744,8 +714,7 @@ FILE * Strategy::get_log_file()
  */
 int32_t Strategy::FullLineCount()
 {	
-	// TODO: improve: init in constructor
-	return MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 50 + GetId() * 50;
+	return max_log_lines_ ;
 }
 
 bool Strategy::IsLogFull()
