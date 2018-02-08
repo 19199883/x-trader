@@ -4,17 +4,17 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#define CLOG_CHANNEL  "x-trader"
-
-#define LATENCY_MEASURE
-
-#define COMPLIANCE_CHECK
+//#define LATENCY_MEASURE
+// 行情持久化开关
+//#define PERSISTENCE_ENABLED
 
 /*
  * 行情UDP通讯设置成非阻塞模式
  */
 //#define MD_UDP_NOBLOCK
 
+#define COMPLIANCE_CHECK
+#define CLOG_CHANNEL  "x-trader"
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
 // 2: two-dimensional array
@@ -24,8 +24,6 @@
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 15000
 
-// 行情持久化开关
-//#define PERSISTENCE_ENABLED
 
 /*
  * 10 power of 2
