@@ -615,10 +615,6 @@ void UniConsumer::FlushStrategyLog()
 		pfDayLogFile_ = strategy.get_log_file();
 		strategy.get_log(log_w_, log_write_count_);
 
-		// TODO: debug
-		clog_info("[%s] FlushStrategyLog strategy:%d;log_write_count_:%d", 
-					module_name_, strategy.GetId(), log_write_count_);
-
 		for(int i = 0; i < log_write_count_; i++){
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
