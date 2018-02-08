@@ -655,15 +655,13 @@ void UniConsumer::WriteLogImp()
 		}
 		lock_log_.clear();
 
-		std::this_thread::sleep_for (std::chrono::seconds(1));
+		std::this_thread::sleep_for (std::chrono::milliseconds(10));
 	} // end while(true)
 	clog_warning("[%s] WriteLogImp exit", module_name_); 
 }
 
 void UniConsumer::WriteOne(FILE *pfDayLogFile, struct strat_out_log *pstratlog)
 {
-	if(0==pstratlog->exch_time) return;
-
     fprintf(pfDayLogFile,"%d %6s %d %14.2f %d ",
             pstratlog->exch_time,
             pstratlog->contract,
