@@ -197,6 +197,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 #endif
 	
 	*sig_cnt = 0;
+	(log_.data()+log_cursor_)->exch_time = 0;
 	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs, log_.data()+log_cursor_);
 	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
@@ -222,6 +223,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
+	(log_.data()+log_cursor_)->exch_time = 0;
 	this->pfn_feedsignalresponse_(rpt, pos, sig_cnt, sigs, log_.data()+log_cursor_);
 	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
