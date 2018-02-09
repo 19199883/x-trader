@@ -708,7 +708,6 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-		clog_info("[%s] WriteStrategyLog strategy:%d", module_name_,strategy.GetId()); 
 		// 在日志写线程睡眠时，日志缓存可能会被覆盖
 		while (lock_log_.test_and_set()) {}
 		pfDayLogFile_ = strategy.get_log_file();
