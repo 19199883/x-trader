@@ -92,8 +92,8 @@ Module Common_Mod
                             gaiPreFullOrderBookBuy, gaiPreFullOrderBookSel, giFullOrderBookL, giFullOrderBookU, gstTSignal) ! generate signal
          call s_end_of_each_run(gstCurrIn, gstPreIn, gstCurrTradeInfo, gstPreTradeInfo, giNoTradeItemEachRun)
 
-!if (giWriteOutputFileFlg == 1) call s_hi5_output_log_new(giTickNo, giFileNumber)! write log file
-         call s_hi5_output_log_new(giTickNo, giFileNumber)! write log file
+if (giWriteOutputFileFlg == 1) call s_hi5_output_log_new(giTickNo, giFileNumber)! write log file
+!         call s_hi5_output_log_new(giTickNo, giFileNumber)! write log file
 		 gidata_vaild=0
 9999    continue 
         if ((mod(gstCurrIn%iData_Flag,3) /= 2 .and. trim(gcExch) == cSHFE) .or. trim(gcExch) /= cSHFE) then   

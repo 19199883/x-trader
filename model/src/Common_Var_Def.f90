@@ -10,13 +10,13 @@ Module Common_Var_Def
     character :: gcSecName*8
     character :: gcTicker*8
     integer   :: giStrateType = 5 ! 5: Hi5;
-    integer   :: giHi5Type = 510  ! Hi50 : 500;   Hi51 : 510;
+    integer   :: giHi5Type = 500  ! Hi50 : 500;   Hi51 : 510;
                                   ! Hi52 : 520;   Hi53 : 530;
                                   ! Hi54 : 540;   Hi55 : 550;
                                   ! Hi56 : 560;   Hi57 : 570;
                                   ! Hi58 : 580;   Hi59 : 590;
     
-    character   ::  gcStrategyName*10 = 'vp1' !
+    character   ::  gcStrategyName*10 = 'tst0' !
     integer     ::  giReadParaFailedFlg = 0
     integer, parameter   :: iSTRATEGY_HI5 = 5
     integer, parameter   :: iHI50 = 500, iHI51 = 510, &
@@ -451,8 +451,7 @@ Module Common_Var_Def
     integer :: giTickNo
     integer :: giStID, giMaxPos, giInitPOS
     integer :: giFullOrderBookL, giFullOrderBookU
-    integer, dimension(:), allocatable :: gaiFullOrderBookBuy, gaiFullOrderBookSel, &
-                                            gaiPreFullOrderBookBuy, gaiPreFullOrderBookSel, &
+    integer, dimension(:), allocatable :: gaiFullOrderBookBuy, gaiFullOrderBookSel, gaiPreFullOrderBookBuy, gaiPreFullOrderBookSel, &
                                           gaiFullOrderBookBuyDiff, gaiFullOrderBookSelDiff  
     integer   :: giMaxTime,gidata_vaild=1
     

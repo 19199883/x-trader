@@ -16,23 +16,7 @@ Module MySub_Fuc
 	    character(len=*), intent(in)	::	lcFileName
        ! integer date_time(8)
        ! character*10 b(3)
-
-       ! TODO: wangying debug
-!       integer::i,k=1
-!       real::e
-!       real,dimension(2):: t(2)
-!       open (unit=2000, file='test.txt')
-!       e = dtime( t )
-!       write(unit=2000, fmt=100),e,t(1),t(2)
-!       100 format('elapsed:', f5.4, ', user:', f5.4, ', sys:', f5.4)
-!       do i = 1, 10000
-!          k=k+1
-!       end do
-!       e = dtime( t )
-!       write(unit=2000, fmt=200),e,t(1),t(2)
-!       200 format('elapsed:', f5.4, ', user:', f5.4, ', sys:', f5.4)
-!       close (2000)
-!
+ 
         !call date_and_time(b(1), b(2), b(3), date_time)
         giFileNumber = liFileNumber
         gcFileName = lcFileName
@@ -293,44 +277,6 @@ Module MySub_Fuc
         type(strat_out_log), intent(inout)          ::  lstrat_out_log
         integer :: liI,liNoTSignal
 
-
-       ! TODO: wangying debug
-       interface 
-            subroutine timestamp() bind ( c )
-                use iso_c_binding
-            end subroutine timestamp
-        end interface
-        call timestamp()
-
-!       integer::i,k=1
-!       real::start,finish
-!       real,dimension(2):: t(2)
-!       open (unit=2000, file='test.txt')
-!       call cpu_time( start )
-!       do i = 1, 10000000
-!          k=k+1
-!       end do
-!       call cpu_time( finish )
-!       write(unit=2000, fmt=200),finish-start
-!       200 format('sselapsed:', f15.8)
-!       close (2000)
-        
-       ! TODO: wangying debug
-       !integer::i,k=1
-       !real::e
-       !real,dimension(2):: t(2)
-       !open (unit=2000, file='test.txt')
-       !e = etime( t )
-       !write(unit=2000, fmt=100),e,t(1),t(2)
-       !100 format('elapsed:', f5.8, ', user:', f5.4, ', sys:', f5.4)
-       !do i = 1, 1000000
-       !   k=k+1
-       !end do
-       !e = etime( t )
-       !write(unit=2000, fmt=200),e,t(1),t(2)
-       !200 format('elapsed:', f5.8, ', user:', f5.4, ', sys:', f5.4)
-       !close (2000)
-
 	    liNoTSignal = iZERO
         giNoTradeItemEachRun = iZERO
         call s_init_eachPOS(gstPosDataYest)
@@ -432,7 +378,7 @@ Module MySub_Fuc
             gstcStructCFFEIn = lstStructIn
             call s_read_fut_struct(giTickNo)     
         end if
-
+		gidata_vaild=1
         call s_run_each_record(liNoTSignal) 
         if(gstRecCurrIn%iTime<gstCurrIn%iTime) then        
         gstRecCurrIn = gstCurrIn		
@@ -444,7 +390,7 @@ Module MySub_Fuc
        
         end if
            lstrat_out_log=gstrat_out_log
-           lstrat_out_log%exch_time=0 
+           if(gidata_vaild==1) lstrat_out_log%exch_time=0  
     end subroutine st_feed_marketinfo_0      
 
     !----------------------------------------------------
@@ -583,6 +529,14 @@ Module MySub_Fuc
             gstRecCurrIn%iTime=0
         end if
 
+        ! TODO: wangying debug
+        interface 
+            subroutine timestamp() bind ( c )
+                use iso_c_binding
+            end subroutine timestamp
+        end interface
+        call timestamp()
+
         ! load data from lstStructIn to gstCurrIn
         if (giRunModeFlg == 1) then
             gstcStructCZCEIn = lstStructIn
@@ -600,6 +554,10 @@ Module MySub_Fuc
         end if
         lstrat_out_log=gstrat_out_log
         if(gidata_vaild==1) lstrat_out_log%exch_time=0 
+
+        ! TODO:wangying debug
+        call timestamp()
+
     end subroutine st_feed_marketinfo_8        
     
 

@@ -530,20 +530,20 @@ Module Common_Func
         case (cSHFE)
             if (giNightMarket == 0) then
 			    lstOutData%stExch%iVolDivider = 2; lstOutData%stExch%iPInLevel = 30; 
-			    lstOutData%stExch%iMktStartTime = 90000; lstOutData%stExch%iMktEndTime = 150000; lstOutData%stSec%iSecEndTime = 145500
+			    lstOutData%stExch%iMktStartTime = 90000; lstOutData%stExch%iMktEndTime = 150000; lstOutData%stSec%iSecEndTime = 145700
 			    lstOutData%stSec%iSecTradeStartTime = lstOutData%stExch%iMktStartTime
             else if (giNightMarket == 1) then
 			    lstOutData%stExch%iVolDivider = 2; lstOutData%stExch%iPInLevel = 30; 
-			    lstOutData%stExch%iMktStartTime = 210000; lstOutData%stExch%iMktEndTime = 240000; lstOutData%stSec%iSecEndTime = 235500
+			    lstOutData%stExch%iMktStartTime = 210000; lstOutData%stExch%iMktEndTime = 240000; lstOutData%stSec%iSecEndTime = 235700
 			    lstOutData%stSec%iSecTradeStartTime = lstOutData%stExch%iMktStartTime                
                 if(trim(gcSecName) == 'ru' .or. trim(gcSecName) == 'RU' .or. trim(gcSecName) == 'hc' .or. trim(gcSecName) == 'HC' .or. trim(gcSecName) == 'rb' .or. trim(gcSecName) == 'RB' .or. trim(gcSecName) == 'bu' .or. trim(gcSecName) == 'BU') then
-                    lstOutData%stExch%iMktEndTime = 230000; lstOutData%stSec%iSecEndTime = 225500
+                    lstOutData%stExch%iMktEndTime = 230000; lstOutData%stSec%iSecEndTime = 225700
 					lstOutData%stSec%iSecTradeStartTime = lstOutData%stExch%iMktStartTime
                 else if (trim(gcSecName) == 'ag' .or. trim(gcSecName) == 'AG' .or. trim(gcSecName) == 'au' .or. trim(gcSecName) == 'AU') then
-                    lstOutData%stExch%iMktEndTime = 263000; lstOutData%stSec%iSecEndTime = 262500
+                    lstOutData%stExch%iMktEndTime = 263000; lstOutData%stSec%iSecEndTime = 262700
 					lstOutData%stSec%iSecTradeStartTime = lstOutData%stExch%iMktStartTime
                 else
-                    lstOutData%stExch%iMktEndTime = 250000; lstOutData%stSec%iSecEndTime = 245500
+                    lstOutData%stExch%iMktEndTime = 250000; lstOutData%stSec%iSecEndTime = 245700
 					lstOutData%stSec%iSecTradeStartTime = lstOutData%stExch%iMktStartTime                 
                 end if
             end if
@@ -554,11 +554,11 @@ Module Common_Func
         case (cDCE)            
             if (giNightMarket == 0) then
 			    lstOutData%stExch%iVolDivider = 2; lstOutData%stExch%iPInLevel = 5; 
-			    lstOutData%stExch%iMktStartTime = 90000; lstOutData%stExch%iMktEndTime = 150000; lstOutData%stSec%iSecEndTime = 145500
+			    lstOutData%stExch%iMktStartTime = 90000; lstOutData%stExch%iMktEndTime = 150000; lstOutData%stSec%iSecEndTime = 145700
 			    lstOutData%stSec%iSecTradeStartTime = 90050
             else if (giNightMarket == 1) then
 			    lstOutData%stExch%iVolDivider = 2; lstOutData%stExch%iPInLevel = 5; 
-			    lstOutData%stExch%iMktStartTime = 210000; lstOutData%stExch%iMktEndTime = 233000; lstOutData%stSec%iSecEndTime = 232500
+			    lstOutData%stExch%iMktStartTime = 210000; lstOutData%stExch%iMktEndTime = 233000; lstOutData%stSec%iSecEndTime = 232700
 			    lstOutData%stSec%iSecTradeStartTime = 210050
             end if            
 			lstOutData%stSec%rTVCompRatio = 0.20_dp
@@ -568,11 +568,11 @@ Module Common_Func
         case (cCZCE)
             if (giNightMarket == 0) then
 			    lstOutData%stExch%iVolDivider = 2; lstOutData%stExch%iPInLevel = 5; 
-			    lstOutData%stExch%iMktStartTime = 90000; lstOutData%stExch%iMktEndTime = 150000; lstOutData%stSec%iSecEndTime = 145500
+			    lstOutData%stExch%iMktStartTime = 90000; lstOutData%stExch%iMktEndTime = 150000; lstOutData%stSec%iSecEndTime = 145700
 			    lstOutData%stSec%iSecTradeStartTime = 90000
             elseif (giNightMarket == 1) then
 			    lstOutData%stExch%iVolDivider = 2; lstOutData%stExch%iPInLevel = 5; 
-			    lstOutData%stExch%iMktStartTime = 210000; lstOutData%stExch%iMktEndTime = 233000; lstOutData%stSec%iSecEndTime = 232500
+			    lstOutData%stExch%iMktStartTime = 210000; lstOutData%stExch%iMktEndTime = 233000; lstOutData%stSec%iSecEndTime = 232700
 			    lstOutData%stSec%iSecTradeStartTime = 210000
             end if            
 			lstOutData%stSec%rTVCompRatio = 0.25_dp
@@ -582,7 +582,7 @@ Module Common_Func
 		case (cCFFE)
             if ((trim(gcSecName) /= 'tf') .and. (trim(gcSecName) /= 't') .and. (trim(gcSecName) /= 'TF') .and. (trim(gcSecName) /= 'T')) then
 			    lstOutData%stExch%iVolDivider = 1; lstOutData%stExch%iPInLevel = 5; 
-			    lstOutData%stExch%iMktStartTime = 93000; lstOutData%stExch%iMktEndTime = 150000; lstOutData%stSec%iSecEndTime = 145500
+			    lstOutData%stExch%iMktStartTime = 93000; lstOutData%stExch%iMktEndTime = 150000; lstOutData%stSec%iSecEndTime = 145700
 			    lstOutData%stSec%iSecTradeStartTime = lstOutData%stExch%iMktStartTime
             else
 			    lstOutData%stExch%iVolDivider = 1; lstOutData%stExch%iPInLevel = 5; 
@@ -633,60 +633,60 @@ Module Common_Func
 	
             
 		case ('ag', 'AG')
-            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.0000525_dp !0.00001625_dp
+            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.0000525*0.75_dp !0.00001625_dp
 			lstOutData%iUnitPerContract = 15; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 1._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 0
 
 		case ('au', 'AU')
-            lstOutData%rRssTCostByVol = 0.00525_dp; lstOutData%rRssTCostByVal = 0._dp
+            lstOutData%rRssTCostByVol = 0.00525*0.75_dp; lstOutData%rRssTCostByVal = 0._dp
 			lstOutData%iUnitPerContract = 1000; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 0.05_dp; lstOutData%iPMultiplier = 100; lstOutData%iTickSizeMulti = 5; lstOutData%iDecimalPt = 2
 
 
 		case ('al', 'AL')
-            lstOutData%rRssTCostByVol = 0.315_dp; lstOutData%rRssTCostByVal = 0._dp
+            lstOutData%rRssTCostByVol = 0.315*0.75_dp; lstOutData%rRssTCostByVal = 0._dp
 			lstOutData%iUnitPerContract = 5; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 5.0_dp; lstOutData%iPMultiplier = 100; lstOutData%iTickSizeMulti = 5; lstOutData%iDecimalPt = 2
 
             
 		case ('bu', 'BU')
-            lstOutData%rRssTCostByVol = 0.0_dp; lstOutData%rRssTCostByVal = 0.000105_dp             
+            lstOutData%rRssTCostByVol = 0.0_dp; lstOutData%rRssTCostByVal = 0.000105*0.75_dp             
 			lstOutData%iUnitPerContract = 10; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 2._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 0   
             
 		case ('cu', 'CU')
-            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.00002625_dp !0.000008125_dp           
+            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.00002625*0.75_dp !0.000008125_dp           
 			lstOutData%iUnitPerContract = 5; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 10._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 10; lstOutData%iDecimalPt = 0
 
 		case ('hc', 'HC')
-            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.000315_dp !0.000014625_dp              
+            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.000105*0.75_dp !0.000014625_dp              
 			lstOutData%iUnitPerContract = 10; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 1._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 0
             
 		case ('ni', 'NI')
-            lstOutData%rRssTCostByVol = 18.9_dp; lstOutData%rRssTCostByVal = 0.0_dp              
+            lstOutData%rRssTCostByVol = 18.9*0.75_dp; lstOutData%rRssTCostByVal = 0.0_dp              
 			lstOutData%iUnitPerContract = 1; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 10._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 5; lstOutData%iDecimalPt = 0  
 			
 		case ('pb', 'PB')
-            lstOutData%rRssTCostByVol = 0.0_dp; lstOutData%rRssTCostByVal = 0.0000315_dp              
+            lstOutData%rRssTCostByVol = 0.0_dp; lstOutData%rRssTCostByVal = 0.0000315*0.75_dp              
 			lstOutData%iUnitPerContract = 5; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 5._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 5; lstOutData%iDecimalPt = 0  			 
             
 		case ('rb', 'RB')
-            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.000315_dp !0.000014625_dp              
+            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.000105*0.75_dp !0.000014625_dp              
 			lstOutData%iUnitPerContract = 10; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 1._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 0
 
 
 		case ('ru', 'RU')
-            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.00004725_dp !0.00002925_dp              
+            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.00004725*0.75_dp !0.00002925_dp              
 			lstOutData%iUnitPerContract = 10; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 5._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 5; lstOutData%iDecimalPt = 0
             
 		case ('zn', 'ZN')
-            lstOutData%rRssTCostByVol = 1.89_dp; lstOutData%rRssTCostByVal = 0.0_dp             
+            lstOutData%rRssTCostByVol = 0.63*0.75_dp; lstOutData%rRssTCostByVal = 0.0_dp             
 			lstOutData%iUnitPerContract = 5; lstOutData%iWrongVol = 50000; 
 			lstOutData%rTickSize = 5._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 5; lstOutData%iDecimalPt = 0
                                      
@@ -729,7 +729,7 @@ Module Common_Func
 
 			
 		case ('j', 'J')
-            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.000189_dp              
+            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.000315_dp              
 			lstOutData%iUnitPerContract = 100; lstOutData%iWrongVol = 100000; 
 			lstOutData%rTickSize = 0.5_dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 1
 
@@ -741,7 +741,7 @@ Module Common_Func
 			lstOutData%iWithCancel = iYES
 			
 		case ('jm', 'JM')
-            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.000189_dp              
+            lstOutData%rRssTCostByVol = 0._dp; lstOutData%rRssTCostByVal = 0.000315_dp              
 			lstOutData%iUnitPerContract = 60; lstOutData%iWrongVol = 100000; 
 			lstOutData%rTickSize = 0.5_dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 1
 			
@@ -804,16 +804,20 @@ Module Common_Func
 			
             
  		case ('SF', 'sf')
-            lstOutData%rRssTCostByVol = 0.945_dp; lstOutData%rRssTCostByVal = 0.0_dp              
+            lstOutData%rRssTCostByVol = 1.26_dp; lstOutData%rRssTCostByVal = 0.0_dp              
 			lstOutData%iUnitPerContract = 5; lstOutData%iWrongVol = 100000; 
 			lstOutData%rTickSize = 2._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 0
 			
             
  		case ('SM', 'sm')
-            lstOutData%rRssTCostByVol = 1.26_dp; lstOutData%rRssTCostByVal = 0.0_dp              
+            lstOutData%rRssTCostByVol = 0.945_dp; lstOutData%rRssTCostByVal = 0.0_dp              
 			lstOutData%iUnitPerContract = 5; lstOutData%iWrongVol = 100000; 
 			lstOutData%rTickSize = 2._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 0
 			
+ 		case ('AP', 'ap')
+            lstOutData%rRssTCostByVol = 0.0525_dp; lstOutData%rRssTCostByVal = 0.0_dp              
+			lstOutData%iUnitPerContract = 10; lstOutData%iWrongVol = 100000; 
+			lstOutData%rTickSize = 1._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 0
             
  		case ('SR', 'sr')
             lstOutData%rRssTCostByVol = 0.1575_dp; lstOutData%rRssTCostByVal = 0.0_dp              
@@ -827,14 +831,13 @@ Module Common_Func
 			lstOutData%rTickSize = 2._dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 2; lstOutData%iDecimalPt = 0
 			             
 		case ('ZC', 'zc')
-            lstOutData%rRssTCostByVol = 0.084_dp; lstOutData%rRssTCostByVal = 0.0_dp              
+            lstOutData%rRssTCostByVol = 0.063_dp; lstOutData%rRssTCostByVal = 0.0_dp              
 			lstOutData%iUnitPerContract = 100; lstOutData%iWrongVol = 100000; 
 			lstOutData%rTickSize = 0.2_dp; lstOutData%iPMultiplier = 1; lstOutData%iTickSizeMulti = 1; lstOutData%iDecimalPt = 0		     
             
 		case default
 		end select
     end subroutine s_set_convertion_parameters      
-    
 
     !----------------------------------------------------
     ! subroutine s_my_trading_signal()

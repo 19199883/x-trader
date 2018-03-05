@@ -528,10 +528,7 @@ end subroutine  s_vpmodel_generate_trade
         lrSVSum = lrSVSum +  gstGlobalPara%stHi5Para%rMKTThreshold * lrVolBuy
 
     end subroutine s_hi50_cal
-    
-                    
-    
-
+ 
     !----------------------------------------------------
     ! subroutine f_calc_ratio() 
     ! description: calculate BSV and BSVChg ratio
