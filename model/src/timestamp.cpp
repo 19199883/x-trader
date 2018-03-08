@@ -9,13 +9,13 @@
 
 using namespace std::chrono;
 using namespace std;
-void timestamp()
+void timestamp(int n)
 {
 	FILE *fp = NULL;
-	fp = fopen("test.txt", "w+");
+	fp = fopen("test.txt", "a+");
 
 	high_resolution_clock::time_point t1 = high_resolution_clock::now();
-	fprintf(fp, "%ld\n", t1.time_since_epoch().count());
+	fprintf(fp, "%d: %ld\n", n, duration_cast<std::chrono::nanoseconds>(t1.time_since_epoch()).count());
 
 	fclose(fp);
 }

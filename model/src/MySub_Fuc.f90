@@ -529,13 +529,6 @@ Module MySub_Fuc
             gstRecCurrIn%iTime=0
         end if
 
-        ! TODO: wangying debug
-        interface 
-            subroutine timestamp() bind ( c )
-                use iso_c_binding
-            end subroutine timestamp
-        end interface
-        call timestamp()
 
         ! load data from lstStructIn to gstCurrIn
         if (giRunModeFlg == 1) then
@@ -555,8 +548,6 @@ Module MySub_Fuc
         lstrat_out_log=gstrat_out_log
         if(gidata_vaild==1) lstrat_out_log%exch_time=0 
 
-        ! TODO:wangying debug
-        call timestamp()
 
     end subroutine st_feed_marketinfo_8        
     

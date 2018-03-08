@@ -1,6 +1,6 @@
 #Compiler and Compile options
 FC=gfortran
-DEBUG:=y
+DEBUG:=n
 CFLAGS = -fPIC
 LDFLAGS:= -shared -Wl,--exclude-libs,ALL
 OBJPATH:=./obj
@@ -28,12 +28,12 @@ all:$(OUT)
 
 $(OUT): $(OBJS)
 	-@mkdir -p $(BINPATH)
-	$(FC) $(OBJS) $(LDFLAGS) -o $@	
+	$(FC) $(OBJS) obj/timestamp.o $(LDFLAGS) -g3 -O0 -o $@	-lstdc++
 	@echo "---------build target finshed-----------"
 
 $(OBJPATH)/%.o: %.f90
 	-@mkdir -p $(OBJPATH)
-	$(FC) -ffree-line-length-none  -J ./obj -c $< $(CFLAGS) -o $@
+	$(FC) -ffree-line-length-none  -J ./obj -c $< $(CFLAGS) -g3 -O0 -o $@
 
 
 ##Use "make run" can run the Target file

@@ -3,7 +3,7 @@
 
 
 extern "C" {
-	void timestamp();
+	void timestamp(int n);
 }
 
 #endif // TIMESTAMP_H_

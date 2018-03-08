@@ -43,6 +43,18 @@ Module Common_Mod
        !  get position info
         
         
+        ! TODO: wangying debug
+        interface 
+            subroutine timestamp(n) bind ( c )
+                use iso_c_binding
+                integer ( c_int ), VALUE :: n
+            end subroutine timestamp
+        end interface
+        !TODO: wangying 1
+        integer ( c_int ) :: n = 1
+        n=1
+        call timestamp(n)
+
         ! init  variables 
         if (giInitFlg == 0) then
             gcSecName = trim(f_find_security_name(gstCurrIn%cTicker,gcExch))
@@ -59,7 +71,14 @@ Module Common_Mod
             giInitFlg = 1
         end if   
         
+        ! TODO:wangying debug 2
+        n = 2
+        call timestamp(n)
+
         call s_get_own_position(gstCurrIn%cTicker, gastEachPOSArray, lbound(gastEachPOSArray, 1), ubound(gastEachPOSArray, 1), gstPosData)
+        ! TODO:wangying debug 4
+        n = 3
+        call timestamp(n)
         if (trim(gcExch) /= cCZCE) then
             gstCurrIn%iVol = int(gstCurrIn%rTotV - gstPreIn%rTotV)/gstGlobalPara%stExch%iVolDivider
             gstCurrIn%rVal = (gstCurrIn%rTotVal - gstPreIn%rTotVal)/gstGlobalPara%stExch%iVolDivider
@@ -73,6 +92,10 @@ Module Common_Mod
         end if
         if (f_check_valid_data(gstCurrIn, gstRecPreIn, giTickNo, gstGlobalPara) == iNO) goto 9999   ! check whether data is valid
     
+        ! TODO:wangying debug 3
+        n = 4
+        call timestamp(n)
+
         giTickNo = giTickNo + 1  ! tick number add 1
         if ((gstCurrIn%iTime < gstGlobalPara%stExch%iMktStartTime * 1000) .or.(gstCurrIn%iTime > gstGlobalPara%stExch%iMktEndTime * 1000)) goto 9999            
         if (giTickNo == 1 .and. gstCurrIn%iTime >= gstGlobalPara%stExch%iMktStartTime * 1000) goto 9999  ! used data is from second tick
@@ -81,6 +104,9 @@ Module Common_Mod
         
         call s_init_each_run(liNoTSignal, gstCurrTradeInfo, gstPreTradeInfo, gstPosData)  ! init variables for each running 
 
+        ! TODO:wangying debug 4
+        n = 5
+        call timestamp(n)
            if (gstCurrTradeInfo%iLastTradeSize /= iZERO) then
                 call s_rss_calc_profitloss(gstCurrTradeInfo, gstPreTradeInfo, gstGlobalPara%stSec, gstCurrIn)
                 call s_adjust_to_trade(gstCurrTradeInfo, gstPreTradeInfo)
@@ -90,6 +116,12 @@ Module Common_Mod
         
          call s_hi5_sig_gen(gstCurrIn, gstPreIn, gstGlobalPara, gstPosData, gstCurrTradeInfo, gstPreTradeInfo, giTickNo, gaiFullOrderBookBuy, gaiFullOrderBookSel, &
                             gaiPreFullOrderBookBuy, gaiPreFullOrderBookSel, giFullOrderBookL, giFullOrderBookU, gstTSignal) ! generate signal
+
+
+        ! TODO:wangying debug 5
+        n = 6
+        call timestamp(n)
+
          call s_end_of_each_run(gstCurrIn, gstPreIn, gstCurrTradeInfo, gstPreTradeInfo, giNoTradeItemEachRun)
 
 if (giWriteOutputFileFlg == 1) call s_hi5_output_log_new(giTickNo, giFileNumber)! write log file
@@ -100,6 +132,9 @@ if (giWriteOutputFileFlg == 1) call s_hi5_output_log_new(giTickNo, giFileNumber)
              gstPreIn = gstCurrIn 
              gstRecPreIn = gstRecCurrIn
         end if
+        ! TODO:wangying debug 6
+        n = 7
+        call timestamp(n)
     end subroutine s_run_each_record
     
     
