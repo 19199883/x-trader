@@ -85,6 +85,10 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			if ((side == TAPI_SIDE_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
 				(side != TAPI_SIDE_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
 				ret = false;
+				time_t rawtime;
+				time (&rawtime);
+				clog_error("[%s][%s] matched with myself. ord counter:%d; queue counter:%d ",
+					module_name_, ctime(&rawtime),ord_counter, i);
 				break;
 			}
 		} // if (strcmp(ord.contract, contract)==0 && side != ord.side)
