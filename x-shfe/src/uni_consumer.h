@@ -50,7 +50,6 @@ class FemasFieldConverter
 
 			strncpy(new_order_.BrokerID, cfg.brokerid.c_str(), 
 						sizeof(TUstpFtdcBrokerIDType));
-			strncpy(new_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
 			strncpy(new_order_.InvestorID, cfg.investorid.c_str(), sizeof(TUstpFtdcInvestorIDType));
 			strncpy(new_order_.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
 			new_order_.OrderPriceType = USTP_FTDC_OPT_LimitPrice; 
@@ -70,6 +69,12 @@ class FemasFieldConverter
 			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(TUstpFtdcInstrumentIDType));
 			snprintf(new_order_.UserOrderLocalID, sizeof(TUstpFtdcUserOrderLocalIDType), 
 						"%08lld", localorderid); // 8位，左填充0，最大支持99999个信号
+			//	exchange field
+			if(new_order_.InstrumentID[0]=='s' && new_order_.InstrumentID[1]=='c'){
+				strncpy(new_order_.ExchangeID, MY_TNL_EXID_INE, sizeof(TUstpFtdcExchangeIDType));
+			}else{
+				strncpy(new_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
+			}
 
 			if (sig.sig_act == signal_act_t::buy){
 				new_order_.LimitPrice = sig.buy_price;
@@ -97,7 +102,6 @@ class FemasFieldConverter
 			memset(&cancel_order_, 0, sizeof(cancel_order_));
 
 			// 原报单交易所标识
-			strncpy(cancel_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
 			strncpy(cancel_order_.BrokerID, cfg.brokerid.c_str(), sizeof(TUstpFtdcBrokerIDType));
 			strncpy(cancel_order_.InvestorID, cfg.investorid.c_str(), sizeof(TUstpFtdcInvestorIDType));
 			strncpy(cancel_order_.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
@@ -107,8 +111,14 @@ class FemasFieldConverter
 			cancel_order_.VolumeChange = 0;
 		}
 
-		static CUstpFtdcOrderActionField*  Convert(long local_order_id,long ori_local_ord_id)
+		static CUstpFtdcOrderActionField*  Convert(const char*instrument, long local_order_id,long ori_local_ord_id)
 		{
+			if(instrument[0]=='s' && instrument[1]=='c'){
+				strncpy(cancel_order_.ExchangeID, MY_TNL_EXID_INE, sizeof(TUstpFtdcExchangeIDType));
+			}else{
+				strncpy(cancel_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
+			}
+
 			// 8位，左填充0，最大支持99999个信号
 			snprintf(cancel_order_.UserOrderActionLocalID, sizeof(cancel_order_.UserOrderActionLocalID), 
 						"%08lld", local_order_id);

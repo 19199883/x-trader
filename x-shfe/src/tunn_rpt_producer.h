@@ -14,6 +14,7 @@ using namespace std;
  * 10 power of 2
  */
 #define MY_TNL_EXID_SHFE  "SHFE"
+#define MY_TNL_EXID_INE  "INE"
 
 struct Tunnconfig
 {
