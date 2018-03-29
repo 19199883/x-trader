@@ -524,7 +524,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 				ori_local_order_id);
 	int rtn = tunn_rpt_producer_->ReqOrderAction(order);
 
-	// TODO: debug
+	// debug
 	if(0 == ori_local_order_id){
 		clog_warning("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
 			module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
