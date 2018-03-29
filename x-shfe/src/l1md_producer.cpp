@@ -127,6 +127,9 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 
 	RalaceInvalidValue_Femas(*data);
 	
+	// TODO: debug
+	ToString(*data);
+
 	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
 	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
 
