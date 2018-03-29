@@ -588,8 +588,8 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_,strategy.GetId(), sig.st_id, sig.sig_id,
 					sig.exchange, sig.symbol, sig.open_volume, sig.buy_price,
-					sig.close_volume, sigs.sell_price, sig.sig_act, 
-					sig.sig_openclose, sigs.orig_sig_id); 
+					sig.close_volume, sig.sell_price, sig.sig_act, 
+					sig.sig_openclose, sig.orig_sig_id); 
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
