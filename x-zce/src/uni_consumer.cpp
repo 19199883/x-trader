@@ -285,7 +285,7 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	clog_info("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
+	clog_debug("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
 		md->ContractID, md->TimeStamp);
 		
 #if FIND_STRATEGIES == 1 //unordered_multimap  
@@ -582,7 +582,14 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_warning("[%s] compliance checking failed:%ld", module_name_,localorderid);
+		clog_error("[%s] compliance checking failed:%ld", module_name_,localorderid);
+		 clog_error("[%s] strategy id:%d; compliance checking failed, signal: strategy id:%d; sig_id:%d; "
+					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
+					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+					module_name_,strategy.GetId(), sig.st_id, sig.sig_id,
+					sig.exchange, sig.symbol, sig.open_volume, sig.buy_price,
+					sig.close_volume, sigs.sell_price, sig.sig_act, 
+					sig.sig_openclose, sigs.orig_sig_id); 
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));

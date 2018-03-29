@@ -188,7 +188,7 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
+	clog_debug("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
 		md->ContractID, md->TimeStamp);
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();

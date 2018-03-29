@@ -319,7 +319,7 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 		}
 
 		if (!session_found){
-			clog_error("[%s] can not find localorderid by session:%u",module_name_, 
+			clog_error("[%s] can not find localorderid by session:%u,err:%u",module_name_, 
 				info->SessionID);
 			std::this_thread::sleep_for (std::chrono::milliseconds(5));
 		}
