@@ -117,21 +117,18 @@ class L1MDProducer : public CThostFtdcMdSpi
 		CThostFtdcMdApi *api_;
 		void InitMDApi();
 		
-		// TODO:
 #ifdef PERSISTENCE_ENABLED 
 		QuoteDataSave<MYShfeMarketData> *p_my_shfe_md_save_;
 		QuoteDataSave<MDBestAndDeep_MY> *p_save_best_and_deep_;
-
 #endif
 
 		/*
 		 * 与逻辑处理相关
 		 */
-		// TODO: new		
 		void RalaceInvalidValue_CTP(CThostFtdcDepthMarketDataField &d);
-    		CDepthMarketDataField Convert(const CThostFtdcDepthMarketDataField &ctp_data);
+    	CDepthMarketDataField Convert(const CThostFtdcDepthMarketDataField &ctp_data);
+		CDepthMarketDataField l1md_buffer_;
 
-		void RalaceInvalidValue_Femas(CDepthMarketDataField &d);
 		int32_t Push(const CDepthMarketDataField& md);
 		struct vrt_producer  *producer_;
 		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];

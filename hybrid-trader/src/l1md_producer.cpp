@@ -283,28 +283,52 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 {    
 	if (ended_) return;
 
-	RalaceInvalidValue_CTP(*p);
-	CDepthMarketDataField q_level1 = Convert(*p);
+	if(p->ExchangeID==THOST_FTDC_EIDT_SHFE){
+		RalaceInvalidValue_CTP(*p);
+		Convert(*p,l1md_buffer_);
+		// TODO: distinguish two types of market data
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+		ivalue->index = Push(*data);
+		ivalue->data = FULL_DEPTH_MD;
+		vrt_producer_publish(producer_);
+		// TODO:
+
+		// TODO:
+#ifdef PERSISTENCE_ENABLED 
+		timeval t;
+		gettimeofday(&t, NULL);
+		// 存起来
+		p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
+#endif		
+	}else if(p->ExchangeID==THOST_FTDC_EIDT_DCE){
+		RalaceInvalidValue_CTP(*p);
+		CDepthMarketDataField q_level1 = Convert(*p);
+
+		// TODO: distinguish two types of market data
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+		ivalue->index = Push(*data);
+		ivalue->data = BESTANDDEEP;
+		vrt_producer_publish(producer_);
+	// TODO:
+
+	// TODO:
+#ifdef PERSISTENCE_ENABLED 
+		timeval t;
+		gettimeofday(&t, NULL);
+		// 存起来
+		p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
+#endif		
+	}
 
 	// debug
 	// ToString(*data);
 	
-	// TODO: distinguish two types of market data
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	vrt_producer_claim(producer_, &vvalue);
-	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-	ivalue->index = Push(*data);
-	ivalue->data = L1_MD;
-	vrt_producer_publish(producer_);
-// TODO:
-
-// TODO:
-	timeval t;
-	gettimeofday(&t, NULL);
-	// 存起来
-	p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
-    
 }
 
 void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -349,9 +373,9 @@ void L1MDProducer::RalaceInvalidValue_CTP(CThostFtdcDepthMarketDataField &d)
 //    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
 }
 
-CDepthMarketDataField L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data)
+void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
+	CDepthMarketDataField &quote_level1)
 {
-    CDepthMarketDataField quote_level1;
     memset(&quote_level1, 0, sizeof(CDepthMarketDataField));
 
     memcpy(quote_level1.TradingDay, ctp_data.TradingDay, 9); /// char       TradingDay[9];
@@ -397,6 +421,4 @@ CDepthMarketDataField L1MDProducer::Convert(const CThostFtdcDepthMarketDataField
 //    quote_level1.AskPrice5 = ctp_data.AskPrice5;           /// double AskPrice5;
 //    quote_level1.AskVolume5 = ctp_data.AskVolume5;          /// int            AskVolume5;
         //ActionDay[9];        /// char       ActionDay[9];
-
-    return quote_level1;
 }

@@ -72,7 +72,7 @@ extern "C" {
 	 */
 
 	enum HybridData {
-		L1_MD = 0, 
+		BESTANDDEEP = 0, 
 		FULL_DEPTH_MD,
 		HybridData, 
 		PENDING_SIGNAL, 
