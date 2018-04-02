@@ -14,66 +14,7 @@
 using namespace my_cmn;
 using namespace std;
 
-MYCTPDataHandler::MYCTPDataHandler(const SubscribeContracts *subscribe_contracts, const ConfigData &cfg)
-    : cfg_(cfg), p_save_(NULL)
-{
-    if (subscribe_contracts)
-    {
-        subscribe_contracts_ = *subscribe_contracts;
-    }
 
-    // 初始化
-    logoned_ = false;
-    api_ = NULL;
-  
-    p_save_ = new QuoteDataSave<CDepthMarketDataField>(cfg_, qtm_name, "quote_level1", SHFE_EX_QUOTE_TYPE);
-    const SubsribeDatas &code_list = cfg_.Subscribe_datas();
-    const LogonConfig &logon_cfg = cfg_.Logon_config();
-
-    pp_instruments_ = NULL;
-    sub_count_ = 0;
-    
-     // TODO:解析订阅列表
-     sub_count_ = code_list.size();
-     pp_instruments_ = new char *[code_list.size()];
-     int i = 0;
-     for (const std::string &value : code_list){
-         instruments_.append(value + "|");
-          pp_instruments_[i] = new char[value.length() + 1];
-          memcpy(pp_instruments_[i], value.c_str(), value.length() + 1);
-          ++i;
-      }
-    
-    if (!instruments_.empty()){
-        instruments_.pop_back();
-    }
-
-    // 初始化
-    api_ = CThostFtdcMdApi::CreateFtdcMdApi();
-    api_->RegisterSpi(this);
-
-    // set front address
-    for (const std::string &v : logon_cfg.quote_provider_addrs){
-        char *addr_tmp = new char[v.size() + 1];
-        memcpy(addr_tmp, v.c_str(), v.size() + 1);
-        api_->RegisterFront(addr_tmp);
-        MY_LOG_INFO("CTP - RegisterFront, addr: %s", addr_tmp);
-        delete[] addr_tmp;
-    }
-
-    api_->Init();
-}
-
-MYCTPDataHandler::~MYCTPDataHandler(void)
-{    
-    if (api_){
-        api_->RegisterSpi(NULL);
-        api_->Release();
-        api_ = NULL;
-    }
-
-    if (p_save_) delete p_save_;
-}
 
 void MYCTPDataHandler::OnFrontConnected()
 {
