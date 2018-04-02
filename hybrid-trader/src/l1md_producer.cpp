@@ -353,19 +353,19 @@ void L1MDProducer::OnFrontConnected()
 }
 
 void L1MDProducer::OnFrontDisconnected(int nReason)
-{
-    logoned_ = false;
+{    
     MY_LOG_ERROR("CTP - OnFrontDisconnected, nReason: %d", nReason);    
 }
 
 void L1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
-CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     int error_code = pRspInfo ? pRspInfo->ErrorID : 0;
     MY_LOG_INFO("CTP - OnRspUserLogin, error code: %d", error_code);
 
     if (error_code == 0){
         logoned_ = true;
+	// TODO: subcribe
         api_->SubscribeMarketData(pp_instruments_, sub_count_);
         MY_LOG_INFO("CTP - SubMarketData, codelist: %s", instruments_.c_str());        
     }else{
@@ -381,10 +381,7 @@ CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 void L1MDProducer::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
     int nRequestID, bool bIsLast)
 {
-    MY_LOG_DEBUG("CTP - OnRspSubMarketData, code: %s", pSpecificInstrument->InstrumentID);
-    if (bIsLast){
-        QuoteUpdateState(qtm_name.c_str(), QtmState::API_READY);
-    }
+    MY_LOG_DEBUG("CTP - OnRspSubMarketData, code: %s", pSpecificInstrument->InstrumentID);    
 }
 
 void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
@@ -394,25 +391,19 @@ void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpec
 }
 
 void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
-{
-    try{
+{    
         timeval t;
         gettimeofday(&t, NULL);
 
         RalaceInvalidValue_CTP(*p);
         CDepthMarketDataField q_level1 = Convert(*p);
 
-        if (quote_data_handler_ && 
-		(subscribe_contracts_.empty() || subscribe_contracts_.find(p->InstrumentID) != subscribe_contracts_.end())){
-            quote_data_handler_(&q_level1);
-        }
+	// TODO:
 
+	// TODO:
         // 存起来
         p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
-    }
-    catch (...) {
-        MY_LOG_FATAL("CTP - Unknown exception in OnRtnDepthMarketData.");
-    }
+    
 }
 
 void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
