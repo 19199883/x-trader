@@ -9,16 +9,19 @@
 using namespace std::placeholders;
 using namespace std;
 
-
 L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProducer")
 {
 	// TODO:
-	p_save_ = new QuoteDataSave<CDepthMarketDataField>(cfg_, qtm_name, "quote_level1", SHFE_EX_QUOTE_TYPE);
-	// TODO:解析订阅列表
+#ifdef PERSISTENCE_ENABLED 
+    p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>("my_shfe_md", 
+		MY_SHFE_MD_QUOTE_TYPE);
+	p_save_best_and_deep_ = new QuoteDataSave<MDBestAndDeep_MY>("bestanddeepquote",
+		DCE_MDBESTANDDEEP_QUOTE_TYPE);
+#endif
 
 	l1data_cursor_ = L1MD_BUFFER_SIZE - 1;
 	ended_ = false;
-    	api_ = NULL;
+    api_ = NULL;
 	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",module_name_,L1MD_BUFFER_SIZE);
 
 	ParseConfig();
@@ -43,44 +46,11 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 
 void L1MDProducer::InitMDApi()
 {
-	// TODO: new
-    // 初始化
     api_ = CThostFtdcMdApi::CreateFtdcMdApi();
     api_->RegisterSpi(this);
-
-    // set front address
-    for (const std::string &v : logon_cfg.quote_provider_addrs){
-        char *addr_tmp = new char[v.size() + 1];
-        memcpy(addr_tmp, v.c_str(), v.size() + 1);
-        api_->RegisterFront(addr_tmp);
-        MY_LOG_INFO("CTP - RegisterFront, addr: %s", addr_tmp);
-        delete[] addr_tmp;
-    }
+	api_->RegisterFront(config_.addr.c_str());
+	MY_LOG_INFO("CTP - RegisterFront, addr: %s", config_.addr.c_str());
     api_->Init();
-
-	// TODO: old
-    	//api_ = CMdclientApi::Create(this,config_.port,config_.ip);
-	//clog_warning("CMdclientApi ip:%s, port:%d",config_.ip,config_.port);
-
-	std::ifstream is;
-	is.open (config_.contracts_file);
-	string contrs = "";
-	if (is) {
-		getline(is, contrs);
-		contrs += " ";
-		size_t start_pos = 0;
-		size_t end_pos = 0;
-		string contr = "";
-		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
-			contr = contrs.substr (start_pos, end_pos-start_pos);
-			api_->Subscribe((char*)contr.c_str());
-			clog_warning("CMdclientApi subscribe:%s",contr.c_str());
-			start_pos = end_pos + 1;
-		}
-	}else { clog_error("CMdclientApi can't open: %s",config_.contracts_file); }
-
-    int err = api_->Start();
-	clog_warning("CMdclientApi start: %d",err);
 }
 
 void L1MDProducer::ParseConfig()
@@ -121,64 +91,10 @@ L1MDProducer::~L1MDProducer()
         api_ = NULL;
     }
 
-    if (p_save_) delete p_save_;
-}
-
-void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
-{
-	if (ended_) return;
-
-	// 抛弃非主力合约
-	if(!(IsDominant(data->InstrumentID))) return;
-
-	RalaceInvalidValue_Femas(*data);
-	
-	// debug
-	// ToString(*data);
-
-	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	vrt_producer_claim(producer_, &vvalue);
-	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-	ivalue->index = Push(*data);
-	ivalue->data = L1_MD;
-	vrt_producer_publish(producer_);
-}
-
-void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
-{
-    d.Turnover = InvalidToZeroD(d.Turnover);
-    d.LastPrice = InvalidToZeroD(d.LastPrice);
-    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
-    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
-    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
-    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
-    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
-    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
-    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
-    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
-    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
-
-    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
-    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
-    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
-    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
-    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
-
-	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
-    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
-    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
-    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
-    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
-
-	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
-	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
-
-    d.PreDelta = InvalidToZeroD(d.PreDelta);
-    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
+#ifdef PERSISTENCE_ENABLED 
+    if (p_my_shfe_md_save_) delete p_my_shfe_md_save_;
+    if (p_save_best_and_deep_) delete p_save_best_and_deep_;
+#endif
 }
 
 void L1MDProducer::End()
@@ -335,9 +251,12 @@ void L1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     MY_LOG_INFO("CTP - OnRspUserLogin, error code: %d", error_code);
 
     if (error_code == 0){
-        logoned_ = true;
-	// TODO: subcribe
-        api_->SubscribeMarketData(pp_instruments_, sub_count_);
+		int count = dominant_contract_count_;
+		char *sub_contracts[60];
+		for(int i=0; i<count; i++){
+			sub_contracts[i] = dominant_contracts_[i];
+		}
+        api_->SubscribeMarketData(sub_contracts, count);
         MY_LOG_INFO("CTP - SubMarketData, codelist: %s", instruments_.c_str());        
     }else{
         std::string err_str("null");
@@ -345,7 +264,6 @@ void L1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
             err_str = pRspInfo->ErrorMsg;
         }
         MY_LOG_WARN("CTP - Logon fail, error code: %d; error info: %s", error_code, err_str.c_str());
-       
     }
 }
 
@@ -363,17 +281,29 @@ void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpec
 
 void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 {    
-        timeval t;
-        gettimeofday(&t, NULL);
+	if (ended_) return;
 
-        RalaceInvalidValue_CTP(*p);
-        CDepthMarketDataField q_level1 = Convert(*p);
+	RalaceInvalidValue_CTP(*p);
+	CDepthMarketDataField q_level1 = Convert(*p);
 
-	// TODO:
+	// debug
+	// ToString(*data);
+	
+	// TODO: distinguish two types of market data
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	vrt_producer_claim(producer_, &vvalue);
+	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+	ivalue->index = Push(*data);
+	ivalue->data = L1_MD;
+	vrt_producer_publish(producer_);
+// TODO:
 
-	// TODO:
-        // 存起来
-        p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
+// TODO:
+	timeval t;
+	gettimeofday(&t, NULL);
+	// 存起来
+	p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
     
 }
 

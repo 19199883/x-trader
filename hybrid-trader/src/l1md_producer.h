@@ -108,7 +108,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 		bool bIsLast);
 
 		// TODO: need to be modified
-		virtual void OnRtnDepthMarketData(CDepthMarketDataField *pDepthMarketData);
 		void ToString(CDepthMarketDataField &data);
 
 	private:
@@ -116,13 +115,14 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 * 与API相关
 		 */
 		CThostFtdcMdApi *api_;
-    		char ** pp_instruments_;
-    		std::string instruments_;
 		void InitMDApi();
 		
-		// save assistant object
-	    	QuoteDataSave<CDepthMarketDataField> *p_save_;
+		// TODO:
+#ifdef PERSISTENCE_ENABLED 
+		QuoteDataSave<MYShfeMarketData> *p_my_shfe_md_save_;
+		QuoteDataSave<MDBestAndDeep_MY> *p_save_best_and_deep_;
 
+#endif
 
 		/*
 		 * 与逻辑处理相关
@@ -138,12 +138,8 @@ class L1MDProducer : public CThostFtdcMdSpi
 		int32_t l1data_cursor_;
 		bool ended_;
 
-		/*
-		 * check whether the given contract is dominant.
-		 */
-		bool IsDominant(const char *contract);
 		int32_t dominant_contract_count_;
-		char dominant_contracts_[20][10];
+		char dominant_contracts_[60][10];
 
 		/*
 		 *日志相关
