@@ -25,60 +25,26 @@ MYCTPDataHandler::MYCTPDataHandler(const SubscribeContracts *subscribe_contracts
     // 初始化
     logoned_ = false;
     api_ = NULL;
-    char qtm_name_buf[64];
-    sprintf(qtm_name_buf, "ctp_level1_%lu", getpid());
-    qtm_name = qtm_name_buf;    
-
-    // get information of contracts
-    if (!MYCTPTradeInterface::securities_get_finished)
-    {
-        MYCTPTradeInterface *trade_inf = new MYCTPTradeInterface(cfg_);
-        // 等待交易接口获取到合约列表
-        while (!MYCTPTradeInterface::securities_get_finished)
-        {
-            boost::this_thread::sleep(boost::posix_time::millisec(50));
-        }
-        boost::this_thread::sleep(boost::posix_time::millisec(1));
-        delete trade_inf;
-    }
-
+  
     p_save_ = new QuoteDataSave<CDepthMarketDataField>(cfg_, qtm_name, "quote_level1", SHFE_EX_QUOTE_TYPE);
     const SubsribeDatas &code_list = cfg_.Subscribe_datas();
     const LogonConfig &logon_cfg = cfg_.Logon_config();
 
     pp_instruments_ = NULL;
     sub_count_ = 0;
-    if (code_list.empty() ||
-        (code_list.size() == 1 && *(code_list.begin()) == "All"))
-    {
-        // 订阅全部
-        sub_count_ = MYCTPTradeInterface::securities_exchcode.size();
-        pp_instruments_ = new char *[sub_count_];
-        int i = 0;
-        for (const MYSecurityCollection::value_type &value : MYCTPTradeInterface::securities_exchcode)
-        {
-            instruments_.append(value.first + "|");
-            pp_instruments_[i] = new char[value.first.length() + 1];
-            memcpy(pp_instruments_[i], value.first.c_str(), value.first.length() + 1);
-            ++i;
-        }
-    }
-    else
-    {
-        // 解析订阅列表
-        sub_count_ = code_list.size();
-        pp_instruments_ = new char *[code_list.size()];
-        int i = 0;
-        for (const std::string &value : code_list)
-        {
-            instruments_.append(value + "|");
-            pp_instruments_[i] = new char[value.length() + 1];
-            memcpy(pp_instruments_[i], value.c_str(), value.length() + 1);
-            ++i;
-        }
-    }
-    if (!instruments_.empty())
-    {
+    
+     // TODO:解析订阅列表
+     sub_count_ = code_list.size();
+     pp_instruments_ = new char *[code_list.size()];
+     int i = 0;
+     for (const std::string &value : code_list){
+         instruments_.append(value + "|");
+          pp_instruments_[i] = new char[value.length() + 1];
+          memcpy(pp_instruments_[i], value.c_str(), value.length() + 1);
+          ++i;
+      }
+    
+    if (!instruments_.empty()){
         instruments_.pop_back();
     }
 
@@ -87,8 +53,7 @@ MYCTPDataHandler::MYCTPDataHandler(const SubscribeContracts *subscribe_contracts
     api_->RegisterSpi(this);
 
     // set front address
-    for (const std::string &v : logon_cfg.quote_provider_addrs)
-    {
+    for (const std::string &v : logon_cfg.quote_provider_addrs){
         char *addr_tmp = new char[v.size() + 1];
         memcpy(addr_tmp, v.c_str(), v.size() + 1);
         api_->RegisterFront(addr_tmp);
@@ -101,15 +66,13 @@ MYCTPDataHandler::MYCTPDataHandler(const SubscribeContracts *subscribe_contracts
 
 MYCTPDataHandler::~MYCTPDataHandler(void)
 {    
-    if (api_)
-    {
+    if (api_){
         api_->RegisterSpi(NULL);
         api_->Release();
         api_ = NULL;
     }
 
-    if (p_save_)
-        delete p_save_;
+    if (p_save_) delete p_save_;
 }
 
 void MYCTPDataHandler::OnFrontConnected()
@@ -129,23 +92,19 @@ void MYCTPDataHandler::OnFrontDisconnected(int nReason)
     MY_LOG_ERROR("CTP - OnFrontDisconnected, nReason: %d", nReason);    
 }
 
-void MYCTPDataHandler::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID,
-    bool bIsLast)
+void MYCTPDataHandler::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
+CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     int error_code = pRspInfo ? pRspInfo->ErrorID : 0;
     MY_LOG_INFO("CTP - OnRspUserLogin, error code: %d", error_code);
 
-    if (error_code == 0)
-    {
+    if (error_code == 0){
         logoned_ = true;
         api_->SubscribeMarketData(pp_instruments_, sub_count_);
         MY_LOG_INFO("CTP - SubMarketData, codelist: %s", instruments_.c_str());        
-    }
-    else
-    {
+    }else{
         std::string err_str("null");
-        if (pRspInfo && pRspInfo->ErrorMsg[0] != '\0')
-        {
+        if (pRspInfo && pRspInfo->ErrorMsg[0] != '\0'){
             err_str = pRspInfo->ErrorMsg;
         }
         MY_LOG_WARN("CTP - Logon fail, error code: %d; error info: %s", error_code, err_str.c_str());
@@ -157,8 +116,7 @@ void MYCTPDataHandler::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSp
     int nRequestID, bool bIsLast)
 {
     MY_LOG_DEBUG("CTP - OnRspSubMarketData, code: %s", pSpecificInstrument->InstrumentID);
-    if (bIsLast)
-    {
+    if (bIsLast){
         QuoteUpdateState(qtm_name.c_str(), QtmState::API_READY);
     }
 }
@@ -171,25 +129,22 @@ void MYCTPDataHandler::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *p
 
 void MYCTPDataHandler::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 {
-    try
-    {
+    try{
         timeval t;
         gettimeofday(&t, NULL);
 
         RalaceInvalidValue_CTP(*p);
         CDepthMarketDataField q_level1 = Convert(*p);
 
-        if (quote_data_handler_
-            && (subscribe_contracts_.empty() || subscribe_contracts_.find(p->InstrumentID) != subscribe_contracts_.end()))
-        {
+        if (quote_data_handler_ && 
+		(subscribe_contracts_.empty() || subscribe_contracts_.find(p->InstrumentID) != subscribe_contracts_.end())){
             quote_data_handler_(&q_level1);
         }
 
         // 存起来
         p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
     }
-    catch (...)
-    {
+    catch (...) {
         MY_LOG_FATAL("CTP - Unknown exception in OnRtnDepthMarketData.");
     }
 }
@@ -197,8 +152,7 @@ void MYCTPDataHandler::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 void MYCTPDataHandler::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     int error_code = pRspInfo ? 0 : pRspInfo->ErrorID;
-    if (error_code != 0)
-    {
+    if (error_code != 0){
         MY_LOG_INFO("CTP - OnRspError, code: %d; info: %s", error_code, pRspInfo->ErrorMsg);
     }
 }

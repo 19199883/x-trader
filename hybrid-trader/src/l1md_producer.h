@@ -10,6 +10,22 @@
 #include "mdclient.h"
 #include "quote_datatype_level1.h"
 
+///////////////////
+// TODO: new
+#include <string>
+#include <sstream>
+#include <list>
+#include "ThostFtdcMdApi.h"
+
+#include <boost/function.hpp>
+
+#include "quote_interface_level1.h"
+#include "quote_datatype_level1.h"
+#include "quote_cmn_utility.h"
+#include "quote_cmn_config.h"
+#include "quote_cmn_save.h"
+////////////////////////////
+
 /*
  * 10 power of 2
  */
@@ -42,7 +58,7 @@ class L1MDProducerHelper
 			CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count);
 };
 
-class L1MDProducer : public CMdclientSpi
+class L1MDProducer : public CThostFtdcMdSpi
 {
 	public:
 		L1MDProducer(struct vrt_queue  *queue);
@@ -65,20 +81,56 @@ class L1MDProducer : public CMdclientSpi
 		/*
 		 * 与API相关
 		 */
-		virtual void OnRtnDepthMarketData(CDepthMarketDataField *pDepthMarketData);
+		// 当客户端与交易托管系统建立起通信连接，客户端需要进行登录
+    		virtual void OnFrontConnected();
 
+	    // 当客户端与交易托管系统通信连接断开时，该方法被调用
+	    virtual void OnFrontDisconnected(int nReason);
+
+	    // 当客户端发出登录请求之后，该方法会被调用，通知客户端登录是否成功
+	    virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
+		CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+	    ///订阅行情应答
+	    virtual void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
+		int nRequestID, bool bIsLast);
+
+	    ///取消订阅行情应答
+	    virtual void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
+		int nRequestID, bool bIsLast);
+
+	    // 行情应答
+	    virtual void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField
+		*pDepthMarketData);
+
+	    // 针对用户请求的出错通知
+	    virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID,
+		bool bIsLast);
+
+		// TODO: need to be modified
+		virtual void OnRtnDepthMarketData(CDepthMarketDataField *pDepthMarketData);
 		void ToString(CDepthMarketDataField &data);
 
 	private:
 		/*
 		 * 与API相关
 		 */
+		CThostFtdcMdApi *api_;
+    		char ** pp_instruments_;
+    		std::string instruments_;
 		void InitMDApi();
-		CMdclientApi *api_;
+		
+		// save assistant object
+	    	QuoteDataSave<CDepthMarketDataField> *p_save_;
+
 
 		/*
 		 * 与逻辑处理相关
 		 */
+		// TODO: new		
+		void RalaceInvalidValue_CTP(CThostFtdcDepthMarketDataField &d);
+    		CDepthMarketDataField Convert(const CThostFtdcDepthMarketDataField &ctp_data);
+
 		void RalaceInvalidValue_Femas(CDepthMarketDataField &d);
 		int32_t Push(const CDepthMarketDataField& md);
 		struct vrt_producer  *producer_;
