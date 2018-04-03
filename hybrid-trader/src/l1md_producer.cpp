@@ -379,16 +379,12 @@ void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
 {
 	// ctp_data.UpperLimitPrice
 	// ctp_data.LowerLimitPrice
-    data.Type = other.Type;                                     
-    data.Length = other.Length;                                 //报文长度
-    data.Version = other.Version;                               //版本从1开始
-    data.Time = other.Time;                                     //预留字段
-    memcpy(data.Exchange, other.Exchange, 3);                   //交易所
+    // memcpy(data.Exchange, other.Exchange, 3);                   //交易所
     memcpy(data.Contract, ctp_data.InstrumentID, 31);                  //合约代码
-    data.SuspensionSign = other.SuspensionSign;                 //停牌标志
+    // data.SuspensionSign = other.SuspensionSign;                 //停牌标志
     data.LastClearPrice = InvalidToZeroF(ctp_data.PreSettlementPrice); //昨结算价
     data.ClearPrice = InvalidToZeroF(ctp_data.SettlementPrice);         //今结算价
-    data.AvgPrice = InvalidToZeroF(other.AvgPrice);             //成交均价
+    // data.AvgPrice = InvalidToZeroF(other.AvgPrice);             //成交均价
     data.LastClose = InvalidToZeroF(ctp_data.PreClosePrice);           //昨收盘
     data.Close = InvalidToZeroF(ctp_data.ClosePrice);                   //今收盘
     data.OpenPrice = InvalidToZeroF(ctp_data.OpenPrice);           //今开盘
@@ -397,31 +393,31 @@ void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
     data.LastPrice = InvalidToZeroF(ctp_data.LastPrice);           //最新价
     data.MatchTotQty = ctp_data.Volume;                       //成交数量
     data.Turnover = InvalidToZeroD(ctp_data.Turnover);             //成交金额
-    data.RiseLimit = InvalidToZeroF(other.RiseLimit);           //最高报价
-    data.FallLimit = InvalidToZeroF(other.FallLimit);           //最低报价
+    // data.RiseLimit = InvalidToZeroF(other.RiseLimit);           //最高报价
+    // data.FallLimit = InvalidToZeroF(other.FallLimit);           //最低报价
     data.HighPrice = InvalidToZeroF(ctp_data.HighestPrice);           //最高价
     data.LowPrice = InvalidToZeroF(ctp_data.LowestPrice);             //最低价
-    data.PreDelta = InvalidToZeroF(other.PreDelta);             //昨虚实度
-    data.CurrDelta = InvalidToZeroF(other.CurrDelta);           //今虚实度
+    data.PreDelta = InvalidToZeroF(ctp_data.PreDelta);             //昨虚实度
+    data.CurrDelta = InvalidToZeroF(ctp_data.CurrDelta);           //今虚实度
     data.BuyPriceOne = InvalidToZeroF(ctp_data.BidPrice1);		//买入价格1
     data.BuyQtyOne = ctp_data.BidVolume1;                           //买入数量1
-    data.BuyImplyQtyOne = other.BuyImplyQtyOne;
+    // data.BuyImplyQtyOne = other.BuyImplyQtyOne;
     data.SellPriceOne = InvalidToZeroF(ctp_data.AskPrice1);     //卖出价格1
     data.SellQtyOne = other.ctp_data.AskVolume1;                         //买出数量1
-    data.SellImplyQtyOne = other.SellImplyQtyOne;
+    // data.SellImplyQtyOne = other.SellImplyQtyOne;
 	//行情产生时间
-	sprintf(data.GenTime,"%s.%d",ctp_data.UpdateTime,ctp_data.UpdateMillisec); // 策略需要该时间字段
-    data.LastMatchQty = other.LastMatchQty;                     //最新成交量
-    data.InterestChg = other.InterestChg;                       //持仓量变化
-    data.LifeLow = InvalidToZeroF(other.LifeLow);               //历史最低价
-    data.LifeHigh = InvalidToZeroF(other.LifeHigh);             //历史最高价
-    data.Delta = InvalidToZeroD(other.Delta);                   //delta
-    data.Gamma = InvalidToZeroD(other.Gamma);                   //gama
-    data.Rho = InvalidToZeroD(other.Rho);                       //rho
-    data.Theta = InvalidToZeroD(other.Theta);                   //theta
-    data.Vega = InvalidToZeroD(other.Vega);                     //vega
+	sprintf(data.GenTime,"%s.%03d",ctp_data.UpdateTime,ctp_data.UpdateMillisec); // 策略需要该时间字段
+    // data.LastMatchQty = other.LastMatchQty;                     //最新成交量
+    // data.InterestChg = other.InterestChg;                       //持仓量变化
+    // data.LifeLow = InvalidToZeroF(other.LifeLow);               //历史最低价
+    // data.LifeHigh = InvalidToZeroF(other.LifeHigh);             //历史最高价
+    // data.Delta = InvalidToZeroD(other.Delta);                   //delta
+    // data.Gamma = InvalidToZeroD(other.Gamma);                   //gama
+    // data.Rho = InvalidToZeroD(other.Rho);                       //rho
+    // data.Theta = InvalidToZeroD(other.Theta);                   //theta
+    // data.Vega = InvalidToZeroD(other.Vega);                     //vega
 	memcpy(data.TradeDay, ctp_data.TradingDay, 9); 
-    memcpy(data.LocalDate, other.LocalDate, 9);                 //本地日期
+    // memcpy(data.LocalDate, other.LocalDate, 9);                 //本地日期
 }
 
 void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
