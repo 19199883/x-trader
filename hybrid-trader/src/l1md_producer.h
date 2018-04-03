@@ -29,12 +29,12 @@
 /*
  * 10 power of 2
  */
-#define L1MD_BUFFER_SIZE 1000 
+#define MD_BUFFER_SIZE 1000 
 
 /*
  * 识Level行情处于未接收数居前的未知位置
  */
-#define L1MD_NPOS -1 
+#define MD_NPOS -1 
 
 using namespace std;
 
@@ -47,17 +47,6 @@ struct L1MDConfig
 	char yield[20]; // disruptor yield strategy
 };
 
-class L1MDProducerHelper
-{
-	public:
-		/*
-		 * 获取指定合约的最新行情。
-		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
-		 */
-		static CDepthMarketDataField* GetLastDataImp(const char *contract, int32_t last_index,
-			CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count);
-};
-
 class L1MDProducer : public CThostFtdcMdSpi
 {
 	public:
@@ -67,7 +56,7 @@ class L1MDProducer : public CThostFtdcMdSpi
 		/*
 		 * 与逻辑处理相关
 		 */
-		CDepthMarketDataField* GetData(int32_t index);
+		MYShfeMarketData* GetShfeData(int32_t index);
 
 		/*
 		 * contract: 要获取行情的合约
@@ -128,11 +117,13 @@ class L1MDProducer : public CThostFtdcMdSpi
 		void RalaceInvalidValue_CTP(CThostFtdcDepthMarketDataField &d);
     	CDepthMarketDataField Convert(const CThostFtdcDepthMarketDataField &ctp_data);
 		CDepthMarketDataField l1md_buffer_;
+		MYShfeMarketData target_data_;
+		MDBestAndDeep_MY dce_data_;
 
-		int32_t Push(const CDepthMarketDataField& md);
+		int32_t Push(const MYShfeMarketData& md);
 		struct vrt_producer  *producer_;
-		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
-		int32_t l1data_cursor_;
+		MYShfeMarketData shfe_md_buffer_[MD_BUFFER_SIZE];
+		int32_t shfe_data_cursor_;
 		bool ended_;
 
 		int32_t dominant_contract_count_;

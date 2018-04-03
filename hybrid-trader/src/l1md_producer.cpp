@@ -11,7 +11,10 @@ using namespace std;
 
 L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProducer")
 {
-	// TODO:
+	memset(&l1md_buffer_,0, sizeof(CDepthMarketDataField));
+	memset(&target_data_,0, sizeof(MYShfeMarketData));
+	memset(&dce_data_,0, sizeof(MDBestAndDeep_MY));
+
 #ifdef PERSISTENCE_ENABLED 
     p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>("my_shfe_md", 
 		MY_SHFE_MD_QUOTE_TYPE);
@@ -114,18 +117,18 @@ void L1MDProducer::End()
 	fflush (Log::fp);
 }
 
-int32_t L1MDProducer::Push(const CDepthMarketDataField& md){
-	l1data_cursor_++;
-	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0){
-		l1data_cursor_ = 0;
+int32_t L1MDProducer::Push(const MYShfeMarketData& md){
+	shfe_data_cursor_++;
+	if (shfe_data_cursor_ % L1MD_BUFFER_SIZE == 0){
+		shfe_data_cursor_ = 0;
 	}
-	md_buffer_[l1data_cursor_] = md;
-	return l1data_cursor_;
+	shfe_md_buffer_[shfe_data_cursor_] = md;
+	return shfe_data_cursor_;
 }
 
-CDepthMarketDataField* L1MDProducer::GetData(int32_t index)
+MYShfeMarketData* L1MDProducer::GetShfeData(int32_t index)
 {
-	return &md_buffer_[index];
+	return &shfe_md_buffer_[index];
 }
 
 bool L1MDProducer::IsDominant(const char *contract)
@@ -286,22 +289,21 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 	if(p->ExchangeID==THOST_FTDC_EIDT_SHFE){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,l1md_buffer_);
-		// TODO: distinguish two types of market data
+		memcpy(&target_data_, &l1md_buffer_, sizeof(CDepthMarketDataField));
+		target_data_.data_flag = 1;
+
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-		ivalue->index = Push(*data);
+		ivalue->index = Push(target_data_);
 		ivalue->data = FULL_DEPTH_MD;
 		vrt_producer_publish(producer_);
-		// TODO:
-
 		// TODO:
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);
-		// 存起来
-		p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
+		p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
 #endif		
 	}else if(p->ExchangeID==THOST_FTDC_EIDT_DCE){
 		RalaceInvalidValue_CTP(*p);
@@ -315,7 +317,6 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 		ivalue->index = Push(*data);
 		ivalue->data = BESTANDDEEP;
 		vrt_producer_publish(producer_);
-	// TODO:
 
 	// TODO:
 #ifdef PERSISTENCE_ENABLED 
@@ -374,10 +375,58 @@ void L1MDProducer::RalaceInvalidValue_CTP(CThostFtdcDepthMarketDataField &d)
 }
 
 void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
+	MDBestAndDeep_MY &data)
+{
+	// ctp_data.UpperLimitPrice
+	// ctp_data.LowerLimitPrice
+    data.Type = other.Type;                                     
+    data.Length = other.Length;                                 //报文长度
+    data.Version = other.Version;                               //版本从1开始
+    data.Time = other.Time;                                     //预留字段
+    memcpy(data.Exchange, other.Exchange, 3);                   //交易所
+    memcpy(data.Contract, other.Contract, 80);                  //合约代码
+    data.SuspensionSign = other.SuspensionSign;                 //停牌标志
+    data.LastClearPrice = InvalidToZeroF(ctp_data.PreSettlementPrice); //昨结算价
+    data.ClearPrice = InvalidToZeroF(ctp_data.SettlementPrice);         //今结算价
+    data.AvgPrice = InvalidToZeroF(other.AvgPrice);             //成交均价
+    data.LastClose = InvalidToZeroF(ctp_data.PreClosePrice);           //昨收盘
+    data.Close = InvalidToZeroF(ctp_data.ClosePrice);                   //今收盘
+    data.OpenPrice = InvalidToZeroF(ctp_data.OpenPrice);           //今开盘
+    data.LastOpenInterest = ctp_data.PreOpenInterest;             //昨持仓量
+    data.OpenInterest = ctp_data.OpenInterest;                     //持仓量
+    data.LastPrice = InvalidToZeroF(ctp_data.LastPrice);           //最新价
+    data.MatchTotQty = ctp_data.Volume;                       //成交数量
+    data.Turnover = InvalidToZeroD(ctp_data.Turnover);             //成交金额
+    data.RiseLimit = InvalidToZeroF(other.RiseLimit);           //最高报价
+    data.FallLimit = InvalidToZeroF(other.FallLimit);           //最低报价
+    data.HighPrice = InvalidToZeroF(ctp_data.HighestPrice);           //最高价
+    data.LowPrice = InvalidToZeroF(ctp_data.LowestPrice);             //最低价
+    data.PreDelta = InvalidToZeroF(other.PreDelta);             //昨虚实度
+    data.CurrDelta = InvalidToZeroF(other.CurrDelta);           //今虚实度
+    data.BuyPriceOne = InvalidToZeroF(other.BuyPriceOne);		//买入价格1
+    data.BuyQtyOne = other.BuyQtyOne;                           //买入数量1
+    data.BuyImplyQtyOne = other.BuyImplyQtyOne;
+    data.SellPriceOne = InvalidToZeroF(other.SellPriceOne);     //卖出价格1
+    data.SellQtyOne = other.SellQtyOne;                         //买出数量1
+    data.SellImplyQtyOne = other.SellImplyQtyOne;
+	//行情产生时间
+	sprintf(data.GenTime,"%s.%d",ctp_data.UpdateTime,ctp_data.UpdateMillisec); // 策略需要该时间字段
+    data.LastMatchQty = other.LastMatchQty;                     //最新成交量
+    data.InterestChg = other.InterestChg;                       //持仓量变化
+    data.LifeLow = InvalidToZeroF(other.LifeLow);               //历史最低价
+    data.LifeHigh = InvalidToZeroF(other.LifeHigh);             //历史最高价
+    data.Delta = InvalidToZeroD(other.Delta);                   //delta
+    data.Gamma = InvalidToZeroD(other.Gamma);                   //gama
+    data.Rho = InvalidToZeroD(other.Rho);                       //rho
+    data.Theta = InvalidToZeroD(other.Theta);                   //theta
+    data.Vega = InvalidToZeroD(other.Vega);                     //vega
+	memcpy(data.TradeDay, ctp_data.TradingDay, 9); 
+    memcpy(data.LocalDate, other.LocalDate, 9);                 //本地日期
+}
+
+void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
 	CDepthMarketDataField &quote_level1)
 {
-    memset(&quote_level1, 0, sizeof(CDepthMarketDataField));
-
     memcpy(quote_level1.TradingDay, ctp_data.TradingDay, 9); /// char       TradingDay[9];
     //SettlementGroupID[9];       /// char       SettlementGroupID[9];
     //SettlementID ;        /// int            SettlementID;
