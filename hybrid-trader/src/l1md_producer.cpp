@@ -403,11 +403,11 @@ void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
     data.LowPrice = InvalidToZeroF(ctp_data.LowestPrice);             //最低价
     data.PreDelta = InvalidToZeroF(other.PreDelta);             //昨虚实度
     data.CurrDelta = InvalidToZeroF(other.CurrDelta);           //今虚实度
-    data.BuyPriceOne = InvalidToZeroF(other.BuyPriceOne);		//买入价格1
-    data.BuyQtyOne = other.BuyQtyOne;                           //买入数量1
+    data.BuyPriceOne = InvalidToZeroF(ctp_data.BidPrice1);		//买入价格1
+    data.BuyQtyOne = ctp_data.BidVolume1;                           //买入数量1
     data.BuyImplyQtyOne = other.BuyImplyQtyOne;
-    data.SellPriceOne = InvalidToZeroF(other.SellPriceOne);     //卖出价格1
-    data.SellQtyOne = other.SellQtyOne;                         //买出数量1
+    data.SellPriceOne = InvalidToZeroF(ctp_data.AskPrice1);     //卖出价格1
+    data.SellQtyOne = other.ctp_data.AskVolume1;                         //买出数量1
     data.SellImplyQtyOne = other.SellImplyQtyOne;
 	//行情产生时间
 	sprintf(data.GenTime,"%s.%d",ctp_data.UpdateTime,ctp_data.UpdateMillisec); // 策略需要该时间字段
