@@ -384,7 +384,7 @@ void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
     data.Version = other.Version;                               //版本从1开始
     data.Time = other.Time;                                     //预留字段
     memcpy(data.Exchange, other.Exchange, 3);                   //交易所
-    memcpy(data.Contract, other.Contract, 80);                  //合约代码
+    memcpy(data.Contract, ctp_data.InstrumentID, 31);                  //合约代码
     data.SuspensionSign = other.SuspensionSign;                 //停牌标志
     data.LastClearPrice = InvalidToZeroF(ctp_data.PreSettlementPrice); //昨结算价
     data.ClearPrice = InvalidToZeroF(ctp_data.SettlementPrice);         //今结算价
