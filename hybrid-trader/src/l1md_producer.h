@@ -78,23 +78,23 @@ class L1MDProducer : public CThostFtdcMdSpi
 
 	    // 当客户端发出登录请求之后，该方法会被调用，通知客户端登录是否成功
 	    virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
-		CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 	    ///订阅行情应答
-	    virtual void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
-		int nRequestID, bool bIsLast);
+	    virtual void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, 
+			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 	    ///取消订阅行情应答
-	    virtual void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
-		int nRequestID, bool bIsLast);
+	    virtual void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
+			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 	    // 行情应答
 	    virtual void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField
-		*pDepthMarketData);
+			*pDepthMarketData);
 
 	    // 针对用户请求的出错通知
 	    virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast);
+			bool bIsLast);
 
 		// TODO: need to be modified
 		void ToString(CDepthMarketDataField &data);

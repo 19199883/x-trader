@@ -307,23 +307,19 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 #endif		
 	}else if(p->ExchangeID==THOST_FTDC_EIDT_DCE){
 		RalaceInvalidValue_CTP(*p);
-		CDepthMarketDataField q_level1 = Convert(*p);
+		Convert(*p,dce_data_);
 
-		// TODO: distinguish two types of market data
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-		ivalue->index = Push(*data);
+		ivalue->index = Push(*dce_data_);
 		ivalue->data = BESTANDDEEP;
 		vrt_producer_publish(producer_);
-
-	// TODO:
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);
-		// 存起来
-		p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
+		p_save_best_and_deep_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &dce_data_);
 #endif		
 	}
 
