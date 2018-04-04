@@ -57,6 +57,7 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 * 与逻辑处理相关
 		 */
 		MYShfeMarketData* GetShfeData(int32_t index);
+		MDBestAndDeep_MY* GetDceData(int32_t index);
 
 		/*
 		 * contract: 要获取行情的合约

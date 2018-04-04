@@ -131,6 +131,11 @@ MYShfeMarketData* L1MDProducer::GetShfeData(int32_t index)
 	return &shfe_md_buffer_[index];
 }
 
+MDBestAndDeep_MY* L1MDProducer::GetDceData(int32_t index)
+{
+	return &shfe_md_buffer_[index];
+}
+
 bool L1MDProducer::IsDominant(const char *contract)
 {
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);

@@ -223,13 +223,8 @@ void UniConsumer::Start()
 	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
 
 	running_  = true;
-
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
-
-	MYQuoteData myquotedata(fulldepth_md_producer_, l1_md_producer_);
-	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
-	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
 
 	int rc = 0;
 	struct vrt_value  *vvalue;
@@ -238,11 +233,11 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
-				case L1_MD:
-					myquotedata.ProcL1MdData(ivalue->index);
+				case BESTANDDEEP:
+					ProcDceMarketData(ivalue->index);
 					break;
 				case FULL_DEPTH_MD:
-					myquotedata.ProcFullDepthData(ivalue->index);
+					ProcShfeMarketData(ivalue->index);
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -291,8 +286,9 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
-void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
+void UniConsumer::ProcShfeMarketData(int32_t index)
 {
+	MYShfeMarketData* md = l1_md_producer_->GetShfeData(index);
 	clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
 		md->InstrumentID, md->GetQuoteTime().c_str());
 
@@ -304,55 +300,15 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-	auto range = cont_straidx_map_table_.equal_range(md->InstrumentID);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			Strategy &strategy = stra_table_[x.second];
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-			// strategy log
-			WriteStrategyLog(strategy);
-
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
-#endif
-
-#if FIND_STRATEGIES == 2 //  two-dimensional array
-	int32_t key1,key2;
-	int32_t sig_cnt = 0;
-	GetKeys(md->Contract,key1,key2);
-	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-	if (cur_node >= 0){
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] >= 0){
-				int32_t stra_idx = stra_idx_table_[cur_node][i];
-				Strategy &strategy = stra_table_[stra_idx];
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-				// strategy log
-				WriteStrategyLog(strategy);
-
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			} else { break; }
-		}
-	}
-#endif
-
 #if FIND_STRATEGIES == 3 // strcmp
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
+		// TODO: to be modified
 		if (strcmp(strategy.GetContract(), md->InstrumentID) == 0){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
 			// strategy log
 			WriteStrategyLog(strategy);
-
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
@@ -361,7 +317,41 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] ProcL2QuoteSnapshot latency:%d us", module_name_, latency); 
+		clog_warning("[%s] ProcShfeMarketData latency:%d us", module_name_, latency); 
+#endif
+}
+
+void UniConsumer::ProcDceMarketData(int32_t index)
+{
+	MDBestAndDeep_MY* md = l1_md_producer_->GetDceData(index);
+	clog_info("[test] proc [%s] [ProcDceMarketData] contract:%s, time:%s", module_name_, 
+		md->InstrumentID, md->GetQuoteTime().c_str());
+
+#ifdef LATENCY_MEASURE
+		 static int cnt = 0;
+		 perf_ctx::insert_t0(cnt);
+		 cnt++;
+#endif
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+#if FIND_STRATEGIES == 3 // strcmp
+	for(int i = 0; i < strategy_counter_; i++){ 
+		int sig_cnt = 0;
+		Strategy &strategy = stra_table_[i];
+		// TODO: to be modified
+		if (strcmp(strategy.GetContract(), md->InstrumentID) == 0){
+			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+			WriteStrategyLog(strategy);
+			ProcSigs(strategy, sig_cnt, sig_buffer_);
+		}
+	}
+#endif
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+		clog_warning("[%s] ProcDceMarketData latency:%d us", module_name_, latency); 
 #endif
 }
 

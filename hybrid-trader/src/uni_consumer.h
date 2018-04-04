@@ -17,7 +17,6 @@
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 #include "quote_interface_shfe_my.h"
-#include "fulldepthmd_producer.h"
 #include "l1md_producer.h"
 
 /*
@@ -149,7 +148,6 @@ class UniConsumer
 		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		FullDepthMDProducer *fulldepth_md_producer_;
 		L1MDProducer *l1_md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
@@ -168,18 +166,6 @@ class UniConsumer
 		std::thread *thread_log_;
 		int32_t log_write_count_;
 		FILE * pfDayLogFile_;
-				
-
-#if FIND_STRATEGIES == 1
-		// unordered_multimap  key: contract; value: indices of strategies in stra_table_
-		std::unordered_multimap<std::string, int32_t> cont_straidx_map_table_;
-#endif
-
-#if FIND_STRATEGIES == 2
-		// two-dimensional array
-		int32_t stra_idx_table_[STRA_TABLE_SIZE][STRA_TABLE_SIZE];
-		int32_t cont_straidx_map_table_[MAX_STRATEGY_KEY1][MAX_STRATEGY_KEY2];
-#endif
 
 		// key: strategy id; value: index of strategy in stra_table_
 		int32_t straid_straidx_map_table_[STRA_TABLE_SIZE];
@@ -192,7 +178,8 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcShfeMarketData(MYShfeMarketData* md);
+		void ProcShfeMarketData(int32_t index);
+		void ProcDceMarketData(int32_t index);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
