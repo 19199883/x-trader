@@ -155,10 +155,10 @@ void FullDepthMDProducer::RevData()
 		clog_warning("[%s] (server:%d) rev seq no:%d",module_name_, md->seqno%10,md->seqno);
 
 		// TODO:
-		if(IsDominant(md->instrument)){
+		//if(IsDominant(md->instrument)){
 			clog_info("[%s] FullDepthMDProducer RevData", module_name_);
 			ToString(*md);
-		}
+		//}
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;

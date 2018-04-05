@@ -57,6 +57,8 @@ void MYIneQuoteData::ProcFullDepthData(int32_t index)
 
 	repairers_[new_svr]->rev(index);
 
+	clog_info("[%s] proc sn:%d",module_name_, md->content.seqno); 
+
 	bool empty = true;
 	char cur_contract[10];
 	strcpy(cur_contract,"");
