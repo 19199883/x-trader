@@ -304,7 +304,6 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 		ivalue->index = Push(target_data_);
 		ivalue->data = FULL_DEPTH_MD;
 		vrt_producer_publish(producer_);
-		// TODO:
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);

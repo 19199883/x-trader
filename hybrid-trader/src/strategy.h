@@ -15,6 +15,7 @@
 using namespace std;
 
 #define STRATEGY_METHOD_INIT "st_init_"
+#define STRATEGY_METHOD_FEED_MD_BESTANDDEEP "st_feed_marketinfo_1_"
 #define STRATEGY_METHOD_FEED_MD_MYSHFE "st_feed_marketinfo_6_"
 #define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
@@ -78,6 +79,8 @@ public:
 	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
 	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log);
+	typedef void ( *FeedBestAndDeep_ptr)(MDBestAndDeep_MY* md, int *sig_cnt,
+				signal_t* signals, struct strat_out_log *log);	
 	typedef void ( *FeedShfeMarketData_ptr)(MYShfeMarketData* md, int *sig_cnt, 
 				signal_t* signals, struct strat_out_log *log);	
 	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, 
@@ -132,6 +135,7 @@ private:
 
 	// things relating to strategy interface
 	Init_ptr pfn_init_;
+	FeedBestAndDeep_ptr pfn_feedbestanddeep_;
 	FeedShfeMarketData_ptr pfn_feedshfemarketdata_;
 	FeedSignalResponse_ptr pfn_feedsignalresponse_;
 	Destroy_ptr pfn_destroy_;

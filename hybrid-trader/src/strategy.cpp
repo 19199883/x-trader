@@ -108,18 +108,26 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
 	}
 
+	pfn_feedbestanddeep_= (FeedBestAndDeep_ptr)pproxy_->findObject(
+					this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP);
+	if (!pfn_feedbestanddeep_){
+		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+			module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
+	}
+
+
 	pfn_feedshfemarketdata_ = (FeedShfeMarketData_ptr )pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_MYSHFE);
 	if (!pfn_feedshfemarketdata_ ){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_MYSHFE, errno);
+			module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_MYSHFE, errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
 				this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_INIT_POSITION, errno);
+			module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_INIT_POSITION, errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
@@ -190,7 +198,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
 		md->InstrumentID, md->GetQuoteTime().c_str());
-	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
+	 clog_info("[%s] FeedMd MYShfeMarketData (data_flag=%d) signal: strategy id:%d;  ",
 				module_name_, md->data_flag, GetId());				
 
 #ifdef LATENCY_MEASURE
@@ -212,7 +220,7 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 
 		sigs[i].st_id = this->GetId();
 
-		 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d; sig_id:%d; "
+		 clog_info("[%s] FeedMd MYShfeMarketData(data_flag=%d) signal: strategy id:%d; sig_id:%d; "
 					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
 					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 					module_name_, md->data_flag, sigs[i].st_id, sigs[i].sig_id,
@@ -221,13 +229,10 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 	}
 }
 
-// TODO:
 void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
+	clog_info("[test] proc MDBestAndDeep_MY [%s] [FeedMd] contract:%s, time:%s", module_name_, 
 		md->InstrumentID, md->GetQuoteTime().c_str());
-	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
-				module_name_, md->data_flag, GetId());				
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -235,7 +240,7 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 	
 	*sig_cnt = 0;
 	(log_.data()+log_cursor_)->exch_time = 0;
-	this->pfn_feedshfemarketdata_(md, sig_cnt, sigs, log_.data()+log_cursor_);
+	this->pfn_feedbestanddeep_(md, sig_cnt, sigs, log_.data()+log_cursor_);
 	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	for (int i = 0; i < *sig_cnt; i++ ){
@@ -250,7 +255,8 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 				 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
 				module_name_, md->data_flag, sigs[i].st_id, sigs[i].sig_id,
 				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose,
+				sigs[i].orig_sig_id); 
 	}
 }
 
