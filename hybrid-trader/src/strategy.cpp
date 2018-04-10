@@ -175,12 +175,14 @@ void Strategy::FeedInitPosition()
 	strategy_init_pos_t init_pos;
 
 	position_t &today_pos = init_pos._cur_pos;
+	// TODO: to be modified
 	today_pos.symbol_cnt = 2; 
 	symbol_pos_t& first = today_pos.s_pos[0];
 	symbol_pos_t& second = today_pos.s_pos[1];
 
 	strncpy(first.symbol, "#CASH", sizeof(first.symbol));
 
+	// TODO: to be modified
 	strncpy(second.symbol, this->GetContract(), sizeof(second.symbol));
 	second.long_volume = position_.cur_long;
 	second.short_volume = position_.cur_short;
@@ -290,6 +292,7 @@ const char* Strategy::GetContract()
 
 exchange_names Strategy::GetExchange()
 {
+	// TODO: to be modified
 	return this->setting_.config.symbols[0].exchange;
 }
 
@@ -310,6 +313,7 @@ long Strategy::GetLocalOrderID(int32_t sig_id)
 
 bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol)
 {
+	// TODO: to be modified
 	// 开仓限制要使用多空仓位的差值，锁仓部分不算
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		position_.frozen_open_long += updated_vol;
@@ -349,6 +353,7 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 {
 	int updated_vol = 0;
 
+	// TODO: to be modified
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_open_long==0){
 			updated_vol = GetMaxPosition() - position_.cur_long + position_.cur_short;
@@ -392,6 +397,7 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 {
 	bool result = false;
 
+	// TODO: to be modified
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_open_long==0){
 			result = false;
@@ -536,6 +542,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 
 bool Strategy::HasFrozenPosition()
 {
+	// TODO: to be modified
 	if (position_.frozen_open_long > 0 ||
 		position_.frozen_open_short > 0 || 
 		position_.frozen_close_long > 0 || 
@@ -600,6 +607,7 @@ void Strategy::UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status,
 
 void Strategy::FillPositionRpt(position_t &pos)
 {
+	// TODO: to be modified
 	pos.s_pos[0].long_volume = position_.cur_long;
 	pos.s_pos[0].short_volume = position_.cur_short;
 	pos.s_pos[0].changed = 1;
@@ -650,11 +658,13 @@ void Strategy::LoadPosition()
 {
 	pos_calc* pos_calc_ins = pos_calc::instance();
 
+	// TODO: to be modified
 	memset(&position_, 0, sizeof(position_));
 	string sett_cont = GetSymbol();
 	string stra = GetSoFile();
 	string cont = "";
 	if (pos_calc_ins->exists(stra)){
+		// TODO: boe be modified
 		pos_calc_ins->get_pos(stra, position_.cur_long, position_.cur_short, cont);
 	} else {
 		position_.cur_long = 0;
@@ -669,6 +679,7 @@ void Strategy::LoadPosition()
 
 void Strategy::SavePosition()
 {
+	// TODO: to be modified
 	char buffer[1024];
 	sprintf (buffer, "%d;%s;%s;%d;%d",GetId(), GetSoFile(),
 		GetContract(), position_.cur_long, position_.cur_short); 
