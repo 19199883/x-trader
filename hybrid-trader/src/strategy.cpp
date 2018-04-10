@@ -175,25 +175,35 @@ void Strategy::FeedInitPosition()
 	strategy_init_pos_t init_pos;
 
 	position_t &today_pos = init_pos._cur_pos;
-	// TODO: to be modified
-	today_pos.symbol_cnt = 2; 
+	// TODO: to be tested
+	today_pos.symbol_cnt = this->setting_.config.symbols_cnt+1; 
 	symbol_pos_t& first = today_pos.s_pos[0];
-	symbol_pos_t& second = today_pos.s_pos[1];
-
 	strncpy(first.symbol, "#CASH", sizeof(first.symbol));
 
+	int symbol_count = 1;
+	// TODO: to be tested
+	for(const symbol_t &symbol : this->setting_.config.symbols){
+		symbol_pos_t& second = today_pos.s_pos[symbol_count];
+		strncpy(second.symbol,symbol.name, sizeof(second.symbol));
+		second.long_volume = this->GetPosition(symbol.name).cur_long;
+		second.short_volume = this->GetPosition(symbol.name).cur_short;
+		second.exchg_code = symbol.exchange; 
+
+		this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
+		if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
+
+		clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; "
+			"exchange:%d; long:%d; short:%d",
+			module_name_, GetId(), second.symbol, second.exchg_code, 
+			second.long_volume, second.short_volume);
+
+		symbol_count++;
+	}
+}
+
+StrategyPosition* GetPosition(const string &contract)
+{
 	// TODO: to be modified
-	strncpy(second.symbol, this->GetContract(), sizeof(second.symbol));
-	second.long_volume = position_.cur_long;
-	second.short_volume = position_.cur_short;
-	second.exchg_code = this->GetExchange(); 
-
-	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
-	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
-
-	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
-				module_name_, GetId(), second.symbol, second.exchg_code, 
-				second.long_volume, second.short_volume);
 }
 
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
@@ -285,15 +295,21 @@ int32_t Strategy::GetId()
 	return id_;
 }
 
-const char* Strategy::GetContract()
+const char* Strategy::GetContracts()
 {
 	return this->setting_.config.symbols[0].name;
 }
 
-exchange_names Strategy::GetExchange()
+exchange_names Strategy::GetExchange(const string &contract)
 {
-	// TODO: to be modified
-	return this->setting_.config.symbols[0].exchange;
+	// TODO: to be tested
+	for(const symbol_t &symbol : this->setting_.config.symbols){
+		if(symbol.name==contract){
+			return symbol.exchange;
+		}
+	}
+	
+	return "";
 }
 
 int32_t Strategy::GetMaxPosition()
@@ -311,8 +327,10 @@ long Strategy::GetLocalOrderID(int32_t sig_id)
 	return sigid_localorderid_map_table_[sig_id];
 }
 
-bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol)
+bool Strategy::Freeze(const string &contract,unsigned short sig_openclose,
+	unsigned short int sig_act, int32_t updated_vol)
 {
+	// TODO: to here
 	// TODO: to be modified
 	// 开仓限制要使用多空仓位的差值，锁仓部分不算
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){

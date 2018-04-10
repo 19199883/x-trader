@@ -35,38 +35,39 @@ class pos_calc
 			is.close();
 		}
 
-		void get_pos(string &stra, int &long_pos, int &short_pos, string &cont)
+		void get_pos(const string &stra, const string contract, int &long_pos, int &short_pos, string &cont)
 		{
+			// TODO: to be tested
 			string pos_file = stra + ".pos";
 			char buf[1024];
 			std::ifstream is;
 			is.open (pos_file);
-			if (is) {
-				is.getline(buf, sizeof(buf));
-				string line = buf;
-				
-				int cur_pos = 0;
-				int next_pos = 0;
-				next_pos = line.find(';', cur_pos);
-				string stra_id = line.substr(cur_pos, next_pos-cur_pos);
-				
-				cur_pos = next_pos + 1;
-				next_pos = line.find(';', cur_pos);
-				// commented by wangying on 2017-03-23
-				// stra = line.substr(cur_pos, next_pos-cur_pos);
-				
-				cur_pos = next_pos + 1;
-				next_pos = line.find(';', cur_pos);
-				cont = line.substr(cur_pos, next_pos-cur_pos);
+			if(is){
+				while(is.getline(buf, sizeof(buf))){
+					string line = buf;
+					int cur_pos = 0;
+					int next_pos = 0;
 
-				cur_pos = next_pos + 1;
-				next_pos = line.find(';', cur_pos);
-				long_pos = stoi(line.substr(cur_pos, next_pos-cur_pos));
-
-				cur_pos = next_pos + 1;
-				short_pos = stoi(line.substr(cur_pos));
-
-			}
+					next_pos = line.find(';', cur_pos);
+					string stra_id = line.substr(cur_pos, next_pos-cur_pos);
+					
+					cur_pos = next_pos + 1;
+					next_pos = line.find(';', cur_pos);
+					stra = line.substr(cur_pos, next_pos-cur_pos);
+					
+					cur_pos = next_pos + 1;
+					next_pos = line.find(';', cur_pos);
+					cont_tmp = line.substr(cur_pos, next_pos-cur_pos);
+					if(cont_tmp==contract){
+						cur_pos = next_pos + 1;
+						next_pos = line.find(';', cur_pos);
+						long_pos = stoi(line.substr(cur_pos, next_pos-cur_pos));
+						cur_pos = next_pos + 1;
+						short_pos = stoi(line.substr(cur_pos));
+						break;
+					}
+				} // end while(is.getline(buf, sizeof(buf)))
+			} // end if(is)
 
 			is.close();
 		}

@@ -56,6 +56,8 @@ struct strat_out_log
 
 struct StrategyPosition
 {
+	// TODO: to be modified
+	char contract[10];
 	// long position
 	int32_t cur_long;
 	// short position

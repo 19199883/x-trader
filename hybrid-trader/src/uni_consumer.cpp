@@ -375,6 +375,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 #ifdef COMPLIANCE_CHECK
 	if (rpt->OrderStatus == USTP_FTDC_OS_PartTradedNotQueueing ||
 			rpt->OrderStatus == USTP_FTDC_OS_Canceled){
+		// TODO: to be modified
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
 
