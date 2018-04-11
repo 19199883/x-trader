@@ -219,6 +219,8 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		int32_t cursor = Push();
 		// LocalOrderID也只需要赋值一次
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
+		// TODO: to be tested
+		strcpy(rpt.contract, pfield->InstrumentID);
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 		// order_respond.entrust_no       = atol(entrust_no);
 		if (perror != NULL && 0 != perror->ErrorID) {
@@ -288,6 +290,8 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 	if(pfield != NULL && perror != NULL){
 		int32_t cursor = Push();
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
+		// TODO: to be tested
+		strcpy(rpt.contract, pfield->InstrumentID);
 		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
 		rpt.ErrorID = perror->ErrorID;
@@ -311,6 +315,8 @@ void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	// TODO: to be tested
+	strcpy(rpt.contract, pfield->InstrumentID);
     //order_return.entrust_no     = atol(rsp->OrderSysID);
 	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 	rpt.OrderStatus = TUNN_ORDER_STATUS_UNDEFINED;
@@ -334,6 +340,8 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	// TODO: to be tested
+	strcpy(rpt.contract, pfield->InstrumentID);
     //order_return.entrust_no     = atol(rsp->OrderSysID);
 	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
 	rpt.OrderStatus = pfield->OrderStatus;
