@@ -176,7 +176,7 @@ private:
 	CLoadLibraryProxy *pproxy_;
 	StrategySetting setting_;
 	const char *module_name_;  
-	StrategyPosition position_;
+	StrategyPosition positions_[5];
 	void LoadPosition();
 	void SavePosition();
 	/*
