@@ -149,7 +149,9 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	clog_warning("[%s] open log file:%s", module_name_,setting_.config.log_name);
 
-	LoadPosition();
+	for(StrategyPosition &position : positions_){
+		memset(&position, 0, sizeof(position));
+	}
 	
 	// TODO: to be tested
 	memset(&pos_cache_, 0, sizeof(pos_cache_));
@@ -157,6 +159,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	int count = 0;
 	for(const symbol_t &symbol : this->setting_.config.symbols){
 		strcpy(pos_cache_.s_pos[count].symbol, symbol.name);
+		strcpy(positions_[count].contract, symbol.name);
 		count++;
 	}
 	FillPositionRpt(pos_cache_);
@@ -687,29 +690,6 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_pr
 	}
 	else{
 		clog_error("[%s] unexpected status:%d", status);
-	}
-}
-
-void Strategy::LoadPosition()
-{
-	pos_calc* pos_calc_ins = pos_calc::instance();
-
-	// TODO: to be modified
-	memset(&position_, 0, sizeof(position_));
-	string sett_cont = GetSymbol();
-	string stra = GetSoFile();
-	string cont = "";
-	if (pos_calc_ins->exists(stra)){
-		// TODO: boe be modified
-		pos_calc_ins->get_pos(stra, position_.cur_long, position_.cur_short, cont);
-	} else {
-		position_.cur_long = 0;
-		position_.cur_short = 0;
-		cont = sett_cont;
-	}
-	if(sett_cont != cont){
-		clog_error("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
-			GetId(), cont.c_str(), sett_cont.c_str());
 	}
 }
 
