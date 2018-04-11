@@ -27,7 +27,7 @@ using namespace std;
 #define SIGANDRPT_TABLE_SIZE 1500
 
 // 一个x-trader最多支持100个策略
-#define MAX_STRATEGY_COUNT 100
+#define MAX_STRATEGY_COUNT 150
 
 #define MAX_LINES_FOR_LOG 20000
 
