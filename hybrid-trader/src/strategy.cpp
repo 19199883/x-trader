@@ -308,12 +308,6 @@ int32_t Strategy::GetId()
 	return id_;
 }
 
-// TODO: to be modified
-const char* Strategy::GetContracts()
-{
-	return this->setting_.config.symbols[0].name;
-}
-
 exchange_names Strategy::GetExchange(const string &contract)
 {
 	// TODO: to be tested
@@ -593,7 +587,7 @@ bool Strategy::HasFrozenPosition(const char *contract)
 void Strategy::UpdatePosition(const char *contract,int32_t lastqty, TUstpFtdcOrderStatusType status,
 			unsigned short sig_openclose, unsigned short int sig_act, TUstpFtdcErrorIDType err)
 {
-	// TODO: position management by contract
+	// TODO: position be tested
 	StrategyPosition *position = this->GetPosition(contract);
 	if (lastqty > 0){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
@@ -693,25 +687,6 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_pr
 	}
 }
 
-void Strategy::SavePosition()
-{
-	// TODO: to be modified
-	char buffer[1024];
-	sprintf (buffer, "%d;%s;%s;%d;%d",GetId(), GetSoFile(),
-		GetContract(), position_.cur_long, position_.cur_short); 
-
-	string fname = this->GetSoFile();
-	fname += ".pos";
-	std::ofstream outfile (fname);
-	outfile.write (buffer, strlen(buffer));
-	outfile.close();
-}
-
-const char * Strategy::GetSymbol()
-{
-	return setting_.config.symbols[0].name;
-}
-
 // strategy log
 FILE * Strategy::get_log_file()
 {
@@ -746,4 +721,8 @@ void Strategy::get_log(vector<strat_out_log> &log_buffer, int32_t &count)
 }
 
 
+Strategy::Subscribed(const char*contract)
+{
+	// TODO: to be modified
+}
 

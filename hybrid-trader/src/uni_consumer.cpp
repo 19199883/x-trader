@@ -208,9 +208,8 @@ void UniConsumer::CreateStrategies()
 		}
 #endif
 
-		clog_warning("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
+		clog_warning("[%s] [CreateStrategies] id:%d;  maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),
-					stra_table_[strategy_counter_].GetContract(), 
 					stra_table_[strategy_counter_].GetMaxPosition(), 
 					stra_table_[strategy_counter_].GetSoFile());
 
@@ -304,8 +303,8 @@ void UniConsumer::ProcShfeMarketData(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-		// TODO: to be modified
-		if (strcmp(strategy.GetContract(), md->InstrumentID) == 0){
+		// TODO: to be tested
+		if (strategy.Subscribed(md->InstrumentID)){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			// strategy log
 			WriteStrategyLog(strategy);
@@ -340,7 +339,7 @@ void UniConsumer::ProcDceMarketData(int32_t index)
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 		// TODO: to be modified
-		if (strcmp(strategy.GetContract(), md->InstrumentID) == 0){
+		if (strategy.Subscribed(md->InstrumentID)){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			WriteStrategyLog(strategy);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
