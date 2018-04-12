@@ -297,6 +297,10 @@ void repairer::rev(int index)
 	}
 
 	int new_sn = data->content.seqno / 10;
+	
+	// TODO: debug
+	clog_warning("[%s] server no:%d; rev seq no:%d",module_name_, server_,data->content.seqno);
+
 	if ((seq_no_!=-1) && new_sn != seq_no_+1) {
 		clog_warning("[%s] seq no from %d to %d, packet loss",module_name_, seq_no_,new_sn);
 	}
