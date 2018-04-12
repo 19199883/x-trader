@@ -151,6 +151,9 @@ void FullDepthMDProducer::RevData()
 
         MDPack *md = (MDPack *)recv_buf;
 
+		// TODO: debug
+		clog_warning("[%s] (server:%d) rev seq no:%d",module_name_, md->seqno%10,md->seqno);
+
 		// TODO:
 		if(IsDominant(md->instrument)){
 			clog_info("[%s] FullDepthMDProducer RevData", module_name_);
