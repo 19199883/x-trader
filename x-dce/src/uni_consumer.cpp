@@ -37,7 +37,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	clog_info("[%s] method for finding strategies by contract:strcmp", module_name_);
 #endif
 
-	clog_info("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
+	clog_info("[%s] MAX_STRATEGY_COUNT: %d;", module_name_, MAX_STRATEGY_COUNT);
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 
@@ -166,7 +166,7 @@ void UniConsumer::GetKeys(const char* contract, int &key1, int &key2)
 #if FIND_STRATEGIES== 2 // two-dimensional array
 int32_t UniConsumer::GetEmptyNode()
 {
-	for(int i=0; i < STRA_TABLE_SIZE; i++){
+	for(int i=0; i < MAX_STRATEGY_COUNT; i++){
 		if(stra_idx_table_[i][0] < 0) return i;
 	}
 }
@@ -199,7 +199,7 @@ void UniConsumer::CreateStrategies()
 			cur_node = GetEmptyNode();
 			cont_straidx_map_table_[key1][key2] = cur_node;
 		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
+		for(int i=0; i < MAX_STRATEGY_COUNT; i++){
 			if(stra_idx_table_[cur_node][i] < 0){
 				stra_idx_table_[cur_node][i] = strategy_counter_;
 				break;
@@ -317,7 +317,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	GetKeys(md->Contract,key1,key2);
 	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
 	if (cur_node >= 0){
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
+		for(int i=0; i < MAX_STRATEGY_COUNT; i++){
 			if(stra_idx_table_[cur_node][i] >= 0){
 				int32_t stra_idx = stra_idx_table_[cur_node][i];
 				Strategy &strategy = stra_table_[stra_idx];
@@ -390,7 +390,7 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 	GetKeys(md->ContractID,key1,key2);
 	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
 	if (cur_node >= 0){
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
+		for(int i=0; i < MAX_STRATEGY_COUNT; i++){
 			if(stra_idx_table_[cur_node][i] >= 0){
 				int32_t stra_idx = stra_idx_table_[cur_node][i];
 				Strategy &strategy = stra_table_[stra_idx];
