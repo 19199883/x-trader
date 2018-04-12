@@ -51,8 +51,6 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg)
 
 int32_t LoadDominantContracts(string file, char buffer[20][10])
 {
-	// TODO:read from two files
-	//
 	int32_t count = 0;
 
 	std::ifstream is;

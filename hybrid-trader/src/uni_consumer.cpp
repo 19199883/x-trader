@@ -338,7 +338,7 @@ void UniConsumer::ProcDceMarketData(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-		// TODO: to be modified
+		// TODO: to be tested
 		if (strategy.Subscribed(md->InstrumentID)){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			WriteStrategyLog(strategy);

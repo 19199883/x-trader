@@ -721,8 +721,15 @@ void Strategy::get_log(vector<strat_out_log> &log_buffer, int32_t &count)
 }
 
 
-Strategy::Subscribed(const char*contract)
+bool Strategy::Subscribed(const char*contract)
 {
-	// TODO: to be modified
+	bool subscribed = false;
+	for(const symbol_t &symbol : this->setting_.config.symbols){
+		if(0==strcmp(contract, symbol.name)){
+			subscribed = true;
+			break;
+		}
+	}
+	return subscribed;
 }
 
