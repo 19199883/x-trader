@@ -163,6 +163,7 @@ void FullDepthMDProducer::RevData()
 			ivalue->data = INE_FULL_DEPTH_MD;
 			vrt_producer_publish(producer_);
 		}else{
+			clog_info("[%s] no sc, sn=%d.",module_name_,md->seqno);
 			struct vrt_value  *vvalue;
 			struct vrt_hybrid_value  *ivalue;
 			vrt_producer_claim(producer_, &vvalue);
@@ -171,6 +172,8 @@ void FullDepthMDProducer::RevData()
 			ivalue->data = FULL_DEPTH_MD;
 			vrt_producer_publish(producer_);
 		}
+		// TODO:
+		//ToString(*md);
     } // while (!ended_)
 
 	clog_warning("[%s] RevData exit.",module_name_);
@@ -215,12 +218,12 @@ bool FullDepthMDProducer::IsDominant(const char *contract)
 }
 
 std::string FullDepthMDProducer::ToString(const MDPack &d) {
-	clog_debug("MDPack Data:instrument:%s;"
+	clog_info("MDPack Data:instrument:%s;"
 		"islast:%d seqno:%d direction:%c count:%d",
 		d.instrument, (int)d.islast, d.seqno,
 		d.direction, d.count);
 	for(int i = 0; i < d.count; i++) {
-		 clog_debug("price%d: %lf, volume%d: %d",
+		 clog_info("price%d: %lf, volume%d: %d",
 			 i, d.data[i].price, i, d.data[i].volume);
 	}
   

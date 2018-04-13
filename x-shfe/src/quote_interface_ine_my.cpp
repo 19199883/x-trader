@@ -188,7 +188,6 @@ void MYIneQuoteData::FillFullDepthInfo()
 	FillSellFullDepthInfo();
 }
 
-// done
 void MYIneQuoteData::Send(const char* contract)
 {
 	CDepthMarketDataField* l1_md = NULL;
@@ -226,18 +225,18 @@ void MYIneQuoteData::ProcL1MdData(int32_t index)
 	l1_md_last_index_ = index;
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 
-	clog_debug("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
+	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
 
-	memcpy(&target_data_, md, sizeof(CDepthMarketDataField));
-	target_data_.data_flag = 1;
+	//memcpy(&target_data_, md, sizeof(CDepthMarketDataField));
+	//target_data_.data_flag = 1;
 	
 	// 发给数据客户
-	if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
+	// if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
 
 #ifdef PERSISTENCE_ENABLED 
-    timeval t;
-    gettimeofday(&t, NULL);
-    p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
+    // timeval t;
+    // gettimeofday(&t, NULL);
+    // p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
 #endif
 }
 

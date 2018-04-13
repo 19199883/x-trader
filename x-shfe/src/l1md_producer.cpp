@@ -10,13 +10,13 @@ using namespace std::placeholders;
 using namespace std;
 
 CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, int32_t last_index,
-	CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count)
+	CDepthMarketDataField *buffer, int32_t buffer_size,int32_t traverse_count) 
 {
 	CDepthMarketDataField* data = NULL;
 
 	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
 	int i = 0;
-	for(; i<dominant_contract_count; i++){
+	for(; i<traverse_count; i++){
 		int data_index = last_index - i;
 		if(data_index < 0){
 			data_index = data_index + buffer_size;
@@ -43,7 +43,8 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 
 	// init dominant contracts
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
-	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+	int contract_count = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+	max_traverse_count_ = contract_count * 4;
 
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
 	InitMDApi();
@@ -208,14 +209,14 @@ CDepthMarketDataField* L1MDProducer::GetData(int32_t index)
 
 CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t last_index)
 {
-	CDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(contract, last_index, md_buffer_,
-				L1MD_BUFFER_SIZE, dominant_contract_count_);
+	CDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(
+		contract,last_index,md_buffer_,L1MD_BUFFER_SIZE,max_traverse_count_);
 	return data;
 }
 
 bool L1MDProducer::IsDominant(const char *contract)
 {
-	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
+	return IsDominantImp(contract, dominant_contracts_, MAX_CONTRACT_COUNT);
 }
 
 void L1MDProducer::ToString(CDepthMarketDataField &data)

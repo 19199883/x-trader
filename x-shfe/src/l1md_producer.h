@@ -10,6 +10,7 @@
 #include "mdclient.h"
 #include "quote_datatype_level1.h"
 
+#define MAX_CONTRACT_COUNT 20
 /*
  * 10 power of 2
  */
@@ -39,7 +40,7 @@ class L1MDProducerHelper
 		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
 		 */
 		static CDepthMarketDataField* GetLastDataImp(const char *contract, int32_t last_index,
-			CDepthMarketDataField *buffer, int32_t buffer_size, int32_t dominant_contract_count);
+			CDepthMarketDataField *buffer, int32_t buffer_size,int32_t traverse_count);
 };
 
 class L1MDProducer : public CMdclientSpi
@@ -90,8 +91,8 @@ class L1MDProducer : public CMdclientSpi
 		 * check whether the given contract is dominant.
 		 */
 		bool IsDominant(const char *contract);
-		int32_t dominant_contract_count_;
-		char dominant_contracts_[20][10];
+		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
+		int max_traverse_count_;
 
 		/*
 		 *日志相关
