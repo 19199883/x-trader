@@ -236,10 +236,16 @@ void UniConsumer::Start()
 	while (running_ &&
 		   (rc = vrt_consumer_next(consumer_, &vvalue)) != VRT_QUEUE_EOF) {
 		if (rc == 0) {
-			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
+			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, 
+					parent);
 			switch (ivalue->data){
 				case L1_MD:
 					myquotedata.ProcL1MdData(ivalue->index);
+					break;
+				// TODO: 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
+				// 解决方法：将sc与其它品种行情分成2种独立行情
+				case INE_FULL_DEPTH_MD:
+					myquotedata.ProcIneFullDepthData(ivalue->index);
 					break;
 				case FULL_DEPTH_MD:
 					myquotedata.ProcFullDepthData(ivalue->index);

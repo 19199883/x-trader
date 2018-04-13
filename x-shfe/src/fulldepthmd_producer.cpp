@@ -149,23 +149,28 @@ void FullDepthMDProducer::RevData()
             }
         }
 
-		// TODO:考虑是否只发送主力合约
         MDPack *md = (MDPack *)recv_buf;
 
 		// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
 		// 解决方法：将sc与其它品种行情分成2种独立行情
 		if(md->instrument[0]=='s' && md->instrument[1]=='c'){
-			clog_info("[%s] sc, discard, sn=%d.",module_name_,md->seqno);
-			continue;
+			clog_info("[%s] sc, sn=%d.",module_name_,md->seqno);
+			struct vrt_value  *vvalue;
+			struct vrt_hybrid_value  *ivalue;
+			vrt_producer_claim(producer_, &vvalue);
+			ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+			ivalue->index = Push(*md);
+			ivalue->data = INE_FULL_DEPTH_MD;
+			vrt_producer_publish(producer_);
+		}else{
+			struct vrt_value  *vvalue;
+			struct vrt_hybrid_value  *ivalue;
+			vrt_producer_claim(producer_, &vvalue);
+			ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+			ivalue->index = Push(*md);
+			ivalue->data = FULL_DEPTH_MD;
+			vrt_producer_publish(producer_);
 		}
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		vrt_producer_claim(producer_, &vvalue);
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(*md);
-		ivalue->data = FULL_DEPTH_MD;
-		vrt_producer_publish(producer_);
     } // while (!ended_)
 
 	clog_warning("[%s] RevData exit.",module_name_);

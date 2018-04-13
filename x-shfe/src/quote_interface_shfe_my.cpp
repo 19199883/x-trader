@@ -47,6 +47,57 @@ MYQuoteData::~MYQuoteData()
 	clog_warning("[%s] ~MYQuoteData invoked.", module_name_);
 }
 
+// TODO:to here 
+void MYQuoteData::ProcIneFullDepthData(int32_t index)
+{
+	MDPackEx* md = ine_fulldepth_md_producer_->GetData(index);
+	int new_svr = md->content.seqno % 10;
+	if (new_svr != ine_server_) {
+		clog_debug("[%s] ine server from %d to %d",module_name_, ine_server_, new_svr); 
+	}
+
+	ine_repairers_[new_svr]->rev(index);
+
+	bool empty = true;
+	char cur_contract[10];
+	strcpy(cur_contract,"");
+	char new_contract[10];
+	strcpy(new_contract,"");
+	ResetIne();
+	MDPackEx* data = ine_repairers_[new_svr]->next(empty);
+	while (!empty) { 
+		if(strcmp(cur_contract, "") == 0){ // 为空，表示第一次进入循环
+			strcpy(cur_contract,data->content.instrument);
+		}
+		strcpy(new_contract,data->content.instrument);
+
+		if(strcmp(cur_contract,new_contract) != 0){
+			FillFullDepthInfoIne();
+			SendIne(cur_contract);
+			ResetIne();
+		}
+		
+		// 别放到买卖对用缓冲，待该合约的数据都接受完后，统一处理
+		if(data->content.direction == SHFE_FTDC_D_Buy){
+			ine_buy_data_cursor_ = ine_buy_data_cursor_ + 1;
+			ine_buy_data_buffer_[ine_buy_data_cursor_] = data;
+		}else if(data->content.direction == SHFE_FTDC_D_Sell){
+			ine_sell_data_cursor_ = ine_sell_data_cursor_ + 1;
+			ine_sell_data_buffer_[ine_sell_data_cursor_] = data;
+		}
+		strcpy(cur_contract,data->content.instrument);
+
+		data = ine_repairers_[new_svr]->next(empty);
+		if(empty){ 
+			FillFullDepthInfoIne();
+			SendIne(cur_contract); 
+			ResetIne();
+		}
+	}
+
+	ine_server_ = new_svr;
+}
+
 void MYQuoteData::ProcFullDepthData(int32_t index)
 {
 	MDPackEx* md = fulldepth_md_producer_->GetData(index);
