@@ -231,6 +231,11 @@ void UniConsumer::Start()
 	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
 	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
 
+	// TODO: INE sc 
+	MYIneQuoteData myinequotedata(fulldepth_md_producer_,l1_md_producer_,myquotedata.p_my_shfe_md_save_);
+	auto f_inemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
+	myinequotedata.SetQuoteDataHandler(f_inemarketdata);
+
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
@@ -245,7 +250,7 @@ void UniConsumer::Start()
 				// TODO: 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
 				// 解决方法：将sc与其它品种行情分成2种独立行情
 				case INE_FULL_DEPTH_MD:
-					myquotedata.ProcIneFullDepthData(ivalue->index);
+					myinequotedata.ProcFullDepthData(ivalue->index);
 					break;
 				case FULL_DEPTH_MD:
 					myquotedata.ProcFullDepthData(ivalue->index);

@@ -1,5 +1,5 @@
-﻿#ifndef MY_QUOTE_INTERFACE_SHFE_MY_H_
-#define MY_QUOTE_INTERFACE_SHFE_MY_H_
+﻿#ifndef MY_QUOTE_INTERFACE_INE_MY_H_
+#define MY_QUOTE_INTERFACE_INE_MY_H_
 
 #include <sys/types.h>
 #include <sys/time.h>
@@ -21,23 +21,22 @@
 
 using namespace std;
 
-class DLL_PUBLIC MYQuoteData
+class DLL_PUBLIC MYIneQuoteData
 {
 	public:
 
-		MYQuoteData(FullDepthMDProducer *fulldepth_md_producer, L1MDProducer *l1_md_producer);
-		~MYQuoteData();
+		MYIneQuoteData(FullDepthMDProducer *fulldepth_md_producer, L1MDProducer *l1_md_producer,
+			QuoteDataSave<MYShfeMarketData> *save_obj);
+		~MYIneQuoteData();
 
 		void SetQuoteDataHandler(std::function<void(MYShfeMarketData *)> quote_handler);
 		// business logic
 		void ProcL1MdData(int32_t index);
 		void ProcFullDepthData(int32_t index);
-
-		QuoteDataSave<MYShfeMarketData> *p_my_shfe_md_save_;
 	private:
 		// 禁止拷贝和赋值
-		MYQuoteData(const MYQuoteData & other);
-		MYQuoteData operator=(const MYQuoteData & other);
+		MYIneQuoteData(const MYIneQuoteData & other);
+		MYIneQuoteData operator=(const MYIneQuoteData & other);
 
 		void Send(MYShfeMarketData *data);
 	
@@ -91,6 +90,7 @@ class DLL_PUBLIC MYQuoteData
 
 	    // 数据处理函数对象
 	    std::function<void(MYShfeMarketData *)> fulldepthmd_handler_;
+		QuoteDataSave<MYShfeMarketData> *p_my_shfe_md_save_;
 };
 
-#endif  //MY_QUOTE_INTERFACE_SHFE_MY_H_
+#endif  //MY_QUOTE_INTERFACE_INE_MY_H_

@@ -1,7 +1,7 @@
 ﻿#include <thread>         // std::thread
-#include "quote_interface_shfe_my.h"
+#include "quote_interface_ine_my.h"
 
-std::string MYQuoteData::ToString(const MYShfeMarketData &d) {
+std::string MYIneQuoteData::ToString(const MYShfeMarketData &d) {
 	clog_debug("MYShfeMarketData: instrument:%s, data_flag:%d,buy_total_volume:%d; sell_total_volume:%d; buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
 				d.InstrumentID, d.data_flag, d.buy_total_volume,d.sell_total_volume,d.buy_weighted_avg_price,d.sell_weighted_avg_price);
 
@@ -18,14 +18,14 @@ std::string MYQuoteData::ToString(const MYShfeMarketData &d) {
   return "";
 }
 
-MYQuoteData::MYQuoteData(FullDepthMDProducer *fulldepth_md_producer, L1MDProducer *l1_md_producer)
+MYIneQuoteData::MYIneQuoteData(FullDepthMDProducer *fulldepth_md_producer, L1MDProducer *l1_md_producer,QuoteDataSave<MYShfeMarketData> *save_obj)
 	: fulldepth_md_producer_(fulldepth_md_producer), l1_md_producer_(l1_md_producer),
-	module_name_("MYQuoteData"), seq_no_(0), server_(0)
+	module_name_("MYIneQuoteData"), seq_no_(0), server_(0)
 {
 	l1_md_last_index_ = L1MD_NPOS;
 
 #ifdef PERSISTENCE_ENABLED 
-    p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>("my_shfe_md", MY_SHFE_MD_QUOTE_TYPE);
+    p_my_shfe_md_save_ = save_obj;
 #endif
 
 	for (int i=0; i<10; i++){
@@ -34,7 +34,7 @@ MYQuoteData::MYQuoteData(FullDepthMDProducer *fulldepth_md_producer, L1MDProduce
 	}
 }
 
-MYQuoteData::~MYQuoteData()
+MYIneQuoteData::~MYIneQuoteData()
 {
 	for (int i=0; i<10; i++){
 		delete repairers_[i];
@@ -44,10 +44,10 @@ MYQuoteData::~MYQuoteData()
     if (p_my_shfe_md_save_) delete p_my_shfe_md_save_;
 #endif
 
-	clog_warning("[%s] ~MYQuoteData invoked.", module_name_);
+	clog_warning("[%s] ~MYIneQuoteData invoked.", module_name_);
 }
 
-void MYQuoteData::ProcFullDepthData(int32_t index)
+void MYIneQuoteData::ProcFullDepthData(int32_t index)
 {
 	MDPackEx* md = fulldepth_md_producer_->GetData(index);
 	int new_svr = md->content.seqno % 10;
@@ -97,7 +97,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 	server_ = new_svr;
 }
 
-void MYQuoteData::FillBuyFullDepthInfo()
+void MYIneQuoteData::FillBuyFullDepthInfo()
 {
     target_data_.buy_total_volume = 0;
     target_data_.buy_weighted_avg_price = 0;
@@ -138,7 +138,7 @@ void MYQuoteData::FillBuyFullDepthInfo()
 	memcpy(target_data_.buy_price, price30, sizeof(price30));
 }
 
-void MYQuoteData::FillSellFullDepthInfo()
+void MYIneQuoteData::FillSellFullDepthInfo()
 {
     target_data_.sell_total_volume = 0;
     target_data_.sell_weighted_avg_price = 0;
@@ -180,14 +180,14 @@ void MYQuoteData::FillSellFullDepthInfo()
 }
 
 // done
-void MYQuoteData::FillFullDepthInfo()
+void MYIneQuoteData::FillFullDepthInfo()
 {
 	FillBuyFullDepthInfo();
 	FillSellFullDepthInfo();
 }
 
 // done
-void MYQuoteData::Send(const char* contract)
+void MYIneQuoteData::Send(const char* contract)
 {
 	CDepthMarketDataField* l1_md = NULL;
 
@@ -213,13 +213,13 @@ void MYQuoteData::Send(const char* contract)
 #endif
 }
 
-void MYQuoteData::SetQuoteDataHandler(std::function<void(MYShfeMarketData*)> quote_handler)
+void MYIneQuoteData::SetQuoteDataHandler(std::function<void(MYShfeMarketData*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
 	fulldepthmd_handler_ = quote_handler;
 }
 
-void MYQuoteData::ProcL1MdData(int32_t index)
+void MYIneQuoteData::ProcL1MdData(int32_t index)
 {
 	l1_md_last_index_ = index;
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
@@ -239,7 +239,7 @@ void MYQuoteData::ProcL1MdData(int32_t index)
 #endif
 }
 
-void MYQuoteData::Reset()
+void MYIneQuoteData::Reset()
 {
 	memset(target_data_.buy_price, 0, sizeof(target_data_.buy_price));
 	memset(target_data_.buy_volume, 0, sizeof(target_data_.buy_volume));

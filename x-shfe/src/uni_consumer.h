@@ -17,6 +17,7 @@
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 #include "quote_interface_shfe_my.h"
+#include "quote_interface_ine_my.h"
 #include "fulldepthmd_producer.h"
 #include "l1md_producer.h"
 
