@@ -56,7 +56,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_INFO);
+	clog_set_minimum_level(CLOG_LEVEL_WARINGING);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	Log::fp = fp;
@@ -64,7 +64,7 @@ int main(/*int argc, const char **argv*/)
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-shfe_20180027_d"); 
+	clog_warning("version:x-shfe_20180416_r"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
