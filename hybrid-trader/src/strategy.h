@@ -11,6 +11,7 @@
 #include "loadlibraryproxy.h"
 #include "tunn_rpt_producer.h"
 #include "quote_datatype_shfe_my.h"
+#include "quote_datatype_dce_level2.h"
 
 using namespace std;
 
@@ -112,19 +113,25 @@ public:
 	int32_t GetMaxPosition();
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);
-	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act);
-	void PrepareForExecutingSig(long localorderid, const signal_t &sig,
+	bool Deferred(const char*contract,int sig_id, unsigned short sig_openclose,
+				unsigned short int sig_act);
+	void PrepareForExecutingSig(const char*contract,long localorderid, const signal_t &sig,
 				int32_t actual_vol);
 	void FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
-	bool HasFrozenPosition();
+	bool HasFrozenPosition(const char *contract);
 	int32_t GetCounterByLocalOrderID(long local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
 	void Push(const signal_t &sig);
-	int GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol);
+	int GetAvailableVol(const char*contract,int sig_id, unsigned short sig_openclose, 
+			unsigned short int sig_act, int32_t vol);
 	int GetVol(const signal_t &sig);
 	void End(void);
 	int32_t GetSignalIdxBySigId(long sigid);
 	int32_t GetSignalIdxByLocalOrdId(long localordid);
+
+	bool Subscribed(const char*contract);
+	StrategyPosition* GetPosition(const char *contract);
+	exchange_names GetExchange(const char *contract);
 
 	// log
 	/*
@@ -186,10 +193,11 @@ private:
 	 */
 	void UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, signal_resp_t& sigrpt, 
 			TUstpFtdcOrderStatusType &status, TUstpFtdcErrorIDType err);
-	void UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status, unsigned short sig_openclose,
+	void UpdatePosition(const char *contract,int32_t lastqty, TUstpFtdcOrderStatusType status,
+				unsigned short sig_openclose,
 			unsigned short int sig_act, TUstpFtdcErrorIDType err);
 	void FillPositionRpt(position_t& pos);
 	const char * GetSymbol();
-	bool Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol);
+	bool Freeze(const char *contract,unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol);
 };
 

@@ -1,23 +1,25 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
-DIST_DIR:=$(TOP)/x-shfe/dist
-INCPATH:=-I$(TOP)/3rd/femas_allfutures/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/femas_allfutures/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/shfe_md/lib
+DIST_DIR:=$(TOP)/hybrid-trader/dist
+INCPATH:=-I$(TOP)/3rd/femas_allfutures/include -I$(TOP)/3rd/tinyxml/include \
+		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/ctp/include \
+		 -I$(TOP)/3rd/my-tunnel/include -I$(TOP)/3rd/dce_md/include
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/femas_allfutures/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/ctp/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lUSTPtraderapiAF -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit -lclogger -lcork -lvrt \
-	  -lboost_filesystem -lmdclient -lboost_system 
+LIBS:=-lpthread -lUSTPtraderapiAF -ltinyxml -lutils -ldl -lssl -lbowsprit -lclogger -lcork -lvrt \
+	  -lboost_filesystem -lboost_system -lthostmduserapi
 DEPS:=.depends
-OUT:=x-shfe
+OUT:=hybrid-trader
 PACKAGE_NAME:=$(OUT)
 
-SUBDIR:=$(TOP)/x-shfe/src 
+SUBDIR:=$(TOP)/hybrid-trader/src 
 
 vpath %.cpp $(SUBDIR)
 
@@ -56,13 +58,13 @@ $(DEPS):$(SRCS)
 dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/x-shfe/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-shfe/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-shfe/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/hybrid-trader/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/hybrid-trader/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/hybrid-trader/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/femas_allfutures/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/shfe_md/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/shfe_md/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/ctp/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/ctp/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf /usr/local/lib/libboost_filesystem.so*  $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf /usr/local/lib/libboost_system.so*  $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libbowsprit.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/

@@ -15,6 +15,9 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	memset(&target_data_,0, sizeof(MYShfeMarketData));
 	memset(&dce_data_,0, sizeof(MDBestAndDeep_MY));
 
+	shfe_data_cursor_ = 0;
+	l1data_cursor_ = 0;
+
 #ifdef PERSISTENCE_ENABLED 
     p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>("my_shfe_md", 
 		MY_SHFE_MD_QUOTE_TYPE);
@@ -124,6 +127,15 @@ int32_t L1MDProducer::Push(const MYShfeMarketData& md){
 	}
 	shfe_md_buffer_[shfe_data_cursor_] = md;
 	return shfe_data_cursor_;
+}
+
+int32_t L1MDProducer::Push(const MDBestAndDeep_MY &md){
+	l1data_cursor_++;
+	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0){
+		l1data_cursor_ = 0;
+	}
+	l1_md_buffer_[l1data_cursor_] = md;
+	return l1data_cursor_;
 }
 
 MYShfeMarketData* L1MDProducer::GetShfeData(int32_t index)

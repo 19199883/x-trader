@@ -9,6 +9,8 @@
 #include "vrt_value_obj.h"
 #include "mdclient.h"
 #include "quote_datatype_level1.h"
+#include "quote_datatype_shfe_my.h"
+#include "quote_datatype_dce_level2.h"
 
 ///////////////////
 // TODO: new
@@ -19,17 +21,14 @@
 
 #include <boost/function.hpp>
 
-#include "quote_interface_level1.h"
-#include "quote_datatype_level1.h"
 #include "quote_cmn_utility.h"
-#include "quote_cmn_config.h"
 #include "quote_cmn_save.h"
 ////////////////////////////
 
 /*
  * 10 power of 2
  */
-#define MD_BUFFER_SIZE 1000 
+#define L1MD_BUFFER_SIZE 1000 
 
 /*
  * 识Level行情处于未接收数居前的未知位置
@@ -122,8 +121,11 @@ class L1MDProducer : public CThostFtdcMdSpi
 		MDBestAndDeep_MY dce_data_;
 
 		int32_t Push(const MYShfeMarketData& md);
+		int32_t Push(const MDBestAndDeep_MY &md){;
 		struct vrt_producer  *producer_;
+		// TODO: here
 		MYShfeMarketData shfe_md_buffer_[MD_BUFFER_SIZE];
+		int32_t l1data_cursor_;
 		int32_t shfe_data_cursor_;
 		bool ended_;
 

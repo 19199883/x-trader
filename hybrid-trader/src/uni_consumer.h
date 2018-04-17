@@ -16,8 +16,8 @@
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "compliance.h"
-#include "quote_interface_shfe_my.h"
 #include "l1md_producer.h"
+#include "my_trade_tunnel_data_type.h"
 
 /*
  * 最多支持策略数量
@@ -140,8 +140,7 @@ class FemasFieldConverter
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
-			L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer);
+		UniConsumer(struct vrt_queue *queue,L1MDProducer *l1_md_producer,TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();

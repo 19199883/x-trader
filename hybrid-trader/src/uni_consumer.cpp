@@ -3,7 +3,6 @@
 #include <chrono>        
 #include <algorithm>    
 #include "uni_consumer.h"
-#include "pos_calcu.h"
 #include "perfctx.h"
 #include <tinyxml.h>
 #include <tinystr.h>
@@ -13,10 +12,8 @@ using namespace std::placeholders;
 CUstpFtdcInputOrderField FemasFieldConverter::new_order_;
 CUstpFtdcOrderActionField FemasFieldConverter::cancel_order_;
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
-	L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer)
+UniConsumer::UniConsumer(struct vrt_queue *queue,L1MDProducer *l1_md_producer,TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
-  fulldepth_md_producer_(fulldepth_md_producer),
   l1_md_producer_(l1_md_producer),
   tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
 {
@@ -60,23 +57,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	this->pproxy_ = CLoadLibraryProxy::CreateLoadLibraryProxy();
 	this->pproxy_->setModuleLoadLibrary(new CModuleLoadLibraryLinux());
 	this->pproxy_->setBasePathLibrary(this->pproxy_->getexedir());
-
-	// pos_calc, check offline strategies
-	pos_calc *calc = pos_calc::instance();
-	list<string> stras;
-	calc->get_stras(stras);
-	for (string stra : stras){
-		bool online = false;
-		for (auto sett : strategy_settings_){  
-			if (sett.file == stra){
-				online = true;
-				break;
-			}
-		}
-		if (!online){
-			clog_error("[%s] pos_calc error: offline(%s)", module_name_, stra.c_str());
-		}
-	}
 
 	// create Stratedy objects
 	CreateStrategies();
@@ -258,7 +238,6 @@ void UniConsumer::Stop()
 {
 	if(running_){		
 		l1_md_producer_->End();
-		fulldepth_md_producer_->End();
 		tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
 		compliance_.Save();
@@ -324,7 +303,7 @@ void UniConsumer::ProcDceMarketData(int32_t index)
 {
 	MDBestAndDeep_MY* md = l1_md_producer_->GetDceData(index);
 	clog_info("[test] proc [%s] [ProcDceMarketData] contract:%s, time:%s", module_name_, 
-		md->InstrumentID, md->GetQuoteTime().c_str());
+		md->Contract, md->GetQuoteTime().c_str());
 
 #ifdef LATENCY_MEASURE
 		 static int cnt = 0;
@@ -339,7 +318,7 @@ void UniConsumer::ProcDceMarketData(int32_t index)
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 		// TODO: to be tested
-		if (strategy.Subscribed(md->InstrumentID)){
+		if (strategy.Subscribed(md->Contract)){
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			WriteStrategyLog(strategy);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
