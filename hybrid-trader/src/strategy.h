@@ -80,7 +80,8 @@ class Strategy
 public:
 	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
 	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
-	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log);
+	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log,
+		char history_log[1500]);
 	typedef void ( *FeedBestAndDeep_ptr)(MDBestAndDeep_MY* md, int *sig_cnt,
 				signal_t* signals, struct strat_out_log *log);	
 	typedef void ( *FeedShfeMarketData_ptr)(MYShfeMarketData* md, int *sig_cnt, 
@@ -96,6 +97,7 @@ public:
 
 	// things relating to strategy interface
 	void Init(StrategySetting &setting, CLoadLibraryProxy *pproxy);
+	void GetHistoryLogs(char logfiles[1500]);
 	void FeedInitPosition();
 	void FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* signals);
 	void FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* signals);

@@ -9,6 +9,15 @@
 #include <stdio.h>
 #include "strategy.h"
 #include "pos_calcu.h"
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <stdlib.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <sys/types.h>  
+#include <sys/stat.h> 
 
 using namespace std;
 using namespace std::chrono;
@@ -19,7 +28,7 @@ Strategy::Strategy()
 	valid_ = false;
 	cursor_ = 0;
 
-	pfn_init_;
+	pfn_init_ = NULL;
 	pfn_feedshfemarketdata_ = NULL;
 	pfn_feedsignalresponse_ = NULL;
 	pfn_destroy_ = NULL;
@@ -114,7 +123,6 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 			module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
 	}
 
-
 	pfn_feedshfemarketdata_ = (FeedShfeMarketData_ptr )pproxy_->findObject(
 					this->setting_.file, STRATEGY_METHOD_FEED_MD_MYSHFE);
 	if (!pfn_feedshfemarketdata_ ){
@@ -169,10 +177,41 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	int err = 0;
-	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_);
+	char logfiles[1500];
+	this->GetHistoryLogs(logfiles);
+	this->pfn_init_(&this->setting_.config, &err, log_.data()+log_cursor_,logfiles);
 	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 	this->FeedInitPosition();
+}
+
+void Strategy::GetHistoryLogs(char logfiles[1500])
+{
+	logfiles[0] = 0;
+	char *basePath = ".";
+    DIR *dir;
+    struct dirent *ptr;
+    char base[1000];
+
+    if ((dir=opendir(basePath)) == NULL){
+        perror("Open dir error...");
+        exit(1);
+    }
+
+	int cur_pos = 0;
+    while ((ptr=readdir(dir)) != NULL){
+        if(strcmp(ptr->d_name,".")==0 || strcmp(ptr->d_name,"..")==0){//current dir OR parrent dir
+            continue;
+		} else if(ptr->d_type == 8){ //file
+			strcpy(logfiles+cur_pos,ptr->d_name);
+			cur_pos += strlen(ptr->d_name)+1;
+			logfiles[cur_pos] = ';';
+			cur_pos++;
+        }
+    }
+    closedir(dir);
+
+	if(cur_pos > 0) logfiles[cur_pos-1] = 0;
 }
 
 void Strategy::FeedInitPosition()

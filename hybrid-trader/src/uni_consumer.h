@@ -69,10 +69,13 @@ class FemasFieldConverter
 			snprintf(new_order_.UserOrderLocalID, sizeof(TUstpFtdcUserOrderLocalIDType), 
 						"%08lld", localorderid); // 8位，左填充0，最大支持99999个信号
 			//	exchange field
+			if(MY_TNL_EC_SHFE==sig.exchange){
+				strncpy(new_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
+			}else if(MY_TNL_EC_DCE==sig.exchange){
+				strncpy(new_order_.ExchangeID, MY_TNL_EXID_DCE, sizeof(TUstpFtdcExchangeIDType));
+			}
 			if(new_order_.InstrumentID[0]=='s' && new_order_.InstrumentID[1]=='c'){
 				strncpy(new_order_.ExchangeID, MY_TNL_EXID_INE, sizeof(TUstpFtdcExchangeIDType));
-			}else{
-				strncpy(new_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
 			}
 
 			if (sig.sig_act == signal_act_t::buy){
