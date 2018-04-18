@@ -192,7 +192,7 @@ void Strategy::GetHistoryLogs(char logfiles[1500])
 {
 	// TODO: z创建以so名的文件夹，放该策略日志的
 	logfiles[0] = 0;
-	char basePath[20] = ".";
+	char basePath[20] = "./log";
     DIR *dir;
     struct dirent *ptr;
     char base[1000];

@@ -123,6 +123,8 @@ public:
 	 * fixed length array and specific contract number
 	 * is specified by symbols_cnt member.
 	 */
+	// TODO:
+	// symbol_t symbols[50];
 	symbol_t symbols[5];
 } ;
 
