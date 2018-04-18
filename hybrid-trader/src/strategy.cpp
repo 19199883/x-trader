@@ -355,7 +355,7 @@ exchange_names Strategy::GetExchange(const char *contract)
 {
 	// TODO: to be tested
 	for(const symbol_t &symbol : this->setting_.config.symbols){
-		if(symbol.name==contract){
+		if(strcmp(symbol.name,contract)==0){
 			return symbol.exchange;
 		}
 	}
@@ -366,7 +366,7 @@ exchange_names Strategy::GetExchange(const char *contract)
 int32_t Strategy::GetMaxPosition(const char *contract)
 {
 	for(const symbol_t &symbol : this->setting_.config.symbols){
-		if(symbol.name==contract){
+		if(strcmp(symbol.name,contract)==0){
 			return symbol.max_pos;
 		}
 	}
