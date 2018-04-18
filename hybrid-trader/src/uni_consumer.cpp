@@ -172,30 +172,6 @@ void UniConsumer::CreateStrategies()
 			clog_warning("[%s] [CreateStrategies]contract:%s; maxvol: %d;", 
 				module_name_,strategy.GetMaxPosition(symbol.name));
 		}
-
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-		// only support one contract for one strategy
-		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-		int key1 = 0;
-		int key2 = 0;
-		GetKeys(setting.config.symbols[0].name,key1,key2);
-		int32_t cur_node = -1;
-		if (cont_straidx_map_table_[key1][key2] < 0){
-			cur_node = GetEmptyNode();
-			cont_straidx_map_table_[key1][key2] = cur_node;
-		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] < 0){
-				stra_idx_table_[cur_node][i] = strategy_counter_;
-				break;
-			}
-		}
-#endif
-
-
 		strategy_counter_++;
 	}
 }

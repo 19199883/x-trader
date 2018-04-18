@@ -173,6 +173,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	}
 	FillPositionRpt(pos_cache_);
 
+	// TODO: deal with 0
 	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
@@ -189,6 +190,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 void Strategy::GetHistoryLogs(char logfiles[1500])
 {
+	// TODO: z创建以so名的文件夹，放该策略日志的
 	logfiles[0] = 0;
 	char basePath[20] = ".";
     DIR *dir;
