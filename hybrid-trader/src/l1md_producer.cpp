@@ -1,4 +1,5 @@
 #include <iostream>     // std::cout
+#include <sys/time.h>
 #include <fstream>      // std::ifstream
 #include <functional>   // std::bind
 #include <tinyxml.h>
