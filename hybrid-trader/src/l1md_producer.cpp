@@ -152,7 +152,7 @@ bool L1MDProducer::IsDominant(const char *contract)
 
 void L1MDProducer::ToString(CDepthMarketDataField &data)
 {
-	clog_warning("CDepthMarketDataField\n"
+	clog_info("CDepthMarketDataField\n"
 		"TradingDay:%s\n"
 		"SettlementGroupID:%s\n"
 		"SettlementID:%d\n"
@@ -337,7 +337,7 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 	}
 
 	// debug
-	// ToString(*data);
+	ToString(l1md_buffer_);
 	
 }
 

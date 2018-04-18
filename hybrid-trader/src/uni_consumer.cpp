@@ -166,6 +166,13 @@ void UniConsumer::CreateStrategies()
 		WriteLogTitle(log_file);
 		WriteStrategyLog(strategy);
 
+		clog_warning("[%s] [CreateStrategies] id:%d;so:%s ", 
+				module_name_, strategy.GetId(),strategy.GetSoFile());
+		for(const symbol_t &symbol : setting.config.symbols){
+			clog_warning("[%s] [CreateStrategies]contract:%s; maxvol: %d;", 
+				module_name_,strategy.GetMaxPosition(symbol.name));
+		}
+
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 		// only support one contract for one strategy
 		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
@@ -188,10 +195,6 @@ void UniConsumer::CreateStrategies()
 		}
 #endif
 
-		clog_warning("[%s] [CreateStrategies] id:%d;  maxvol: %d; so:%s ", 
-					module_name_, stra_table_[strategy_counter_].GetId(),
-					stra_table_[strategy_counter_].GetMaxPosition(), 
-					stra_table_[strategy_counter_].GetSoFile());
 
 		strategy_counter_++;
 	}

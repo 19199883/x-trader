@@ -110,7 +110,7 @@ public:
 	int32_t GetId();
 	const char* GetContract();
 	exchange_names GetExchange();
-	int32_t GetMaxPosition();
+	int32_t GetMaxPosition(const char *contract);
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);
 	bool Deferred(const char*contract,int sig_id, unsigned short sig_openclose,
@@ -141,6 +141,7 @@ public:
 	bool IsLogFull();
 	int32_t FullLineCount();
 	FILE * get_log_file();
+	StrategySetting setting_;
 private:
 	string generate_log_name(char * log_path);
 
@@ -183,7 +184,6 @@ private:
 
 
 	CLoadLibraryProxy *pproxy_;
-	StrategySetting setting_;
 	const char *module_name_;  
 	StrategyPosition positions_[5];
 	void LoadPosition();
