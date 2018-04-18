@@ -1,3 +1,11 @@
+2018-4-13
+x-shfe:
+解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
+解决方法：将sc与其它品种行情分成2种独立行情
+
+2018-3-27
+修改代码，支持原油期货(sc)
+
 2018-2-5
 x-shfe: replace bool running_ with  atomic<bool> running_
 
