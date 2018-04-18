@@ -7,14 +7,15 @@ DIST_DIR:=$(TOP)/hybrid-trader/dist
 INCPATH:=-I$(TOP)/3rd/femas_allfutures/include -I$(TOP)/3rd/tinyxml/include \
 		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/ctp/include \
 		 -I$(TOP)/3rd/my-tunnel/include -I$(TOP)/3rd/dce_md/include
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/femas_allfutures/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/ctp/lib
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/femas_allfutures/lib \
+		-L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/ctp/bin
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lUSTPtraderapiAF -ltinyxml -lutils -ldl -lssl -lbowsprit -lclogger -lcork -lvrt \
-	  -lboost_filesystem -lboost_system -lthostmduserapi
+LIBS:=-lpthread -lUSTPtraderapiAF -ltinyxml -lutils -ldl -lbowsprit \
+	  -lclogger -lcork -lvrt -lboost_filesystem -lboost_system -lthostmduserapi
 DEPS:=.depends
 OUT:=hybrid-trader
 PACKAGE_NAME:=$(OUT)

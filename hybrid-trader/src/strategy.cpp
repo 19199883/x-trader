@@ -50,8 +50,6 @@ Strategy::Strategy()
 
 void Strategy::End(void)
 {
-	if (valid_) SavePosition();
-
 	fclose(pfDayLogFile_);
 	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
 
@@ -74,7 +72,6 @@ string Strategy::generate_log_name(char* log_path)
  {
 	string log_full_path = "";
 
-	// parse model name
 	string model_name = "";
 	unsigned found = this->setting_.file.find_last_of("/");
 	if(found==string::npos){ model_name = this->setting_.file; }

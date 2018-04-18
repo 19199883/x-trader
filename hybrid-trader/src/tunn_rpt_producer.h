@@ -32,7 +32,7 @@ struct Tunnconfig
 struct TunnRpt
 {
 	// TODO: to be tested
-	char contract[10];
+	char								contract[10];
 	int									LocalOrderID;                 ///< 本地委托号
 	TUstpFtdcOrderStatusType			OrderStatus;                  ///< 委托状态
 	TUstpFtdcVolumeType					MatchedAmount;                ///< 成交数量

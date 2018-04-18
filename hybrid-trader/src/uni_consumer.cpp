@@ -2,10 +2,10 @@
 #include <functional>   // std::bind
 #include <chrono>        
 #include <algorithm>    
-#include "uni_consumer.h"
-#include "perfctx.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "perfctx.h"
+#include "uni_consumer.h"
 
 using namespace std::placeholders; 
 
@@ -380,7 +380,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 			break;
 		}else if(sig_id != INVALID_PENDING_SIGNAL){
 			signal_t *sig = strategy.GetSignalBySigID(sig_id);
-			if(!strategy.Deferred(sig->sig_id, sig->sig_openclose, sig->sig_act)){
+			if(!strategy.Deferred(sig->symbol,sig->sig_id, sig->sig_openclose, sig->sig_act)){
 				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				PlaceOrder(strategy, *sig);
 				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
@@ -413,7 +413,7 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 		}else{
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
-			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
+			if(strategy.Deferred(sig.symbol,sig.sig_id, sig.sig_openclose, sig.sig_act)){
 				// : improve place, cancel
 				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
 					int32_t sig_id = pending_signals_[sig.st_id][i];
@@ -482,7 +482,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
 
-	if (!strategy.HasFrozenPosition()){
+	if (!strategy.HasFrozenPosition(sig.symbol)){
 		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}
@@ -524,9 +524,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
-	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol);
+	int32_t updated_vol = strategy.GetAvailableVol(sig.symbol,sig.sig_id,
+			sig.sig_openclose, sig.sig_act, vol);
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
-	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
+	strategy.PrepareForExecutingSig(sig.symbol,localorderid, sig, updated_vol);
 
 	// vol:0, rejected
 	// improve place, cancel

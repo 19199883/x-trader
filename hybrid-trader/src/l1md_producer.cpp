@@ -1,22 +1,25 @@
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
 #include <functional>   // std::bind
-#include "l1md_producer.h"
-#include "quote_cmn_utility.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "l1md_producer.h"
+#include "quote_cmn_utility.h"
+#include "my_trade_tunnel_data_type.h"
 
-using namespace std::placeholders;
 using namespace std;
+using namespace std::placeholders;
 
 L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProducer")
 {
 	memset(&l1md_buffer_,0, sizeof(CDepthMarketDataField));
 	memset(&target_data_,0, sizeof(MYShfeMarketData));
 	memset(&dce_data_,0, sizeof(MDBestAndDeep_MY));
+	memset(&shfe_md_buffer_, 0, sizeof(shfe_md_buffer_));
+	memset(&dce_md_buffer_, 0, sizeof(dce_md_buffer_));
 
 	shfe_data_cursor_ = 0;
-	l1data_cursor_ = 0;
+	dce_data_cursor_ = 0;
 
 #ifdef PERSISTENCE_ENABLED 
     p_my_shfe_md_save_ = new QuoteDataSave<MYShfeMarketData>("my_shfe_md", 
@@ -25,7 +28,6 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 		DCE_MDBESTANDDEEP_QUOTE_TYPE);
 #endif
 
-	l1data_cursor_ = L1MD_BUFFER_SIZE - 1;
 	ended_ = false;
     api_ = NULL;
 	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",module_name_,L1MD_BUFFER_SIZE);
@@ -36,7 +38,6 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
 	dominant_contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
 
-	memset(&md_buffer_, 0, sizeof(md_buffer_));
 	InitMDApi();
 
 	this->producer_ = vrt_producer_new("l1md_producer", 1, queue);
@@ -52,10 +53,12 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 
 void L1MDProducer::InitMDApi()
 {
+	char addr[30];
+	strcpy(addr,config_.addr.c_str());
     api_ = CThostFtdcMdApi::CreateFtdcMdApi();
     api_->RegisterSpi(this);
-	api_->RegisterFront(config_.addr.c_str());
-	MY_LOG_INFO("CTP - RegisterFront, addr: %s", config_.addr.c_str());
+	api_->RegisterFront(addr);
+	clog_warning("[%s] CTP-RegisterFront,addr:%s", module_name_,module_name_,addr);
     api_->Init();
 }
 
@@ -91,12 +94,6 @@ void L1MDProducer::ParseConfig()
 
 L1MDProducer::~L1MDProducer()
 {
-    if (api_){
-        api_->RegisterSpi(NULL);
-        api_->Release();
-        api_ = NULL;
-    }
-
 #ifdef PERSISTENCE_ENABLED 
     if (p_my_shfe_md_save_) delete p_my_shfe_md_save_;
     if (p_save_best_and_deep_) delete p_save_best_and_deep_;
@@ -109,8 +106,8 @@ void L1MDProducer::End()
 		ended_ = true;
 
 		if (api_) {
-			int err = api_->Stop();
-			clog_warning("CMdclientApi stop: %d",err);
+			api_->RegisterSpi(NULL);
+			api_->Release();
 			api_ = NULL;
 		}
 
@@ -130,12 +127,12 @@ int32_t L1MDProducer::Push(const MYShfeMarketData& md){
 }
 
 int32_t L1MDProducer::Push(const MDBestAndDeep_MY &md){
-	l1data_cursor_++;
-	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0){
-		l1data_cursor_ = 0;
+	dce_data_cursor_++;
+	if (dce_data_cursor_ % L1MD_BUFFER_SIZE == 0){
+		dce_data_cursor_ = 0;
 	}
-	l1_md_buffer_[l1data_cursor_] = md;
-	return l1data_cursor_;
+	dce_md_buffer_[dce_data_cursor_] = md;
+	return dce_data_cursor_;
 }
 
 MYShfeMarketData* L1MDProducer::GetShfeData(int32_t index)
@@ -250,60 +247,60 @@ void L1MDProducer::ToString(CDepthMarketDataField &data)
 //////////////////////////
 void L1MDProducer::OnFrontConnected()
 {
-    MY_LOG_INFO("shfe_ex(CTP): OnFrontConnected");
+	clog_warning("[%s] shfe_ex(CTP): OnFrontConnected",module_name_);
 
     CThostFtdcReqUserLoginField req_login;
     memset(&req_login, 0, sizeof(CThostFtdcReqUserLoginField));
     api_->ReqUserLogin(&req_login, 0);
 
-    MY_LOG_INFO("CTP - request logon");
+	clog_warning("[%s] CTP - request logon",module_name_);
 }
 
 void L1MDProducer::OnFrontDisconnected(int nReason)
 {    
-    MY_LOG_ERROR("CTP - OnFrontDisconnected, nReason: %d", nReason);    
+	clog_warning("[%s] CTP - OnFrontDisconnected, nReason: %d",module_name_,nReason);
 }
 
 void L1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     int error_code = pRspInfo ? pRspInfo->ErrorID : 0;
-    MY_LOG_INFO("CTP - OnRspUserLogin, error code: %d", error_code);
+	clog_warning("[%s] CTP - OnRspUserLogin, error code: %d",module_name_,error_code);
 
     if (error_code == 0){
 		int count = dominant_contract_count_;
-		char *sub_contracts[60];
+		char *sub_contracts[600];
 		for(int i=0; i<count; i++){
 			sub_contracts[i] = dominant_contracts_[i];
+			clog_warning("[%s] CTP - SubMarketData, codelist: %s",module_name_,sub_contracts[i]);
 		}
         api_->SubscribeMarketData(sub_contracts, count);
-        MY_LOG_INFO("CTP - SubMarketData, codelist: %s", instruments_.c_str());        
     }else{
         std::string err_str("null");
         if (pRspInfo && pRspInfo->ErrorMsg[0] != '\0'){
             err_str = pRspInfo->ErrorMsg;
         }
-        MY_LOG_WARN("CTP - Logon fail, error code: %d; error info: %s", error_code, err_str.c_str());
+		clog_warning("[%s] CTP - Logon fail, error code: %d; error info: %s",module_name_,err_str.c_str());
     }
 }
 
 void L1MDProducer::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
     int nRequestID, bool bIsLast)
 {
-    MY_LOG_DEBUG("CTP - OnRspSubMarketData, code: %s", pSpecificInstrument->InstrumentID);    
+	clog_warning("[%s] CTP - OnRspSubMarketData, code: %s",module_name_,pSpecificInstrument->InstrumentID);
 }
 
 void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    MY_LOG_DEBUG("CTP - OnRspUnSubMarketData, code: %s", pSpecificInstrument->InstrumentID);
+	clog_warning("[%s] CTP - OnRspUnSubMarketData, code: %s",module_name_,pSpecificInstrument->InstrumentID);
 }
 
 void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 {    
 	if (ended_) return;
 
-	if(p->ExchangeID==THOST_FTDC_EIDT_SHFE){
+	if(strcmp(p->ExchangeID,MY_TNL_EXID_SHFE)==0){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,l1md_buffer_);
 		memcpy(&target_data_, &l1md_buffer_, sizeof(CDepthMarketDataField));
@@ -321,7 +318,7 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 		gettimeofday(&t, NULL);
 		p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
 #endif		
-	}else if(p->ExchangeID==THOST_FTDC_EIDT_DCE){
+	}else if(strcmp(p->ExchangeID,MY_TNL_EXID_DCE)==0){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,dce_data_);
 
@@ -329,7 +326,7 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-		ivalue->index = Push(*dce_data_);
+		ivalue->index = Push(dce_data_);
 		ivalue->data = BESTANDDEEP;
 		vrt_producer_publish(producer_);
 #ifdef PERSISTENCE_ENABLED 
@@ -348,7 +345,8 @@ void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, 
 {
     int error_code = pRspInfo ? 0 : pRspInfo->ErrorID;
     if (error_code != 0){
-        MY_LOG_INFO("CTP - OnRspError, code: %d; info: %s", error_code, pRspInfo->ErrorMsg);
+		clog_error("[%s] CTP - OnRspError, code: %d; info: %s",module_name_,
+			error_code, pRspInfo->ErrorMsg);
     }
 }
 
@@ -415,7 +413,7 @@ void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
     data.BuyQtyOne = ctp_data.BidVolume1;                           //买入数量1
     // data.BuyImplyQtyOne = other.BuyImplyQtyOne;
     data.SellPriceOne = InvalidToZeroF(ctp_data.AskPrice1);     //卖出价格1
-    data.SellQtyOne = other.ctp_data.AskVolume1;                         //买出数量1
+    data.SellQtyOne = ctp_data.AskVolume1;                         //买出数量1
     // data.SellImplyQtyOne = other.SellImplyQtyOne;
 	//行情产生时间
 	sprintf(data.GenTime,"%s.%03d",ctp_data.UpdateTime,ctp_data.UpdateMillisec); // 策略需要该时间字段
@@ -428,7 +426,7 @@ void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
     // data.Rho = InvalidToZeroD(other.Rho);                       //rho
     // data.Theta = InvalidToZeroD(other.Theta);                   //theta
     // data.Vega = InvalidToZeroD(other.Vega);                     //vega
-	memcpy(data.TradeDay, ctp_data.TradingDay, 9); 
+	memcpy(data.TradeDate, ctp_data.TradingDay, 9); 
     // memcpy(data.LocalDate, other.LocalDate, 9);                 //本地日期
 }
 

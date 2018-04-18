@@ -10,13 +10,15 @@
 #include <unordered_map>
 #include "vrt_value_obj.h"
 #include "strategy.h"
-#include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 #include "l1md_producer.h"
+#include "tunn_rpt_producer.h"
+#include "USTPFtdcUserApiDataType.h"
+#include "USTPFtdcUserApiStruct.h"
 #include "my_trade_tunnel_data_type.h"
 
 /*
@@ -113,7 +115,8 @@ class FemasFieldConverter
 			cancel_order_.VolumeChange = 0;
 		}
 
-		static CUstpFtdcOrderActionField*  Convert(const char*instrument, long local_order_id,long ori_local_ord_id)
+		static CUstpFtdcOrderActionField*  Convert(const char*instrument, long local_order_id,
+					long ori_local_ord_id)
 		{
 			if(instrument[0]=='s' && instrument[1]=='c'){
 				strncpy(cancel_order_.ExchangeID, MY_TNL_EXID_INE, sizeof(TUstpFtdcExchangeIDType));
@@ -122,8 +125,8 @@ class FemasFieldConverter
 			}
 
 			// 8位，左填充0，最大支持99999个信号
-			snprintf(cancel_order_.UserOrderActionLocalID, sizeof(cancel_order_.UserOrderActionLocalID), 
-						"%08lld", local_order_id);
+			snprintf(cancel_order_.UserOrderActionLocalID, 
+				sizeof(cancel_order_.UserOrderActionLocalID),"%08lld", local_order_id);
 			// wangying 8位，左填充0，最大支持99999个信号
 			snprintf(cancel_order_.UserOrderLocalID, sizeof(cancel_order_.UserOrderLocalID), 
 						"%08lld", ori_local_ord_id);

@@ -7,20 +7,16 @@
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
-#include "mdclient.h"
 #include "quote_datatype_level1.h"
 #include "quote_datatype_shfe_my.h"
 #include "quote_datatype_dce_level2.h"
 
 ///////////////////
 // TODO: new
-#include <string>
 #include <sstream>
 #include <list>
 #include "ThostFtdcMdApi.h"
-
 #include <boost/function.hpp>
-
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
 ////////////////////////////
@@ -98,6 +94,7 @@ class L1MDProducer : public CThostFtdcMdSpi
 
 		// TODO: need to be modified
 		void ToString(CDepthMarketDataField &data);
+		bool IsDominant(const char *contract);
 
 	private:
 		/*
@@ -115,18 +112,20 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 * 与逻辑处理相关
 		 */
 		void RalaceInvalidValue_CTP(CThostFtdcDepthMarketDataField &d);
-    	CDepthMarketDataField Convert(const CThostFtdcDepthMarketDataField &ctp_data);
+    	void Convert(const CThostFtdcDepthMarketDataField &ctp_data,CDepthMarketDataField &l1_data);
+		void Convert(const CThostFtdcDepthMarketDataField &ctp_data,MDBestAndDeep_MY &data);
 		CDepthMarketDataField l1md_buffer_;
 		MYShfeMarketData target_data_;
 		MDBestAndDeep_MY dce_data_;
 
 		int32_t Push(const MYShfeMarketData& md);
-		int32_t Push(const MDBestAndDeep_MY &md){;
+		int32_t Push(const MDBestAndDeep_MY &md);
 		struct vrt_producer  *producer_;
 		// TODO: here
-		MYShfeMarketData shfe_md_buffer_[MD_BUFFER_SIZE];
-		int32_t l1data_cursor_;
+		MYShfeMarketData shfe_md_buffer_[L1MD_BUFFER_SIZE];
 		int32_t shfe_data_cursor_;
+		MDBestAndDeep_MY dce_md_buffer_[L1MD_BUFFER_SIZE];
+		int32_t dce_data_cursor_;
 		bool ended_;
 
 		int32_t dominant_contract_count_;
