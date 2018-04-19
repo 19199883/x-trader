@@ -115,7 +115,7 @@ class L1MDProducer : public CThostFtdcMdSpi
     	void Convert(const CThostFtdcDepthMarketDataField &ctp_data,CDepthMarketDataField &l1_data);
 		void Convert(const CThostFtdcDepthMarketDataField &ctp_data,MDBestAndDeep_MY &data);
 		CDepthMarketDataField l1md_buffer_;
-		MYShfeMarketData target_data_;
+		MYShfeMarketData shfe_data_;
 		MDBestAndDeep_MY dce_data_;
 
 		int32_t Push(const MYShfeMarketData& md);

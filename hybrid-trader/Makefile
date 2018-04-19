@@ -14,7 +14,7 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lUSTPtraderapiAF -ltinyxml -lutils -ldl -lbowsprit \
+LIBS:=-lpthread -ltinyxml -lutils -ldl -lbowsprit -lUSTPtraderapiAF \
 	  -lclogger -lcork -lvrt -lboost_filesystem -lboost_system -lthostmduserapi
 DEPS:=.depends
 OUT:=hybrid-trader

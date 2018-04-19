@@ -14,7 +14,7 @@ using namespace std::placeholders;
 L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProducer")
 {
 	memset(&l1md_buffer_,0, sizeof(CDepthMarketDataField));
-	memset(&target_data_,0, sizeof(MYShfeMarketData));
+	memset(&shfe_data_,0, sizeof(MYShfeMarketData));
 	memset(&dce_data_,0, sizeof(MDBestAndDeep_MY));
 	memset(&shfe_md_buffer_, 0, sizeof(shfe_md_buffer_));
 	memset(&dce_md_buffer_, 0, sizeof(dce_md_buffer_));
@@ -59,7 +59,7 @@ void L1MDProducer::InitMDApi()
     api_ = CThostFtdcMdApi::CreateFtdcMdApi();
     api_->RegisterSpi(this);
 	api_->RegisterFront(addr);
-	clog_warning("[%s] CTP-RegisterFront,addr:%s", module_name_,module_name_,addr);
+	clog_warning("[%s] CTP-RegisterFront,addr:%s",module_name_,addr);
     api_->Init();
 }
 
@@ -281,7 +281,7 @@ void L1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         if (pRspInfo && pRspInfo->ErrorMsg[0] != '\0'){
             err_str = pRspInfo->ErrorMsg;
         }
-		clog_warning("[%s] CTP - Logon fail, error code: %d; error info: %s",module_name_,err_str.c_str());
+		clog_warning("[%s] CTP - Logon fail, error:%s;",module_name_,err_str.c_str());
     }
 }
 
@@ -304,20 +304,20 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 	if(strcmp(p->ExchangeID,MY_TNL_EXID_SHFE)==0){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,l1md_buffer_);
-		memcpy(&target_data_, &l1md_buffer_, sizeof(CDepthMarketDataField));
-		target_data_.data_flag = 1;
+		memcpy(&shfe_data_, &l1md_buffer_, sizeof(CDepthMarketDataField));
+		shfe_data_.data_flag = 1;
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-		ivalue->index = Push(target_data_);
+		ivalue->index = Push(shfe_data_);
 		ivalue->data = FULL_DEPTH_MD;
 		vrt_producer_publish(producer_);
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);
-		p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
+		p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &shfe_data_);
 #endif		
 	}else if(strcmp(p->ExchangeID,MY_TNL_EXID_DCE)==0){
 		RalaceInvalidValue_CTP(*p);

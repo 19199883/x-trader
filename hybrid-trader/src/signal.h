@@ -123,7 +123,7 @@ public:
 	 * fixed length array and specific contract number
 	 * is specified by symbols_cnt member.
 	 */
-	// TODO:
+	// TODO: to be modified
 	// symbol_t symbols[50];
 	symbol_t symbols[5];
 } ;
@@ -170,6 +170,7 @@ public:
 	 * fixed length: 10000];.
 	 * specific element number is given by symbol_cnt member.
 	 */
+	// TODO: to be modified
 	symbol_pos_t s_pos[10];
 } ;
 

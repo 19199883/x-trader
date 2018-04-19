@@ -170,7 +170,7 @@ void UniConsumer::CreateStrategies()
 				module_name_, strategy.GetId(),strategy.GetSoFile());
 		for(const symbol_t &symbol : setting.config.symbols){
 			clog_warning("[%s] [CreateStrategies]contract:%s; maxvol: %d;", 
-				module_name_,strategy.GetMaxPosition(symbol.name));
+				module_name_,symbol.name,strategy.GetMaxPosition(symbol.name));
 		}
 		strategy_counter_++;
 	}

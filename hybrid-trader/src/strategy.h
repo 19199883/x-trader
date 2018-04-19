@@ -22,6 +22,8 @@ using namespace std;
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_init_position_"
 
+// 一个策略支持的最大合约数
+#define MAX_CONTRACT_COUNT 50
 // 假设一个策略最多产生3000个信号
 #define SIGANDRPT_TABLE_SIZE 1000
 
@@ -185,7 +187,7 @@ private:
 
 	CLoadLibraryProxy *pproxy_;
 	const char *module_name_;  
-	StrategyPosition positions_[5];
+	StrategyPosition positions_[MAX_CONTRACT_COUNT];
 	void LoadPosition();
 	void SavePosition();
 	/*

@@ -160,20 +160,21 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	// TODO: to be tested
 	memset(&pos_cache_, 0, sizeof(pos_cache_));
 	pos_cache_.symbol_cnt = this->setting_.config.symbols_cnt;
-	clog_warning("[%s] strategy:%d; pos_cache_.symbol_cnt:%d", module_name_,this->GetId(),pos_cache_.symbol_cnt);
+	clog_warning("[%s] strategy:%d; pos_cache_.symbol_cnt:%d", module_name_,
+			this->GetId(),pos_cache_.symbol_cnt);
 	int count = 0;
-	for(const symbol_t &symbol : this->setting_.config.symbols){
+	for(int count=0; count<pos_cache_.symbol_cnt; count++ ){
+		symbol_t &symbol = this->setting_.config.symbols[count];
 		strcpy(pos_cache_.s_pos[count].symbol, symbol.name);
 		clog_warning("[%s] strategy:%d; pos_cache_.s_pos[%d]:%s", module_name_,this->GetId(),count,
 			pos_cache_.s_pos[count].symbol);
 		strcpy(positions_[count].contract, symbol.name);
 		clog_warning("[%s] strategy:%d; positions_[%d]:%s", module_name_,this->GetId(),count,
 			positions_[count].contract);
-		count++;
 	}
 	FillPositionRpt(pos_cache_);
 
-	// TODO: deal with 0
+	// TODO: deal with 0 to be modified
 	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
 
@@ -231,16 +232,14 @@ void Strategy::FeedInitPosition()
 	strncpy(first.symbol, "#CASH", sizeof(first.symbol));
 
 	int symbol_count = 1;
-	// TODO: to be tested
-	for(const symbol_t &symbol : this->setting_.config.symbols){
+	// TODO: to be tested 实际长度，而不是最大长度
+	for(int count=0; count<pos_cache_.symbol_cnt; count++ ){
+		symbol_t &symbol = this->setting_.config.symbols[count];
 		symbol_pos_t& second = today_pos.s_pos[symbol_count];
 		strncpy(second.symbol,symbol.name, sizeof(second.symbol));
 		second.long_volume = this->GetPosition(symbol.name)->cur_long;
 		second.short_volume = this->GetPosition(symbol.name)->cur_short;
 		second.exchg_code = symbol.exchange; 
-
-		this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
-		if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
 		clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; "
 			"exchange:%d; long:%d; short:%d",
@@ -249,6 +248,8 @@ void Strategy::FeedInitPosition()
 
 		symbol_count++;
 	}
+		this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
+		if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 }
 
 StrategyPosition* Strategy::GetPosition(const char*contract)
