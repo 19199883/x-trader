@@ -9,8 +9,8 @@
 
 using namespace std::placeholders; 
 
-CUstpFtdcInputOrderField FemasFieldConverter::new_order_;
-CUstpFtdcOrderActionField FemasFieldConverter::cancel_order_;
+CThostFtdcInputOrderField FemasFieldConverter::new_order_;
+CThostFtdcInputOrderActionField FemasFieldConverter::cancel_order_;
 
 UniConsumer::UniConsumer(struct vrt_queue *queue,L1MDProducer *l1_md_producer,TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
@@ -330,15 +330,15 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
-	if (rpt->OrderStatus == USTP_FTDC_OS_PartTradedNotQueueing ||
-			rpt->OrderStatus == USTP_FTDC_OS_Canceled){
+	if (rpt->OrderStatus == THOST_FTDC_OST_PartTradedNotQueueing ||
+			rpt->OrderStatus == THOST_FTDC_OST_Canceled){
 		// TODO: to be tested
 		compliance_.AccumulateCancelTimes(rpt->contract);
 	}
 
-	if (rpt->OrderStatus == USTP_FTDC_OS_AllTraded ||
-			rpt->OrderStatus == USTP_FTDC_OS_PartTradedNotQueueing ||
-			rpt->OrderStatus == USTP_FTDC_OS_Canceled){
+	if (rpt->OrderStatus == THOST_FTDC_OST_AllTraded ||
+			rpt->OrderStatus == THOST_FTDC_OST_PartTradedNotQueueing ||
+			rpt->OrderStatus == THOST_FTDC_OST_Canceled){
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
@@ -441,7 +441,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		// 从pending队列中撤单
 		rpt.ErrorID = CANCELLED_FROM_PENDING;   
 
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled ;   
+		rpt.OrderStatus = THOST_FTDC_OST_Canceled ;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 
@@ -468,14 +468,14 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	long ori_local_order_id = strategy.GetLocalOrderID(sig.orig_sig_id);
-    CUstpFtdcOrderActionField *order =  FemasFieldConverter::Convert(sig.symbol, localorderid, 
+    CThostFtdcInputOrderActionField *order =  FemasFieldConverter::Convert(sig.symbol, localorderid, 
 				ori_local_order_id);
 	int rtn = tunn_rpt_producer_->ReqOrderAction(order);
 
 	// debug
 	if(0 == ori_local_order_id){
-		clog_warning("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-			module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+		clog_warning("[%s] CancelOrder: OrderActionRef:%s; OrderRef:%s; result:%d", 
+			module_name_, order->OrderActionRef,order->OrderRef, rtn); 
 
 		signal_t* ori_sig = strategy.GetSignalBySigID(sig.orig_sig_id);
 		 clog_warning("[%s] CancelOrder ori signal: strategy id:%d; sig_id:%d; "
@@ -487,10 +487,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	}
 
 	clog_info("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-		module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+		module_name_, order->OrderActionRef,order->OrderRef, rtn); 
 	if(rtn != 0){
 		clog_error("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-			module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+			module_name_, order->OrderActionRef,order->OrderRef, rtn); 
 	}
 
 
@@ -516,7 +516,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled; 
+		rpt.OrderStatus = THOST_FTDC_OST_Canceled; 
 		rpt.ErrorID = -1; 
 		int32_t sigidx = strategy.GetSignalIdxBySigId(sig.sig_id);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
@@ -528,12 +528,12 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		return;
 	}
 
-	CUstpFtdcInputOrderField *ord =  FemasFieldConverter::Convert(sig, localorderid, updated_vol);
+	CThostFtdcInputOrderField *ord =  FemasFieldConverter::Convert(sig, localorderid, updated_vol);
 
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID, ord->LimitPrice,
-				ord->Direction, ord->OffsetFlag);
+				ord->Direction, ord->CombHedgeFlag[0]);
 	if(result){
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
@@ -541,7 +541,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
 			rpt.LocalOrderID = localorderid;
-			rpt.OrderStatus = USTP_FTDC_OS_Canceled;
+			rpt.OrderStatus = THOST_FTDC_OST_Canceled;
 			rpt.ErrorID = rtn;
 
 			compliance_.End(counter);
@@ -556,17 +556,17 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 
 			clog_error("[%s] PlaceOrder rtn:%d; LocalOrderID: %s", module_name_, 
-						rtn, ord->UserOrderLocalID);
+						rtn, ord->OrderRef);
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_error("[%s] matched with myself:%s", module_name_, ord->UserOrderLocalID);
+		clog_error("[%s] matched with myself:%s", module_name_, ord->OrderRef);
 
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		rpt.LocalOrderID = localorderid;
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
+		rpt.OrderStatus = THOST_FTDC_OST_Canceled;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
 		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);

@@ -3,7 +3,7 @@
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include "femas_data_formater.h"
+#include "ctp_data_formater.h"
 
 int32_t TunnRptProducer::counter_ = 1;
 
@@ -29,10 +29,10 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	}
 
 	// create femas object
-    api_ = CUstpFtdcTraderApi::CreateFtdcTraderApi();
+    api_ = CThostFtdcTraderApi::CreateFtdcTraderApi();
     api_->RegisterSpi(this);
-    api_->SubscribePrivateTopic(USTP_TERT_QUICK);
-    api_->SubscribePublicTopic(USTP_TERT_QUICK);
+    api_->SubscribePrivateTopic(THOST_TERT_QUICK);
+    api_->SubscribePublicTopic(THOST_TERT_QUICK);
 
 	char addr[2048];
 	strcpy(addr, this->config_.address.c_str());
@@ -75,7 +75,7 @@ void TunnRptProducer::ParseConfig()
 	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
 }
 
-int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
+int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *p)
 {
 	int ret = api_->ReqOrderInsert(p, 0);
 	
@@ -84,17 +84,17 @@ int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] ReqOrderInsert- ret=%d - %s", 
-			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
+			module_name_,ctime(&rawtime),ret, CTPDatatypeFormater::ToString(p).c_str());
 	}else {
 		clog_info("[%s] ReqOrderInsert- ret=%d - %s", 
-			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
+			module_name_, ret, CTPDatatypeFormater::ToString(p).c_str());
 	}
 
 	return ret;
 }
 
 // 撤单操作请求
-int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
+int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 {
 	int ret = api_->ReqOrderAction(p, 0);
 
@@ -102,10 +102,10 @@ int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] ReqOrderAction- ret=%d - %s", 
-			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
+			module_name_,ctime(&rawtime),ret, CTPDatatypeFormater::ToString(p).c_str());
 	} else {
 		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
+			module_name_, ret,CTPDatatypeFormater::ToString(p).c_str());
 	}
 
 	return ret;
@@ -113,16 +113,16 @@ int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 
 void TunnRptProducer::ReqLogin()
 {
-    CUstpFtdcReqUserLoginField login_data;
-    memset(&login_data, 0, sizeof(CUstpFtdcReqUserLoginField));
-    strncpy(login_data.BrokerID, config_.brokerid.c_str(), sizeof(TUstpFtdcBrokerIDType));
-    strncpy(login_data.UserID, config_.userid.c_str(), sizeof(TUstpFtdcUserIDType));
-    strncpy(login_data.Password, config_.password.c_str(), sizeof(TUstpFtdcPasswordType));
+    CThostFtdcReqUserLoginField login_data;
+    memset(&login_data, 0, sizeof(CThostFtdcReqUserLoginField));
+    strncpy(login_data.BrokerID, config_.brokerid.c_str(), sizeof(TThostFtdcBrokerIDType));
+    strncpy(login_data.UserID, config_.userid.c_str(), sizeof(TThostFtdcUserIDType));
+    strncpy(login_data.Password, config_.password.c_str(), sizeof(TThostFtdcPasswordType));
 	int rtn = api_->ReqUserLogin(&login_data, 0);
 	
     clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
     clog_warning("[%s] ReqLogin:   %s", 
-			module_name_, FEMASDatatypeFormater::ToString(&login_data).c_str());
+			module_name_, CTPDatatypeFormater::ToString(&login_data).c_str());
 }
 
 void TunnRptProducer::OnFrontConnected()
@@ -142,13 +142,12 @@ void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
     clog_warning("[%s] OnHeartBeatWarning, nTimeLapse=%d", module_name_, nTimeLapse);
 }
 
-void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield, 
-			CUstpFtdcRspInfoField *perror, int nRequestID, bool bIsLast)
+void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pfield, CThostFtdcRspInfoField *perror, int nRequestID, bool bIsLast)
 {
 
 	if(pfield != NULL){
-		if (strcmp(pfield->MaxOrderLocalID, "") != 0){
-			counter_ = GetCounterByLocalOrderID(atol(pfield->MaxOrderLocalID));
+		if (strcmp(pfield->MaxOrderRef, "") != 0){
+			counter_ = GetCounterByLocalOrderID(atol(pfield->MaxOrderRef));
 			counter_++;
 		}
 	}
@@ -156,18 +155,17 @@ void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield,
     clog_warning("[%s] counter_:%d; OnRspUserLogin:%s %s",
         module_name_,
 		counter_,
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-        FEMASDatatypeFormater::ToString(perror).c_str());
+		CTPDatatypeFormater::ToString(pfield).c_str(),
+        CTPDatatypeFormater::ToString(perror).c_str());
 
 }
 
-void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
-			int nRequestID, bool bIsLast)
+void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pf, CThostFtdcRspInfoField *pe, int nRequestID, bool bIsLast)
 {
     clog_warning("[%s] OnRspUserLogout:%s %s",
         module_name_,
-		FEMASDatatypeFormater::ToString(pf).c_str(),
-        FEMASDatatypeFormater::ToString(pe).c_str());
+		CTPDatatypeFormater::ToString(pf).c_str(),
+        CTPDatatypeFormater::ToString(pe).c_str());
 }
 
 void TunnRptProducer::End()
@@ -187,32 +185,31 @@ void TunnRptProducer::End()
 	fflush (Log::fp);
 }
 
-void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+void TunnRptProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {    
 	time_t rawtime;
 	time (&rawtime);
 	clog_error("[%s][%s] OnRspError: requestid = %d, last_flag=%d %s",
 		module_name_,ctime(&rawtime),nRequestID, bIsLast, 
-		FEMASDatatypeFormater::ToString(pRspInfo).c_str());
+		CTPDatatypeFormater::ToString(pRspInfo).c_str());
 }
 
-void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
-			CUstpFtdcRspInfoField *perror, int nRequestID,bool bIsLast)
+void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pfield, CThostFtdcRspInfoField *perror, int nRequestID, bool bIsLast)
 {
 	if (ended_) return;
 
     clog_info("[%s] OnRspOrderInsert:%s %s",
         module_name_,
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-        FEMASDatatypeFormater::ToString(perror).c_str());
+		CTPDatatypeFormater::ToString(pfield).c_str(),
+        CTPDatatypeFormater::ToString(perror).c_str());
 
 	if (perror != NULL && 0 != perror->ErrorID){
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] OnRspOrderInsert:%s %s",
 			module_name_,ctime(&rawtime),
-			FEMASDatatypeFormater::ToString(pfield).c_str(),
-			FEMASDatatypeFormater::ToString(perror).c_str());
+			CTPDatatypeFormater::ToString(pfield).c_str(),
+			CTPDatatypeFormater::ToString(perror).c_str());
 	}
 
 	if (pfield != NULL){
@@ -221,13 +218,13 @@ void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
 		// TODO: to be tested
 		strcpy(rpt.contract, pfield->InstrumentID);
-		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
+		rpt.LocalOrderID = atol(pfield->OrderRef);
 		// order_respond.entrust_no       = atol(entrust_no);
 		if (perror != NULL && 0 != perror->ErrorID) {
-			rpt.OrderStatus = USTP_FTDC_OS_Canceled;
+			rpt.OrderStatus = THOST_FTDC_OST_Canceled;
 			rpt.ErrorID = perror->ErrorID;
 		}else{
-			rpt.OrderStatus = USTP_FTDC_OS_NoTradeQueueing;
+			rpt.OrderStatus = THOST_FTDC_OST_NoTradeQueueing;
 		}
 
 		struct vrt_value  *vvalue;
@@ -251,28 +248,26 @@ int32_t TunnRptProducer::Push()
 	return cursor;
 }
 
-void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
-			CUstpFtdcRspInfoField *perror, int nRequestID,bool bIsLast)
+void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pfield, CThostFtdcRspInfoField *perror, int nRequestID, bool bIsLast)
 {
 	if (ended_) return;
 
     clog_info("[%s] OnRspOrderAction:%s %s",
         module_name_,
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-        FEMASDatatypeFormater::ToString(perror).c_str());
+		CTPDatatypeFormater::ToString(pfield).c_str(),
+        CTPDatatypeFormater::ToString(perror).c_str());
 
 	if (perror != NULL && 0 != perror->ErrorID){
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] OnRspOrderAction:%s %s",
 			module_name_,ctime(&rawtime),
-			FEMASDatatypeFormater::ToString(pfield).c_str(),
-			FEMASDatatypeFormater::ToString(perror).c_str());
+			CTPDatatypeFormater::ToString(pfield).c_str(),
+			CTPDatatypeFormater::ToString(perror).c_str());
 	}
 }
 
-void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
-			CUstpFtdcRspInfoField *perror)
+void TunnRptProducer::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pfield, CThostFtdcRspInfoField *perror)
 {
 	if (ended_) return;
 
@@ -280,8 +275,8 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 	time (&rawtime);
 	clog_error("[%s][%s] OnErrRtnOrderInsert:%s %s",
         module_name_,ctime(&rawtime),
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-		FEMASDatatypeFormater::ToString(perror).c_str());
+		CTPDatatypeFormater::ToString(pfield).c_str(),
+		CTPDatatypeFormater::ToString(perror).c_str());
 
 	// 因OnRsp已经发送该错误了，所以此次错误回报是重复的，丢弃。
 	// 具体见《FemasAPI（四所版）开发技术指南.pdf》的“关于错单”
@@ -292,8 +287,8 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 		struct TunnRpt &rpt = rpt_buffer_[cursor];
 		// TODO: to be tested
 		strcpy(rpt.contract, pfield->InstrumentID);
-		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
+		rpt.LocalOrderID = atol(pfield->OrderRef);
+		rpt.OrderStatus = THOST_FTDC_OST_Canceled;
 		rpt.ErrorID = perror->ErrorID;
 
 		struct vrt_value  *vvalue;
@@ -306,22 +301,22 @@ void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
 	}
 }
 
-void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
+void TunnRptProducer::OnRtnTrade(CThostFtdcTradeField * pfield)
 {
 	if (ended_) return;
 
     clog_info("[%s] OnRtnTrade:%s", 
-				module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
+				module_name_, CTPDatatypeFormater::ToString(pfield).c_str());
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	// TODO: to be tested
 	strcpy(rpt.contract, pfield->InstrumentID);
     //order_return.entrust_no     = atol(rsp->OrderSysID);
-	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
+	rpt.LocalOrderID = atol(pfield->OrderRef);
 	rpt.OrderStatus = TUNN_ORDER_STATUS_UNDEFINED;
-	rpt.MatchedAmount = pfield->TradeVolume;
-	rpt.TradePrice= pfield->TradePrice;
+	rpt.MatchedAmount = pfield->Volume;
+	rpt.TradePrice= pfield->Price;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -332,18 +327,18 @@ void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
 	(vrt_producer_publish(producer_));
 }
 
-void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
+void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pfield)
 {
 	if (ended_) return;
 
-    clog_info("[%s] OnRtnOrder:%s", module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
+    clog_info("[%s] OnRtnOrder:%s", module_name_, CTPDatatypeFormater::ToString(pfield).c_str());
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	// TODO: to be tested
 	strcpy(rpt.contract, pfield->InstrumentID);
     //order_return.entrust_no     = atol(rsp->OrderSysID);
-	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
+	rpt.LocalOrderID = atol(pfield->OrderRef);
 	rpt.OrderStatus = pfield->OrderStatus;
 
 	struct vrt_value  *vvalue;
@@ -355,15 +350,14 @@ void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 	(vrt_producer_publish(producer_));
 }
 
-void TunnRptProducer::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield, 
-			CUstpFtdcRspInfoField *perror)
+void TunnRptProducer::OnErrRtnOrderAction(CThostFtdcOrderActionField *pfield, CThostFtdcRspInfoField *perror)
 {
 	time_t rawtime;
 	time (&rawtime);
 	clog_error("[%s][%s] OnErrRtnOrderAction:%s %s",
 		module_name_,ctime(&rawtime),
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-		FEMASDatatypeFormater::ToString(perror).c_str());         
+		CTPDatatypeFormater::ToString(pfield).c_str(),
+		CTPDatatypeFormater::ToString(perror).c_str());         
 }
 
 long TunnRptProducer::GetCounterByLocalOrderID(long localorderid)
@@ -394,14 +388,3 @@ int32_t TunnRptProducer::GetStrategyID(TunnRpt& rpt)
 	return rpt.LocalOrderID % 1000;
 }
 
-void TunnRptProducer::OnPackageStart(int nTopicID, int nSequenceNo)
-{
-    // 不能用于识别初始化时的恢复数据，每单个Rtn消息都有开始结束
-    //TNL_LOG_INFO("OnPackageStart, nTopicID:%d, nSequenceNo:%d", nTopicID, nSequenceNo);
-}
-
-void TunnRptProducer::OnPackageEnd(int nTopicID, int nSequenceNo)
-{
-    // 不能用于识别初始化时的恢复数据，每单个Rtn消息都有开始结束
-    //TNL_LOG_INFO("OnPackageEnd, nTopicID:%d, nSequenceNo:%d", nTopicID, nSequenceNo);
-}

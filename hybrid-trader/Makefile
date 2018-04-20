@@ -4,17 +4,17 @@ CC:=g++
 DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/hybrid-trader/dist
-INCPATH:=-I$(TOP)/3rd/femas_allfutures/include -I$(TOP)/3rd/tinyxml/include \
+INCPATH:= -I$(TOP)/3rd/tinyxml/include \
 		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/ctp/include \
 		 -I$(TOP)/3rd/my-tunnel/include -I$(TOP)/3rd/dce_md/include
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/femas_allfutures/lib \
+LIBPATH:=-L$(TOP)/3rd/boost/lib  \
 		-L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/ctp/bin
-CPPFLAGS:=-std=c++11 $(INCPATH)
+CPPFLAGS:=-std=c++11 $(INCPATH) -fvisibility=hidden 
 CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -ltinyxml -lutils -ldl -lbowsprit -lUSTPtraderapiAF \
+LIBS:=-lpthread -ltinyxml -lutils -ldl -lbowsprit  -lthosttraderapi \
 	  -lclogger -lcork -lvrt -lboost_filesystem -lboost_system -lthostmduserapi
 DEPS:=.depends
 OUT:=hybrid-trader

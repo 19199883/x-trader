@@ -209,7 +209,7 @@ void Strategy::GetHistoryLogs(char logfiles[1500])
             continue;
 		} else if(ptr->d_type == 8){ //file
 			strcpy(logfiles+cur_pos,ptr->d_name);
-			cur_pos += strlen(ptr->d_name)+1;
+			cur_pos += strlen(ptr->d_name);
 			logfiles[cur_pos] = ';';
 			cur_pos++;
         }
@@ -590,14 +590,14 @@ int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
 	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
-	if(rpt.OrderStatus==USTP_FTDC_OS_AllTraded || rpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){ 
+	if(rpt.OrderStatus==THOST_FTDC_OST_AllTraded || rpt.OrderStatus==THOST_FTDC_OST_PartTradedQueueing){ 
 		return;
 	}
 	
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
 
-	TUstpFtdcOrderStatusType status = rpt.OrderStatus;
+	TThostFtdcOrderStatusType status = rpt.OrderStatus;
 	// update signal report
 	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.TradePrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
@@ -634,8 +634,8 @@ bool Strategy::HasFrozenPosition(const char *contract)
 
 }
 
-void Strategy::UpdatePosition(const char *contract,int32_t lastqty, TUstpFtdcOrderStatusType status,
-			unsigned short sig_openclose, unsigned short int sig_act, TUstpFtdcErrorIDType err)
+void Strategy::UpdatePosition(const char *contract,int32_t lastqty, TThostFtdcOrderStatusType status,
+			unsigned short sig_openclose, unsigned short int sig_act, TThostFtdcErrorIDType err)
 {
 	// TODO: position be tested
 	StrategyPosition *position = this->GetPosition(contract);
@@ -657,9 +657,9 @@ void Strategy::UpdatePosition(const char *contract,int32_t lastqty, TUstpFtdcOrd
 
 	// 从pending队列中撤单 done
 	if (err != CANCELLED_FROM_PENDING){
-		if (status==USTP_FTDC_OS_AllTraded ||
-			status==USTP_FTDC_OS_PartTradedNotQueueing ||
-			status==USTP_FTDC_OS_Canceled){ // 释放冻结仓位
+		if (status==THOST_FTDC_OST_AllTraded ||
+			status==THOST_FTDC_OST_PartTradedNotQueueing ||
+			status==THOST_FTDC_OST_Canceled){ // 释放冻结仓位
 			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
 				position->frozen_open_long = 0;
 			} else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
@@ -689,8 +689,8 @@ void Strategy::FillPositionRpt(position_t &pos)
 		pos.s_pos[i].changed = 1;
 	}
 }
-void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, 
-			signal_resp_t& sigrpt, TUstpFtdcOrderStatusType &status, TUstpFtdcErrorIDType err)
+void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TThostFtdcPriceType last_price, 
+			signal_resp_t& sigrpt, TThostFtdcOrderStatusType &status, TThostFtdcErrorIDType err)
 {
 	if (lastqty > 0){
 		sigrpt.exec_price = last_price;
@@ -699,28 +699,28 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_pr
 	}
 	if(status==TUNN_ORDER_STATUS_UNDEFINED){
 		if (sigrpt.acc_volume == sigrpt.order_volume ){
-			status = USTP_FTDC_OS_AllTraded;
+			status = THOST_FTDC_OST_AllTraded;
 		}else{ 
-			status = USTP_FTDC_OS_PartTradedQueueing;
+			status = THOST_FTDC_OST_PartTradedQueueing;
 		}
 	}
 
-	if (status == USTP_FTDC_OS_Canceled){
+	if (status == THOST_FTDC_OST_Canceled){
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
 	}else{ sigrpt.killed = 0; }
 
 	sigrpt.rejected = 0; 
 	sigrpt.error_no = err;
 
-	if (status == USTP_FTDC_OS_Canceled ||
-		status == USTP_FTDC_OS_PartTradedNotQueueing){
+	if (status == THOST_FTDC_OST_Canceled ||
+		status == THOST_FTDC_OST_PartTradedNotQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_CANCEL;
-	} else if(status == USTP_FTDC_OS_AllTraded){
+	} else if(status == THOST_FTDC_OST_AllTraded){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_SUCCESS;
-	} else if(status == USTP_FTDC_OS_PartTradedQueueing){
+	} else if(status == THOST_FTDC_OST_PartTradedQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_PARTED;
-	} else if(status== USTP_FTDC_OS_NoTradeQueueing || 
-			sigrpt.status == USTP_FTDC_OS_NoTradeNotQueueing){
+	} else if(status== THOST_FTDC_OST_NoTradeQueueing || 
+			sigrpt.status == THOST_FTDC_OST_NoTradeNotQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	} else{
 		clog_error("[%s] unexpected status:%d", status);

@@ -302,7 +302,8 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 	if (ended_) return;
 
 	// TODO:该字段没有值，需要想其它方法
-	if(strcmp(p->ExchangeID,MY_TNL_EXID_SHFE)==0){
+	//if(strcmp(p->ExchangeID,MY_TNL_EXID_SHFE)==0){
+	if(p->InstrumentID[0] =='r'){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,l1md_buffer_);
 		memcpy(&shfe_data_, &l1md_buffer_, sizeof(CDepthMarketDataField));
@@ -320,7 +321,10 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 		gettimeofday(&t, NULL);
 		p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &shfe_data_);
 #endif		
-	}else if(strcmp(p->ExchangeID,MY_TNL_EXID_DCE)==0){
+	}
+	else if(p->InstrumentID[0] =='i'){
+	// TODO:
+	//else if(strcmp(p->ExchangeID,MY_TNL_EXID_DCE)==0){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,dce_data_);
 

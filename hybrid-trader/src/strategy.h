@@ -193,11 +193,11 @@ private:
 	/*
 	 * 
 	 */
-	void UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, signal_resp_t& sigrpt, 
-			TUstpFtdcOrderStatusType &status, TUstpFtdcErrorIDType err);
-	void UpdatePosition(const char *contract,int32_t lastqty, TUstpFtdcOrderStatusType status,
+	void UpdateSigrptByTunnrpt(int32_t lastqty, TThostFtdcPriceType last_price, signal_resp_t& sigrpt, 
+			TThostFtdcOrderStatusType &status, TThostFtdcErrorIDType err);
+	void UpdatePosition(const char *contract,int32_t lastqty, TThostFtdcOrderStatusType status,
 				unsigned short sig_openclose,
-			unsigned short int sig_act, TUstpFtdcErrorIDType err);
+			unsigned short int sig_act, TThostFtdcErrorIDType err);
 	void FillPositionRpt(position_t& pos);
 	const char * GetSymbol();
 	bool Freeze(const char *contract,unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol);

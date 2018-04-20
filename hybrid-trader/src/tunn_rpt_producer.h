@@ -4,7 +4,7 @@
 #include <array>
 #include <string>
 #include "vrt_value_obj.h"
-#include "USTPFtdcTraderApi.h"
+#include "ThostFtdcTraderApi.h"
 
 using namespace std;
 
@@ -34,13 +34,13 @@ struct TunnRpt
 	// TODO: to be tested
 	char								contract[10];
 	int									LocalOrderID;                 ///< 本地委托号
-	TUstpFtdcOrderStatusType			OrderStatus;                  ///< 委托状态
-	TUstpFtdcVolumeType					MatchedAmount;                ///< 成交数量
-	TUstpFtdcPriceType					TradePrice;					  ///< 成交价格
-	TUstpFtdcErrorIDType				ErrorID;                      ///< 错误ID
+	TThostFtdcOrderStatusType			OrderStatus;                  ///< 委托状态
+	TThostFtdcVolumeType					MatchedAmount;                ///< 成交数量
+	TThostFtdcPriceType					TradePrice;					  ///< 成交价格
+	TThostFtdcErrorIDType				ErrorID;                      ///< 错误ID
 };
 
-class TunnRptProducer: public CUstpFtdcTraderSpi 
+class TunnRptProducer: public CThostFtdcTraderSpi 
 {
 	public:
 		TunnRptProducer(struct vrt_queue  *queue);
@@ -50,9 +50,9 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 		 * things relating to X1 Api
 		 */
 		// 下发指令接口
-		int ReqOrderInsert(CUstpFtdcInputOrderField *p);
+		int ReqOrderInsert(CThostFtdcInputOrderField *p);
 		// 撤单操作请求
-		int ReqOrderAction(CUstpFtdcOrderActionField *p);
+		int ReqOrderAction(CThostFtdcInputOrderActionField *p);
 
 		/*
 		 * things relating to x-trader internal logic
@@ -66,7 +66,7 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 
 	private:
 		/*
-		 * things relating to femas API
+		 * things relating to CTP API
 		 */
 		///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 		virtual void OnFrontConnected();
@@ -84,107 +84,32 @@ class TunnRptProducer: public CUstpFtdcTraderSpi
 		///@param nTimeLapse 距离上次接收报文的时间
 		virtual void OnHeartBeatWarning(int nTimeLapse);
 
-		///报文回调开始通知。当API收到一个报文后，首先调用本方法，然后是各数据域的回调，最后是报文回调结束通知。
-		///@param nTopicID 主题代码（如私有流、公共流、行情流等）
-		///@param nSequenceNo 报文序号
-		virtual void OnPackageStart(int nTopicID, int nSequenceNo);
-
-		///报文回调结束通知。当API收到一个报文后，首先调用报文回调开始通知，然后是各数据域的回调，最后调用本方法。
-		///@param nTopicID 主题代码（如私有流、公共流、行情流等）
-		///@param nSequenceNo 报文序号
-		virtual void OnPackageEnd(int nTopicID, int nSequenceNo);
-
 		///错误应答
-		virtual void OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 		///风控前置系统用户登录应答
-		virtual void OnRspUserLogin(CUstpFtdcRspUserLoginField *pRspUserLogin, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
+		virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID,
 		bool bIsLast);
 
 		///用户退出应答
-		virtual void OnRspUserLogout(CUstpFtdcRspUserLogoutField *pRspUserLogout, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast);
-
-		///用户密码修改应答
-		virtual void OnRspUserPasswordUpdate(CUstpFtdcUserPasswordUpdateField *pUserPasswordUpdate, 
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
+		virtual void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 		///报单录入应答
-		virtual void OnRspOrderInsert(CUstpFtdcInputOrderField *pInputOrder, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast);
-
+		virtual void OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast); 
 		///报单操作应答
-		virtual void OnRspOrderAction(CUstpFtdcOrderActionField *pOrderAction, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast);
-
-		///数据流回退通知
-		virtual void OnRtnFlowMessageCancel(CUstpFtdcFlowMessageCancelField *pFlowMessageCancel)
-		{
-		}
+		virtual void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 		///成交回报
-		virtual void OnRtnTrade(CUstpFtdcTradeField *pTrade);
+		virtual void OnRtnTrade(CThostFtdcTradeField *pTrade);
 
 		///报单回报
-		virtual void OnRtnOrder(CUstpFtdcOrderField *pOrder);
+		virtual void OnRtnOrder(CThostFtdcOrderField *pOrder);
 
 		///报单录入错误回报
-		virtual void OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pInputOrder, CUstpFtdcRspInfoField *pRspInfo);
+		virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo);
 
 		///报单操作错误回报
-		virtual void OnErrRtnOrderAction(CUstpFtdcOrderActionField *pOrderAction, CUstpFtdcRspInfoField *pRspInfo);
-
-		///合约交易状态通知
-		virtual void OnRtnInstrumentStatus(CUstpFtdcInstrumentStatusField *pInstrumentStatus) { }
-
-		///报单查询应答
-		virtual void OnRspQryOrder(CUstpFtdcOrderField *pOrder, CUstpFtdcRspInfoField *pRspInfo, 
-					int nRequestID, bool bIsLast){}
-
-		///成交单查询应答
-		virtual void OnRspQryTrade(CUstpFtdcTradeField *pTrade, CUstpFtdcRspInfoField *pRspInfo,
-					int nRequestID, bool bIsLast){}
-
-		///可用投资者账户查询应答
-		virtual void OnRspQryUserInvestor(CUstpFtdcRspUserInvestorField *pRspUserInvestor,
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
-		///交易编码查询应答
-		virtual void OnRspQryTradingCode(CUstpFtdcRspTradingCodeField *pRspTradingCode,
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
-		///投资者资金账户查询应答
-		virtual void OnRspQryInvestorAccount(CUstpFtdcRspInvestorAccountField *pRspInvestorAccount, 
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
-		///合约查询应答
-		virtual void OnRspQryInstrument(CUstpFtdcRspInstrumentField *pRspInstrument,
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
-		///交易所查询应答
-		virtual void OnRspQryExchange(CUstpFtdcRspExchangeField *pRspExchange, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast) { }
-		///投资者持仓查询应答
-		virtual void OnRspQryInvestorPosition(CUstpFtdcRspInvestorPositionField *pRspInvestorPosition,
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast){}
-
-		///订阅主题应答
-		virtual void OnRspSubscribeTopic(CUstpFtdcDisseminationField *pDissemination, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast)
-		{
-		}
-		///合规参数查询应答
-		virtual void OnRspQryComplianceParam(CUstpFtdcRspComplianceParamField *pRspComplianceParam,
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
-
-		///主题查询应答
-		virtual void OnRspQryTopic(CUstpFtdcDisseminationField *pDissemination, CUstpFtdcRspInfoField *pRspInfo, int nRequestID,
-		bool bIsLast)
-		{
-		}
-		///投资者手续费率查询应答
-		virtual void OnRspQryInvestorFee(CUstpFtdcInvestorFeeField *pInvestorFee,
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
-		///投资者保证金率查询应答
-		virtual void OnRspQryInvestorMargin(CUstpFtdcInvestorMarginField *pInvestorMargin,
-					CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) { }
-
+		virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, CThostFtdcRspInfoField *pRspInfo);
 
 private:
     void ParseConfig();
@@ -202,7 +127,7 @@ private:
 	 */
 	int32_t Push();
 
-	CUstpFtdcTraderApi *api_;
+	CThostFtdcTraderApi *api_;
 };
 
 #endif

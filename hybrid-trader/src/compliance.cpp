@@ -80,12 +80,12 @@ int Compliance::GetCancelTimes(const char* contract)
 }
 
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
-			double price, TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset)
+			double price, TThostFtdcDirectionType side,TThostFtdcOffsetFlagType offset)
 {
     bool ret = true;
 
 	int32_t cancel_times = GetCancelTimes(contract);
-	if(offset==USTP_FTDC_OF_Open && cancel_times>=cancel_upper_limit_){
+	if(offset==THOST_FTDC_OF_Open && cancel_times>=cancel_upper_limit_){
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] rejected for cancel upper limit.ord counter:%d;"
@@ -99,8 +99,8 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		if (!ord.valid) continue;
 
 		if (strcmp(ord.contract, contract)==0 && side != ord.side){
-			if ((side == USTP_FTDC_D_Buy && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
-				(side != USTP_FTDC_D_Buy && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
+			if ((side == THOST_FTDC_D_Buy && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
+				(side != THOST_FTDC_D_Buy && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
 				ret = false;
 				time_t rawtime;
 				time (&rawtime);

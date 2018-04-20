@@ -124,8 +124,8 @@ public:
 	 * is specified by symbols_cnt member.
 	 */
 	// TODO: to be modified
-	// symbol_t symbols[50];
-	symbol_t symbols[5];
+	symbol_t symbols[50];
+	//symbol_t symbols[5];
 } ;
 
 class symbol_pos_t {

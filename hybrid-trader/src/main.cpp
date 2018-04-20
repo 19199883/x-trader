@@ -10,7 +10,6 @@
 #include "l1md_producer.h"
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
-#include "quote_ctp.h"
 
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  32768
@@ -47,11 +46,11 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 	// TODO: debug confilict with ctp
-//	struct sigaction SIGINT_act;
-//	SIGINT_act.sa_handler = SIG_handler;
-//	sigemptyset(&SIGINT_act.sa_mask);
-//	SIGINT_act.sa_flags = 0;
-//	sigaction(SIGUSR1, &SIGINT_act, NULL);
+	struct sigaction SIGINT_act;
+	SIGINT_act.sa_handler = SIG_handler;
+	sigemptyset(&SIGINT_act.sa_mask);
+	SIGINT_act.sa_flags = 0;
+	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
 	clog_set_minimum_level(CLOG_LEVEL_INFO);
@@ -67,26 +66,19 @@ int main(/*int argc, const char **argv*/)
 	struct vrt_queue  *queue;
 	int64_t  result;
 
-	// TODO:
-	MYCTPDataHandler *t = new MYCTPDataHandler();
-
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
-	// l1_md_producer = new L1MDProducer(queue);
+	tunnRptProducer = new TunnRptProducer(queue);
+	l1_md_producer = new L1MDProducer(queue);
+	uniConsumer = new UniConsumer (queue, l1_md_producer, tunnRptProducer);
+	uniConsumer->Start();
 	fflush (fp);
-	int a;
-	cin>>a;
-	// TODO: debug
-	//tunnRptProducer = new TunnRptProducer(queue);
-	//uniConsumer = new UniConsumer (queue, l1_md_producer, tunnRptProducer);
-	//uniConsumer->Start();
-	//fflush (fp);
 
   // free vrt_queue
-	//vrt_queue_free(queue);
+	vrt_queue_free(queue);
 
-//	delete uniConsumer;
-//	delete tunnRptProducer; 
-//	delete l1_md_producer;
+	delete uniConsumer;
+	delete tunnRptProducer; 
+	delete l1_md_producer;
 
 // clog: free resources
 	clog_handler_free(clog_handler);

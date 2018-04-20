@@ -1,7 +1,7 @@
 ﻿#ifndef SELFBUYSELLCHECK_H_
 #define SELFBUYSELLCHECK_H_
 
-#include "USTPFtdcUserApiDataType.h"
+#include "ThostFtdcUserApiStruct.h"
 #include "vrt_value_obj.h"
 
 #define DOUBLE_CHECH_PRECISION 0.000001
@@ -12,7 +12,7 @@ struct OrderInfo
 {
 	bool valid;
     char contract[7];
-    TUstpFtdcDirectionType  side;
+    TThostFtdcDirectionType	side;
     double price;
 };
 
@@ -26,7 +26,7 @@ class Compliance
 		 * 返回值：true表示成功；false表示失败 
 		 */
 		bool TryReqOrderInsert(int ord_counter, const char * contract, double price,
-					TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset);
+					TThostFtdcDirectionType	side,TThostFtdcDirectionType offset);
 
 		void End(int ord_counter);
 		void Save();
