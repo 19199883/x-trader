@@ -301,6 +301,7 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 {    
 	if (ended_) return;
 
+	// TODO:该字段没有值，需要想其它方法
 	if(strcmp(p->ExchangeID,MY_TNL_EXID_SHFE)==0){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,l1md_buffer_);
