@@ -184,6 +184,9 @@ void UniConsumer::Start()
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
+	// TODO: test
+	this-> ReqOrderInsertTest();
+
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
@@ -498,6 +501,23 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
         if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
 #endif
+}
+
+// TODO:test
+int UniConsumer::ReqOrderInsertTest()
+{
+	signal_t sig;
+	sig.sig_id = 1;
+	sig.st_id = 1;
+	sig.exchange = exchange_names::XDCE;
+	strcpy(sig.symbol,"i1809");
+	sig.open_volume = 1;
+	sig.buy_price = 430;
+	sig.sig_act = signal_act_t::buy;
+	sig.sig_openclose = 1;
+
+	CThostFtdcInputOrderField *ord =  FemasFieldConverter::Convert(sig,1, 1);
+	int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 }
 
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)

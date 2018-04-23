@@ -1,4 +1,5 @@
 #include <iostream>     // std::cout
+#include <ctype.h>
 #include <sys/time.h>
 #include <fstream>      // std::ifstream
 #include <functional>   // std::bind
@@ -18,6 +19,9 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	memset(&dce_data_,0, sizeof(MDBestAndDeep_MY));
 	memset(&shfe_md_buffer_, 0, sizeof(shfe_md_buffer_));
 	memset(&dce_md_buffer_, 0, sizeof(dce_md_buffer_));
+	memset(&dce_products_, 0, sizeof(dce_products_));
+	memset(&shfe_products_, 0, sizeof(shfe_products_));
+	this->LoadProducts();
 
 	shfe_data_cursor_ = 0;
 	dce_data_cursor_ = 0;
@@ -297,13 +301,84 @@ void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpec
 	clog_warning("[%s] CTP - OnRspUnSubMarketData, code: %s",module_name_,pSpecificInstrument->InstrumentID);
 }
 
+void L1MDProducer::LoadProducts()
+{
+	int32_t count = 0;
+	string file = "dce_products.txt";
+	std::ifstream is;
+	is.open (file);
+	string contrs = "";
+	if (is) {
+		getline(is, contrs);
+		contrs += " ";
+		size_t start_pos = 0;
+		size_t end_pos = 0;
+		string contr = "";
+		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
+			contr = contrs.substr (start_pos, end_pos-start_pos);
+			if(isalpha(contr[0])) dce_products_[count][0] = contr[0];
+			if(isalpha(contr[1])) dce_products_[count][1] = contr[1];
+			clog_warning("LoadProducts:%s",dce_products_[count]);
+
+			start_pos = end_pos + 1;
+			count++;
+		}
+	}
+
+	count = 0;
+	file = "shfe_products.txt";
+	is.open (file);
+	contrs = "";
+	if (is) {
+		getline(is, contrs);
+		contrs += " ";
+		size_t start_pos = 0;
+		size_t end_pos = 0;
+		string contr = "";
+		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
+			contr = contrs.substr (start_pos, end_pos-start_pos);
+			if(isalpha(contr[0])) shfe_products_[count][0] = contr[0];
+			if(isalpha(contr[1])) shfe_products_[count][1] = contr[1];
+			clog_warning("LoadProducts:%s",shfe_products_[count]);
+
+			start_pos = end_pos + 1;
+			count++;
+		}
+	}
+}
+
+bool L1MDProducer::IsOfDce(const char *contract)
+{
+	bool found = false;
+	for(int i=0; i<MAX_DOMINANT_CONTRACTS_COUNT; i++){
+		if(0 == dce_products_[i][0]) break;
+		if(isdigit(contract[1])){
+			if(dce_products_[i][0]==contract[0]) found = true;
+		}else{
+			if(dce_products_[i][1]==contract[1]) found = true;
+		}
+	}
+	return found;
+}
+
+bool L1MDProducer::IsOfShfe(const char *contract)
+{
+	bool found = false;
+	for(int i=0; i<MAX_DOMINANT_CONTRACTS_COUNT; i++){
+		if(0 == shfe_products_[i][0]) break;
+		if(shfe_products_[i][0]==contract[0] && shfe_products_[i][1]==contract[1]){ // 假设品种最多字符数：2
+			found = true;
+		}
+	}
+	return found;
+}
+
 void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 {    
 	if (ended_) return;
 
-	// TODO:该字段没有值，需要想其它方法
-	//if(strcmp(p->ExchangeID,MY_TNL_EXID_SHFE)==0){
-	if(p->InstrumentID[0] =='r'){
+	// TODO: to be tested
+	if(IsOfShfe(p->InstrumentID)){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,l1md_buffer_);
 		memcpy(&shfe_data_, &l1md_buffer_, sizeof(CDepthMarketDataField));
@@ -322,9 +397,7 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
 		p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &shfe_data_);
 #endif		
 	}
-	else if(p->InstrumentID[0] =='i'){
-	// TODO:
-	//else if(strcmp(p->ExchangeID,MY_TNL_EXID_DCE)==0){
+	if(IsOfDce(p->InstrumentID)){
 		RalaceInvalidValue_CTP(*p);
 		Convert(*p,dce_data_);
 

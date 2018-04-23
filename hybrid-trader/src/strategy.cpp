@@ -175,8 +175,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	FillPositionRpt(pos_cache_);
 
 	// TODO: deal with 0 to be modified
-	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
-	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		string sym_log_name = generate_log_name(setting_.config.symbols[i].symbol_log_name);
+		strcpy(setting_.config.symbols[i].symbol_log_name, sym_log_name.c_str());
+	}
 
 	pfDayLogFile_ = fopen (setting_.config.log_name, "w");
 	int err = 0;
@@ -191,14 +193,14 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 void Strategy::GetHistoryLogs(char logfiles[1500])
 {
-	// TODO: z创建以so名的文件夹，放该策略日志的
+	// 创建以so名的文件夹，放该策略日志的
 	logfiles[0] = 0;
-	char basePath[20] = "./log";
+	string basePath = "./log/";
+	basePath += this->GetSoFile();
     DIR *dir;
     struct dirent *ptr;
-    char base[1000];
 
-    if ((dir=opendir(basePath)) == NULL){
+    if ((dir=opendir(basePath.c_str())) == NULL){
         perror("Open dir error...");
         exit(1);
     }
@@ -355,7 +357,8 @@ int32_t Strategy::GetId()
 exchange_names Strategy::GetExchange(const char *contract)
 {
 	// TODO: to be tested
-	for(const symbol_t &symbol : this->setting_.config.symbols){
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		const symbol_t &symbol = this->setting_.config.symbols[i];
 		if(strcmp(symbol.name,contract)==0){
 			return symbol.exchange;
 		}
@@ -366,7 +369,8 @@ exchange_names Strategy::GetExchange(const char *contract)
 
 int32_t Strategy::GetMaxPosition(const char *contract)
 {
-	for(const symbol_t &symbol : this->setting_.config.symbols){
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		const symbol_t &symbol = this->setting_.config.symbols[i];
 		if(strcmp(symbol.name,contract)==0){
 			return symbol.max_pos;
 		}
@@ -764,7 +768,8 @@ void Strategy::get_log(vector<strat_out_log> &log_buffer, int32_t &count)
 bool Strategy::Subscribed(const char*contract)
 {
 	bool subscribed = false;
-	for(const symbol_t &symbol : this->setting_.config.symbols){
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		const symbol_t &symbol = this->setting_.config.symbols[i];
 		if(0==strcmp(contract, symbol.name)){
 			subscribed = true;
 			break;

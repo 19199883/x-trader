@@ -10,21 +10,20 @@
 #include "quote_datatype_level1.h"
 #include "quote_datatype_shfe_my.h"
 #include "quote_datatype_dce_level2.h"
-
-///////////////////
-// TODO: new
 #include <sstream>
 #include <list>
 #include "ThostFtdcMdApi.h"
 #include <boost/function.hpp>
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
-////////////////////////////
 
 /*
  * 10 power of 2
  */
 #define L1MD_BUFFER_SIZE 1000 
+
+// 
+#define MAX_DOMINANT_CONTRACTS_COUNT 30 
 
 /*
  * 识Level行情处于未接收数居前的未知位置
@@ -111,6 +110,13 @@ class L1MDProducer : public CThostFtdcMdSpi
 		/*
 		 * 与逻辑处理相关
 		 */
+		bool IsOfDce(const char *contract);
+		char dce_products_[MAX_DOMINANT_CONTRACTS_COUNT][3];
+
+		bool IsOfShfe(const char *contract);
+		char shfe_products_[MAX_DOMINANT_CONTRACTS_COUNT][3];
+		void LoadProducts();
+
 		void RalaceInvalidValue_CTP(CThostFtdcDepthMarketDataField &d);
     	void Convert(const CThostFtdcDepthMarketDataField &ctp_data,CDepthMarketDataField &l1_data);
 		void Convert(const CThostFtdcDepthMarketDataField &ctp_data,MDBestAndDeep_MY &data);

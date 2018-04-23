@@ -45,7 +45,6 @@ int main(/*int argc, const char **argv*/)
 #else
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
-	// TODO: debug confilict with ctp
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);

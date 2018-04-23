@@ -156,6 +156,9 @@ class UniConsumer
 		void Start();
 		void Stop();
 
+		// TODO:
+		int ReqOrderInsertTest();
+
 	private:
 		atomic<bool> running_;
 		const char* module_name_;  
