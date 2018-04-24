@@ -333,6 +333,12 @@ void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pfield)
 
     clog_info("[%s] OnRtnOrder:%s", module_name_, CTPDatatypeFormater::ToString(pfield).c_str());
 
+	if(pfield->OrderStatus==THOST_FTDC_OST_Unknown ||
+		pfield->OrderStatus==THOST_FTDC_OST_NotTouched ||
+		pfield->OrderStatus==THOST_FTDC_OST_Touched){
+		return;
+	}
+
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	// TODO: to be tested

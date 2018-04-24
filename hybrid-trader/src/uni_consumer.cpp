@@ -166,8 +166,8 @@ void UniConsumer::CreateStrategies()
 		WriteLogTitle(log_file);
 		WriteStrategyLog(strategy);
 
-		clog_warning("[%s] [CreateStrategies] id:%d;so:%s ", 
-				module_name_, strategy.GetId(),strategy.GetSoFile());
+		clog_warning("[%s] [CreateStrategies] id:%d;so:%s; symbol count:%d ", 
+				module_name_, strategy.GetId(),strategy.GetSoFile(),setting.config.symbols_cnt );
 		for(const symbol_t &symbol : setting.config.symbols){
 			clog_warning("[%s] [CreateStrategies]contract:%s; maxvol: %d;", 
 				module_name_,symbol.name,strategy.GetMaxPosition(symbol.name));
@@ -512,7 +512,7 @@ int UniConsumer::ReqOrderInsertTest()
 	sig.exchange = exchange_names::XDCE;
 	strcpy(sig.symbol,"i1809");
 	sig.open_volume = 1;
-	sig.buy_price = 430;
+	sig.buy_price = 434;
 	sig.sig_act = signal_act_t::buy;
 	sig.sig_openclose = 1;
 

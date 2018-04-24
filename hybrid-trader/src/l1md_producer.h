@@ -115,7 +115,8 @@ class L1MDProducer : public CThostFtdcMdSpi
 
 		bool IsOfShfe(const char *contract);
 		char shfe_products_[MAX_DOMINANT_CONTRACTS_COUNT][3];
-		void LoadProducts();
+		void LoadProductsOfDce();
+		void LoadProductsOfShfe();
 
 		void RalaceInvalidValue_CTP(CThostFtdcDepthMarketDataField &d);
     	void Convert(const CThostFtdcDepthMarketDataField &ctp_data,CDepthMarketDataField &l1_data);

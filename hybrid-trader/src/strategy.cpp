@@ -86,6 +86,8 @@ string Strategy::generate_log_name(char* log_path)
 
 	log_full_path = log_path;
 	log_full_path += "/";
+	log_full_path += this->GetSoFile();
+	log_full_path += "/";
 	log_full_path += model_name;
 	log_full_path += "_";
 
@@ -727,7 +729,7 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TThostFtdcPriceType last_p
 			sigrpt.status == THOST_FTDC_OST_NoTradeNotQueueing){
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
 	} else{
-		clog_error("[%s] unexpected status:%d", status);
+		clog_error("[%s] unexpected status:%d", module_name_,status);
 	}
 }
 

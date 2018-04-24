@@ -21,7 +21,8 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	memset(&dce_md_buffer_, 0, sizeof(dce_md_buffer_));
 	memset(&dce_products_, 0, sizeof(dce_products_));
 	memset(&shfe_products_, 0, sizeof(shfe_products_));
-	this->LoadProducts();
+	this->LoadProductsOfDce();
+	this->LoadProductsOfShfe();
 
 	shfe_data_cursor_ = 0;
 	dce_data_cursor_ = 0;
@@ -301,7 +302,33 @@ void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpec
 	clog_warning("[%s] CTP - OnRspUnSubMarketData, code: %s",module_name_,pSpecificInstrument->InstrumentID);
 }
 
-void L1MDProducer::LoadProducts()
+void L1MDProducer::LoadProductsOfShfe()
+{
+	int32_t count = 0;
+	string file = "shfe_products.txt";
+	std::ifstream is;
+	is.open (file);
+	string contrs = "";
+	if (is) {
+		getline(is, contrs);
+		contrs += " ";
+		size_t start_pos = 0;
+		size_t end_pos = 0;
+		string contr = "";
+		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
+			contr = contrs.substr (start_pos, end_pos-start_pos);
+			if(isalpha(contr[0])) shfe_products_[count][0] = contr[0];
+			if(isalpha(contr[1])) shfe_products_[count][1] = contr[1];
+			clog_warning("LoadProducts:%s",shfe_products_[count]);
+
+			start_pos = end_pos + 1;
+			count++;
+		}
+	}
+	is.close();
+
+}
+void L1MDProducer::LoadProductsOfDce()
 {
 	int32_t count = 0;
 	string file = "dce_products.txt";
@@ -324,27 +351,8 @@ void L1MDProducer::LoadProducts()
 			count++;
 		}
 	}
+	is.close();
 
-	count = 0;
-	file = "shfe_products.txt";
-	is.open (file);
-	contrs = "";
-	if (is) {
-		getline(is, contrs);
-		contrs += " ";
-		size_t start_pos = 0;
-		size_t end_pos = 0;
-		string contr = "";
-		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
-			contr = contrs.substr (start_pos, end_pos-start_pos);
-			if(isalpha(contr[0])) shfe_products_[count][0] = contr[0];
-			if(isalpha(contr[1])) shfe_products_[count][1] = contr[1];
-			clog_warning("LoadProducts:%s",shfe_products_[count]);
-
-			start_pos = end_pos + 1;
-			count++;
-		}
-	}
 }
 
 bool L1MDProducer::IsOfDce(const char *contract)
