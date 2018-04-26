@@ -314,7 +314,7 @@ int s_file_sh_flag_1_data(struct in_data *p_stInData, struct in_data *p_preInDat
     int i,i1,i2;
     int ilen;
 
-    if(p_preInData->iData_Flag != 3 && p_stInData->iData_Flag != 1) return 1;
+    if(p_preInData->iData_Flag != 3 || p_stInData->iData_Flag != 1) return 1;
     if(p_preInData->iData_Flag == 3 &&
        fabs(p_preInData->dSP1 - p_preInData->dBP1) > 6*gstGlobalPara[giTradeInfo].stSec.rTickSize) return 1;
 
