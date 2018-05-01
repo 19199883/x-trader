@@ -490,8 +490,8 @@ void L1MDProducer::Convert(const CThostFtdcDepthMarketDataField &ctp_data,
     data.LastPrice = InvalidToZeroF(ctp_data.LastPrice);           //最新价
     data.MatchTotQty = ctp_data.Volume;                       //成交数量
     data.Turnover = InvalidToZeroD(ctp_data.Turnover);             //成交金额
-    // data.RiseLimit = InvalidToZeroF(other.RiseLimit);           //最高报价
-    // data.FallLimit = InvalidToZeroF(other.FallLimit);           //最低报价
+    data.RiseLimit = InvalidToZeroF(ctp_data.UpperLimitPrice);           //最高报价
+    data.FallLimit = InvalidToZeroF(ctp_data.LowerLimitPrice);           //最低报价
     data.HighPrice = InvalidToZeroF(ctp_data.HighestPrice);           //最高价
     data.LowPrice = InvalidToZeroF(ctp_data.LowestPrice);             //最低价
     data.PreDelta = InvalidToZeroF(ctp_data.PreDelta);             //昨虚实度
