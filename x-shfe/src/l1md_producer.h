@@ -2,6 +2,8 @@
 #define __L1MD_PRODUCER_H__
 
 #include <functional>
+#include <sys/types.h>
+#include <sys/time.h>
 #include <array>
 #include <string>
 #include <thread>         
@@ -9,8 +11,9 @@
 #include "vrt_value_obj.h"
 #include "mdclient.h"
 #include "quote_datatype_level1.h"
+#include "quote_cmn_utility.h"
+#include "quote_cmn_save.h"
 
-#define MAX_CONTRACT_COUNT 20
 /*
  * 10 power of 2
  */
@@ -93,6 +96,9 @@ class L1MDProducer : public CMdclientSpi
 		bool IsDominant(const char *contract);
 		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
 		int max_traverse_count_;
+		int  contract_count_;
+
+		QuoteDataSave<CDepthMarketDataField> *p_level1_save_;
 
 		/*
 		 *日志相关

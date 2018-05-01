@@ -32,6 +32,12 @@
 // 满足一天足够的下单量，以空间换时间
 #define RPT_BUFFER_SIZE 15000
 
+#ifdef PERSISTENCE_ENABLED 
+	#define MAX_CONTRACT_COUNT 200
+#else
+	#define MAX_CONTRACT_COUNT 20
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

@@ -40,10 +40,6 @@ MYIneQuoteData::~MYIneQuoteData()
 		delete repairers_[i];
 	}
 
-#ifdef PERSISTENCE_ENABLED 
-    if (p_my_shfe_md_save_) delete p_my_shfe_md_save_;
-#endif
-
 	clog_warning("[%s] ~MYIneQuoteData invoked.", module_name_);
 }
 

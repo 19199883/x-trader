@@ -135,7 +135,7 @@ public:
 			char buffer [80];
 			time (&rawtime);
 			timeinfo = localtime (&rawtime);
-			strftime (buffer,sizeof(buffer),"%Y%m%d.",timeinfo);
+			strftime (buffer,sizeof(buffer),"%Y%m%d",timeinfo);
             std::string strTime = buffer;
             std::string str = full_path + "/" + quote_name + strTime + ".dat";
 			quote_file_ = fopen(str.c_str(), "wb+");

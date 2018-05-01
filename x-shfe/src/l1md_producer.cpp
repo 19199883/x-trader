@@ -43,8 +43,12 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 
 	// init dominant contracts
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
-	int contract_count = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
-	max_traverse_count_ = contract_count * 4;
+	contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
+	max_traverse_count_ = contract_count_ * 4;
+
+#ifdef PERSISTENCE_ENABLED 
+    p_level1_save_ = new QuoteDataSave<CDepthMarketDataField>("quote_level1", SHFE_EX_QUOTE_TYPE);
+#endif
 
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
 	InitMDApi();
@@ -116,7 +120,11 @@ void L1MDProducer::ParseConfig()
 	config_.port = stoi(config_.addr.substr(ipstr_end+1));
 }
 
-L1MDProducer::~L1MDProducer(){
+L1MDProducer::~L1MDProducer()
+{
+#ifdef PERSISTENCE_ENABLED 
+    if (p_level1_save_) delete p_level1_save_;
+#endif
 }
 
 void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
@@ -141,6 +149,12 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 	ivalue->index = Push(*data);
 	ivalue->data = L1_MD;
 	vrt_producer_publish(producer_);
+
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
+#endif
 }
 
 void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
@@ -216,7 +230,13 @@ CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t l
 
 bool L1MDProducer::IsDominant(const char *contract)
 {
-	return IsDominantImp(contract, dominant_contracts_, MAX_CONTRACT_COUNT);
+#ifdef PERSISTENCE_ENABLED 
+	// 持久化行情时，需要记录所有合约
+	clog_warning("[%s] return TRUE in IsDominant.",module_name_);
+	return true;
+#else
+	return IsDominantImp(contract, dominant_contracts_, contract_count_);
+#endif
 }
 
 void L1MDProducer::ToString(CDepthMarketDataField &data)

@@ -76,11 +76,13 @@ int32_t LoadDominantContracts(string file, char buffer[20][10])
 	return count;
 }
 
-bool IsDominantImp(const char *contract, char buffer[20][10], int32_t buffer_size)
+bool IsDominantImp(const char *contract, char buffer[][10], int32_t buffer_size)
 {
 	bool is_dominant = false;
 
 	for(int i=0; i<buffer_size; i++){
+		if(buffer[i][0]==0) break; // hit bottom
+
 		if(strcmp(buffer[i], contract) == 0){
 			is_dominant = true;
 			break;

@@ -55,7 +55,7 @@ class FullDepthMDProducer
 		void RevData();
 		std::thread *thread_rev_;
 		int32_t dominant_contract_count_;
-		char dominant_contracts_[20][10];
+		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
 
 		/*
 		 *disruptor相关
