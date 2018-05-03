@@ -530,10 +530,8 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		return;
 	}
 	
-	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
-	long ori_local_order_id = strategy.GetLocalOrderID(sig.orig_sig_id);
-    CUstpFtdcOrderActionField *order =  FemasFieldConverter::Convert(sig.symbol, localorderid, 
-				ori_local_order_id);
+	long ori_sys_order_id = strategy.GetSysOrderID(sig.orig_sig_id);
+    EES_CancelOrder* order =  FemasFieldConverter::Convert(ori_sys_order_id);
 	int rtn = tunn_rpt_producer_->ReqOrderAction(order);
 
 	// debug

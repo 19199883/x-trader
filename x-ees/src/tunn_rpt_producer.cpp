@@ -32,15 +32,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     api_ = LoadTunnelApi();
     RESULT err = api_->ConnServer(api_config_,this);
     clog_warning("[%s] ConnServer-err:%d", module_name_,err);
-   // api_->SubscribePrivateTopic(USTP_TERT_QUICK);
-   // api_->SubscribePublicTopic(USTP_TERT_QUICK);
-
-	char addr[2048];
-	strcpy(addr, this->config_.address.c_str());
-	api_->RegisterFront(addr);
-	api_->Init();
-	clog_warning("[%s] femas Api init.", module_name_);
-
 }
 
 EESTraderApi *TunnRptProducer::LoadTunnelApi()
@@ -104,18 +95,43 @@ void TunnRptProducer::ParseConfig()
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
 	if (tunn_node != NULL){
 		// TODO: api_config_
-		this->config_.address = tunn_node->Attribute("address");
+		strcpy(this->api_config_.m_remoteTradeIp,tunn_node->Attribute("remoteTradeIp"));
+		tunn_node->QueryIntAttribute("remoteTradeTCPPort",
+			&(this->api_config_.m_remoteTradeTCPPort));
+		tunn_node->QueryIntAttribute("remoteTradeUDPPort",
+			&(this->api_config_.m_remoteTradeUDPPort));
+		strcpy(this->api_config_.m_remoteQueryIp,tunn_node->Attribute("remoteQueryIp"));
+		tunn_node->QueryIntAttribute("remoteQueryTCPPort",
+			&(this->api_config_.m_remoteQueryTCPPort));
+		strcpy(this->api_config_.m_LocalTradeIp,tunn_node->Attribute("localTradeIp"));
+		tunn_node->QueryIntAttribute("localTradeUDPPort",
+			&(this->api_config_.m_LocalTradeUDPPort));
+
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
 		this->config_.investorid = tunn_node->Attribute("investorid");
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
 
-		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
+		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s; "
+					"m_remoteTradeIp:%s; "
+					" m_remoteTradeTCPPort:%d; "
+					"m_remoteTradeUDPPort:%d; "
+					"m_remoteQueryIp:%s; "
+					"m_remoteQueryTCPPort:%d; "
+					"m_LocalTradeIp:%s; "
+					"m_LocalTradeUDPPort:%d; " ,
 					module_name_, 
 					this->config_.address.c_str(), 
 					this->config_.brokerid.c_str(),
 					this->config_.userid.c_str(),
-					this->config_.password.c_str());
+					this->config_.password.c_str(),
+					this->api_config_.m_remoteTradeIp,
+					this->api_config_.m_remoteTradeTCPPort,
+					this->api_config_.m_remoteTradeUDPPort,
+					this->api_config_.m_remoteQueryIp,
+					this->api_config_.m_remoteQueryTCPPort,
+					this->api_config_.m_LocalTradeIp,
+					this->api_config_.m_LocalTradeUDPPort);
 	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
 }
 
@@ -309,6 +325,34 @@ void TunnRptProducer::OnOrderExecution(EES_OrderExecutionField* pExec )
 	(vrt_producer_publish(producer_));
 }
 
+void TunnRptProducer::OnOrderCxled(EES_OrderCxled* pCxled)
+{
+	if (ended_) return;
+
+	clog_info("[%s] OnOrderCxled:%s", module_name_,EESDatatypeFormater::ToString(pCxled).c_str());
+
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	rpt.LocalOrderID = pReject->m_ClientOrderToken;
+	rpt.SysOrderID = pReject->m_MarketOrderToken;
+	rpt.OrderStatus = SIG_STATUS_CANCEL;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
+}
+
+void TunnRptProducer::OnCxlOrderReject(EES_CxlOrderRej* pReject)
+{
+	if (ended_) return;
+
+	clog_warning("[%s] OnCxlOrderReject:%s",module_name_,
+		EESDatatypeFormater::ToString(pReject).c_str());
+}
 void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
 			int nRequestID, bool bIsLast)
 {
@@ -402,14 +446,3 @@ int32_t TunnRptProducer::GetStrategyID(TunnRpt& rpt)
 	return rpt.LocalOrderID % 1000;
 }
 
-void TunnRptProducer::OnPackageStart(int nTopicID, int nSequenceNo)
-{
-    // 不能用于识别初始化时的恢复数据，每单个Rtn消息都有开始结束
-    //TNL_LOG_INFO("OnPackageStart, nTopicID:%d, nSequenceNo:%d", nTopicID, nSequenceNo);
-}
-
-void TunnRptProducer::OnPackageEnd(int nTopicID, int nSequenceNo)
-{
-    // 不能用于识别初始化时的恢复数据，每单个Rtn消息都有开始结束
-    //TNL_LOG_INFO("OnPackageEnd, nTopicID:%d, nSequenceNo:%d", nTopicID, nSequenceNo);
-}

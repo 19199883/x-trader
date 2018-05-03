@@ -117,6 +117,7 @@ public:
 	void End(void);
 	int32_t GetSignalIdxBySigId(long sigid);
 	int32_t GetSignalIdxByLocalOrdId(long localordid);
+	unsigned int GetSysOrderIdBySigID(int32_t sig_id);
 
 	// log
 	/*
@@ -141,6 +142,8 @@ private:
 	int cursor_;
 	signal_t sig_table_[SIGANDRPT_TABLE_SIZE];
 	signal_resp_t sigrpt_table_[SIGANDRPT_TABLE_SIZE];
+	// 数组下标：信号id；值：信号索引(cursor)
+	unsigned int sys_order_id_[SIGANDRPT_TABLE_SIZE];
 
 	// key: LocalOrderID的counter部分; value:信号和报告所在数组的索引。
 	// counter是全局累加的，所以数组长度：一个策略最大信号苏沪 * 支持的最大策略数 

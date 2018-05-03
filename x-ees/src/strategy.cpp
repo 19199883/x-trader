@@ -38,6 +38,7 @@ Strategy::Strategy()
 	memset(localorderid_sigandrptidx_map_table_, 0, sizeof(localorderid_sigandrptidx_map_table_));
 	memset(sigid_localorderid_map_table_, 0, sizeof(sigid_localorderid_map_table_));
 	memset(sigid_sigidx_map_table_, 0, sizeof(sigid_sigidx_map_table_));
+	memset(sys_order_id_, 0, sizeof(sys_order_id_));
 }
 
 void Strategy::End(void)
@@ -394,6 +395,11 @@ signal_t* Strategy::GetSignalBySigID(int32_t sig_id)
 	return &(sig_table_[cursor]);
 }
 
+unsigned int Strategy::GetSysOrderIdBySigID(int32_t sig_id)
+{
+	int32_t cursor = sigid_sigidx_map_table_[sig_id];
+	return sys_order_id_[cursor];
+}
 void Strategy::Push(const signal_t &sig)
 {
 	sig_table_[cursor_] = sig;
@@ -474,6 +480,8 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 	
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
+	// TODO: sys order id
+	sys_order_id_[sigidx] = rpt.SysOrderID;
 
 	TUstpFtdcOrderStatusType status = rpt.OrderStatus;
 	// update signal report
