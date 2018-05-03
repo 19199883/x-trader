@@ -181,6 +181,60 @@ void TunnRptProducer::OnUserLogon(EES_LogonResponse* pLogon)
 		pLogon->m_Result,pLogon->m_UserId,this->counter_);
 }
 
+void TunnRptProducer::OnOrderAccept(EES_OrderAcceptField* pAccept )
+{
+	if (ended_) return;
+
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	rpt.LocalOrderID = pAccept->m_ClientOrderToken;
+
+    clog_info("[%s] OnOrderAccept:%s", module_name_,
+		EESDatatypeFormater::ToString(pAccept).c_str());
+
+	if (pAccept->m_OrderState==EES_OrderState_order_dead){
+		time_t rawtime;
+		time (&rawtime);
+		clog_error("[%s][%s] OnRspOrderInsert:%s",module_name_,ctime(&rawtime),
+			EESDatatypeFormater::ToString(pAccept).c_str());
+		rpt.OrderStatus = SIG_STATUS_CANCEL;
+		rpt.ErrorID = EES_OrderState_order_dead;
+	}else{
+		rpt.OrderStatus = SIG_STATUS_ENTRUSTED;
+	}
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
+}
+
+void TunnRptProducer::OnOrderReject(EES_OrderRejectField* pReject)
+{
+	if (ended_) return;
+
+	time_t rawtime;
+	time (&rawtime);
+	clog_error("[%s][%s] OnOrderReject:%s", module_name_,ctime(&rawtime),
+		EESDatatypeFormater::ToString(pReject).c_str());
+
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	rpt.LocalOrderID = pReject->m_ClientOrderToken;
+	rpt.OrderStatus = SIG_STATUS_CANCEL;
+	rpt.ErrorID = pReject->EES_ReasonCode;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
+}
 
 void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
 			int nRequestID, bool bIsLast)
@@ -214,48 +268,6 @@ void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID
 		FEMASDatatypeFormater::ToString(pRspInfo).c_str());
 }
 
-void TunnRptProducer::OnRspOrderInsert(CUstpFtdcInputOrderField *pfield,
-			CUstpFtdcRspInfoField *perror, int nRequestID,bool bIsLast)
-{
-	if (ended_) return;
-
-    clog_info("[%s] OnRspOrderInsert:%s %s",
-        module_name_,
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-        FEMASDatatypeFormater::ToString(perror).c_str());
-
-	if (perror != NULL && 0 != perror->ErrorID){
-		time_t rawtime;
-		time (&rawtime);
-		clog_error("[%s][%s] OnRspOrderInsert:%s %s",
-			module_name_,ctime(&rawtime),
-			FEMASDatatypeFormater::ToString(pfield).c_str(),
-			FEMASDatatypeFormater::ToString(perror).c_str());
-	}
-
-	if (pfield != NULL){
-		int32_t cursor = Push();
-		// LocalOrderID也只需要赋值一次
-		struct TunnRpt &rpt = rpt_buffer_[cursor];
-		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
-		// order_respond.entrust_no       = atol(entrust_no);
-		if (perror != NULL && 0 != perror->ErrorID) {
-			rpt.OrderStatus = USTP_FTDC_OS_Canceled;
-			rpt.ErrorID = perror->ErrorID;
-		}else{
-			rpt.OrderStatus = USTP_FTDC_OS_NoTradeQueueing;
-		}
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = cursor;
-		ivalue->data = TUNN_RPT;
-		(vrt_producer_publish(producer_));
-	} // if ((pfield != NULL)
-}
-
 int32_t TunnRptProducer::Push()
 {
 	static int32_t cursor = RPT_BUFFER_SIZE - 1;
@@ -284,39 +296,6 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
 			module_name_,ctime(&rawtime),
 			FEMASDatatypeFormater::ToString(pfield).c_str(),
 			FEMASDatatypeFormater::ToString(perror).c_str());
-	}
-}
-
-void TunnRptProducer::OnErrRtnOrderInsert(CUstpFtdcInputOrderField *pfield,
-			CUstpFtdcRspInfoField *perror)
-{
-	if (ended_) return;
-
-	time_t rawtime;
-	time (&rawtime);
-	clog_error("[%s][%s] OnErrRtnOrderInsert:%s %s",
-        module_name_,ctime(&rawtime),
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-		FEMASDatatypeFormater::ToString(perror).c_str());
-
-	// 因OnRsp已经发送该错误了，所以此次错误回报是重复的，丢弃。
-	// 具体见《FemasAPI（四所版）开发技术指南.pdf》的“关于错单”
-	return;
-
-	if(pfield != NULL && perror != NULL){
-		int32_t cursor = Push();
-		struct TunnRpt &rpt = rpt_buffer_[cursor];
-		rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
-		rpt.ErrorID = perror->ErrorID;
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = cursor;
-		ivalue->data = TUNN_RPT;
-		(vrt_producer_publish(producer_));
 	}
 }
 
