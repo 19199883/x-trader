@@ -188,6 +188,7 @@ void TunnRptProducer::OnOrderAccept(EES_OrderAcceptField* pAccept )
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	rpt.LocalOrderID = pAccept->m_ClientOrderToken;
+	rpt.SysOrderID = pAccept->m_MarketOrderToken;
 
     clog_info("[%s] OnOrderAccept:%s", module_name_,
 		EESDatatypeFormater::ToString(pAccept).c_str());
@@ -224,6 +225,7 @@ void TunnRptProducer::OnOrderReject(EES_OrderRejectField* pReject)
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	rpt.LocalOrderID = pReject->m_ClientOrderToken;
+	rpt.SysOrderID = pReject->m_MarketOrderToken;
 	rpt.OrderStatus = SIG_STATUS_CANCEL;
 	rpt.ErrorID = pReject->EES_ReasonCode;
 
@@ -243,6 +245,7 @@ void TunnRptProducer::OnOrderMarketAccept(EES_OrderMarketAcceptField* pAccept)
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	rpt.LocalOrderID = pAccept->m_ClientOrderToken;
+	rpt.SysOrderID = pAccept->m_MarketOrderToken;
 	rpt.OrderStatus = SIG_STATUS_ENTRUSTED;
 
     clog_info("[%s] OnOrderMarketAccept:%s", module_name_,
@@ -269,6 +272,7 @@ void TunnRptProducer::OnOrderMarketReject(EES_OrderMarketRejectField* pReject)
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	rpt.LocalOrderID = pReject->m_ClientOrderToken;
+	rpt.SysOrderID = pReject->m_MarketOrderToken;
 	rpt.OrderStatus = SIG_STATUS_CANCEL;
 	rpt.ErrorID = 3;
 
@@ -291,7 +295,8 @@ void TunnRptProducer::OnOrderExecution(EES_OrderExecutionField* pExec )
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	rpt.LocalOrderID = pExec->m_ClientOrderToken;
-	rpt.OrderStatus = TUNN_ORDER_STATUS_UNDEFINED;
+	rpt.SysOrderID = pExec->m_MarketOrderToken;
+	rpt.OrderStatus = SIG_STATUS_PARTED;
 	rpt.MatchedAmount = pExec->m_Quantity;
 	rpt.TradePrice= pExec->m_Price;
 
@@ -356,28 +361,6 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
 			FEMASDatatypeFormater::ToString(pfield).c_str(),
 			FEMASDatatypeFormater::ToString(perror).c_str());
 	}
-}
-
-
-void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
-{
-	if (ended_) return;
-
-    clog_info("[%s] OnRtnOrder:%s", module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
-
-	int32_t cursor = Push();
-	struct TunnRpt &rpt = rpt_buffer_[cursor];
-    //order_return.entrust_no     = atol(rsp->OrderSysID);
-	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
-	rpt.OrderStatus = pfield->OrderStatus;
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = cursor;
-	ivalue->data = TUNN_RPT;
-	(vrt_producer_publish(producer_));
 }
 
 void TunnRptProducer::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield, 

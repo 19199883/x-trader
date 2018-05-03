@@ -465,6 +465,8 @@ int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 // improve place, cancel
 void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
+	// TODO:考虑m_Quantity是否是最新成交量还是累计成交量
+	// 先假设是最新成交量
 	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
 	if(rpt.OrderStatus==USTP_FTDC_OS_AllTraded || rpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){ 
 		return;
@@ -572,11 +574,11 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_pr
 		sigrpt.exec_volume = lastqty;
 		sigrpt.acc_volume += lastqty;
 	}
-	if(status==TUNN_ORDER_STATUS_UNDEFINED){
+	if(status==SIG_STATUS_PARTED){
 		if (sigrpt.acc_volume == sigrpt.order_volume ){
-			status = USTP_FTDC_OS_AllTraded;
+			status = SIG_STATUS_SUCCESS;
 		}else{ 
-			status = USTP_FTDC_OS_PartTradedQueueing;
+			status = SIG_STATUS_PARTED;
 		}
 	}
 

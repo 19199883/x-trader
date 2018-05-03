@@ -95,38 +95,19 @@ class FemasFieldConverter
 		static void InitCancelOrder(Tunnconfig &cfg)
 		{
 			memset(&cancel_order_, 0, sizeof(cancel_order_));
-
-			// 原报单交易所标识
-			strncpy(cancel_order_.BrokerID, cfg.brokerid.c_str(), sizeof(TUstpFtdcBrokerIDType));
-			strncpy(cancel_order_.InvestorID, cfg.investorid.c_str(), sizeof(TUstpFtdcInvestorIDType));
-			strncpy(cancel_order_.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
-			// order.OrderSysID);
-			cancel_order_.ActionFlag = USTP_FTDC_AF_Delete;
-			cancel_order_.LimitPrice = 0;
-			cancel_order_.VolumeChange = 0;
+			strncpy(cancel_order_.m_Account, cfg.userid.c_str(), sizeof(EES_Account));
 		}
 
-		static CUstpFtdcOrderActionField*  Convert(const char*instrument, long local_order_id,long ori_local_ord_id)
+		static EES_CancelOrder*  Convert(long ori_sysorderid)
 		{
-			if(instrument[0]=='s' && instrument[1]=='c'){
-				strncpy(cancel_order_.ExchangeID, MY_TNL_EXID_INE, sizeof(TUstpFtdcExchangeIDType));
-			}else{
-				strncpy(cancel_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
-			}
-
-			// 8位，左填充0，最大支持99999个信号
-			snprintf(cancel_order_.UserOrderActionLocalID, sizeof(cancel_order_.UserOrderActionLocalID), 
-						"%08lld", local_order_id);
-			// wangying 8位，左填充0，最大支持99999个信号
-			snprintf(cancel_order_.UserOrderLocalID, sizeof(cancel_order_.UserOrderLocalID), 
-						"%08lld", ori_local_ord_id);
-
+			// TODO: consider how to get m_MarketOrderToken 
+			cancel_order_.m_MarketOrderToken = ori_sysorderid;
 			return &cancel_order_;
 		}
 
 	private:
 		static EES_EnterOrderField new_order_;
-		static CUstpFtdcOrderActionField cancel_order_;
+		static EES_CancelOrder cancel_order_;
 
 };
 
