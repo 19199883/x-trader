@@ -236,6 +236,51 @@ void TunnRptProducer::OnOrderReject(EES_OrderRejectField* pReject)
 	(vrt_producer_publish(producer_));
 }
 
+void TunnRptProducer::OnOrderMarketAccept(EES_OrderMarketAcceptField* pAccept)
+{
+	if (ended_) return;
+
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	rpt.LocalOrderID = pAccept->m_ClientOrderToken;
+	rpt.OrderStatus = SIG_STATUS_ENTRUSTED;
+
+    clog_info("[%s] OnOrderMarketAccept:%s", module_name_,
+		EESDatatypeFormater::ToString(pAccept).c_str());
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
+}
+
+void TunnRptProducer::OnOrderMarketReject(EES_OrderMarketRejectField* pReject)
+{
+	if (ended_) return;
+
+	time_t rawtime;
+	time (&rawtime);
+	clog_error("[%s][%s] OnOrderMarketReject:%s", module_name_,ctime(&rawtime),
+		EESDatatypeFormater::ToString(pReject).c_str());
+
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	rpt.LocalOrderID = pReject->m_ClientOrderToken;
+	rpt.OrderStatus = SIG_STATUS_CANCEL;
+	rpt.ErrorID = 3;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
+}
+
 void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
 			int nRequestID, bool bIsLast)
 {
@@ -257,15 +302,6 @@ void TunnRptProducer::End()
 		clog_warning("[%s] End exit", module_name_);
 	}
 	fflush (Log::fp);
-}
-
-void TunnRptProducer::OnRspError(CUstpFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-{    
-	time_t rawtime;
-	time (&rawtime);
-	clog_error("[%s][%s] OnRspError: requestid = %d, last_flag=%d %s",
-		module_name_,ctime(&rawtime),nRequestID, bIsLast, 
-		FEMASDatatypeFormater::ToString(pRspInfo).c_str());
 }
 
 int32_t TunnRptProducer::Push()
