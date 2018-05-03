@@ -146,37 +146,35 @@ void OnDisConnection(ERR_NO errNo, const char* pErrStr )
     clog_warning("[%s] OnDisConnection-err:%d; err info:%s", module_name_,errNo,pErrStr);
 }
 
-int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
+int TunnRptProducer::ReqOrderInsert(EES_EnterOrderField *p)
 {
-	int ret = api_->ReqOrderInsert(p, 0);
-	
+	RESULT ret = api_->EnterOrder(p);
 	// report rejected if ret!=0
 	if (ret != 0){
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] ReqOrderInsert- ret=%d - %s", 
-			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
+			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p).c_str());
 	}else {
-		clog_info("[%s] ReqOrderInsert- ret=%d - %s", 
-			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
+		clog_info("[%s] ReqOrderInsert-ret=%d-%s", 
+			module_name_, ret, EESDatatypeFormater::ToString(p).c_str());
 	}
 
 	return ret;
 }
 
 // 撤单操作请求
-int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
+int TunnRptProducer::ReqOrderAction(EES_CancelOrder *p)
 {
-	int ret = api_->ReqOrderAction(p, 0);
-
+	RESULT ret = api_->CancelOrder(p);
 	if (ret != 0){
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] ReqOrderAction- ret=%d - %s", 
-			module_name_,ctime(&rawtime),ret, FEMASDatatypeFormater::ToString(p).c_str());
+			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p).c_str());
 	} else {
 		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, FEMASDatatypeFormater::ToString(p).c_str());
+			module_name_, ret, EESDatatypeFormater::ToString(p).c_str());
 	}
 
 	return ret;
@@ -212,7 +210,7 @@ void TunnRptProducer::OnOrderAccept(EES_OrderAcceptField* pAccept )
 	if (pAccept->m_OrderState==EES_OrderState_order_dead){
 		time_t rawtime;
 		time (&rawtime);
-		clog_error("[%s][%s] OnRspOrderInsert:%s",module_name_,ctime(&rawtime),
+		clog_error("[%s][%s] OnOrderAccept:%s",module_name_,ctime(&rawtime),
 			EESDatatypeFormater::ToString(pAccept).c_str());
 		rpt.OrderStatus = SIG_STATUS_CANCEL;
 		rpt.ErrorID = EES_OrderState_order_dead;
@@ -353,14 +351,6 @@ void TunnRptProducer::OnCxlOrderReject(EES_CxlOrderRej* pReject)
 	clog_warning("[%s] OnCxlOrderReject:%s",module_name_,
 		EESDatatypeFormater::ToString(pReject).c_str());
 }
-void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
-			int nRequestID, bool bIsLast)
-{
-    clog_warning("[%s] OnRspUserLogout:%s %s",
-        module_name_,
-		FEMASDatatypeFormater::ToString(pf).c_str(),
-        FEMASDatatypeFormater::ToString(pe).c_str());
-}
 
 void TunnRptProducer::End()
 {
@@ -385,37 +375,6 @@ int32_t TunnRptProducer::Push()
 	}
 
 	return cursor;
-}
-
-void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
-			CUstpFtdcRspInfoField *perror, int nRequestID,bool bIsLast)
-{
-	if (ended_) return;
-
-    clog_info("[%s] OnRspOrderAction:%s %s",
-        module_name_,
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-        FEMASDatatypeFormater::ToString(perror).c_str());
-
-	if (perror != NULL && 0 != perror->ErrorID){
-		time_t rawtime;
-		time (&rawtime);
-		clog_error("[%s][%s] OnRspOrderAction:%s %s",
-			module_name_,ctime(&rawtime),
-			FEMASDatatypeFormater::ToString(pfield).c_str(),
-			FEMASDatatypeFormater::ToString(perror).c_str());
-	}
-}
-
-void TunnRptProducer::OnErrRtnOrderAction(CUstpFtdcOrderActionField *pfield, 
-			CUstpFtdcRspInfoField *perror)
-{
-	time_t rawtime;
-	time (&rawtime);
-	clog_error("[%s][%s] OnErrRtnOrderAction:%s %s",
-		module_name_,ctime(&rawtime),
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-		FEMASDatatypeFormater::ToString(perror).c_str());         
 }
 
 long TunnRptProducer::GetCounterByLocalOrderID(long localorderid)

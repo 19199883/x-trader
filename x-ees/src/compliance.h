@@ -1,7 +1,8 @@
 ﻿#ifndef SELFBUYSELLCHECK_H_
 #define SELFBUYSELLCHECK_H_
 
-#include "USTPFtdcUserApiDataType.h"
+#include "EesTraderDefine.h"
+#include "signal.h"
 #include "vrt_value_obj.h"
 
 #define DOUBLE_CHECH_PRECISION 0.000001
@@ -12,6 +13,7 @@ struct OrderInfo
 {
 	bool valid;
     char contract[7];
+	// TODO: to here
     TUstpFtdcDirectionType  side;
     double price;
 };

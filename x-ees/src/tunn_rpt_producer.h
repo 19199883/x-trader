@@ -48,9 +48,9 @@ class TunnRptProducer: public EESTraderEvent
 		 * things relating to X1 Api
 		 */
 		// 下发指令接口
-		int ReqOrderInsert(CUstpFtdcInputOrderField *p);
+		int ReqOrderInsert(EES_EnterOrderField *p);
 		// 撤单操作请求
-		int ReqOrderAction(CUstpFtdcOrderActionField *p);
+		int ReqOrderAction(EES_CancelOrder *p);
 
 		/*
 		 * things relating to x-trader internal logic
