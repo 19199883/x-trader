@@ -281,6 +281,29 @@ void TunnRptProducer::OnOrderMarketReject(EES_OrderMarketRejectField* pReject)
 	(vrt_producer_publish(producer_));
 }
 
+void TunnRptProducer::OnOrderExecution(EES_OrderExecutionField* pExec )
+{
+	if (ended_) return;
+
+    clog_info("[%s] OnOrderExecution:%s", 
+		module_name_, EESDatatypeFormater::ToString(pExec).c_str());
+
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	rpt.LocalOrderID = pExec->m_ClientOrderToken;
+	rpt.OrderStatus = TUNN_ORDER_STATUS_UNDEFINED;
+	rpt.MatchedAmount = pExec->m_Quantity;
+	rpt.TradePrice= pExec->m_Price;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+	(vrt_producer_publish(producer_));
+}
+
 void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
 			int nRequestID, bool bIsLast)
 {
@@ -335,29 +358,6 @@ void TunnRptProducer::OnRspOrderAction(CUstpFtdcOrderActionField *pfield,
 	}
 }
 
-void TunnRptProducer::OnRtnTrade(CUstpFtdcTradeField * pfield)
-{
-	if (ended_) return;
-
-    clog_info("[%s] OnRtnTrade:%s", 
-				module_name_, FEMASDatatypeFormater::ToString(pfield).c_str());
-
-	int32_t cursor = Push();
-	struct TunnRpt &rpt = rpt_buffer_[cursor];
-    //order_return.entrust_no     = atol(rsp->OrderSysID);
-	rpt.LocalOrderID = atol(pfield->UserOrderLocalID);
-	rpt.OrderStatus = TUNN_ORDER_STATUS_UNDEFINED;
-	rpt.MatchedAmount = pfield->TradeVolume;
-	rpt.TradePrice= pfield->TradePrice;
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = cursor;
-	ivalue->data = TUNN_RPT;
-	(vrt_producer_publish(producer_));
-}
 
 void TunnRptProducer::OnRtnOrder(CUstpFtdcOrderField *pfield)
 {
