@@ -18,16 +18,6 @@ using namespace std;
 
 struct Tunnconfig
 {
-	char            m_remoteTradeIp[16];  /// 服务器交易IP
-	unsigned short  m_remoteTradeTCPPort; /// 服务器交易TCP端口
-	unsigned short  m_remoteTradeUDPPort; /// 服务器交易UDP端口
-
-	char            m_remoteQueryIp[16];  /// 服务器查询IP
-	unsigned short  m_remoteQueryTCPPort; /// 服务器查询TCP端口
-
-	char            m_LocalTradeIp[16];   /// 本地交易IP
-	unsigned short  m_LocalTradeUDPPort;  /// 本地交易UDP端口
-	
 	string brokerid;
 	string investorid;
 	string userid;
@@ -173,7 +163,7 @@ private:
 	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
 	const char * module_name_;  
 	bool ended_;
-	static int32_t counter_;
+	static uint32_t counter_;
 
 	/*
 	 * things relating to counter API
@@ -185,6 +175,7 @@ private:
 	void *m_handle;
 	funcDestroyEESTraderApi m_distoryFun;
 	EESTraderApi *api_;
+	EES_TradeSvrInfo api_config_;
 };
 
 #endif

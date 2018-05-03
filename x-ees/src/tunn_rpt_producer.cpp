@@ -30,9 +30,10 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 	// create EES object
     api_ = LoadTunnelApi();
-    api_->RegisterSpi(this);
-    api_->SubscribePrivateTopic(USTP_TERT_QUICK);
-    api_->SubscribePublicTopic(USTP_TERT_QUICK);
+    RESULT err = api_->ConnServer(api_config_,this);
+    clog_warning("[%s] ConnServer-err:%d", module_name_,err);
+   // api_->SubscribePrivateTopic(USTP_TERT_QUICK);
+   // api_->SubscribePublicTopic(USTP_TERT_QUICK);
 
 	char addr[2048];
 	strcpy(addr, this->config_.address.c_str());
@@ -102,6 +103,7 @@ void TunnRptProducer::ParseConfig()
 
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
 	if (tunn_node != NULL){
+		// TODO: api_config_
 		this->config_.address = tunn_node->Attribute("address");
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
 		this->config_.investorid = tunn_node->Attribute("investorid");
@@ -115,6 +117,17 @@ void TunnRptProducer::ParseConfig()
 					this->config_.userid.c_str(),
 					this->config_.password.c_str());
 	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
+}
+
+void TunnRptProducer::OnConnection(ERR_NO errNo, const char* pErrStr )
+{
+    clog_warning("[%s] OnConnection-err:%d; err info:%s", module_name_,errNo,pErrStr);
+	this->ReqLogin();
+}
+
+void OnDisConnection(ERR_NO errNo, const char* pErrStr )
+{
+    clog_warning("[%s] OnDisConnection-err:%d; err info:%s", module_name_,errNo,pErrStr);
 }
 
 int TunnRptProducer::ReqOrderInsert(CUstpFtdcInputOrderField *p)
@@ -155,53 +168,19 @@ int TunnRptProducer::ReqOrderAction(CUstpFtdcOrderActionField *p)
 
 void TunnRptProducer::ReqLogin()
 {
-    CUstpFtdcReqUserLoginField login_data;
-    memset(&login_data, 0, sizeof(CUstpFtdcReqUserLoginField));
-    strncpy(login_data.BrokerID, config_.brokerid.c_str(), sizeof(TUstpFtdcBrokerIDType));
-    strncpy(login_data.UserID, config_.userid.c_str(), sizeof(TUstpFtdcUserIDType));
-    strncpy(login_data.Password, config_.password.c_str(), sizeof(TUstpFtdcPasswordType));
-	int rtn = api_->ReqUserLogin(&login_data, 0);
-	
-    clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
-    clog_warning("[%s] ReqLogin:   %s", 
-			module_name_, FEMASDatatypeFormater::ToString(&login_data).c_str());
+	RESULT err = api_->UserLogon(config_.userid.c_str(),config_.password.c_str(),NULL,NULL);
+    clog_warning("[%s] ReqLogin-err_no,%d; user:%s; pwd:%d",module_name_,err,
+		config_.userid.c_str(),config_.password.c_str());
 }
 
-void TunnRptProducer::OnFrontConnected()
+void TunnRptProducer::OnUserLogon(EES_LogonResponse* pLogon)
 {
-
-    clog_warning("[%s] OnFrontConnected.", module_name_);
-	this->ReqLogin();
+	counter_ = GetCounterByLocalOrderID(pLogon->m_MaxToken);
+	counter_++;
+    clog_warning("[%s] OnUserLogon-result:%d;user:%s;counter_:%u", module_name_,
+		pLogon->m_Result,pLogon->m_UserId,this->counter_);
 }
 
-void TunnRptProducer::OnFrontDisconnected(int nReason)
-{
-    clog_warning("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
-}
-
-void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
-{
-    clog_warning("[%s] OnHeartBeatWarning, nTimeLapse=%d", module_name_, nTimeLapse);
-}
-
-void TunnRptProducer::OnRspUserLogin(CUstpFtdcRspUserLoginField *pfield, 
-			CUstpFtdcRspInfoField *perror, int nRequestID, bool bIsLast)
-{
-
-	if(pfield != NULL){
-		if (strcmp(pfield->MaxOrderLocalID, "") != 0){
-			counter_ = GetCounterByLocalOrderID(atol(pfield->MaxOrderLocalID));
-			counter_++;
-		}
-	}
-	
-    clog_warning("[%s] counter_:%d; OnRspUserLogin:%s %s",
-        module_name_,
-		counter_,
-		FEMASDatatypeFormater::ToString(pfield).c_str(),
-        FEMASDatatypeFormater::ToString(perror).c_str());
-
-}
 
 void TunnRptProducer::OnRspUserLogout(CUstpFtdcRspUserLogoutField *pf, CUstpFtdcRspInfoField *pe,
 			int nRequestID, bool bIsLast)
