@@ -49,52 +49,46 @@ class FemasFieldConverter
 		{
 			memset(&new_order_, 0, sizeof(new_order_));
 
-			strncpy(new_order_.BrokerID, cfg.brokerid.c_str(), 
-						sizeof(TUstpFtdcBrokerIDType));
-			strncpy(new_order_.InvestorID, cfg.investorid.c_str(), sizeof(TUstpFtdcInvestorIDType));
-			strncpy(new_order_.UserID, cfg.userid.c_str(), sizeof(TUstpFtdcUserIDType));
-			new_order_.OrderPriceType = USTP_FTDC_OPT_LimitPrice; 
-			new_order_.HedgeFlag = USTP_FTDC_CHF_Speculation;
-			// 有效期类型
-			new_order_.TimeCondition = USTP_FTDC_TC_GFD;
-			// 成交量类型
-			new_order_.VolumeCondition = USTP_FTDC_VC_AV;
-			// 强平原因
-			new_order_.ForceCloseReason = USTP_FTDC_FCR_NotForceClose;
-			strncpy(new_order_.UserCustom, cfg.userid.c_str(), sizeof(TUstpFtdcCustomType));
+			strncpy(new_order_.m_Account, cfg.userid.c_str(), sizeof(EES_Account));
+			new_order_.m_SecType = EES_SecType_fut; 
+			new_order_.m_HedgeFlag = EES_HedgeFlag_Speculation;
+			new_order_.m_Tif = EES_OrderTif_Day;
 		}
 
 		static CUstpFtdcInputOrderField* Convert(const signal_t& sig, 
 					long localorderid,int32_t vol)
 		{
-			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(TUstpFtdcInstrumentIDType));
-			snprintf(new_order_.UserOrderLocalID, sizeof(TUstpFtdcUserOrderLocalIDType), 
-						"%08lld", localorderid); // 8位，左填充0，最大支持99999个信号
-			//	exchange field
-			if(new_order_.InstrumentID[0]=='s' && new_order_.InstrumentID[1]=='c'){
-				strncpy(new_order_.ExchangeID, MY_TNL_EXID_INE, sizeof(TUstpFtdcExchangeIDType));
+			strncpy(new_order_.m_Symbol, sig.symbol, sizeof(EES_Symbol));
+			new_order_.m_ClientOrderToken = localorderid; 
+			if(new_order_.m_Symbol[0]=='s' && new_order_.m_Symbol[1]=='c'){
+				new_order_.m_Exchange = EES_ExchangeID_ine;
 			}else{
-				strncpy(new_order_.ExchangeID, MY_TNL_EXID_SHFE, sizeof(TUstpFtdcExchangeIDType));
+				new_order_.m_Exchange = EES_ExchangeID_shfe;
 			}
+			new_order_.m_Qty = vol;
 
-			if (sig.sig_act == signal_act_t::buy){
-				new_order_.LimitPrice = sig.buy_price;
-				new_order_.Direction = USTP_FTDC_D_Buy;
-			}else if (sig.sig_act == signal_act_t::sell){
-				new_order_.LimitPrice = sig.sell_price;
-				new_order_.Direction = USTP_FTDC_D_Sell;
-			}else{
-				 clog_error("[%s] do support Direction value:%d; sig id:%d", "FemasFieldConverter",
-					new_order_.Direction, sig.sig_id); 
+
+			if (sig.sig_act == signal_act_t::buy &&
+				sig.sig_openclose == alloc_position_effect_t::open_	){
+				new_order_.m_Price = sig.buy_price;
+				new_order_.m_Side = EES_SideType_open_long;
 			}
-
-			if (sig.sig_openclose == alloc_position_effect_t::open_){
-				new_order_.OffsetFlag = USTP_FTDC_OF_Open;
-			}else if (sig.sig_openclose == alloc_position_effect_t::close_){
-				new_order_.OffsetFlag = USTP_FTDC_OF_CloseToday;
+			if (sig.sig_act == signal_act_t::buy &&
+				sig.sig_openclose == alloc_position_effect_t::close_){
+				new_order_.m_Price = sig.buy_price;
+				new_order_.m_Side = EES_SideType_close_today_short;
 			}
-			new_order_.Volume = vol;
-
+			if (sig.sig_act == signal_act_t::sell
+				sig.sig_openclose == alloc_position_effect_t::open_	){
+				new_order_.m_Price = sig.sell_price;
+				new_order_.m_Side = EES_SideType_open_short;
+			}
+			if (sig.sig_act == signal_act_t::sell &&
+				sig.sig_openclose == alloc_position_effect_t::close_){
+				new_order_.m_Price = sig.sell_price;
+				new_order_.m_Side = EES_SideType_close_today_long;
+			}
+			
 			return &new_order_;
 		}
 
@@ -131,7 +125,7 @@ class FemasFieldConverter
 		}
 
 	private:
-		static CUstpFtdcInputOrderField new_order_;
+		static EES_EnterOrderField new_order_;
 		static CUstpFtdcOrderActionField cancel_order_;
 
 };
