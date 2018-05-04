@@ -14,7 +14,7 @@ struct OrderInfo
 	bool valid;
     char contract[7];
 	// TODO: to here
-    TUstpFtdcDirectionType  side;
+    EES_SideType  side;
     double price;
 };
 
@@ -28,7 +28,7 @@ class Compliance
 		 * 返回值：true表示成功；false表示失败 
 		 */
 		bool TryReqOrderInsert(int ord_counter, const char * contract, double price,
-					TUstpFtdcDirectionType side,TUstpFtdcOffsetFlagType offset);
+					EES_SideType side);
 
 		void End(int ord_counter);
 		void Save();
