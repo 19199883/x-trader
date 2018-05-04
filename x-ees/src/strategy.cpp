@@ -476,7 +476,6 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 	
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
-	// TODO: sys order id
 	sys_order_id_[sigidx] = rpt.SysOrderID;
 
 	if_sig_state_t status = rpt.OrderStatus;

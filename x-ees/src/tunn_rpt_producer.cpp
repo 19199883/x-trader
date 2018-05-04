@@ -94,7 +94,6 @@ void TunnRptProducer::ParseConfig()
 
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
 	if (tunn_node != NULL){
-		// TODO: api_config_
 		strcpy(this->api_config_.m_remoteTradeIp,tunn_node->Attribute("remoteTradeIp"));
 		tunn_node->QueryIntAttribute("remoteTradeTCPPort",
 			&(this->api_config_.m_remoteTradeTCPPort));
