@@ -20,7 +20,7 @@ struct Tunnconfig
 {
 	// TODO: note diferences between account and user id
 	string brokerid;
-	string investorid;
+	string investorid; // account
 	string userid;
 	string password;
 	char exchange;

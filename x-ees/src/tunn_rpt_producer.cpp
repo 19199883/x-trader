@@ -31,7 +31,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	// create EES object
     api_ = LoadTunnelApi();
     RESULT err = api_->ConnServer(api_config_,this);
-    clog_warning("[%s] ConnServer-err:%d", module_name_,err);
+    clog_warning("[%s] ConnServer-err=%d-%s", module_name_,err,EESDatatypeFormater::ToString(&api_config_).c_str());
 }
 
 EESTraderApi *TunnRptProducer::LoadTunnelApi()
@@ -153,10 +153,10 @@ int TunnRptProducer::ReqOrderInsert(EES_EnterOrderField *p)
 	if (ret != 0){
 		time_t rawtime;
 		time (&rawtime);
-		clog_error("[%s][%s] ReqOrderInsert- ret=%d - %s", 
+		clog_error("[%s][%s] EnterOrder- ret=%d - %s", 
 			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p).c_str());
 	}else {
-		clog_info("[%s] ReqOrderInsert-ret=%d-%s", 
+		clog_info("[%s] EnterOrder-ret=%d-%s", 
 			module_name_, ret, EESDatatypeFormater::ToString(p).c_str());
 	}
 
@@ -191,8 +191,8 @@ void TunnRptProducer::OnUserLogon(EES_LogonResponse* pLogon)
 {
 	counter_ = GetCounterByLocalOrderID(pLogon->m_MaxToken);
 	counter_++;
-    clog_warning("[%s] OnUserLogon-result:%d;user:%s;counter_:%u", module_name_,
-		pLogon->m_Result,pLogon->m_UserId,this->counter_);
+    clog_warning("[%s] OnUserLogon-result:%d;user:%s;counter_:%u;m_MaxToken:%u", module_name_,
+		pLogon->m_Result,pLogon->m_UserId,this->counter_,pLogon->m_MaxToken);
 }
 
 void TunnRptProducer::OnOrderAccept(EES_OrderAcceptField* pAccept )

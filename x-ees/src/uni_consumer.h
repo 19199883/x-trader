@@ -49,7 +49,7 @@ class FemasFieldConverter
 		{
 			memset(&new_order_, 0, sizeof(new_order_));
 
-			strncpy(new_order_.m_Account, cfg.userid.c_str(), sizeof(EES_Account));
+			strncpy(new_order_.m_Account, cfg.investorid.c_str(), sizeof(EES_Account));
 			new_order_.m_SecType = EES_SecType_fut; 
 			new_order_.m_HedgeFlag = EES_HedgeFlag_Speculation;
 			new_order_.m_Tif = EES_OrderTif_Day;
