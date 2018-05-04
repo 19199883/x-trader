@@ -395,14 +395,13 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
-	if (rpt->OrderStatus == USTP_FTDC_OS_PartTradedNotQueueing ||
-			rpt->OrderStatus == USTP_FTDC_OS_Canceled){
+	if (rpt->OrderStatus == SIG_STATUS_CANCEL){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
 
-	if (rpt->OrderStatus == USTP_FTDC_OS_AllTraded ||
-			rpt->OrderStatus == USTP_FTDC_OS_PartTradedNotQueueing ||
-			rpt->OrderStatus == USTP_FTDC_OS_Canceled){
+	if (rpt->OrderStatus==SIG_STATUS_SUCCESS ||
+			rpt->OrderStatus == SIG_STATUS_CANCEL||
+			rpt->OrderStatus == SIG_STATUS_REJECTED){
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
@@ -505,7 +504,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		// 从pending队列中撤单
 		rpt.ErrorID = CANCELLED_FROM_PENDING;   
 
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled ;   
+		rpt.OrderStatus = SIG_STATUS_CANCEL;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 
@@ -577,7 +576,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled; 
+		rpt.OrderStatus = SIG_STATUS_CANCEL; 
 		rpt.ErrorID = -1; 
 		int32_t sigidx = strategy.GetSignalIdxBySigId(sig.sig_id);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
@@ -602,7 +601,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
 			rpt.LocalOrderID = localorderid;
-			rpt.OrderStatus = USTP_FTDC_OS_Canceled;
+			rpt.OrderStatus = SIG_STATUS_CANCEL;
 			rpt.ErrorID = rtn;
 
 			compliance_.End(counter);
@@ -627,7 +626,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		rpt.LocalOrderID = localorderid;
-		rpt.OrderStatus = USTP_FTDC_OS_Canceled;
+		rpt.OrderStatus = SIG_STATUS_CANCEL;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
 		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);

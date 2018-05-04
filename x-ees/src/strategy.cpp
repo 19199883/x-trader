@@ -473,17 +473,13 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 {
 	// TODO:考虑m_Quantity是否是最新成交量还是累计成交量
 	// 先假设是最新成交量
-	// 成交状态不推给策略，放到OnRtnTrade阶段再推送给策略
-	if(rpt.OrderStatus==USTP_FTDC_OS_AllTraded || rpt.OrderStatus==USTP_FTDC_OS_PartTradedQueueing){ 
-		return;
-	}
 	
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
 	// TODO: sys order id
 	sys_order_id_[sigidx] = rpt.SysOrderID;
 
-	TUstpFtdcOrderStatusType status = rpt.OrderStatus;
+	if_sig_state_t status = rpt.OrderStatus;
 	// update signal report
 	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.TradePrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
@@ -542,9 +538,9 @@ void Strategy::UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status,
 
 	// 从pending队列中撤单 done
 	if (err != CANCELLED_FROM_PENDING){
-		if (status==USTP_FTDC_OS_AllTraded ||
-			status==USTP_FTDC_OS_PartTradedNotQueueing ||
-			status==USTP_FTDC_OS_Canceled){ // 释放冻结仓位
+		if (status==SIG_STATUS_SUCCESS ||
+			status==SIG_STATUS_CANCEL||
+			status==SIG_STATUS_REJECTED){ // 释放冻结仓位
 			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
 				position_.frozen_open_long = 0;
 			}
@@ -590,30 +586,13 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_pr
 		}
 	}
 
-	if (status == USTP_FTDC_OS_Canceled){
+	if (status == SIG_STATUS_CANCEL){
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
 	}else{ sigrpt.killed = 0; }
 
 	sigrpt.rejected = 0; 
 	sigrpt.error_no = err;
-
-	if (status == USTP_FTDC_OS_Canceled ||
-		status == USTP_FTDC_OS_PartTradedNotQueueing){
-		sigrpt.status = if_sig_state_t::SIG_STATUS_CANCEL;
-	}
-	else if(status == USTP_FTDC_OS_AllTraded){
-		sigrpt.status = if_sig_state_t::SIG_STATUS_SUCCESS;
-	}
-	else if(status == USTP_FTDC_OS_PartTradedQueueing){
-		sigrpt.status = if_sig_state_t::SIG_STATUS_PARTED;
-	}
-	else if(status== USTP_FTDC_OS_NoTradeQueueing || 
-			sigrpt.status == USTP_FTDC_OS_NoTradeNotQueueing){
-		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
-	}
-	else{
-		clog_error("[%s] unexpected status:%d", status);
-	}
+	sigrpt.status = status;
 }
 
 void Strategy::LoadPosition()
