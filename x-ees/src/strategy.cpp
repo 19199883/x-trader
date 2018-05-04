@@ -513,8 +513,8 @@ bool Strategy::HasFrozenPosition()
 
 }
 
-void Strategy::UpdatePosition(int32_t lastqty, TUstpFtdcOrderStatusType status,
-			unsigned short sig_openclose, unsigned short int sig_act, TUstpFtdcErrorIDType err)
+void Strategy::UpdatePosition(int32_t lastqty, if_sig_state_t status,
+			unsigned short sig_openclose, unsigned short int sig_act, int err)
 {
 	if (lastqty > 0){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
@@ -569,8 +569,8 @@ void Strategy::FillPositionRpt(position_t &pos)
 	pos.s_pos[0].short_volume = position_.cur_short;
 	pos.s_pos[0].changed = 1;
 }
-void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, TUstpFtdcPriceType last_price, 
-			signal_resp_t& sigrpt, TUstpFtdcOrderStatusType &status, TUstpFtdcErrorIDType err)
+void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, double last_price, 
+			signal_resp_t& sigrpt, if_sig_state_t &status, int err)
 {
 	if (lastqty > 0){
 		sigrpt.exec_price = last_price;

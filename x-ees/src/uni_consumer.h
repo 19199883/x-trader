@@ -42,7 +42,7 @@ struct Uniconfig
 	char yield[20];
 };
 
-class FemasFieldConverter
+class EESFieldConverter
 {
 	public:
 		static void InitNewOrder(Tunnconfig &cfg)
@@ -55,7 +55,7 @@ class FemasFieldConverter
 			new_order_.m_Tif = EES_OrderTif_Day;
 		}
 
-		static CUstpFtdcInputOrderField* Convert(const signal_t& sig, 
+		static EES_EnterOrderField * Convert(const signal_t& sig, 
 					long localorderid,int32_t vol)
 		{
 			strncpy(new_order_.m_Symbol, sig.symbol, sizeof(EES_Symbol));
@@ -78,7 +78,7 @@ class FemasFieldConverter
 				new_order_.m_Price = sig.buy_price;
 				new_order_.m_Side = EES_SideType_close_today_short;
 			}
-			if (sig.sig_act == signal_act_t::sell
+			if (sig.sig_act == signal_act_t::sell &&
 				sig.sig_openclose == alloc_position_effect_t::open_	){
 				new_order_.m_Price = sig.sell_price;
 				new_order_.m_Side = EES_SideType_open_short;

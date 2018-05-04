@@ -53,7 +53,7 @@ std::string EESDatatypeFormater::ToString(const EES_EnterOrderField *pdata)
     return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const EES_OrderAcceptField *pdata)
+std::string EESDatatypeFormater::ToString(const EES_OrderAcceptField *pdata)
 {
 	stringstream ss;
 	ss << "structName=EES_OrderAcceptField" << ";";
@@ -84,7 +84,7 @@ std::string FEMASDatatypeFormater::ToString(const EES_OrderAcceptField *pdata)
 	return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const EES_OrderRejectField *pdata)
+std::string EESDatatypeFormater::ToString(const EES_OrderRejectField *pdata)
 {
 	stringstream ss;
 	ss << "structName=EES_OrderRejectField" << ";";
@@ -106,7 +106,7 @@ std::string FEMASDatatypeFormater::ToString(const EES_OrderRejectField *pdata)
 	return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const EES_OrderMarketAcceptField *pdata)
+std::string EESDatatypeFormater::ToString(const EES_OrderMarketAcceptField *pdata)
 {
 	stringstream ss;
 	ss << "structName=EES_OrderMarketAcceptField" << ";";
@@ -125,7 +125,7 @@ std::string FEMASDatatypeFormater::ToString(const EES_OrderMarketAcceptField *pd
 	return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const EES_OrderMarketRejectField *pdata)
+std::string EESDatatypeFormater::ToString(const EES_OrderMarketRejectField *pdata)
 {
 	stringstream ss;
 	ss << "structName=EES_OrderRejectField" << ";";
@@ -138,13 +138,13 @@ std::string FEMASDatatypeFormater::ToString(const EES_OrderMarketRejectField *pd
 	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
 	ss << "m_MarketTimestamp=" << pdata->m_MarketTimestamp << ";";
 	ss << "m_ReasonText=" << pdata->m_ReasonText << ";";
-	ss << "m_Userid=" << pdata->m_Userid << ";";
+	ss << "m_Userid=" << pdata->m_UserID << ";";
 	ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken << ";";
 
 	return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const EES_OrderExecutionField *pdata)
+std::string EESDatatypeFormater::ToString(const EES_OrderExecutionField *pdata)
 {
 	stringstream ss;
 	ss << "structName=EES_OrderExecutionField" << ";";
@@ -165,7 +165,7 @@ std::string FEMASDatatypeFormater::ToString(const EES_OrderExecutionField *pdata
 	return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const EES_CancelOrder* pdata)
+std::string EESDatatypeFormater::ToString(const EES_CancelOrder* pdata)
 {
 	stringstream ss;
 	ss << "structName=EES_CancelOrder" << ";";
@@ -180,7 +180,7 @@ std::string FEMASDatatypeFormater::ToString(const EES_CancelOrder* pdata)
 	return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const EES_OrderCxled* pdata)
+std::string EESDatatypeFormater::ToString(const EES_OrderCxled* pdata)
 {
     stringstream ss;
     ss << "structName=EES_OrderCxled" << ";";
@@ -198,7 +198,7 @@ std::string FEMASDatatypeFormater::ToString(const EES_OrderCxled* pdata)
     return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const EES_CxlOrderRej* pdata)
+std::string EESDatatypeFormater::ToString(const EES_CxlOrderRej* pdata)
 {
 	stringstream ss;
 	ss <<  "structName=EES_CxlOrderRej" << ";";

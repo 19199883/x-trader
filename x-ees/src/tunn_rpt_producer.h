@@ -4,6 +4,7 @@
 #include <array>
 #include <string>
 #include "vrt_value_obj.h"
+#include "signal.h"
 #include "EesTraderApi.h"
 
 using namespace std;

@@ -7,11 +7,12 @@
 #include "perfctx.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "ees_data_formater.h"
 
 using namespace std::placeholders; 
 
-CUstpFtdcInputOrderField FemasFieldConverter::new_order_;
-CUstpFtdcOrderActionField FemasFieldConverter::cancel_order_;
+EES_EnterOrderField EESFieldConverter::new_order_;
+EES_CancelOrder EESFieldConverter::cancel_order_;
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
 	L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer)
@@ -26,8 +27,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
-	FemasFieldConverter::InitNewOrder(tunn_rpt_producer_->config_);
-	FemasFieldConverter::InitCancelOrder(tunn_rpt_producer_->config_);
+	EESFieldConverter::InitNewOrder(tunn_rpt_producer_->config_);
+	EESFieldConverter::InitCancelOrder(tunn_rpt_producer_->config_);
 
 #if FIND_STRATEGIES == 1
 	unordered_multimap 
@@ -529,14 +530,13 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		return;
 	}
 	
-	long ori_sys_order_id = strategy.GetSysOrderID(sig.orig_sig_id);
-    EES_CancelOrder* order =  FemasFieldConverter::Convert(ori_sys_order_id);
+	long ori_sys_order_id = strategy.GetSysOrderIdBySigID(sig.orig_sig_id);
+    EES_CancelOrder* order =  EESFieldConverter::Convert(ori_sys_order_id);
 	int rtn = tunn_rpt_producer_->ReqOrderAction(order);
 
-	// debug
-	if(0 == ori_local_order_id){
-		clog_warning("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-			module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+	if(0 == ori_sys_order_id){
+		clog_error("[%s] ReqOrderAction- ret=%d - %s", 
+			module_name_,rtn, EESDatatypeFormater::ToString(order).c_str());
 
 		signal_t* ori_sig = strategy.GetSignalBySigID(sig.orig_sig_id);
 		 clog_warning("[%s] CancelOrder ori signal: strategy id:%d; sig_id:%d; "
@@ -547,13 +547,12 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 			ori_sig->sig_openclose, ori_sig->orig_sig_id); 
 	}
 
-	clog_info("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-		module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+	clog_info("[%s] ReqOrderAction- ret=%d - %s", 
+		module_name_,rtn, EESDatatypeFormater::ToString(order).c_str());
 	if(rtn != 0){
-		clog_error("[%s] CancelOrder: UserOrderActionLocalID:%s; UserOrderLocalID:%s; result:%d", 
-			module_name_, order->UserOrderActionLocalID,order->UserOrderLocalID, rtn); 
+		clog_error("[%s] ReqOrderAction- ret=%d - %s", 
+			module_name_,rtn, EESDatatypeFormater::ToString(order).c_str());
 	}
-
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
@@ -588,12 +587,11 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		return;
 	}
 
-	CUstpFtdcInputOrderField *ord =  FemasFieldConverter::Convert(sig, localorderid, updated_vol);
+	EES_EnterOrderField *ord =  EESFieldConverter::Convert(sig, localorderid, updated_vol);
 
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
-	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID, ord->LimitPrice,
-				ord->Direction, ord->OffsetFlag);
+	bool result = compliance_.TryReqOrderInsert(counter,ord->m_Symbol,ord->m_Price,ord->m_Side);
 	if(result){
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
@@ -615,12 +613,12 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 
-			clog_error("[%s] PlaceOrder rtn:%d; LocalOrderID: %s", module_name_, 
-						rtn, ord->UserOrderLocalID);
+			clog_error("[%s] PlaceOrder rtn:%d; m_ClientOrderToken:%d", module_name_, 
+						rtn, ord->m_ClientOrderToken);
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_error("[%s] matched with myself:%s", module_name_, ord->UserOrderLocalID);
+		clog_error("[%s] matched with myself:%d", module_name_, ord->m_ClientOrderToken);
 
 		// feed rejeted info
 		TunnRpt rpt;

@@ -102,7 +102,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		if (strcmp(ord.contract, contract)==0 && side != ord.side){
 			if (
 				 ((side==EES_SideType_open_long || side==EES_SideType_close_today_short) && (price+DOUBLE_CHECH_PRECISION)>=ord.price) || 
-				 ((side==EES_SideType_open_short || side=EES_SideType_close_today_long) && (price-DOUBLE_CHECH_PRECISION)<=ord.price)
+				 ((side==EES_SideType_open_short || side==EES_SideType_close_today_long) && (price-DOUBLE_CHECH_PRECISION)<=ord.price)
 				){
 				ret = false;
 				time_t rawtime;

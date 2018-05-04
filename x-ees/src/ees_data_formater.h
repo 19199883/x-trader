@@ -20,18 +20,11 @@ public:
 	static std::string ToString(const EES_OrderCxled *pdata);
 	static std::string ToString(const EES_CxlOrderRej *pdata);
 
-
-	static std::string ToString(const CUstpFtdcTradeField *pdata);
-	static std::string ToString(const CUstpFtdcOrderField *pdata);
-	static std::string ToString(const CUstpFtdcRspInvestorPositionField *pdata);
-	static std::string ToString(const CUstpFtdcRspInfoField *pdata);
-	static std::string ToString(const CUstpFtdcRspInvestorAccountField *pdata);
-
 private:
-	FEMASDatatypeFormater()
+	EESDatatypeFormater()
 	{
 	}
-	~FEMASDatatypeFormater()
+	~EESDatatypeFormater()
 	{
 	}
 };

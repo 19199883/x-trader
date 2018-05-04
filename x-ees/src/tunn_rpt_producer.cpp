@@ -1,11 +1,14 @@
 #include <stdlib.h>     /* atol */
 #include <thread>
+#include <stdlib.h>
+#include <stdio.h>
+#include <dlfcn.h>
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include "femas_data_formater.h"
+#include "ees_data_formater.h"
 
-int32_t TunnRptProducer::counter_ = 1;
+uint32_t TunnRptProducer::counter_ = 1;
 
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
@@ -61,7 +64,7 @@ EESTraderApi *TunnRptProducer::LoadTunnelApi()
 	}
 }
 
-void *unnRptProducer::UnloadTunnelApi()
+void TunnRptProducer::UnloadTunnelApi()
 {
 	if (api_){
 		api_->DisConnServer();
@@ -95,23 +98,26 @@ void TunnRptProducer::ParseConfig()
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
 	if (tunn_node != NULL){
 		strcpy(this->api_config_.m_remoteTradeIp,tunn_node->Attribute("remoteTradeIp"));
-		tunn_node->QueryIntAttribute("remoteTradeTCPPort",
-			&(this->api_config_.m_remoteTradeTCPPort));
-		tunn_node->QueryIntAttribute("remoteTradeUDPPort",
-			&(this->api_config_.m_remoteTradeUDPPort));
+		int remoteTradeTCPPort = 0;
+		tunn_node->QueryIntAttribute("remoteTradeTCPPort", &remoteTradeTCPPort);
+		this->api_config_.m_remoteTradeTCPPort = remoteTradeTCPPort;
+		int remoteTradeUDPPort = 0;
+		tunn_node->QueryIntAttribute("remoteTradeUDPPort", &remoteTradeUDPPort);
+		this->api_config_.m_remoteTradeUDPPort = remoteTradeUDPPort;
 		strcpy(this->api_config_.m_remoteQueryIp,tunn_node->Attribute("remoteQueryIp"));
-		tunn_node->QueryIntAttribute("remoteQueryTCPPort",
-			&(this->api_config_.m_remoteQueryTCPPort));
+		int remoteQueryTCPPort = 0;
+		tunn_node->QueryIntAttribute("remoteQueryTCPPort", &remoteQueryTCPPort);
+		this->api_config_.m_remoteQueryTCPPort = remoteQueryTCPPort;
 		strcpy(this->api_config_.m_LocalTradeIp,tunn_node->Attribute("localTradeIp"));
-		tunn_node->QueryIntAttribute("localTradeUDPPort",
-			&(this->api_config_.m_LocalTradeUDPPort));
-
+		int localTradeUDPPort = 0;
+		tunn_node->QueryIntAttribute("localTradeUDPPort", &localTradeUDPPort);
+		this->api_config_.m_LocalTradeUDPPort = localTradeUDPPort;
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
 		this->config_.investorid = tunn_node->Attribute("investorid");
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
 
-		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s; "
+		clog_warning("[%s] tunn config:brokerid:%s; userid:%s; investor:%s password:%s; "
 					"m_remoteTradeIp:%s; "
 					" m_remoteTradeTCPPort:%d; "
 					"m_remoteTradeUDPPort:%d; "
@@ -120,9 +126,9 @@ void TunnRptProducer::ParseConfig()
 					"m_LocalTradeIp:%s; "
 					"m_LocalTradeUDPPort:%d; " ,
 					module_name_, 
-					this->config_.address.c_str(), 
 					this->config_.brokerid.c_str(),
 					this->config_.userid.c_str(),
+					this->config_.investorid.c_str(),
 					this->config_.password.c_str(),
 					this->api_config_.m_remoteTradeIp,
 					this->api_config_.m_remoteTradeTCPPort,
@@ -140,7 +146,7 @@ void TunnRptProducer::OnConnection(ERR_NO errNo, const char* pErrStr )
 	this->ReqLogin();
 }
 
-void OnDisConnection(ERR_NO errNo, const char* pErrStr )
+void TunnRptProducer::OnDisConnection(ERR_NO errNo, const char* pErrStr )
 {
     clog_warning("[%s] OnDisConnection-err:%d; err info:%s", module_name_,errNo,pErrStr);
 }
@@ -238,9 +244,8 @@ void TunnRptProducer::OnOrderReject(EES_OrderRejectField* pReject)
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
 	rpt.LocalOrderID = pReject->m_ClientOrderToken;
-	rpt.SysOrderID = pReject->m_MarketOrderToken;
 	rpt.OrderStatus = SIG_STATUS_CANCEL;
-	rpt.ErrorID = pReject->EES_ReasonCode;
+	rpt.ErrorID = pReject->m_ReasonCode;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -330,8 +335,8 @@ void TunnRptProducer::OnOrderCxled(EES_OrderCxled* pCxled)
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
-	rpt.LocalOrderID = pReject->m_ClientOrderToken;
-	rpt.SysOrderID = pReject->m_MarketOrderToken;
+	rpt.LocalOrderID = pCxled->m_ClientOrderToken;
+	rpt.SysOrderID = pCxled->m_MarketOrderToken;
 	rpt.OrderStatus = SIG_STATUS_CANCEL;
 
 	struct vrt_value  *vvalue;
@@ -349,6 +354,13 @@ void TunnRptProducer::OnCxlOrderReject(EES_CxlOrderRej* pReject)
 
 	clog_warning("[%s] OnCxlOrderReject:%s",module_name_,
 		EESDatatypeFormater::ToString(pReject).c_str());
+}
+
+void TunnRptProducer::OnMarketSessionStatReport(EES_MarketSessionId MarketSessionId,
+			bool ConnectionGood)
+{
+	clog_warning("[%s] OnMarketSessionStatReport-MarketSessionId:%hhu; ConnectionGood:%d",
+		module_name_,MarketSessionId,(int)ConnectionGood);
 }
 
 void TunnRptProducer::End()
