@@ -95,7 +95,7 @@ class FemasFieldConverter
 		static void InitCancelOrder(Tunnconfig &cfg)
 		{
 			memset(&cancel_order_, 0, sizeof(cancel_order_));
-			strncpy(cancel_order_.m_Account, cfg.userid.c_str(), sizeof(EES_Account));
+			strncpy(cancel_order_.m_Account, cfg.investorid.c_str(), sizeof(EES_Account));
 		}
 
 		static EES_CancelOrder*  Convert(long ori_sysorderid)

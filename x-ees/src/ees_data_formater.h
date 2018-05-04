@@ -16,11 +16,11 @@ public:
 	static std::string ToString(const EES_OrderMarketAcceptField *pdata);
 	static std::string ToString(const EES_OrderMarketRejectField* pdata);
 	static std::string ToString(const EES_OrderExecutionField* pdata);
+	static std::string ToString(const EES_CancelOrder* pdata);
+	static std::string ToString(const EES_OrderCxled *pdata);
+	static std::string ToString(const EES_CxlOrderRej *pdata);
 
 
-	static std::string ToString(const CUstpFtdcUserPasswordUpdateField* pdata);
-	static std::string ToString(const CUstpFtdcInputOrderField *pdata);
-	static std::string ToString(const CUstpFtdcOrderActionField *pdata);
 	static std::string ToString(const CUstpFtdcTradeField *pdata);
 	static std::string ToString(const CUstpFtdcOrderField *pdata);
 	static std::string ToString(const CUstpFtdcRspInvestorPositionField *pdata);

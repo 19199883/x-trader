@@ -165,56 +165,51 @@ std::string FEMASDatatypeFormater::ToString(const EES_OrderExecutionField *pdata
 	return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const CUstpFtdcRspUserLoginField* pdata)
+std::string FEMASDatatypeFormater::ToString(const EES_CancelOrder* pdata)
 {
 	stringstream ss;
-	ss << "structName=CUstpFtdcRspUserLoginField ///Login Respond" << ";";
-	if (!pdata)
-	{
+	ss << "structName=EES_CancelOrder" << ";";
+	if (!pdata) {
 		ss << "<null>" << ";";
 		return ss.str();
 	}
-	ss << "TradingDay=" << pdata->TradingDay << ";";
-	ss << "BrokerID=" << pdata->BrokerID << ";";
-	ss << "UserID=" << pdata->UserID  << ";";
-	ss << "LoginTime=" << pdata->LoginTime << ";";
-	ss << "MaxOrderLocalID=" << pdata->MaxOrderLocalID << ";";
-	ss << "TradingSystemName=" << pdata->TradingSystemName << ";";
-	ss << "DataCenterID=" << pdata->DataCenterID << ";";
-	ss << "PrivateFlowSize=" << pdata->PrivateFlowSize << ";";
-	ss << "UserFlowSize=" << pdata->UserFlowSize << ";";
+	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
+	ss << "m_Quantity=" << pdata->m_Quantity << ";";
+	ss << "m_Account=" << pdata->m_Account  << ";";
 
 	return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const CUstpFtdcRspUserLogoutField* pdata)
+std::string FEMASDatatypeFormater::ToString(const EES_OrderCxled* pdata)
 {
     stringstream ss;
-    ss << "structName=CUstpFtdcRspUserLogoutField // Logout Respond" << ";";
-    if (!pdata)
-    {
+    ss << "structName=EES_OrderCxled" << ";";
+    if (!pdata) {
         ss << "<null>" << ";";
         return ss.str();
     }
-    ss << "BrokerID=" << pdata->BrokerID << ";";
-    ss << "UserID=" << pdata->UserID  << ";";
+    ss << "m_Userid=" << pdata->m_Userid << ";";
+    ss << "m_Timestamp=" << pdata->m_Timestamp  << ";";
+    ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken  << ";";
+    ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken  << ";";
+    ss << "m_Decrement=" << pdata->m_Decrement  << ";";
+    ss << "m_Reason=" << pdata->m_Reason  << ";";
 
     return ss.str();
 }
 
-std::string FEMASDatatypeFormater::ToString(const CUstpFtdcUserPasswordUpdateField* pdata)
+std::string FEMASDatatypeFormater::ToString(const EES_CxlOrderRej* pdata)
 {
 	stringstream ss;
-	ss <<  "structName=CUstpFtdcUserPasswordUpdateField	///Password change" << ";";
-	if (!pdata)
-	{
+	ss <<  "structName=EES_CxlOrderRej" << ";";
+	if (!pdata) {
 		ss << "<null>" << ";";
 		return ss.str();
 	}
-	ss << "BrokerID=" << pdata->BrokerID  << ";";
-	ss << "UserID=" << pdata->UserID << ";";
-	ss << "OldPassword=" << pdata->OldPassword  << ";";
-	ss << "NewPassword=" << pdata->NewPassword << ";";
+	ss << "m_account=" << pdata->m_account  << ";";
+	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
+	ss << "m_ReasonCode=" << pdata->m_ReasonCode  << ";";
+	ss << "m_ReasonText=" << pdata->m_ReasonText << ";";
 
 	return ss.str();
 }
