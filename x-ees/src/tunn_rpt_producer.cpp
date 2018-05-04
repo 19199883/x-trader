@@ -187,17 +187,32 @@ int TunnRptProducer::ReqOrderAction(EES_CancelOrder *p)
 
 void TunnRptProducer::ReqLogin()
 {
-	RESULT err = api_->UserLogon(config_.userid.c_str(),config_.password.c_str(),NULL,NULL);
-    clog_warning("[%s] ReqLogin-err_no,%d; user:%s; pwd:%d",module_name_,err,
+	RESULT err = api_->UserLogon(config_.userid.c_str(),config_.password.c_str(),SL_EES_API_VERSION,"00:0f:53:2f:80:00");
+    clog_warning("[%s] ReqLogin-err_no,%d; user:%s; pwd:%s",module_name_,err,
 		config_.userid.c_str(),config_.password.c_str());
 }
 
 void TunnRptProducer::OnUserLogon(EES_LogonResponse* pLogon)
 {
+	// TODO:
+    clog_warning("[%s]enter OnUserLogon", module_name_);
+	fflush (Log::fp);
+
 	counter_ = GetCounterByLocalOrderID(pLogon->m_MaxToken);
 	counter_++;
-    clog_warning("[%s] OnUserLogon-result:%d;user:%s;counter_:%u;m_MaxToken:%u", module_name_,
-		pLogon->m_Result,pLogon->m_UserId,this->counter_,pLogon->m_MaxToken);
+
+
+	// TODO: to here. m_UserID's type is int
+    clog_warning("[%s] OnUserLogon-result:%d;user:%d;counter_:%u;m_MaxToken:%u", 
+				module_name_,
+				pLogon->m_Result,
+				pLogon->m_UserId,
+				this->counter_,
+				pLogon->m_MaxToken);
+
+	// TODO:
+    clog_warning("[%s]exit OnUserLogon", module_name_);
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnOrderAccept(EES_OrderAcceptField* pAccept )
