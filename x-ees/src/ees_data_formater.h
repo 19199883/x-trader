@@ -9,16 +9,16 @@ class EESDatatypeFormater
 {
 public:
 	// 所有请求消息的格式化
-	static std::string ToString(const EES_TradeSvrInfo *pdata);
-	static std::string ToString(const EES_EnterOrderField *pdata);
-	static std::string ToString(const EES_OrderAcceptField *pdata);
-	static std::string ToString(const EES_OrderRejectField *pdata);
-	static std::string ToString(const EES_OrderMarketAcceptField *pdata);
-	static std::string ToString(const EES_OrderMarketRejectField* pdata);
-	static std::string ToString(const EES_OrderExecutionField* pdata);
-	static std::string ToString(const EES_CancelOrder* pdata);
-	static std::string ToString(const EES_OrderCxled *pdata);
-	static std::string ToString(const EES_CxlOrderRej *pdata);
+	static const char* ToString(const EES_TradeSvrInfo *pdata);
+	static const char* ToString(const EES_EnterOrderField *pdata);
+	static const char* ToString(const EES_OrderAcceptField *pdata);
+	static const char* ToString(const EES_OrderRejectField *pdata);
+	static const char* ToString(const EES_OrderMarketAcceptField *pdata);
+	static const char* ToString(const EES_OrderMarketRejectField* pdata);
+	static const char* ToString(const EES_OrderExecutionField* pdata);
+	static const char* ToString(const EES_CancelOrder* pdata);
+	static const char* ToString(const EES_OrderCxled *pdata);
+	static const char* ToString(const EES_CxlOrderRej *pdata);
 
 private:
 	EESDatatypeFormater()

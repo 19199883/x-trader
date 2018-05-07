@@ -67,164 +67,190 @@ const char* EESDatatypeFormater::ToString(const EES_EnterOrderField *pdata)
     return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_OrderAcceptField *pdata)
+const char* EESDatatypeFormater::ToString(const EES_OrderAcceptField *pdata)
 {
-	stringstream ss;
-	ss << "structName=EES_OrderAcceptField" << ";";
-	if (!pdata) {
-		ss << "<null>" << ";";
-		return ss.str();
-	}
+	if (!pdata) return "";
 
-	ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken  << ";";
-	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
-	ss << "m_OrderState=" << pdata->m_OrderState << ";";
-	ss << "m_UserID=" << pdata->m_UserID << ";";
-	ss << "m_AcceptTime=" << pdata->m_AcceptTime << ";";
-	ss << "m_Account=" << pdata->m_Account << ";";
-	ss << "m_Side=" << pdata->m_Side << ";";
-	ss << "m_Exchange=" << pdata->m_Exchange << ";";
-	ss << "m_Symbol=" << pdata->m_Symbol << ";";
-	ss << "m_SecType=" << pdata->m_SecType << ";";
-	ss << "m_Price=" << pdata->m_Price << ";";
-	ss << "m_Qty=" << pdata->m_Qty << ";";
-	ss << "m_OptExecFlag=" << pdata->m_OptExecFlag << ";";
-	ss << "m_Tif=" << pdata->m_Tif << ";";
-	ss << "m_MinQty=" << pdata->m_MinQty << ";";
-	ss << "m_CustomField=" << pdata->m_CustomField << ";";
-	ss << "m_MarketSessionId=" << pdata->m_MarketSessionId << ";";
-	ss << "m_HedgeFlag=" << pdata->m_HedgeFlag << ";";
+	sprintf(buffer_,
+		"structName=EES_OrderAcceptField; "
+		"m_ClientOrderToken=%u; "
+		"m_MarketOrderToken=%lld; "
+		"m_OrderState=%hhu; "
+		"m_UserID=%d; "
+		"m_Account=%s; "
+		"m_Side=%hhu; "
+		"m_Exchange=%hhu; "
+		"m_Symbol=%s; "
+		"m_SecType=%hhu; "
+		"m_Price=%f; "
+		"m_Qty=%u; "
+		"m_OptExecFlag=%hhu; "
+		"m_Tif=%u; "
+		"m_MinQty=%u; "
+		"m_MarketSessionId=%hhu; "
+		"m_HedgeFlag=%hhu; ",
+		pdata->m_ClientOrderToken,
+		pdata->m_MarketOrderToken,
+		pdata->m_OrderState,
+		pdata->m_UserID,
+		pdata->m_Account,
+		pdata->m_Side,
+		pdata->m_Exchange,
+		pdata->m_Symbol,
+		pdata->m_SecType,
+		pdata->m_Price,
+		pdata->m_Qty,
+		pdata->m_OptExecFlag,
+		pdata->m_Tif,
+		pdata->m_MinQty,
+		pdata->m_MarketSessionId,
+		pdata->m_HedgeFlag);
 
-	return ss.str();
+	return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_OrderRejectField *pdata)
+const char* EESDatatypeFormater::ToString(const EES_OrderRejectField *pdata)
 {
-	stringstream ss;
-	ss << "structName=EES_OrderRejectField" << ";";
-	if (!pdata) {
-		ss << "<null>" << ";";
-		return ss.str();
-	}
+	if (!pdata) return "";
 
-	ss << "m_Userid=" << pdata->m_Userid << ";";
-	ss << "m_Timestamp=" << pdata->m_Timestamp << ";";
-	ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken << ";";
-	ss << "m_RejectedMan=" << pdata->m_RejectedMan << ";";
-	ss << "m_ReasonCode=" << pdata->m_ReasonCode << ";";
-	ss << "m_GrammerResult=" << pdata->m_GrammerResult << ";";
-	ss << "m_RiskResult=" << pdata->m_RiskResult << ";";
-	ss << "m_GrammerText=" << pdata->m_GrammerText << ";";
-	ss << "m_RiskText=" << pdata->m_RiskText << ";";
+	sprintf(buffer_,
+		"structName=EES_OrderRejectField; "
+		"m_Userid=%d; "
+		"m_ClientOrderToken=%u; "
+		"m_RejectedMan=%hhu; "
+		"m_ReasonCode=%hhu; "
+		"m_GrammerResult=%s; "
+		"m_RiskResult=%s; "
+		"m_GrammerText=%s; "
+		"m_RiskText=%s; ",
+		pdata->m_Userid,
+		pdata->m_ClientOrderToken,
+		pdata->m_RejectedMan,
+		pdata->m_ReasonCode,
+		pdata->m_GrammerResult,
+		pdata->m_RiskResult,
+		pdata->m_GrammerText,
+		pdata->m_RiskText);
 
-	return ss.str();
+	return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_OrderMarketAcceptField *pdata)
+const char * EESDatatypeFormater::ToString(const EES_OrderMarketAcceptField *pdata)
 {
-	stringstream ss;
-	ss << "structName=EES_OrderMarketAcceptField" << ";";
-	if (!pdata) {
-		ss << "<null>" << ";";
-		return ss.str();
-	}
+	if (!pdata) return "";
 
-	ss << "m_Account=" << pdata->m_Account << ";";
-	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
-	ss << "m_MarketOrderId=" << pdata->m_MarketOrderId << ";";
-	ss << "m_MarketTime=" << pdata->m_MarketTime << ";";
-	ss << "m_UserID=" << pdata->m_UserID << ";";
-	ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken  << ";";
+	sprintf(buffer_,
+		"structName=EES_OrderMarketAcceptField; "
+		"m_Account=%s; "
+		"m_MarketOrderToken=%lld"
+		"m_MarketOrderId=%s; "
+		"m_UserID=%d; "
+		"m_ClientOrderToken=%u; ",
+		pdata->m_Account,
+		pdata->m_MarketOrderToken,
+		pdata->m_MarketOrderId,
+		pdata->m_UserID,
+		pdata->m_ClientOrderToken);
 
-	return ss.str();
+	return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_OrderMarketRejectField *pdata)
+const char* EESDatatypeFormater::ToString(const EES_OrderMarketRejectField *pdata)
 {
-	stringstream ss;
-	ss << "structName=EES_OrderRejectField" << ";";
-	if (!pdata) {
-		ss << "<null>" << ";";
-		return ss.str();
-	}
+	if (!pdata) return "";
 
-	ss << "m_Account=" << pdata->m_Account << ";";
-	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
-	ss << "m_MarketTimestamp=" << pdata->m_MarketTimestamp << ";";
-	ss << "m_ReasonText=" << pdata->m_ReasonText << ";";
-	ss << "m_Userid=" << pdata->m_UserID << ";";
-	ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken << ";";
+	sprintf(buffer_,
+		"structName=EES_OrderRejectField; "
+		"m_Account=%s; " 
+		"m_MarketOrderToken=%lld"
+		"m_ReasonText=%s; " 
+		"m_Userid=%d; "  
+		"m_ClientOrderToken=%u; ",
+		pdata->m_Account,
+		pdata->m_MarketOrderToken,
+		pdata->m_ReasonText,
+		pdata->m_UserID,
+		pdata->m_ClientOrderToken);
 
-	return ss.str();
+	return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_OrderExecutionField *pdata)
+const char* EESDatatypeFormater::ToString(const EES_OrderExecutionField *pdata)
 {
-	stringstream ss;
-	ss << "structName=EES_OrderExecutionField" << ";";
-	if (!pdata) {
-		ss << "<null>" << ";";
-		return ss.str();
-	}
+	if (!pdata) return "";
 
-	ss << "m_Userid=" << pdata->m_Userid << ";";
-	ss << "m_Timestamp=" << pdata->m_Timestamp  << ";";
-	ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken << ";";
-	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
-	ss << "m_Quantity=" << pdata->m_Quantity << ";";
-	ss << "m_Price=" << pdata->m_Price << ";";
-	ss << "m_ExecutionID=" << pdata->m_ExecutionID << ";";
-	ss << "m_MarketExecID=" << pdata->m_MarketExecID << ";";
+	sprintf(buffer_,
+		"structName=EES_OrderExecutionField; "
+		"m_Userid=%d; "
+		"m_ClientOrderToken=%u; "
+		"m_MarketOrderToken=%lld"
+		"m_Quantity=%u; "
+		"m_Price=%f; "
+		"m_ExecutionID=%lld; "
+		"m_MarketExecID=%c; ",
+		 pdata->m_Userid,
+		 pdata->m_ClientOrderToken,
+		 pdata->m_MarketOrderToken,
+		 pdata->m_Quantity,
+		 pdata->m_Price,
+		 pdata->m_ExecutionID,
+		 pdata->m_MarketExecID);
 
-	return ss.str();
+	return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_CancelOrder* pdata)
+const char* EESDatatypeFormater::ToString(const EES_CancelOrder* pdata)
 {
-	stringstream ss;
-	ss << "structName=EES_CancelOrder" << ";";
-	if (!pdata) {
-		ss << "<null>" << ";";
-		return ss.str();
-	}
-	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
-	ss << "m_Quantity=" << pdata->m_Quantity << ";";
-	ss << "m_Account=" << pdata->m_Account  << ";";
+	if (!pdata) return "";
 
-	return ss.str();
+	sprintf(buffer_,
+		"structName=EES_CancelOrder; "
+		"m_MarketOrderToken=%lld; "
+		"m_Quantity=%u; "
+		"m_Account=%s; ",
+		pdata->m_MarketOrderToken,
+		pdata->m_Quantity,
+		pdata->m_Account);
+
+	return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_OrderCxled* pdata)
+const char* EESDatatypeFormater::ToString(const EES_OrderCxled* pdata)
 {
-    stringstream ss;
-    ss << "structName=EES_OrderCxled" << ";";
-    if (!pdata) {
-        ss << "<null>" << ";";
-        return ss.str();
-    }
-    ss << "m_Userid=" << pdata->m_Userid << ";";
-    ss << "m_Timestamp=" << pdata->m_Timestamp  << ";";
-    ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken  << ";";
-    ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken  << ";";
-    ss << "m_Decrement=" << pdata->m_Decrement  << ";";
-    ss << "m_Reason=" << pdata->m_Reason  << ";";
+    if (!pdata) return "";
+    
+	sprintf(buffer_,
+		"structName=EES_OrderCxled; "
+		"m_Userid=%d; "
+		"m_ClientOrderToken=%u; "
+		"m_MarketOrderToken=%lld; "
+		"m_Decrement=%u; "
+		"m_Reason=%hhu; ",
+		pdata->m_Userid,
+		pdata->m_ClientOrderToken,
+		pdata->m_MarketOrderToken,
+		pdata->m_Decrement,
+		pdata->m_Reason);
+		
 
-    return ss.str();
+    return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_CxlOrderRej* pdata)
+const char* EESDatatypeFormater::ToString(const EES_CxlOrderRej* pdata)
 {
-	stringstream ss;
-	ss <<  "structName=EES_CxlOrderRej" << ";";
-	if (!pdata) {
-		ss << "<null>" << ";";
-		return ss.str();
-	}
-	ss << "m_account=" << pdata->m_account  << ";";
-	ss << "m_MarketOrderToken=" << pdata->m_MarketOrderToken << ";";
-	ss << "m_ReasonCode=" << pdata->m_ReasonCode  << ";";
-	ss << "m_ReasonText=" << pdata->m_ReasonText << ";";
+	if (!pdata) return "";
 
-	return ss.str();
+	sprintf(buffer_,
+		"structName=EES_CxlOrderRej; "
+		"m_account=%s; "   << ";";
+		"m_MarketOrderToken=%lld; " 
+		"m_ReasonCode=%u; "
+		"m_ReasonText=%s; ",
+		pdata->m_account,
+		pdata->m_MarketOrderToken,
+		pdata->m_ReasonCode,
+		pdata->m_ReasonText);
+
+	return buffer_;
 }
 

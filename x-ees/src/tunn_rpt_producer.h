@@ -34,7 +34,7 @@ struct Tunnconfig
 struct TunnRpt
 {
 	int									LocalOrderID;                 ///< 本地委托号
-	int									SysOrderID;                   ///盛立系统产生的单子号
+	long long int						SysOrderID;                   ///盛立系统产生的单子号
 	if_sig_state_t						OrderStatus;                  ///< 委托状态
 	int									MatchedAmount;                ///< 成交数量
 	double								TradePrice;					  ///< 成交价格
