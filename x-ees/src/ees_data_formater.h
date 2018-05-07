@@ -28,7 +28,7 @@ private:
 	{
 	}
 
-	char buffer_[2048];
+	char static buffer_[2048];
 };
 
 #endif /* EES_DATATYPEFORMATER_H_*/

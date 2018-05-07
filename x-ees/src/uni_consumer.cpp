@@ -396,6 +396,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 #ifdef COMPLIANCE_CHECK
+	int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 	if (rpt->OrderStatus == SIG_STATUS_CANCEL){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
@@ -403,7 +404,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	if (rpt->OrderStatus==SIG_STATUS_SUCCESS ||
 			rpt->OrderStatus == SIG_STATUS_CANCEL||
 			rpt->OrderStatus == SIG_STATUS_REJECTED){
-		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
 #endif
@@ -411,6 +411,14 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 
+#ifdef COMPLIANCE_CHECK
+	if_sig_state_t sig_status = strategy.GetStatusBySigIdx(sigidx);
+	if (rpt->OrderStatus==SIG_STATUS_SUCCESS ||
+			rpt->OrderStatus == SIG_STATUS_CANCEL||
+			rpt->OrderStatus == SIG_STATUS_REJECTED){
+		compliance_.End(counter);
+	}
+#endif
 	// strategy log
 	WriteStrategyLog(strategy);
 
@@ -536,7 +544,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 	if(0 == ori_sys_order_id){
 		clog_error("[%s] ReqOrderAction- ret=%d - %s", 
-			module_name_,rtn, EESDatatypeFormater::ToString(order).c_str());
+			module_name_,rtn, EESDatatypeFormater::ToString(order));
 
 		signal_t* ori_sig = strategy.GetSignalBySigID(sig.orig_sig_id);
 		 clog_warning("[%s] CancelOrder ori signal: strategy id:%d; sig_id:%d; "
@@ -548,10 +556,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	}
 
 	clog_info("[%s] ReqOrderAction- ret=%d - %s", 
-		module_name_,rtn, EESDatatypeFormater::ToString(order).c_str());
+		module_name_,rtn, EESDatatypeFormater::ToString(order));
 	if(rtn != 0){
 		clog_error("[%s] ReqOrderAction- ret=%d - %s", 
-			module_name_,rtn, EESDatatypeFormater::ToString(order).c_str());
+			module_name_,rtn, EESDatatypeFormater::ToString(order));
 	}
 
 #ifdef LATENCY_MEASURE

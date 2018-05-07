@@ -395,6 +395,11 @@ signal_t* Strategy::GetSignalBySigID(int32_t sig_id)
 	return &(sig_table_[cursor]);
 }
 
+if_sig_state_t Strategy::GetStatusBySigIdx(int32_t sig_idx)
+{
+	return (if_sig_state_t )sigrpt_table_[sig_idx].status;
+}
+
 unsigned int Strategy::GetSysOrderIdBySigID(int32_t sig_id)
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig_id];

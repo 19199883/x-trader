@@ -118,6 +118,7 @@ public:
 	int32_t GetSignalIdxBySigId(long sigid);
 	int32_t GetSignalIdxByLocalOrdId(long localordid);
 	unsigned int GetSysOrderIdBySigID(int32_t sig_id);
+	if_sig_state_t GetStatusBySigIdx(int32_t sig_idx);
 
 	// log
 	/*

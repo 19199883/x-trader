@@ -4,6 +4,8 @@
 
 using namespace std;
 
+char EESDatatypeFormater::buffer_[2048];
+
 static std::string indent_string = " ";
 static std::string newline_string = " ";
 
@@ -242,7 +244,7 @@ const char* EESDatatypeFormater::ToString(const EES_CxlOrderRej* pdata)
 
 	sprintf(buffer_,
 		"structName=EES_CxlOrderRej; "
-		"m_account=%s; "   << ";";
+		"m_account=%s; "
 		"m_MarketOrderToken=%lld; " 
 		"m_ReasonCode=%u; "
 		"m_ReasonText=%s; ",

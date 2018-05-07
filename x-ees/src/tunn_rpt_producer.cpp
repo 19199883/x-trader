@@ -34,7 +34,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	// create EES object
     api_ = LoadTunnelApi();
     RESULT err = api_->ConnServer(api_config_,this);
-    clog_warning("[%s] ConnServer-err=%d-%s", module_name_,err,EESDatatypeFormater::ToString(&api_config_).c_str());
+    clog_warning("[%s] ConnServer-err=%d-%s", module_name_,err,EESDatatypeFormater::ToString(&api_config_));
 }
 
 EESTraderApi *TunnRptProducer::LoadTunnelApi()
@@ -162,10 +162,10 @@ int TunnRptProducer::ReqOrderInsert(EES_EnterOrderField *p)
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] EnterOrder- ret=%d - %s", 
-			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p).c_str());
+			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p));
 	}else {
 		clog_info("[%s] EnterOrder-ret=%d-%s", 
-			module_name_, ret, EESDatatypeFormater::ToString(p).c_str());
+			module_name_, ret, EESDatatypeFormater::ToString(p));
 	}
 
 	return ret;
@@ -179,10 +179,10 @@ int TunnRptProducer::ReqOrderAction(EES_CancelOrder *p)
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] ReqOrderAction- ret=%d - %s", 
-			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p).c_str());
+			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p));
 	} else {
 		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, EESDatatypeFormater::ToString(p).c_str());
+			module_name_, ret, EESDatatypeFormater::ToString(p));
 	}
 
 	return ret;
@@ -228,13 +228,13 @@ void TunnRptProducer::OnOrderAccept(EES_OrderAcceptField* pAccept )
 	rpt.SysOrderID = pAccept->m_MarketOrderToken;
 
     clog_info("[%s] OnOrderAccept:%s", module_name_,
-		EESDatatypeFormater::ToString(pAccept).c_str());
+		EESDatatypeFormater::ToString(pAccept));
 
 	if (pAccept->m_OrderState==EES_OrderState_order_dead){
 		time_t rawtime;
 		time (&rawtime);
 		clog_error("[%s][%s] OnOrderAccept:%s",module_name_,ctime(&rawtime),
-			EESDatatypeFormater::ToString(pAccept).c_str());
+			EESDatatypeFormater::ToString(pAccept));
 		rpt.OrderStatus = SIG_STATUS_CANCEL;
 		rpt.ErrorID = EES_OrderState_order_dead;
 	}else{
@@ -257,7 +257,7 @@ void TunnRptProducer::OnOrderReject(EES_OrderRejectField* pReject)
 	time_t rawtime;
 	time (&rawtime);
 	clog_error("[%s][%s] OnOrderReject:%s", module_name_,ctime(&rawtime),
-		EESDatatypeFormater::ToString(pReject).c_str());
+		EESDatatypeFormater::ToString(pReject));
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
@@ -285,7 +285,7 @@ void TunnRptProducer::OnOrderMarketAccept(EES_OrderMarketAcceptField* pAccept)
 	rpt.OrderStatus = SIG_STATUS_ENTRUSTED;
 
     clog_info("[%s] OnOrderMarketAccept:%s", module_name_,
-		EESDatatypeFormater::ToString(pAccept).c_str());
+		EESDatatypeFormater::ToString(pAccept));
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -303,7 +303,7 @@ void TunnRptProducer::OnOrderMarketReject(EES_OrderMarketRejectField* pReject)
 	time_t rawtime;
 	time (&rawtime);
 	clog_error("[%s][%s] OnOrderMarketReject:%s", module_name_,ctime(&rawtime),
-		EESDatatypeFormater::ToString(pReject).c_str());
+		EESDatatypeFormater::ToString(pReject));
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
@@ -326,7 +326,7 @@ void TunnRptProducer::OnOrderExecution(EES_OrderExecutionField* pExec )
 	if (ended_) return;
 
     clog_info("[%s] OnOrderExecution:%s", 
-		module_name_, EESDatatypeFormater::ToString(pExec).c_str());
+		module_name_, EESDatatypeFormater::ToString(pExec));
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
@@ -349,7 +349,7 @@ void TunnRptProducer::OnOrderCxled(EES_OrderCxled* pCxled)
 {
 	if (ended_) return;
 
-	clog_info("[%s] OnOrderCxled:%s", module_name_,EESDatatypeFormater::ToString(pCxled).c_str());
+	clog_info("[%s] OnOrderCxled:%s", module_name_,EESDatatypeFormater::ToString(pCxled));
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
@@ -371,7 +371,7 @@ void TunnRptProducer::OnCxlOrderReject(EES_CxlOrderRej* pReject)
 	if (ended_) return;
 
 	clog_warning("[%s] OnCxlOrderReject:%s",module_name_,
-		EESDatatypeFormater::ToString(pReject).c_str());
+		EESDatatypeFormater::ToString(pReject));
 }
 
 void TunnRptProducer::OnMarketSessionStatReport(EES_MarketSessionId MarketSessionId,
