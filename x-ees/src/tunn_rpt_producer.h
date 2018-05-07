@@ -20,6 +20,7 @@ using namespace std;
 struct Tunnconfig
 {
 	// TODO: note diferences between account and user id
+	string mac;
 	string brokerid;
 	string investorid; // account
 	string userid;

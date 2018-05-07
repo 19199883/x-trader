@@ -112,12 +112,14 @@ void TunnRptProducer::ParseConfig()
 		int localTradeUDPPort = 0;
 		tunn_node->QueryIntAttribute("localTradeUDPPort", &localTradeUDPPort);
 		this->api_config_.m_LocalTradeUDPPort = localTradeUDPPort;
+
+		this->config_.mac = tunn_node->Attribute("mac");
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
 		this->config_.investorid = tunn_node->Attribute("investorid");
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
 
-		clog_warning("[%s] tunn config:brokerid:%s; userid:%s; investor:%s password:%s; "
+		clog_warning("[%s] tunn config:brokerid:%s; userid:%s; investor:%s password:%s; mac:%s"
 					"m_remoteTradeIp:%s; "
 					" m_remoteTradeTCPPort:%d; "
 					"m_remoteTradeUDPPort:%d; "
@@ -130,6 +132,7 @@ void TunnRptProducer::ParseConfig()
 					this->config_.userid.c_str(),
 					this->config_.investorid.c_str(),
 					this->config_.password.c_str(),
+					this->config_.mac.c_str(),
 					this->api_config_.m_remoteTradeIp,
 					this->api_config_.m_remoteTradeTCPPort,
 					this->api_config_.m_remoteTradeUDPPort,
@@ -187,7 +190,7 @@ int TunnRptProducer::ReqOrderAction(EES_CancelOrder *p)
 
 void TunnRptProducer::ReqLogin()
 {
-	RESULT err = api_->UserLogon(config_.userid.c_str(),config_.password.c_str(),SL_EES_API_VERSION,"00:0f:53:2f:80:00");
+	RESULT err = api_->UserLogon(config_.userid.c_str(),config_.password.c_str(),SL_EES_API_VERSION,this->config_.mac.c_str());
     clog_warning("[%s] ReqLogin-err_no,%d; user:%s; pwd:%s",module_name_,err,
 		config_.userid.c_str(),config_.password.c_str());
 }

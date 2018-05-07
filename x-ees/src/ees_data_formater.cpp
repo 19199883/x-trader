@@ -7,50 +7,64 @@ using namespace std;
 static std::string indent_string = " ";
 static std::string newline_string = " ";
 
-std::string EESDatatypeFormater::ToString(const EES_TradeSvrInfo *pdata)
+const char* EESDatatypeFormater::ToString(const EES_TradeSvrInfo *pdata)
 {
-	stringstream ss;
-	ss << "structName=EES_TradeSvrInfo" << ";";
-	if (!pdata){
-		ss << "<null>" << ";";
-		return ss.str();
-	}
+	if (!pdata) return "";
 
-	ss << "m_remoteTradeIp=" << pdata->m_remoteTradeIp << ";";
-	ss << "m_remoteTradeTCPPort=" << pdata->m_remoteTradeTCPPort  << ";";
-	ss << "m_remoteTradeUDPPort=" << pdata->m_remoteTradeUDPPort << ";";
-	ss << "m_remoteQueryIp=" << pdata->m_remoteQueryIp << ";";
-	ss << "m_remoteQueryTCPPort=" << pdata->m_remoteQueryTCPPort<< ";";
-	ss << "m_LocalTradeIp=" << pdata->m_LocalTradeIp << ";";
-	ss << "m_LocalTradeUDPPort=" << pdata->m_LocalTradeUDPPort<< ";";
+	sprintf(buffer_,
+		"structName=EES_TradeSvrInfo;"
+		"m_remoteTradeIp=%s; "
+		"m_remoteTradeTCPPort=%u; "
+		"m_remoteTradeUDPPort=%u; "
+		"m_remoteQueryIp=%s; "
+		"m_remoteQueryTCPPort=%u; "
+		"m_LocalTradeIp=%s; "
+		"m_LocalTradeUDPPort=%u; ",
+		pdata->m_remoteTradeIp,
+		pdata->m_remoteTradeTCPPort ,
+		pdata->m_remoteTradeUDPPort,
+		pdata->m_remoteQueryIp,
+		pdata->m_remoteQueryTCPPort,
+		pdata->m_LocalTradeIp,
+		pdata->m_LocalTradeUDPPort);
 
-	return ss.str();
+	return buffer_;
 }
 
-std::string EESDatatypeFormater::ToString(const EES_EnterOrderField *pdata)
+const char* EESDatatypeFormater::ToString(const EES_EnterOrderField *pdata)
 {
-    stringstream ss;
-    ss << "structName=EES_EnterOrderField" << ";";
-    if (!pdata) {
-        ss << "<null>" << ";";
-        return ss.str();
-    }
-    ss << "m_Account=" << pdata->m_Account << ";";
-    ss << "m_Side=" << pdata->m_Side << ";";
-    ss << "m_Exchange=" << pdata->m_Exchange << ";";
-    ss << "m_Symbol=" << pdata->m_Symbol << ";";
-    ss << "m_SecType=" << pdata->m_SecType << ";";
-    ss << "m_Price=" << pdata->m_Price << ";";
-    ss << "m_Qty=" << pdata->m_Qty << ";";
-    ss << "m_OptExecFlag=" << pdata->m_OptExecFlag << ";";
-    ss << "m_ClientOrderToken=" << pdata->m_ClientOrderToken << ";";
-    ss << "m_Tif=" << pdata->m_Tif << ";";
-    ss << "m_MinQty=" << pdata->m_MinQty << ";";
-    ss << "m_CustomField=" << pdata->m_CustomField << ";";
-    ss << "m_MarketSessionId=" << pdata->m_MarketSessionId << ";";
-    ss << "m_HedgeFlag=" << pdata->m_HedgeFlag << ";";
+    if (!pdata) return "";
 
-    return ss.str();
+	sprintf(buffer_,
+		"structName=EES_EnterOrderField; "
+		"m_Account=%s; "
+		"m_Side=%hhu; "
+		"m_Exchange=%hhu; "
+		"m_Symbol=%s; "
+		"m_SecType=%hhu; "
+		"m_Price=%f; "
+		"m_Qty=%u; "
+		"m_OptExecFlag=%hhu; "
+		"m_ClientOrderToken=%u; "
+		"m_Tif=%u; "
+		"m_MinQty=%u; "
+		"m_MarketSessionId=%u; "
+		"m_HedgeFlag=%hhu; ",
+		pdata->m_Account,
+		pdata->m_Side,
+		pdata->m_Exchange,
+		pdata->m_Symbol,
+		pdata->m_SecType ,
+		pdata->m_Price,
+		pdata->m_Qty,
+		pdata->m_OptExecFlag,
+		pdata->m_ClientOrderToken,
+		pdata->m_Tif,
+		pdata->m_MinQty,
+		pdata->m_MarketSessionId,
+		pdata->m_HedgeFlag);
+
+    return buffer_;
 }
 
 std::string EESDatatypeFormater::ToString(const EES_OrderAcceptField *pdata)
