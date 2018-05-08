@@ -64,32 +64,6 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	}
 }
 
-void L1MDProducer::InitMDApi()
-{
-    api_ = CMdclientApi::Create(this,config_.port,config_.ip);
-	clog_warning("CMdclientApi ip:%s, port:%d",config_.ip,config_.port);
-
-	std::ifstream is;
-	is.open (config_.contracts_file);
-	string contrs = "";
-	if (is) {
-		getline(is, contrs);
-		contrs += " ";
-		size_t start_pos = 0;
-		size_t end_pos = 0;
-		string contr = "";
-		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
-			contr = contrs.substr (start_pos, end_pos-start_pos);
-			api_->Subscribe((char*)contr.c_str());
-			clog_warning("CMdclientApi subscribe:%s",contr.c_str());
-			start_pos = end_pos + 1;
-		}
-	}else { clog_error("CMdclientApi can't open: %s",config_.contracts_file); }
-
-    int err = api_->Start();
-	clog_warning("CMdclientApi start: %d",err);
-}
-
 void L1MDProducer::ParseConfig()
 {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
@@ -127,85 +101,6 @@ L1MDProducer::~L1MDProducer()
 #endif
 }
 
-void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
-{
-	if (ended_) return;
-
-	// 抛弃非主力合约
-	if(!(IsDominant(data->InstrumentID))) return;
-
-	RalaceInvalidValue_Femas(*data);
-	
-	// debug
-	// ToString(*data);
-
-	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	vrt_producer_claim(producer_, &vvalue);
-	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-	ivalue->index = Push(*data);
-	ivalue->data = L1_MD;
-	vrt_producer_publish(producer_);
-
-#ifdef PERSISTENCE_ENABLED 
-    timeval t;
-    gettimeofday(&t, NULL);
-    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
-#endif
-}
-
-void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
-{
-    d.Turnover = InvalidToZeroD(d.Turnover);
-    d.LastPrice = InvalidToZeroD(d.LastPrice);
-    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
-    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
-    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
-    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
-    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
-    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
-    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
-    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
-    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
-
-    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
-    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
-    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
-    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
-    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
-
-	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
-    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
-    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
-    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
-    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
-
-	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
-	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
-
-    d.PreDelta = InvalidToZeroD(d.PreDelta);
-    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
-}
-
-void L1MDProducer::End()
-{
-	if(!ended_){
-		ended_ = true;
-
-		if (api_) {
-			int err = api_->Stop();
-			clog_warning("CMdclientApi stop: %d",err);
-			api_ = NULL;
-		}
-
-		vrt_producer_eof(producer_);
-		clog_warning("[%s] End exit", module_name_);
-	}
-	fflush (Log::fp);
-}
 
 int32_t L1MDProducer::Push(const CDepthMarketDataField& md){
 	l1data_cursor_++;
@@ -330,3 +225,113 @@ void L1MDProducer::ToString(CDepthMarketDataField &data)
 		data.ActionDay);
 
 }
+
+#ifdef FEMAS_TOPSPEED_QUOTE
+void L1MDProducer::InitMDApi()
+{
+    api_ = CMdclientApi::Create(this,config_.port,config_.ip);
+	clog_warning("CMdclientApi ip:%s, port:%d",config_.ip,config_.port);
+
+	std::ifstream is;
+	is.open (config_.contracts_file);
+	string contrs = "";
+	if (is) {
+		getline(is, contrs);
+		contrs += " ";
+		size_t start_pos = 0;
+		size_t end_pos = 0;
+		string contr = "";
+		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
+			contr = contrs.substr (start_pos, end_pos-start_pos);
+			api_->Subscribe((char*)contr.c_str());
+			clog_warning("CMdclientApi subscribe:%s",contr.c_str());
+			start_pos = end_pos + 1;
+		}
+	}else { clog_error("CMdclientApi can't open: %s",config_.contracts_file); }
+
+    int err = api_->Start();
+	clog_warning("CMdclientApi start: %d",err);
+}
+
+
+void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
+{
+	if (ended_) return;
+
+	// 抛弃非主力合约
+	if(!(IsDominant(data->InstrumentID))) return;
+
+	RalaceInvalidValue_Femas(*data);
+	
+	// debug
+	// ToString(*data);
+
+	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
+	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	vrt_producer_claim(producer_, &vvalue);
+	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+	ivalue->index = Push(*data);
+	ivalue->data = L1_MD;
+	vrt_producer_publish(producer_);
+
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
+#endif
+}
+
+void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
+{
+    d.Turnover = InvalidToZeroD(d.Turnover);
+    d.LastPrice = InvalidToZeroD(d.LastPrice);
+    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
+    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
+    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
+    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
+    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
+    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
+    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
+    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
+    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
+
+    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
+    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
+    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
+    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
+    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
+
+	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
+    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
+    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
+    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
+    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
+
+	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
+	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
+
+    d.PreDelta = InvalidToZeroD(d.PreDelta);
+    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
+}
+
+
+void L1MDProducer::End()
+{
+	if(!ended_){
+		ended_ = true;
+
+		if (api_) {
+			int err = api_->Stop();
+			clog_warning("CMdclientApi stop: %d",err);
+			api_ = NULL;
+		}
+
+		vrt_producer_eof(producer_);
+		clog_warning("[%s] End exit", module_name_);
+	}
+	fflush (Log::fp);
+}
+#endif

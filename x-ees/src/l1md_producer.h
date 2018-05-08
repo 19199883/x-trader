@@ -46,6 +46,7 @@ class L1MDProducerHelper
 			CDepthMarketDataField *buffer, int32_t buffer_size,int32_t traverse_count);
 };
 
+#ifdef FEMAS_TOPSPEED_QUOTE
 class L1MDProducer : public CMdclientSpi
 {
 	public:
@@ -111,5 +112,6 @@ class L1MDProducer : public CMdclientSpi
 		void ParseConfig();
 		L1MDConfig config_;
 };
-
 #endif
+
+#endif // __L1MD_PRODUCER_H__
