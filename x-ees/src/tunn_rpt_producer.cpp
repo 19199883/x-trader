@@ -41,25 +41,26 @@ EESTraderApi *TunnRptProducer::LoadTunnelApi()
 {
 	m_handle =  dlopen(EES_TRADER_DLL_NAME, RTLD_LAZY);
 	if (!m_handle){
-		printf("加载EES行情动态库(%s)失败\n", EES_TRADER_DLL_NAME);
-		return false;
+		clog_error("[%s] 加载EES行情动态库(%s)失败", module_name_,EES_TRADER_DLL_NAME);
+		return NULL;
 	}
 
-	funcCreateEESTraderApi createFun = (funcCreateEESTraderApi)dlsym(m_handle, CREATE_EES_TRADER_API_NAME);
+	funcCreateEESTraderApi createFun = (funcCreateEESTraderApi)dlsym(m_handle, 
+				CREATE_EES_TRADER_API_NAME);
 	if (!createFun){
-		printf("获取EES创建函数地址失败!\n");
-		return false;
+		clog_error("[%s] 获取EES创建函数地址失败!", module_name_);
+		return NULL;
 	}
 
 	m_distoryFun = (funcDestroyEESTraderApi)dlsym(m_handle, DESTROY_EES_TRADER_API_NAME);
 	if (!createFun){
-		printf("获取EES销毁函数地址失败!\n");
-		return false;
+		clog_error("[%s] 获取EES销毁函数地址失败!", module_name_);
+		return NULL;
 	}
 
 	api_ = createFun();
 	if (!api_){
-		printf("创建EES行情对象失败!\n");
+		clog_error("[%s] 创建EES行情对象失败!", module_name_);
 		return false;
 	}
 }

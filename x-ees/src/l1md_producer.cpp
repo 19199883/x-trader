@@ -227,6 +227,9 @@ void L1MDProducer::ToString(CDepthMarketDataField &data)
 
 }
 
+/////////////////
+//A使用飞马UDP行情
+/////////////////
 #ifdef FEMAS_TOPSPEED_QUOTE
 void L1MDProducer::InitMDApi()
 {
@@ -337,8 +340,150 @@ void L1MDProducer::End()
 }
 #endif
 
+///////////////////////////////////
+// 使用盛立API接收行情
+//////////////////////////////////////
+#ifdef EES_UDP_TOPSPEED_QUOTE
 
-#ifdef EES_TOPSPEED_QUOTE
+EESTraderApi *L1MDProducer::LoadQuoteApi()
+{
+	m_handle =  dlopen(EES_QUOTE_DLL_NAME, RTLD_LAZY);
+	if (!m_handle){
+		clog_error("[%s] 加载EES行情动态库(%s)失败", module_name_,EES_QUOTE_DLL_NAME);
+		return NULL;
+	}
+
+	funcCreateEESQuoteApi createFun = (funcCreateEESQuoteApi)dlsym(m_handle, 
+				CREATE_EES_QUOTE_API_NAME);
+	if (!createFun){
+		clog_error("[%s] 获取EES创建函数地址失败!", module_name_);
+		return NULL;
+	}
+
+	m_distoryFun = (funcDestroyEESQuoteApi)dlsym(m_handle, DESTROY_EES_QUOTE_API_NAME);
+	if (!createFun){
+		clog_error("[%s] 获取EES销毁函数地址失败!", module_name_);
+		return NULL;
+	}
+
+	api_ = createFun();
+	if (!api_){
+		clog_error("[%s] 创建EES行情对象失败!", module_name_);
+		return false;
+	}
+}
+
+void L1MDProducer::UnloadQuoteApi()
+{
+	if (api_){
+		api_->DisConnServer();
+		clog_warning("[%s] DisConnServer!", module_name_);
+		m_distoryFun(api_);
+		api_ = NULL;
+		m_distoryFun = NULL;
+	}
+
+	if (m_handle){
+		dlclose(m_handle);
+		m_handle = NULL;
+	}
+}
+
+void L1MDProducer::InitMDApi()
+{
+    api_ = LoadQuoteApi();
+	// TODO: here
+	bool rtn = this->api_->InitMulticast(vector<EqsMulticastInfo>& vecEmi, this);
+	clog_warning("CMdclientApi ip:%s, port:%d",config_.ip,config_.port);
+}
+
+
+void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
+{
+	if (ended_) return;
+
+	// 抛弃非主力合约
+	if(!(IsDominant(data->InstrumentID))) return;
+
+	RalaceInvalidValue_Femas(*data);
+	
+	// debug
+	// ToString(*data);
+
+	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
+	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	vrt_producer_claim(producer_, &vvalue);
+	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+	ivalue->index = Push(*data);
+	ivalue->data = L1_MD;
+	vrt_producer_publish(producer_);
+
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
+#endif
+}
+
+void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
+{
+    d.Turnover = InvalidToZeroD(d.Turnover);
+    d.LastPrice = InvalidToZeroD(d.LastPrice);
+    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
+    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
+    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
+    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
+    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
+    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
+    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
+    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
+    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
+
+    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
+    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
+    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
+    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
+    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
+
+	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
+    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
+    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
+    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
+    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
+
+	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
+	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
+
+    d.PreDelta = InvalidToZeroD(d.PreDelta);
+    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
+}
+
+
+void L1MDProducer::End()
+{
+	if(!ended_){
+		ended_ = true;
+
+		if (api_) {
+			this->UnloadQuoteApi();
+			clog_warning("Level quote stop: %d",err);
+			api_ = NULL;
+		}
+
+		vrt_producer_eof(producer_);
+		clog_warning("[%s] End exit", module_name_);
+	}
+	fflush (Log::fp);
+}
+#endif
+
+////////////////////////////////////
+// 使用efh_sf_api接收行情
+/////////////////////////////////
+#ifdef EES_EFH_SF_TOPSPEED_QUOTE
 L1MDProducer L1MDProducer::This;
 void L1MDProducer::InitMDApi()
 {
