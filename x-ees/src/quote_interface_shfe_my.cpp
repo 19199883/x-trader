@@ -55,7 +55,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 		clog_info("[%s] server from %d to %d",module_name_, server_, new_svr); 
 	}
 
-	clog_info("[%s] proc sn:%d",module_name_, md->content.seqno); 
+	//clog_info("[%s] proc sn:%d",module_name_, md->content.seqno); 
 
 	repairers_[new_svr]->rev(index);
 

@@ -30,12 +30,12 @@ using namespace std;
 struct L1MDConfig 
 {
 	string addr;
-	char ip[30];
-	int port;
+	char mcIp[30];
+	int mcPort;
 	char contracts_file[500];
 	char yield[20];				// disruptor yield strategy
 	char efh_sf_eth[20];		// EES行情服务组播
-	char mcLoacalIp[20];		// EES行情服务组播
+	char mcLocalIp[20];		// EES行情服务组播
 	unsigned short mcLocalPort; // EES行情服务组播
 };
 
@@ -151,6 +151,8 @@ class L1MDProducer : public EESQuoteEvent
 		 */
 		virtual void OnEqsConnected();
 		virtual void OnEqsDisconnected();
+		virtual void OnLoginResponse(bool bSuccess, const char* pReason);
+		virtual void OnSymbolRegisterResponse(EesEqsIntrumentType chInstrumentType, const char* pSymbol, bool bSuccess);
 		virtual void OnQuoteUpdated(EesEqsIntrumentType chInstrumentType, 
 					EESMarketDepthQuoteData* pDepthQuoteData);
 
@@ -170,7 +172,7 @@ class L1MDProducer : public EESQuoteEvent
 		/*
 		 * 与逻辑处理相关
 		 */
-		void RalaceInvalidValue_EES(EESMarketDepthQuoteData &d);
+		void RalaceInvalidValue_EES(EESMarketDepthQuoteData &d, CDepthMarketDataField &data_dest);
 		int32_t Push(const CDepthMarketDataField& md);
 		struct vrt_producer  *producer_;
 		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];

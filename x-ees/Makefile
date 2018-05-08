@@ -14,9 +14,9 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lEESTraderApi -ltinyxml -lutils -ldl -lpthread  \
-	  -lssl -lbowsprit -lclogger -lcork -lvrt \
-	  -lboost_filesystem -lmdclient -lboost_system 
+LIBS:=-lEESTraderApi -lEESQuoteApi -ltinyxml -lutils -ldl -lpthread  \
+	  -lbowsprit -lclogger -lcork -lvrt \
+	  -lboost_filesystem  -lboost_system 
 DEPS:=.depends
 OUT:=x-ees
 PACKAGE_NAME:=$(OUT)

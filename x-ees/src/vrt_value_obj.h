@@ -17,9 +17,9 @@
 //#define LATENCY_MEASURE
 
 // 飞马极速行情
-#define FEMAS_TOPSPEED_QUOTE
-// 盛立极速行情
-//#define EES_TOPSPEED_QUOTE
+//#define FEMAS_TOPSPEED_QUOTE
+// 盛立极速行情 API multicast
+#define EES_UDP_TOPSPEED_QUOTE
 
 // 合规检查开关
 #define COMPLIANCE_CHECK

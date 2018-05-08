@@ -81,7 +81,13 @@ void L1MDProducer::ParseConfig()
 	if (l1md_node != NULL){
 		config_.addr = l1md_node->Attribute("addr");
 		strcpy(config_.efh_sf_eth, l1md_node->Attribute("efh_sf_eth"));
-		strcpy(config_.mcLoacalIp, l1md_node->Attribute("mcLoacalIp"));
+
+		strcpy(config_.mcIp, l1md_node->Attribute("mcIp"));
+		int mcPort = 0;
+		 l1md_node->QueryIntAttribute("mcPort", &mcPort);
+		this->config_.mcPort = mcPort;
+
+		strcpy(config_.mcLocalIp, l1md_node->Attribute("mcLocalIp"));
 		int localUDPPort = 0;
 		 l1md_node->QueryIntAttribute("mcLocalPort", &localUDPPort);
 		this->config_.mcLocalPort = localUDPPort;
@@ -92,11 +98,6 @@ void L1MDProducer::ParseConfig()
 	if (contracts_file_node != NULL){
 		strcpy(config_.contracts_file, contracts_file_node->Attribute("contracts"));
 	} else { clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); }
-
-	size_t ipstr_start = config_.addr.find("//")+2;
-	size_t ipstr_end = config_.addr.find(":",ipstr_start);
-	strcpy(config_.ip, config_.addr.substr(ipstr_start,ipstr_end-ipstr_start).c_str());
-	config_.port = stoi(config_.addr.substr(ipstr_end+1));
 }
 
 L1MDProducer::~L1MDProducer()
@@ -141,7 +142,7 @@ bool L1MDProducer::IsDominant(const char *contract)
 
 void L1MDProducer::ToString(CDepthMarketDataField &data)
 {
-	clog_warning("CDepthMarketDataField\n"
+	clog_warning("[%s] CDepthMarketDataField\n"
 		"TradingDay:%s\n"
 		"SettlementGroupID:%s\n"
 		"SettlementID:%d\n"
@@ -185,6 +186,7 @@ void L1MDProducer::ToString(CDepthMarketDataField &data)
 		"AskPrice5:%f \n"
 		"AskVolume5:%d \n"
 		"ActionDay:%s \n",
+		module_name_,
 		data.TradingDay,
 		data.SettlementGroupID,
 		data.SettlementID,
@@ -238,7 +240,7 @@ void L1MDProducer::ToString(CDepthMarketDataField &data)
 void L1MDProducer::InitMDApi()
 {
     api_ = CMdclientApi::Create(this,config_.port,config_.ip);
-	clog_warning("CMdclientApi ip:%s, port:%d",config_.ip,config_.port);
+	clog_warning("[%s] CMdclientApi ip:%s, port:%d", module_name_, config_.ip,config_.port);
 
 	std::ifstream is;
 	is.open (config_.contracts_file);
@@ -252,13 +254,13 @@ void L1MDProducer::InitMDApi()
 		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
 			contr = contrs.substr (start_pos, end_pos-start_pos);
 			api_->Subscribe((char*)contr.c_str());
-			clog_warning("CMdclientApi subscribe:%s",contr.c_str());
+			clog_warning("[%s] CMdclientApi subscribe:%s",module_name_,contr.c_str());
 			start_pos = end_pos + 1;
 		}
-	}else { clog_error("CMdclientApi can't open: %s",config_.contracts_file); }
+	}else { clog_error("[%s] CMdclientApi can't open: %s", module_name_, config_.contracts_file); }
 
     int err = api_->Start();
-	clog_warning("CMdclientApi start: %d",err);
+	clog_warning("[%s] CMdclientApi start: %d", module_name_, err);
 }
 
 
@@ -333,7 +335,7 @@ void L1MDProducer::End()
 
 		if (api_) {
 			int err = api_->Stop();
-			clog_warning("CMdclientApi stop: %d",err);
+			clog_warning("[%s] CMdclientApi stop: %d", module_name_, err);
 			api_ = NULL;
 		}
 
@@ -349,7 +351,7 @@ void L1MDProducer::End()
 //////////////////////////////////////
 #ifdef EES_UDP_TOPSPEED_QUOTE
 
-EESTraderApi *L1MDProducer::LoadQuoteApi()
+EESQuoteApi *L1MDProducer::LoadQuoteApi()
 {
 	m_handle =  dlopen(EES_QUOTE_DLL_NAME, RTLD_LAZY);
 	if (!m_handle){
@@ -397,35 +399,75 @@ void L1MDProducer::InitMDApi()
 {
     api_ = LoadQuoteApi();
 
-	EqsMulticastInfo emi;
-	strcpy(emi. m_mcIp, this->config_.ip);
-	emi.m_mcPort = this->config_.port;
-	strcpy(emi. m_mcLoacalIp, this->config_.mcLoacalIp);
-	emi. m_mcLocalPort = this->config_.mcLocalPort;	
-	strcpy(emi.m_exchangeId, "SHFE");
-	vector<EqsMulticastInfo> vecEmi;
-	vecEmi.push_back(emi);
+	// tcp
+	EqsTcpInfo tcp_info; 
+	memset(&tcp_info, 0, sizeof(EqsTcpInfo));
+	strcpy(tcp_info.m_eqsIp, this->config_.mcIp);
+	tcp_info.m_eqsPort = this->config_.mcPort;
+	vector<EqsTcpInfo> vecTcp;
+	vecTcp.push_back(tcp_info);
+	bool rtn = api_->ConnServer(vecTcp, this);
+	clog_warning("[%s] ConnectServer invoke:%d - mc ip:%s, mc port:%d,",
+				module_name_, (int)rtn, vecTcp[0].m_eqsIp, vecTcp[0].m_eqsPort);
 
-	bool rtn = this->api_->InitMulticast(vecEmi, this);
-	clog_warning("EES Quote mc ip:%s, mc port:%d, mc local ip:%s, mc local port:%d, exchange:%s",
-				vecEmi[0].m_mcIp, vecEmi[0].m_mcPort, vecEmi[0].m_mcLocalIp, 
-				vecEmi[0].m_mcLocalPort, vecEmi[0].m_exchangeId);
+	// multicast
+//	EqsMulticastInfo emi;
+//	strcpy(emi. m_mcIp, this->config_.mcIp);
+//	emi.m_mcPort = this->config_.mcPort;
+//	strcpy(emi. m_mcLoacalIp, this->config_.mcLocalIp);
+//	emi. m_mcLocalPort = this->config_.mcLocalPort;	
+//	strcpy(emi.m_exchangeId, "SHFE");
+//	vector<EqsMulticastInfo> vecEmi;
+//	vecEmi.push_back(emi);
+//	bool rtn = this->api_->InitMulticast(vecEmi, this);
+//	clog_warning("[%s] InitMulticast invoke:%d - mc ip:%s, mc port:%d,"
+//				"mc local ip:%s, mc local port:%d, exchange:%s",
+//				module_name_, (int)rtn, vecEmi[0].m_mcIp, vecEmi[0].m_mcPort, 
+//				vecEmi[0].m_mcLoacalIp, vecEmi[0].m_mcLocalPort, vecEmi[0].m_exchangeId);
 }
 
 
 void L1MDProducer::OnEqsConnected()
 {
-	clog_warning("[%d] EES Quote connected.", module_name_);
+	clog_warning("[%s] EES Quote connected.", module_name_);
+	EqsLoginParam loginParam;
+	// TODO:
+	strcpy(loginParam.m_loginId, "9101091");
+	strcpy(loginParam.m_password, "124222");
+	this->api_-> LoginToEqs(loginParam);
+	clog_warning("[%s] LoginToEqs-user id:%s, pwd:%s.", 
+				module_name_, loginParam.m_loginId, loginParam.m_password);
+
+
+}
+
+void L1MDProducer::OnLoginResponse(bool bSuccess, const char* pReason)
+{
+	clog_warning("[%s] EES OnLoginResponse-sucess:%d, reason:%s.", 
+				module_name_, bSuccess, pReason);
+
+	// TODO:
+	this->api_->RegisterSymbol(EesEqsIntrumentType::EQS_FUTURE, "ag1812");
+	clog_warning("[%s] RegisterSymbol-instrumen type:%d, symbol:%s.", 
+				module_name_, EesEqsIntrumentType::EQS_FUTURE, "ag1812");
+}
+
+void L1MDProducer::OnSymbolRegisterResponse(EesEqsIntrumentType chInstrumentType, const char* pSymbol, bool bSuccess)
+{
+	clog_warning("[%s] OnSymbolRegisterResponse-sucess:%d, symbol:%s.", 
+				module_name_, (int)bSuccess, pSymbol);
 }
 
 void L1MDProducer::OnEqsDisconnected()
 {
-	clog_warning("[%d] EES Quote disconnected.", module_name_);
+	clog_warning("[%s] EES Quote disconnected.", module_name_);
 }
 
 void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType, 
 			EESMarketDepthQuoteData* data_src)
 {
+	clog_info("[%s] OnQuoteUpdated invoked.", module_name_);
+	
 	if(EQS_FUTURE != chInstrumentType) return;
 
 	if (ended_) return;
@@ -434,7 +476,7 @@ void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType,
 	if(!(IsDominant(data_src->InstrumentID))) return;
 
 	CDepthMarketDataField data;
-	RalaceInvalidValue_EES(*data_src,);
+	RalaceInvalidValue_EES(*data_src,data);
 	
 	// debug
 	ToString(data);
@@ -457,7 +499,7 @@ void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType,
 }
 
 void L1MDProducer::RalaceInvalidValue_EES(EESMarketDepthQuoteData &data_src, 
-			CDepthMarketDataField data_dest)
+			CDepthMarketDataField &data_dest)
 {
     data_dest.Turnover =			InvalidToZeroD(data_src.Turnover);
     data_dest.LastPrice =			InvalidToZeroD(data_src.LastPrice);
@@ -498,7 +540,7 @@ void L1MDProducer::End()
 
 		if (api_) {
 			this->UnloadQuoteApi();
-			clog_warning("Level quote stop: %d",err);
+			clog_warning("[%s] Level quote stop.", module_name_);
 			api_ = NULL;
 		}
 
@@ -521,12 +563,13 @@ void L1MDProducer::InitMDApi()
 	p_SlEfh	= (struct SlEfhQuote*)sl_create_eth_sf_api(config_.efh_sf_eth,
 				config_.ip, config_.port);
 	if(NULL==p_SlEfh){
-		clog_error("sl_create_efh_sf_api-failed.");
+		clog_error("[%s] l_create_efh_sf_api-failed.", module_name_);
 	}else{
-		clog_warning("sl_create_efh_sf_api-suceeded ip:%s, port:%d",config_.ip,config_.port);
+		clog_warning("[%s] sl_create_efh_sf_api-suceeded ip:%s, port:%d",
+					module_name_, config_.ip,config_.port);
 	}
 	int nret = sl_start_etf_quote(p_SlEfh, callback_efh_quote); 
-	clog_warning("sl_start_etf_quote-nret:%d", nret);
+	clog_warning("[%s] sl_start_etf_quote-nret:%d", module_name_, nret);
 }
 
 void L1MDProducer::Rev(const struct guava_udp_normal* data)
@@ -589,7 +632,7 @@ void L1MDProducer::End()
 
 		if (api_) {
 			sl_stop_efh_quote( p_SlEfh );
-			clog_warning("CMdclientApi stop: %d",err);
+			clog_warning("[%s] CMdclientApi stop: %d",module_name_, err);
 			api_ = NULL;
 		}
 
