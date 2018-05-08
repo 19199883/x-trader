@@ -589,7 +589,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	}
 
 	EES_EnterOrderField *ord =  EESFieldConverter::Convert(sig, localorderid, updated_vol);
-	clog_info("[%s] EnterOrder-%s", module_name_, EESDatatypeFormater::ToString(p));
+	clog_info("[%s] EnterOrder-%s", module_name_, EESDatatypeFormater::ToString(ord));
 
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);

@@ -83,8 +83,8 @@ void L1MDProducer::ParseConfig()
 		strcpy(config_.efh_sf_eth, l1md_node->Attribute("efh_sf_eth"));
 		strcpy(config_.mcLoacalIp, l1md_node->Attribute("mcLoacalIp"));
 		int localUDPPort = 0;
-		tunn_node->QueryIntAttribute("mcLocalPort", &localUDPPort);
-		this->api_config_.mcLocalPort = localUDPPort;
+		 l1md_node->QueryIntAttribute("mcLocalPort", &localUDPPort);
+		this->config_.mcLocalPort = localUDPPort;
 	} else { clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); }
 	
 	// contracts file
@@ -396,25 +396,48 @@ void L1MDProducer::UnloadQuoteApi()
 void L1MDProducer::InitMDApi()
 {
     api_ = LoadQuoteApi();
-	// TODO: here
+
+	EqsMulticastInfo emi;
+	strcpy(emi. m_mcIp, this->config_.ip);
+	emi.m_mcPort = this->config_.port;
+	strcpy(emi. m_mcLoacalIp, this->config_.mcLoacalIp);
+	emi. m_mcLocalPort = this->config_.mcLocalPort;	
+	strcpy(emi.m_exchangeId, "SHFE");
 	vector<EqsMulticastInfo> vecEmi;
+	vecEmi.push_back(emi);
+
 	bool rtn = this->api_->InitMulticast(vecEmi, this);
-	clog_warning("CMdclientApi ip:%s, port:%d",config_.ip,config_.port);
+	clog_warning("EES Quote mc ip:%s, mc port:%d, mc local ip:%s, mc local port:%d, exchange:%s",
+				vecEmi[0].m_mcIp, vecEmi[0].m_mcPort, vecEmi[0].m_mcLocalIp, 
+				vecEmi[0].m_mcLocalPort, vecEmi[0].m_exchangeId);
 }
 
 
-void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
+void L1MDProducer::OnEqsConnected()
 {
+	clog_warning("[%d] EES Quote connected.", module_name_);
+}
+
+void L1MDProducer::OnEqsDisconnected()
+{
+	clog_warning("[%d] EES Quote disconnected.", module_name_);
+}
+
+void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType, 
+			EESMarketDepthQuoteData* data_src)
+{
+	if(EQS_FUTURE != chInstrumentType) return;
+
 	if (ended_) return;
 
 	// 抛弃非主力合约
-	if(!(IsDominant(data->InstrumentID))) return;
+	if(!(IsDominant(data_src->InstrumentID))) return;
 
-	RalaceInvalidValue_Femas(*data);
+	CDepthMarketDataField data;
+	RalaceInvalidValue_EES(*data_src,);
 	
 	// debug
-	// ToString(*data);
-
+	ToString(data);
 	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
 	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
 
@@ -422,7 +445,7 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);
 	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-	ivalue->index = Push(*data);
+	ivalue->index = Push(data);
 	ivalue->data = L1_MD;
 	vrt_producer_publish(producer_);
 
@@ -433,37 +456,38 @@ void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
 #endif
 }
 
-void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
+void L1MDProducer::RalaceInvalidValue_EES(EESMarketDepthQuoteData &data_src, 
+			CDepthMarketDataField data_dest)
 {
-    d.Turnover = InvalidToZeroD(d.Turnover);
-    d.LastPrice = InvalidToZeroD(d.LastPrice);
-    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
-    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
-    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
-    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
-    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
-    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
-    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
-    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
-    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
+    data_dest.Turnover =			InvalidToZeroD(data_src.Turnover);
+    data_dest.LastPrice =			InvalidToZeroD(data_src.LastPrice);
+    data_dest.UpperLimitPrice =		InvalidToZeroD(data_src.UpperLimitPrice);
+    data_dest.LowerLimitPrice =		InvalidToZeroD(data_src.LowerLimitPrice);
+    data_dest.HighestPrice =		InvalidToZeroD(data_src.HighestPrice);
+    data_dest.LowestPrice =			InvalidToZeroD(data_src.LowestPrice);
+    data_dest.OpenPrice =			InvalidToZeroD(data_src.OpenPrice);
+    data_dest.ClosePrice =			InvalidToZeroD(data_src.ClosePrice);
+    data_dest.PreClosePrice =		InvalidToZeroD(data_src.PreClosePrice);
+    data_dest.OpenInterest =		InvalidToZeroD(data_src.OpenInterest);
+    data_dest.PreOpenInterest =		InvalidToZeroD(data_src.PreOpenInterest);
 
-    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
-    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
-    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
-    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
-    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
+    data_dest.BidPrice1 =			InvalidToZeroD(data_src.BidPrice1);
+    data_dest.BidPrice2 =			InvalidToZeroD(data_src.BidPrice2);
+    data_dest.BidPrice3 =			InvalidToZeroD(data_src.BidPrice3);
+    data_dest.BidPrice4 =			InvalidToZeroD(data_src.BidPrice4);
+    data_dest.BidPrice5 =			InvalidToZeroD(data_src.BidPrice5);
 
-	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
-    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
-    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
-    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
-    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
+	data_dest.AskPrice1 =			InvalidToZeroD(data_src.AskPrice1);
+    data_dest.AskPrice2 =			InvalidToZeroD(data_src.AskPrice2);
+    data_dest.AskPrice3 =			InvalidToZeroD(data_src.AskPrice3);
+    data_dest.AskPrice4 =			InvalidToZeroD(data_src.AskPrice4);
+    data_dest.AskPrice5 =			InvalidToZeroD(data_src.AskPrice5);
 
-	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
-	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
+	data_dest.SettlementPrice =		InvalidToZeroD(data_src.SettlementPrice);
+	data_dest.PreSettlementPrice =	InvalidToZeroD(data_src.PreSettlementPrice);
 
-    d.PreDelta = InvalidToZeroD(d.PreDelta);
-    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
+    data_dest.PreDelta =			InvalidToZeroD(data_src.PreDelta);
+    data_dest.CurrDelta =			InvalidToZeroD(data_src.CurrDelta);
 }
 
 

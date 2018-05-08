@@ -170,7 +170,7 @@ class L1MDProducer : public EESQuoteEvent
 		/*
 		 * 与逻辑处理相关
 		 */
-		void RalaceInvalidValue_Femas(CDepthMarketDataField &d);
+		void RalaceInvalidValue_EES(EESMarketDepthQuoteData &d);
 		int32_t Push(const CDepthMarketDataField& md);
 		struct vrt_producer  *producer_;
 		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
