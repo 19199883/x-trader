@@ -80,6 +80,7 @@ void L1MDProducer::ParseConfig()
     TiXmlElement *l1md_node = RootElement->FirstChildElement("L1Md");
 	if (l1md_node != NULL){
 		config_.addr = l1md_node->Attribute("addr");
+		strcpy(config_.efh_sf_eth, l1md_node->Attribute("efh_sf_eth"));
 	} else { clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); }
 	
 	// contracts file
@@ -333,5 +334,99 @@ void L1MDProducer::End()
 		clog_warning("[%s] End exit", module_name_);
 	}
 	fflush (Log::fp);
+}
+#endif
+
+
+#ifdef EES_TOPSPEED_QUOTE
+L1MDProducer L1MDProducer::This;
+void L1MDProducer::InitMDApi()
+{
+	L1MDProducer::This = this;
+	char ip[20];
+	p_SlEfh	= (struct SlEfhQuote*)sl_create_eth_sf_api(config_.efh_sf_eth,
+				config_.ip, config_.port);
+	if(NULL==p_SlEfh){
+		clog_error("sl_create_efh_sf_api-failed.");
+	}else{
+		clog_warning("sl_create_efh_sf_api-suceeded ip:%s, port:%d",config_.ip,config_.port);
+	}
+	int nret = sl_start_etf_quote(p_SlEfh, callback_efh_quote); 
+	clog_warning("sl_start_etf_quote-nret:%d", nret);
+}
+
+void L1MDProducer::Rev(const struct guava_udp_normal* data)
+{
+	if (ended_) return;
+
+	// 抛弃非主力合约
+	if(!(IsDominant(data->m_symbol))) return;
+
+	RalaceInvalidValue_EES(*data);
+	
+	// debug
+	// ToString(*data);
+
+	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
+	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	vrt_producer_claim(producer_, &vvalue);
+	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
+	ivalue->index = Push(*data);
+	ivalue->data = L1_MD;
+	vrt_producer_publish(producer_);
+
+#ifdef PERSISTENCE_ENABLED 
+    timeval t;
+    gettimeofday(&t, NULL);
+    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
+#endif
+}
+
+void L1MDProducer::RalaceInvalidValue_EES(CDepthMarketDataField &d)
+{
+    d.Turnover = InvalidToZeroD(d.Turnover);
+    d.LastPrice = InvalidToZeroD(d.LastPrice);
+    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
+    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
+    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
+    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
+    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
+    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
+    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
+    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
+    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
+    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
+	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
+	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
+	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
+
+    d.PreDelta = InvalidToZeroD(d.PreDelta);
+    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
+}
+
+
+void L1MDProducer::End()
+{
+	if(!ended_){
+		ended_ = true;
+
+		if (api_) {
+			sl_stop_efh_quote( p_SlEfh );
+			clog_warning("CMdclientApi stop: %d",err);
+			api_ = NULL;
+		}
+
+		vrt_producer_eof(producer_);
+		clog_warning("[%s] End exit", module_name_);
+	}
+	fflush (Log::fp);
+}
+
+void  callback_efh_quote(struct sl_efh_quote* p, const struct guava_udp_normal* p_quote ) 
+{
+	L1MDProducer::This->Rev(p_quote);
 }
 #endif

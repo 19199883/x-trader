@@ -53,7 +53,7 @@ void MYIneQuoteData::ProcFullDepthData(int32_t index)
 
 	repairers_[new_svr]->rev(index);
 
-	clog_info("[%s] proc sn:%d",module_name_, md->content.seqno); 
+	//clog_info("[%s] proc sn:%d",module_name_, md->content.seqno); 
 
 	bool empty = true;
 	char cur_contract[10];
@@ -221,7 +221,7 @@ void MYIneQuoteData::ProcL1MdData(int32_t index)
 	l1_md_last_index_ = index;
 	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 
-	clog_info("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
+	//clog_info("[%s] ProcL1MdData:constract:%s;index:%d", module_name_, md->InstrumentID, l1_md_last_index_); 
 
 	//memcpy(&target_data_, md, sizeof(CDepthMarketDataField));
 	//target_data_.data_flag = 1;

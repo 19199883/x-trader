@@ -154,7 +154,7 @@ void FullDepthMDProducer::RevData()
 		// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
 		// 解决方法：将sc与其它品种行情分成2种独立行情
 		if(md->instrument[0]=='s' && md->instrument[1]=='c'){
-			clog_info("[%s] sc, sn=%d.",module_name_,md->seqno);
+			//clog_info("[%s] sc, sn=%d.",module_name_,md->seqno);
 			struct vrt_value  *vvalue;
 			struct vrt_hybrid_value  *ivalue;
 			vrt_producer_claim(producer_, &vvalue);
@@ -163,7 +163,7 @@ void FullDepthMDProducer::RevData()
 			ivalue->data = INE_FULL_DEPTH_MD;
 			vrt_producer_publish(producer_);
 		}else{
-			clog_info("[%s] no sc, sn=%d.",module_name_,md->seqno);
+			//clog_info("[%s] no sc, sn=%d.",module_name_,md->seqno);
 			struct vrt_value  *vvalue;
 			struct vrt_hybrid_value  *ivalue;
 			vrt_producer_claim(producer_, &vvalue);

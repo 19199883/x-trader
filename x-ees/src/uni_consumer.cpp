@@ -306,8 +306,8 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 {
-	clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
-		md->InstrumentID, md->GetQuoteTime().c_str());
+	//clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
+	//	md->InstrumentID, md->GetQuoteTime().c_str());
 
 #ifdef LATENCY_MEASURE
 		 static int cnt = 0;
