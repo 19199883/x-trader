@@ -81,6 +81,10 @@ void L1MDProducer::ParseConfig()
 	if (l1md_node != NULL){
 		config_.addr = l1md_node->Attribute("addr");
 		strcpy(config_.efh_sf_eth, l1md_node->Attribute("efh_sf_eth"));
+		strcpy(config_.mcLoacalIp, l1md_node->Attribute("mcLoacalIp"));
+		int localUDPPort = 0;
+		tunn_node->QueryIntAttribute("mcLocalPort", &localUDPPort);
+		this->api_config_.mcLocalPort = localUDPPort;
 	} else { clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); }
 	
 	// contracts file
@@ -393,7 +397,8 @@ void L1MDProducer::InitMDApi()
 {
     api_ = LoadQuoteApi();
 	// TODO: here
-	bool rtn = this->api_->InitMulticast(vector<EqsMulticastInfo>& vecEmi, this);
+	vector<EqsMulticastInfo> vecEmi;
+	bool rtn = this->api_->InitMulticast(vecEmi, this);
 	clog_warning("CMdclientApi ip:%s, port:%d",config_.ip,config_.port);
 }
 

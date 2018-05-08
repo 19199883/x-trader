@@ -33,8 +33,10 @@ struct L1MDConfig
 	char ip[30];
 	int port;
 	char contracts_file[500];
-	char yield[20]; // disruptor yield strategy
-	char efh_sf_eth[20];
+	char yield[20];				// disruptor yield strategy
+	char efh_sf_eth[20];		// EES行情服务组播
+	char mcLoacalIp[20];		// EES行情服务组播
+	unsigned short mcLocalPort; // EES行情服务组播
 };
 
 class L1MDProducerHelper
