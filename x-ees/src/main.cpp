@@ -64,7 +64,7 @@ int main(/*int argc, const char **argv*/)
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-ees_2018-5-4_d"); 
+	clog_warning("version:x-ees_2018-5-8_d"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;

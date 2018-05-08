@@ -476,9 +476,6 @@ int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 // improve place, cancel
 void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs)
 {
-	// TODO:考虑m_Quantity是否是最新成交量还是累计成交量
-	// 先假设是最新成交量
-	
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
 	sys_order_id_[sigidx] = rpt.SysOrderID;

@@ -400,12 +400,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	if (rpt->OrderStatus == SIG_STATUS_CANCEL){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
-
-	if (rpt->OrderStatus==SIG_STATUS_SUCCESS ||
-			rpt->OrderStatus == SIG_STATUS_CANCEL||
-			rpt->OrderStatus == SIG_STATUS_REJECTED){
-		compliance_.End(counter);
-	}
 #endif
 
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
@@ -413,11 +407,10 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 #ifdef COMPLIANCE_CHECK
 	if_sig_state_t sig_status = strategy.GetStatusBySigIdx(sigidx);
-	if (rpt->OrderStatus==SIG_STATUS_SUCCESS ||
-			rpt->OrderStatus == SIG_STATUS_CANCEL||
-			rpt->OrderStatus == SIG_STATUS_REJECTED){
-		compliance_.End(counter);
-	}
+	clog_info("[%s] [ProcTunnRpt] sig status:%d", module_name_, sig_status);
+	if (sig_status==SIG_STATUS_SUCCESS ||
+		sig_status==SIG_STATUS_CANCEL||
+		sig_status==SIG_STATUS_REJECTED){ compliance_.End(counter); }
 #endif
 	// strategy log
 	WriteStrategyLog(strategy);
@@ -596,6 +589,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	}
 
 	EES_EnterOrderField *ord =  EESFieldConverter::Convert(sig, localorderid, updated_vol);
+	clog_info("[%s] EnterOrder-%s", module_name_, EESDatatypeFormater::ToString(p));
 
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
