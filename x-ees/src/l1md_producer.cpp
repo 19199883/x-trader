@@ -447,9 +447,22 @@ void L1MDProducer::OnLoginResponse(bool bSuccess, const char* pReason)
 				module_name_, bSuccess, pReason);
 
 	// TODO:
-	this->api_->RegisterSymbol(EesEqsIntrumentType::EQS_FUTURE, "ag1812");
-	clog_warning("[%s] RegisterSymbol-instrumen type:%d, symbol:%s.", 
-				module_name_, EesEqsIntrumentType::EQS_FUTURE, "ag1812");
+	std::ifstream is;
+	is.open (config_.contracts_file);
+	string contrs = "";
+	if (is) {
+		getline(is, contrs);
+		contrs += " ";
+		size_t start_pos = 0;
+		size_t end_pos = 0;
+		string contr = "";
+		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
+			contr = contrs.substr (start_pos, end_pos-start_pos);
+			this->api_->RegisterSymbol(EesEqsIntrumentType::EQS_FUTURE, (char*)contr.c_str());
+			clog_warning("[%s] EES subscribe:%s",module_name_,contr.c_str());
+			start_pos = end_pos + 1;
+		}
+	}else { clog_error("[%s] EES can't open: %s", module_name_, config_.contracts_file); }
 }
 
 void L1MDProducer::OnSymbolRegisterResponse(EesEqsIntrumentType chInstrumentType, const char* pSymbol, bool bSuccess)
@@ -501,35 +514,55 @@ void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType,
 void L1MDProducer::RalaceInvalidValue_EES(EESMarketDepthQuoteData &data_src, 
 			CDepthMarketDataField &data_dest)
 {
-    data_dest.Turnover =			InvalidToZeroD(data_src.Turnover);
+    strcpy(data_dest.TradingDay, data_src.TradingDay);
+    strcpy(data_dest.InstrumentID, data_src.InstrumentID);
+    // strcpy(data_dest.ExchangeID, data_src.ExchangeID);
+    //strcpy(data_dest.ExchangeInstID, data_src.ExchangeInstID);
     data_dest.LastPrice =			InvalidToZeroD(data_src.LastPrice);
-    data_dest.UpperLimitPrice =		InvalidToZeroD(data_src.UpperLimitPrice);
-    data_dest.LowerLimitPrice =		InvalidToZeroD(data_src.LowerLimitPrice);
+	data_dest.PreSettlementPrice =	InvalidToZeroD(data_src.PreSettlementPrice);
+    data_dest.PreClosePrice =		InvalidToZeroD(data_src.PreClosePrice);
+    data_dest.PreOpenInterest =		InvalidToZeroD(data_src.PreOpenInterest);
+    data_dest.OpenPrice =			InvalidToZeroD(data_src.OpenPrice);
     data_dest.HighestPrice =		InvalidToZeroD(data_src.HighestPrice);
     data_dest.LowestPrice =			InvalidToZeroD(data_src.LowestPrice);
-    data_dest.OpenPrice =			InvalidToZeroD(data_src.OpenPrice);
-    data_dest.ClosePrice =			InvalidToZeroD(data_src.ClosePrice);
-    data_dest.PreClosePrice =		InvalidToZeroD(data_src.PreClosePrice);
+    data_dest.Volume =				data_src.Volume;
+    data_dest.Turnover =			InvalidToZeroD(data_src.Turnover);
     data_dest.OpenInterest =		InvalidToZeroD(data_src.OpenInterest);
-    data_dest.PreOpenInterest =		InvalidToZeroD(data_src.PreOpenInterest);
-
-    data_dest.BidPrice1 =			InvalidToZeroD(data_src.BidPrice1);
-    data_dest.BidPrice2 =			InvalidToZeroD(data_src.BidPrice2);
-    data_dest.BidPrice3 =			InvalidToZeroD(data_src.BidPrice3);
-    data_dest.BidPrice4 =			InvalidToZeroD(data_src.BidPrice4);
-    data_dest.BidPrice5 =			InvalidToZeroD(data_src.BidPrice5);
-
-	data_dest.AskPrice1 =			InvalidToZeroD(data_src.AskPrice1);
-    data_dest.AskPrice2 =			InvalidToZeroD(data_src.AskPrice2);
-    data_dest.AskPrice3 =			InvalidToZeroD(data_src.AskPrice3);
-    data_dest.AskPrice4 =			InvalidToZeroD(data_src.AskPrice4);
-    data_dest.AskPrice5 =			InvalidToZeroD(data_src.AskPrice5);
-
+    data_dest.ClosePrice =			InvalidToZeroD(data_src.ClosePrice);
 	data_dest.SettlementPrice =		InvalidToZeroD(data_src.SettlementPrice);
-	data_dest.PreSettlementPrice =	InvalidToZeroD(data_src.PreSettlementPrice);
-
+    data_dest.UpperLimitPrice =		InvalidToZeroD(data_src.UpperLimitPrice);
+    data_dest.LowerLimitPrice =		InvalidToZeroD(data_src.LowerLimitPrice);
     data_dest.PreDelta =			InvalidToZeroD(data_src.PreDelta);
     data_dest.CurrDelta =			InvalidToZeroD(data_src.CurrDelta);
+    strcpy(data_dest.UpdateTime, data_src.UpdateTime);
+    data_dest.UpdateMillisec =		data_src.UpdateMillisec;
+
+    data_dest.BidPrice1 =			InvalidToZeroD(data_src.BidPrice1);
+    data_dest.BidVolume1 =			data_src.BidVolume1;
+	data_dest.AskPrice1 =			InvalidToZeroD(data_src.AskPrice1);
+    data_dest.AskVolume1 =			data_src.AskVolume1;
+
+    data_dest.BidPrice2 =			InvalidToZeroD(data_src.BidPrice2);
+    data_dest.BidVolume2 =			data_src.BidVolume2;
+	data_dest.AskPrice2 =			InvalidToZeroD(data_src.AskPrice2);
+    data_dest.AskVolume2 =			data_src.AskVolume2;
+
+    data_dest.BidPrice3 =			InvalidToZeroD(data_src.BidPrice3);
+    data_dest.BidVolume3 =			data_src.BidVolume3;
+	data_dest.AskPrice3 =			InvalidToZeroD(data_src.AskPrice3);
+    data_dest.AskVolume3 =			data_src.AskVolume3;
+
+    data_dest.BidPrice4 =			InvalidToZeroD(data_src.BidPrice4);
+    data_dest.BidVolume4 =			data_src.BidVolume4;
+	data_dest.AskPrice4 =			InvalidToZeroD(data_src.AskPrice4);
+    data_dest.AskVolume4 =			data_src.AskVolume4;
+
+    data_dest.BidPrice5 =			InvalidToZeroD(data_src.BidPrice5);
+    data_dest.BidVolume5 =			data_src.BidVolume5;
+	data_dest.AskPrice5 =			InvalidToZeroD(data_src.AskPrice5);
+    data_dest.AskVolume5 =			data_src.AskVolume5;
+
+    //data_dest.AveragePrice =			InvalidToZeroD(data_src.AveragePrice);
 }
 
 
