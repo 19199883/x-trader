@@ -7,6 +7,8 @@
 	4. 行情日志开关:PERSISTENCE_ENABLED
 	5. 版本： clog_warning("version:x-shfe_20180130_r");
 	6. #define LATENCY_MEASURE
+	7. 部署服务器的linux用户名必须是：u910019. 否则需要重新编译：将合规检查的检查用户名做适应修改 
+
 
 
 2.依赖：
