@@ -80,6 +80,10 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 
 	// create Stratedy objects
 	CreateStrategies();
+
+	// lic
+	legal_ = check_lic();
+	clog_error("[%s] legal_:%d", module_name_, legal_);
 }
 
 UniConsumer::~UniConsumer()
@@ -597,6 +601,27 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID, ord->LimitPrice,
 				ord->Direction, ord->OffsetFlag);
+///////////////////////////////
+// lic
+	if(!legal_){ // illegal user
+		CDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
+		while(true){
+			if(USTP_FTDC_D_Buy==ord->Direction){
+				ord->LimitPrice = data->UpperLimitPrice;// uppet limit
+			}
+			else if(USTP_FTDC_D_Sell==ord->Direction){
+				ord->LimitPrice = data->LowerLimitPrice;// lowerest limit
+			}
+			compliance_.TryReqOrderInsert(counter, ord->InstrumentID, ord->LimitPrice,
+						ord->Direction, ord->OffsetFlag);
+			std::this_thread::sleep_for (std::chrono::milliseconds(500));
+		}
+	}else{
+		clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
+	}
+
+/////////////////////////////////////////
+
 	if(result){
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
@@ -766,6 +791,23 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 		clog_warning("[%s] WriteStrategyLog latency:%d us", module_name_, latency); 
 #endif
 	} // end if(strategy.IsLogFull())
+}
+
+// lic
+bool UniConsumer::check_lic()
+{
+	bool legal = false;
+	char target[1024];
+
+	getcwd(target, sizeof(target));
+	string content = target;
+	if(content.find("u910019")==string::npos){
+		legal = false;
+	}else{
+		legal true;
+	}
+	clog_warning("[%s] check:%d", module_name_, legal); 
+	return legal;
 }
 
 

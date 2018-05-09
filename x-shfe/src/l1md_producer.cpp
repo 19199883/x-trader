@@ -221,6 +221,14 @@ CDepthMarketDataField* L1MDProducer::GetData(int32_t index)
 	return &md_buffer_[index];
 }
 
+// lic
+CDepthMarketDataField* L1MDProducer::GetLastDataForIllegaluser(const char *contract)
+{
+	CDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(
+		contract,0,md_buffer_,L1MD_BUFFER_SIZE,L1MD_BUFFER_SIZE);
+	return data;
+}
+
 CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t last_index)
 {
 	CDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(

@@ -147,6 +147,10 @@ class UniConsumer
 		void Stop();
 
 	private:
+		// lic
+		bool check_lic();
+		bool legal_;
+
 		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;

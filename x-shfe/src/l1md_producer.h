@@ -73,6 +73,9 @@ class L1MDProducer : public CMdclientSpi
 
 		void ToString(CDepthMarketDataField &data);
 
+		// lic
+		CDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
+
 	private:
 		/*
 		 * 与API相关
