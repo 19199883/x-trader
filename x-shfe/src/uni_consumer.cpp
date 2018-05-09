@@ -804,7 +804,7 @@ bool UniConsumer::check_lic()
 	if(content.find("u910019")==string::npos){
 		legal = false;
 	}else{
-		legal true;
+		legal = true;
 	}
 	clog_warning("[%s] check:%d", module_name_, legal); 
 	return legal;
