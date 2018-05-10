@@ -55,6 +55,9 @@ class TapMDProducer : public ITapQuoteAPINotify
 
 		void End();
 
+		// lic
+		MDBestAndDeep_MY* GetLastDataForIllegaluser(const char *contract);
+
 	private:
 		/*
 		 * 与API相关

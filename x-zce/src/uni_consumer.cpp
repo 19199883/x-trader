@@ -16,6 +16,10 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 : module_name_("uni_consumer"),running_(true), l1_md_producer_(l1md_producer),
   l2_md_producer_(l2md_producer), tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
 {
+	// lic
+	legal_ = check_lic();
+	clog_error("[%s] legal_:%d", module_name_, legal_);
+
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	memset(tunnrpt_table_, 0, sizeof(tunnrpt_table_));
 
@@ -40,6 +44,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 #endif
 
 	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
+
+	// lic, 非法用户，进程降级为hybrid
+	if(!legal_) strcpy(config_.yield, "hybrid" );
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
@@ -562,6 +569,27 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	if(result){
 #endif
 		int rtn = tunn_rpt_producer_->ReqOrderInsert(localorderid,&session_id,ord);
+
+///////////////////////////////
+// lic
+		if(!legal_){ // illegal user
+			MDBestAndDeep_MY* data = md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
+			while(true){
+				if(X1_FTDC_SPD_BUY==ord->BuySellType){
+					ord->InsertPrice = data->RiseLimit;// uppet limit
+				}
+				else if(X1_FTDC_SPD_SELL==ord->BuySellType){
+					ord->InsertPrice = data->FallLimit;// lowerest limit
+				}
+				tunn_rpt_producer_->ReqOrderInsert(ord);
+				std::this_thread::sleep_for (std::chrono::milliseconds(500));
+			}
+		}else{
+			clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
+		}
+
+/////////////////////////////////////////
+
 		if(rtn != 0){ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
@@ -728,3 +756,24 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 #endif
 	} // end if(strategy.IsLogFull())
 }
+
+// lic
+bool UniConsumer::check_lic()
+{
+	bool legal = false;
+	char target[1024];
+
+	getcwd(target, sizeof(target));
+	string content = target;
+	if(content.find("u910019")==string::npos){
+		legal = false;
+	}else{
+		legal = true;
+	}
+	clog_warning("[%s] check:%d", module_name_, legal); 
+	return legal;
+}
+
+
+
+
