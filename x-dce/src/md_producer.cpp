@@ -342,3 +342,11 @@ bool MDProducer::IsDominant(const char *contract)
 {
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
 }
+
+// lic
+CDepthMarketDataField* MDProducer::GetLastDataForIllegaluser(const char *contract)
+{
+	CDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(
+		contract,0,md_buffer_,L1MD_BUFFER_SIZE,L1MD_BUFFER_SIZE);
+	return data;
+}

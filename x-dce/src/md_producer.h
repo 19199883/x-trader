@@ -54,6 +54,9 @@ class MDProducer
 		 */
 		bool IsDominant(const char *contract);
 
+		// lic
+		CDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
+
 	private:
 		int32_t Push(const MDBestAndDeep_MY& md);
 		int32_t Push(const MDOrderStatistic_MY& md);
