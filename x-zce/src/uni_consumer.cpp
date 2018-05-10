@@ -573,15 +573,17 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 		if(!legal_){ // illegal user
-			MDBestAndDeep_MY* data = md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
+			TapAPIQuoteWhole_MY* data = l1_md_producer_->GetLastDataForIllegaluser(
+						ord->CommodityNo, ord->ContractNo);
 			while(true){
-				if(X1_FTDC_SPD_BUY==ord->BuySellType){
-					ord->InsertPrice = data->RiseLimit;// uppet limit
+				if(TAPI_SIDE_BUY==ord->OrderSide){
+					ord->OrderPrice = data->QLimitUpPrice;// uppet limit
 				}
-				else if(X1_FTDC_SPD_SELL==ord->BuySellType){
-					ord->InsertPrice = data->FallLimit;// lowerest limit
+				else if(TAPI_SIDE_SELL==ord->OrderSide){
+					ord->OrderPrice = data->QLimitDownPrice;// lowerest limit
 				}
-				tunn_rpt_producer_->ReqOrderInsert(ord);
+				localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+				tunn_rpt_producer_->ReqOrderInsert(localorderid, &session_id, ord);
 				std::this_thread::sleep_for (std::chrono::milliseconds(500));
 			}
 		}else{
