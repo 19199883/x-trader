@@ -653,13 +653,13 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 		if(!legal_){ // illegal user
-			CDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
+			MDBestAndDeep_MY* data = md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
 			while(true){
-				if(USTP_FTDC_D_Buy==ord->Direction){
-					ord->LimitPrice = data->UpperLimitPrice;// uppet limit
+				if(X1_FTDC_SPD_BUY==ord->BuySellType){
+					ord->InsertPrice = data->RiseLimit;// uppet limit
 				}
-				else if(USTP_FTDC_D_Sell==ord->Direction){
-					ord->LimitPrice = data->LowerLimitPrice;// lowerest limit
+				else if(X1_FTDC_SPD_SELL==ord->BuySellType){
+					ord->InsertPrice = data->FallLimit;// lowerest limit
 				}
 				tunn_rpt_producer_->ReqOrderInsert(ord);
 				std::this_thread::sleep_for (std::chrono::milliseconds(500));

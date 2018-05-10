@@ -344,9 +344,15 @@ bool MDProducer::IsDominant(const char *contract)
 }
 
 // lic
-CDepthMarketDataField* MDProducer::GetLastDataForIllegaluser(const char *contract)
+MDBestAndDeep_MY* MDProducer::GetLastDataForIllegaluser(const char *contract)
 {
-	CDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(
-		contract,0,md_buffer_,L1MD_BUFFER_SIZE,L1MD_BUFFER_SIZE);
+	MDBestAndDeep_MY *data = NULL;
+	for(int i=0; i<MD_BUFFER_SIZE; i++){
+		MDBestAndDeep_MY &tmp = bestanddeep_buffer_[i];
+		if(strcmp(contract, tmp.Contract)==0){
+			data = &tmp; 
+			break;
+		}
+	}
 	return data;
 }
