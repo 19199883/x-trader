@@ -76,10 +76,8 @@ void L1MDProducer::ParseConfig()
 		strcpy(config_.yield, disruptor_node->Attribute("yield"));
 	} else { clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); }
 
-	// addr
     TiXmlElement *l1md_node = RootElement->FirstChildElement("L1Md");
 	if (l1md_node != NULL){
-		config_.addr = l1md_node->Attribute("addr");
 		strcpy(config_.efh_sf_eth, l1md_node->Attribute("efh_sf_eth"));
 
 		strcpy(config_.mcIp, l1md_node->Attribute("mcIp"));
@@ -91,7 +89,12 @@ void L1MDProducer::ParseConfig()
 		int localUDPPort = 0;
 		 l1md_node->QueryIntAttribute("mcLocalPort", &localUDPPort);
 		this->config_.mcLocalPort = localUDPPort;
-	} else { clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); }
+
+		strcpy(config_.userid, l1md_node->Attribute("userid"));
+		strcpy(config_.password, l1md_node->Attribute("password"));
+	} else{
+		clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); 
+	}
 	
 	// contracts file
     TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
@@ -120,6 +123,14 @@ int32_t L1MDProducer::Push(const CDepthMarketDataField& md){
 CDepthMarketDataField* L1MDProducer::GetData(int32_t index)
 {
 	return &md_buffer_[index];
+}
+
+// lic
+CDepthMarketDataField* L1MDProducer::GetLastDataForIllegaluser(const char *contract)
+{
+	CDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(
+		contract,0,md_buffer_,L1MD_BUFFER_SIZE,L1MD_BUFFER_SIZE);
+	return data;
 }
 
 CDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t last_index)
@@ -239,8 +250,8 @@ void L1MDProducer::ToString(CDepthMarketDataField &data)
 #ifdef FEMAS_TOPSPEED_QUOTE
 void L1MDProducer::InitMDApi()
 {
-    api_ = CMdclientApi::Create(this,config_.port,config_.ip);
-	clog_warning("[%s] CMdclientApi ip:%s, port:%d", module_name_, config_.ip,config_.port);
+    api_ = CMdclientApi::Create(this,config_.mcPort,config_.mcIp);
+	clog_warning("[%s] CMdclientApi ip:%s, port:%d", module_name_, config_.mcIp,config_.mcPort);
 
 	std::ifstream is;
 	is.open (config_.contracts_file);
@@ -431,14 +442,11 @@ void L1MDProducer::OnEqsConnected()
 {
 	clog_warning("[%s] EES Quote connected.", module_name_);
 	EqsLoginParam loginParam;
-	// TODO:
-	strcpy(loginParam.m_loginId, "9101091");
-	strcpy(loginParam.m_password, "124222");
-	this->api_-> LoginToEqs(loginParam);
+	strcpy(loginParam.m_loginId, this->config_.userid);
+	strcpy(loginParam.m_password, this->config_.password);
+	this->api_->LoginToEqs(loginParam);
 	clog_warning("[%s] LoginToEqs-user id:%s, pwd:%s.", 
 				module_name_, loginParam.m_loginId, loginParam.m_password);
-
-
 }
 
 void L1MDProducer::OnLoginResponse(bool bSuccess, const char* pReason)
@@ -446,7 +454,6 @@ void L1MDProducer::OnLoginResponse(bool bSuccess, const char* pReason)
 	clog_warning("[%s] EES OnLoginResponse-sucess:%d, reason:%s.", 
 				module_name_, bSuccess, pReason);
 
-	// TODO:
 	std::ifstream is;
 	is.open (config_.contracts_file);
 	string contrs = "";

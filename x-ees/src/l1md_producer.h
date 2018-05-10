@@ -29,7 +29,6 @@ using namespace std;
 
 struct L1MDConfig 
 {
-	string addr;
 	char mcIp[30];
 	int mcPort;
 	char contracts_file[500];
@@ -37,6 +36,8 @@ struct L1MDConfig
 	char efh_sf_eth[20];		// EES行情服务组播
 	char mcLocalIp[20];		// EES行情服务组播
 	unsigned short mcLocalPort; // EES行情服务组播
+	char userid[20];			// EES user id
+	char password[20];			// EES password
 };
 
 class L1MDProducerHelper
@@ -77,6 +78,9 @@ class L1MDProducer : public CMdclientSpi
 		virtual void OnRtnDepthMarketData(CDepthMarketDataField *pDepthMarketData);
 
 		void ToString(CDepthMarketDataField &data);
+
+		// lic
+		CDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
 
 	private:
 		/*
@@ -157,6 +161,9 @@ class L1MDProducer : public EESQuoteEvent
 					EESMarketDepthQuoteData* pDepthQuoteData);
 
 		void ToString(CDepthMarketDataField &data);
+		//
+		// lic
+		CDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
 
 	private:
 		/*

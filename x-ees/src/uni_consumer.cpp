@@ -21,6 +21,10 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
   l1_md_producer_(l1_md_producer),
   tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
 {
+	// lic
+	legal_ = check_lic();
+
+	clog_error("[%s] legal_:%d", module_name_, legal_);
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 
@@ -46,6 +50,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 #endif
 
 	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
+
+	// lic, 非法用户，进程降级为hybrid
+	if(!legal_) strcpy(config_.yield, "hybrid" );
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
@@ -82,9 +89,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	// create Stratedy objects
 	CreateStrategies();
 
-	// lic
-	legal_ = check_lic();
-	clog_error("[%s] legal_:%d", module_name_, legal_);
 }
 
 UniConsumer::~UniConsumer()

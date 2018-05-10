@@ -13,7 +13,6 @@ struct OrderInfo
 {
 	bool valid;
     char contract[7];
-	// TODO: to here
     EES_SideType  side;
     double price;
 };

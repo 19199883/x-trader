@@ -100,7 +100,6 @@ class EESFieldConverter
 
 		static EES_CancelOrder*  Convert(long ori_sysorderid)
 		{
-			// TODO: consider how to get m_MarketOrderToken 
 			cancel_order_.m_MarketOrderToken = ori_sysorderid;
 			return &cancel_order_;
 		}
@@ -145,6 +144,9 @@ class UniConsumer
 		int32_t log_write_count_;
 		FILE * pfDayLogFile_;
 				
+		// lic
+		bool check_lic();
+		bool legal_;
 
 #if FIND_STRATEGIES == 1
 		// unordered_multimap  key: contract; value: indices of strategies in stra_table_

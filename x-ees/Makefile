@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=y
+DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/x-ees/dist
 INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/tinyxml/include \
@@ -16,7 +16,7 @@ OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lEESTraderApi -lEESQuoteApi -ltinyxml -lutils -ldl -lpthread  \
 	  -lbowsprit -lclogger -lcork -lvrt \
-	  -lboost_filesystem  -lboost_system 
+	  -lboost_filesystem  -lboost_system -lmdclient
 DEPS:=.depends
 OUT:=x-ees
 PACKAGE_NAME:=$(OUT)
