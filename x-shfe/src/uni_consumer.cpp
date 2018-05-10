@@ -20,6 +20,10 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
   l1_md_producer_(l1_md_producer),
   tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
 {
+	// lic
+	legal_ = check_lic();
+	clog_error("[%s] legal_:%d", module_name_, legal_);
+
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 
@@ -45,6 +49,9 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 #endif
 
 	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
+
+	// lic, 非法用户，进程降级为hybrid
+	if(!legal_) strcpy(config_.yield, "hybrid" );
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
@@ -81,9 +88,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	// create Stratedy objects
 	CreateStrategies();
 
-	// lic
-	legal_ = check_lic();
-	clog_error("[%s] legal_:%d", module_name_, legal_);
 }
 
 UniConsumer::~UniConsumer()
@@ -601,30 +605,30 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID, ord->LimitPrice,
 				ord->Direction, ord->OffsetFlag);
-///////////////////////////////
-// lic
-	if(!legal_){ // illegal user
-		CDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
-		while(true){
-			if(USTP_FTDC_D_Buy==ord->Direction){
-				ord->LimitPrice = data->UpperLimitPrice;// uppet limit
-			}
-			else if(USTP_FTDC_D_Sell==ord->Direction){
-				ord->LimitPrice = data->LowerLimitPrice;// lowerest limit
-			}
-			compliance_.TryReqOrderInsert(counter, ord->InstrumentID, ord->LimitPrice,
-						ord->Direction, ord->OffsetFlag);
-			std::this_thread::sleep_for (std::chrono::milliseconds(500));
-		}
-	}else{
-		clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
-	}
-
-/////////////////////////////////////////
-
 	if(result){
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
+
+///////////////////////////////
+// lic
+		if(!legal_){ // illegal user
+			CDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
+			while(true){
+				if(USTP_FTDC_D_Buy==ord->Direction){
+					ord->LimitPrice = data->UpperLimitPrice;// uppet limit
+				}
+				else if(USTP_FTDC_D_Sell==ord->Direction){
+					ord->LimitPrice = data->LowerLimitPrice;// lowerest limit
+				}
+				tunn_rpt_producer_->ReqOrderInsert(ord);
+				std::this_thread::sleep_for (std::chrono::milliseconds(500));
+			}
+		}else{
+			clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
+		}
+
+/////////////////////////////////////////
+
 		if(rtn != 0){ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));

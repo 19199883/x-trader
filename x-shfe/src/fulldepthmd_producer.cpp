@@ -89,7 +89,7 @@ int FullDepthMDProducer::InitMDApi()
         return -1;
     }
 
-// TODO:查哪种模式最时时
+// 查哪种模式最时时
     // set nonblock flag
 //    int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
 //    if (socket_ctl_flag < 0)
@@ -172,7 +172,7 @@ void FullDepthMDProducer::RevData()
 			ivalue->data = FULL_DEPTH_MD;
 			vrt_producer_publish(producer_);
 		}
-		// TODO:
+		// 
 		//ToString(*md);
     } // while (!ended_)
 
