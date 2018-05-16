@@ -371,12 +371,13 @@ bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_n
 }
 
 // lic
-MDBestAndDeep_MY* TapMDProducer::GetLastDataForIllegaluser(const char *contract)
+TapAPIQuoteWhole_MY* TapMDProducer::GetLastDataForIllegaluser(const char *CommodityNo, const char*ContractNo1)
 {
-	MDBestAndDeep_MY *data = NULL;
-	for(int i=0; i<MD_BUFFER_SIZE; i++){
-		MDBestAndDeep_MY &tmp = bestanddeep_buffer_[i];
-		if(strcmp(contract, tmp.Contract)==0){
+	TapAPIQuoteWhole_MY *data = NULL;
+	for(int i=0; i<L1MD_BUFFER_SIZE; i++){
+		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
+		if(strcmp(CommodityNo, tmp.CommodityNo)==0 &&
+			strcmp(ContractNo1, tmp.ContractNo1)==0){
 			data = &tmp; 
 			break;
 		}
