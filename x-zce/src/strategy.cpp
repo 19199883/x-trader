@@ -1,3 +1,4 @@
+// lic
 #include<stdlib.h>
 #include <chrono>
 #include <thread> 
@@ -53,6 +54,7 @@ void Strategy::End(void)
 Strategy::~Strategy(void)
 {
 	if (pproxy_ != NULL){
+		// lic
 		char cmd[1024];
 		char bar_so[1024];
 		sprintf(bar_so, "./lib/%s.so", this->setting_.file.c_str());
@@ -102,7 +104,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
 	clog_warning("[%s] strategy:%d; max_log_lines_ :%d", module_name_, this->GetId(), max_log_lines_ ); 
-	// TODO: lic
+	// lic
 	char cmd[1024];
 	sprintf(cmd, "tar -C ./lib -xvzf %s.so", this->setting_.file.c_str());
 	system(cmd);
@@ -113,34 +115,34 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	pfn_init_ = (Init_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
-		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, bar_so, STRATEGY_METHOD_INIT, errno);
 	}
 
 	pfn_feedl2quotesnapshot_ = (FeedL2QuoteSnapshot_ptr)pproxy_->findObject(
 					bar_so, STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT);
 	if (!pfn_feedl2quotesnapshot_){
-		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, bar_so, STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT, errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
 				bar_so, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
-		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, bar_so, STRATEGY_METHOD_FEED_INIT_POSITION, errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
 				bar_so, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
-		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, bar_so, STRATEGY_METHOD_FEED_SIG_RESP, errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
-		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
+		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
 					module_name_, bar_so, STRATEGY_METHOD_FEED_DESTROY, errno);
 	}
 	
