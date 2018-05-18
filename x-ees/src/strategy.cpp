@@ -60,6 +60,7 @@ void Strategy::End(void)
 Strategy::~Strategy(void)
 {
 	if (pproxy_ != NULL){
+		// lic
 		char cmd[1024];
 		char bar_so[1024];
 		sprintf(bar_so, "./lib/%s.so", this->setting_.file.c_str());
