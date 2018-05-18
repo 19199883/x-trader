@@ -1,0 +1,11 @@
+Description:
+用于执行许可检查的so。
+当不是许可的用户，则直接退出。
+许可用户：当前目录中有u910019的，即为合法用户
+
+
+build:
+1. module:gfortran -ffree-line-length-none  -J ./obj -c ./src/MySub_Fuc.f90 -fPIC  -o MySub_Fuc.o
+2. c++: g++ -c -shared  -std=c++11 ./src/timestamp.cpp -fPIC  -o timestamp.o
+
+3. gfortran -fPIC  ./obj/Hi5_Func.o ./obj/Common_Func.o ./obj/Hi5_Var_Def.o ./obj/Common_Mod.o ./obj/MySub_Fuc.o ./obj/Common_Var_Def.o ./obj/timestamp.o -Lstdc++ -shared -Wl,--exclude-libs,ALL -o bin/st_test.sod
