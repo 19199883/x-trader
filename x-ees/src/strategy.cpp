@@ -1,3 +1,4 @@
+// lic
 #include<stdlib.h>
 #include <chrono>
 #include <thread> 
