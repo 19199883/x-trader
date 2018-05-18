@@ -1,3 +1,5 @@
+// lic
+#include<stdlib.h>
 #include <chrono>
 #include <thread> 
 #include <stdio.h>
@@ -58,7 +60,13 @@ void Strategy::End(void)
 Strategy::~Strategy(void)
 {
 	if (pproxy_ != NULL){
-		pproxy_->deleteObject(this->setting_.file);
+		// lic
+		char cmd[1024];
+		char bar_so[1024];
+		sprintf(bar_so, "./lib/%s.so", this->setting_.file.c_str());
+		pproxy_->deleteObject(bar_so);
+		sprintf(cmd, "rm %s", bar_so);
+		system(cmd);
 		pproxy_ = NULL;
 	}
 }
@@ -103,45 +111,53 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
 	clog_warning("[%s] strategy:%d; max_log_lines_ :%d", module_name_, this->GetId(), max_log_lines_ );
 
-	pfn_init_ = (Init_ptr)pproxy_->findObject(this->setting_.file, STRATEGY_METHOD_INIT);
+	// TODO: lic
+	char cmd[1024];
+	sprintf(cmd, "tar -C ./lib -xvzf %s.so", this->setting_.file.c_str());
+	system(cmd);
+
+	char bar_so[1024];
+	sprintf(bar_so, "./lib/%s", this->setting_.file.c_str());
+
+	pfn_init_ = (Init_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_INIT, errno);
+					module_name_, bar_so, STRATEGY_METHOD_INIT, errno);
 	}
 
 	pfn_feedbestanddeep_ = (FeedBestAndDeep_ptr)pproxy_->findObject(
-					this->setting_.file, STRATEGY_METHOD_FEED_MD_BESTANDDEEP);
+					bar_so, STRATEGY_METHOD_FEED_MD_BESTANDDEEP);
 	if (!pfn_feedbestanddeep_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
+					module_name_, bar_so, STRATEGY_METHOD_FEED_MD_BESTANDDEEP, errno);
 	}
 
 	pfn_feedorderstatistic_ = (FeedOrderStatistic_ptr)pproxy_->findObject(
-					this->setting_.file, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS);
+					bar_so, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS);
 	if (!pfn_feedorderstatistic_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
+					module_name_, bar_so, STRATEGY_METHOD_FEED_MD_ORDERSTATISTICS, errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_FEED_INIT_POSITION);
+				bar_so, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_INIT_POSITION, errno);
+					module_name_, bar_so, STRATEGY_METHOD_FEED_INIT_POSITION, errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_FEED_SIG_RESP);
+				bar_so, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_SIG_RESP, errno);
+					module_name_, bar_so, STRATEGY_METHOD_FEED_SIG_RESP, errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(
-				this->setting_.file, STRATEGY_METHOD_FEED_DESTROY );
+				bar_so, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, this->setting_.file.c_str(), STRATEGY_METHOD_FEED_DESTROY, errno);
+					module_name_, bar_so, STRATEGY_METHOD_FEED_DESTROY, errno);
 	}
 	
 	string model_log = generate_log_name(setting_.config.log_name);
