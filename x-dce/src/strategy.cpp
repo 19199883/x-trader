@@ -113,7 +113,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	// TODO: lic
 	char cmd[1024];
-	sprintf(cmd, "tar -C ./lib -xvzf %s.so", this->setting_.file.c_str());
+	sprintf(cmd, "openssl des3 -d -k 617999 -salt -in %s.so | tar -xzf - -C ./lib", this->setting_.file.c_str());
 	system(cmd);
 
 	char bar_so[1024];
