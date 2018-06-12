@@ -43,7 +43,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 	clog_warning("[%s] method for finding strategies by contract:strcmp", module_name_);
 #endif
 
-	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
+	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, MAX_STRATEGY_COUNT);
 
 	// lic, 非法用户，进程降级为hybrid
 	if(!legal_) strcpy(config_.yield, "hybrid" );

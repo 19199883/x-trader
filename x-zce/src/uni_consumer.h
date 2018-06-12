@@ -18,7 +18,6 @@
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 
-#define STRA_TABLE_SIZE 100 
 #define SIG_BUFFER_SIZE 32 
 
 // key2: stoi(年月)，如1801
@@ -59,7 +58,7 @@ class UniConsumer
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;
 
-		Strategy stra_table_[STRA_TABLE_SIZE];
+		Strategy stra_table_[MAX_STRATEGY_COUNT];
 
 #if FIND_STRATEGIES == 1
 		// unordered_multimap  key: contract; value: indices of strategies in stra_table_
@@ -68,12 +67,12 @@ class UniConsumer
 
 #if FIND_STRATEGIES == 2
 		// two-dimensional array
-		int32_t stra_idx_table_[STRA_TABLE_SIZE][STRA_TABLE_SIZE];
+		int32_t stra_idx_table_[MAX_STRATEGY_COUNT][MAX_STRATEGY_COUNT];
 		int32_t cont_straidx_map_table_[MAX_STRATEGY_KEY1][MAX_STRATEGY_KEY2];
 #endif
 
 		// key: strategy id; value: index of strategy in stra_table_
-		int32_t straid_straidx_map_table_[STRA_TABLE_SIZE];
+		int32_t straid_straidx_map_table_[MAX_STRATEGY_COUNT];
 
 		std::list<StrategySetting> strategy_settings_;
 		StrategySetting CreateStrategySetting(const TiXmlElement *ele);
@@ -98,7 +97,7 @@ class UniConsumer
 		 *				 * 策略待处理的信号的信号id。-1表示无效
 		 *						 *
 		 *								 */
-		int32_t pending_signals_[STRA_TABLE_SIZE][MAX_PENDING_SIGNAL_COUNT];
+		int32_t pending_signals_[MAX_STRATEGY_COUNT][MAX_PENDING_SIGNAL_COUNT];
 
 		/*
 		 * 1.缓存所有的委托报告信息，用于撤单使用。
