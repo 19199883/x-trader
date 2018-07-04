@@ -1,0 +1,2 @@
+md_converter:
+	将来自茂源的txt格式的上期行情转换成我们自己的structure
