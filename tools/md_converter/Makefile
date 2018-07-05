@@ -2,21 +2,21 @@
 
 CC:=g++
 DEBUG:=n
-TOP:=..
-DIST_DIR:=$(TOP)/md_converter/dist
+TOP:=../..
+DIST_DIR:=$(TOP)/tools/md_converter/dist
 INCPATH:=
-LIBPATH:=
+LIBPATH:=-L$(TOP)/3rd/boost/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=
+LIBS:=-lboost_filesystem -lboost_system -lpthread 
 DEPS:=.depends
 OUT:=md_converter
 PACKAGE_NAME:=$(OUT)
 
-SUBDIR:=$(TOP)/md_converter/src 
+SUBDIR:=$(TOP)/tools/md_converter/src 
 
 vpath %.cpp $(SUBDIR)
 
@@ -55,13 +55,13 @@ $(DEPS):$(SRCS)
 dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/md_converter/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/tools/md_converter/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)/tools/
 	-cd $(DIST_DIR); \
 		tar -cvzf $(PACKAGE_NAME).tar.gz  $(PACKAGE_NAME)/*     
 
 distclean:
-	-@rm $(TOP)/dist/$(PACKAGE_NAME).tar.gz	
+	-@rm $(TOP)/tools/md_converter/dist/$(PACKAGE_NAME).tar.gz	
 	-@rm -rf $(DIST_DIR)
 
 clean:

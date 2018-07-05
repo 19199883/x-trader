@@ -105,16 +105,11 @@ template<typename DataType>
 class QuoteDataSave
 {
 public:
-    QuoteDataSave(const std::string &file_name_prefix, int data_type, bool monitor = true)
+    QuoteDataSave(const std::string &file_name, int data_type)
     {
         pthread_spin_init(&save_sync_, 0);
-        std::string quote_name = file_name_prefix;
+        std::string quote_name = file_name;
         datas_.reserve(10000);
-
-        if (!quote_name.empty())
-        {
-            quote_name.append("_");
-        }
 
         running_flag_ = true;
         save_thread_ = NULL;
@@ -123,24 +118,19 @@ public:
 
         // 文件存储
         //Create Directory
-        std::string full_path = boost::filesystem::initial_path<boost::filesystem::path>().string() + "/Data";
+        std::string full_path = boost::filesystem::initial_path<boost::filesystem::path>()
+			.string() + "/Data";
         if (!boost::filesystem::exists(full_path)) {
             (void) boost::filesystem::create_directories(full_path);
         }
 
         //Create output file
         if (boost::filesystem::exists(full_path)) {
-			time_t rawtime;
-			struct tm * timeinfo;
-			char buffer [80];
-			time (&rawtime);
-			timeinfo = localtime (&rawtime);
-			strftime (buffer,sizeof(buffer),"%Y%m%d",timeinfo);
-            std::string strTime = buffer;
-            std::string str = full_path + "/" + quote_name + strTime + ".dat";
+            std::string str = full_path + "/" + quote_name;
 			quote_file_ = fopen(str.c_str(), "wb+");
 			if (quote_file_) {
-				MYUTIL_SaveFileHeader<SaveDataStruct<DataType>, SaveFileHeaderStruct>(data_type, quote_file_);
+				MYUTIL_SaveFileHeader<SaveDataStruct<DataType>, SaveFileHeaderStruct>(
+					data_type, quote_file_);
 				cout << "successful to open file <" <<  str << "> . write file header." << endl;
 			} else {
 				cout << "failed to open file <" <<  str << ">." << endl;

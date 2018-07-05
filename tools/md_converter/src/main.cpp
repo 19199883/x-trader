@@ -1,25 +1,50 @@
 #include <pthread.h>
+#include <sys/types.h>
+#include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
 #include <dlfcn.h>
 #include <string>
 #include<stdlib.h>
+#include <iostream>     // std::cout
+#include <fstream>      // std::ifstream
+#include "quote_cmn_save.h"
+#include "quote_datatype_shfe_my.h"
+
+void ConvertLine(char *src_line, QuoteDataSave<MYShfeMarketData> *save_obj)
+{
+	// TODO: here
+	MYShfeMarketData target_data;
+	
+    timeval t;
+    gettimeofday(&t, NULL);
+    save_obj->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data);
+}
+
+void Convert(string &src, QuoteDataSave<MYShfeMarketData> *save_obj)
+{
+	char line[4096];
+	std::ifstream ifs(src, std::ifstream::in);
+	while (ifs.getline(line, 4096)){
+		ConvertLine(line, save_obj);
+	}
+
+	ifs.close();
+}
 
 int main(int argc, const char **argv)
 {
-	printf(argv[1]);
-	char decrypt_cmd[1024];
-	sprintf(decrypt_cmd, "openssl des3 -d -k 617999 -salt -in %s.txt | tar xzf -", argv[1]);
-	system(decrypt_cmd);
+	string base = argv[1];
+	string src = base + ".txt";
+	string dest = base + ".dat";
 
-	char exec_cmd[1024];
-	sprintf(exec_cmd, "sh ./%s.sh", argv[1]);
-	system(exec_cmd);
+    QuoteDataSave<MYShfeMarketData> *save_obj = 
+		new QuoteDataSave<MYShfeMarketData>(dest, MY_SHFE_MD_QUOTE_TYPE);
 
-	char clean_cmd[1024];
-	sprintf(clean_cmd, "rm ./%s.sh", argv[1]);
-	system(clean_cmd);
+	Convert(src, save_obj);
+
+	delete save_obj;
 
 	return 0;
 }
