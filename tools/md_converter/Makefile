@@ -1,11 +1,11 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=../..
 DIST_DIR:=$(TOP)/tools/md_converter/dist
 INCPATH:=
-LIBPATH:=-L$(TOP)/3rd/boost/lib
+LIBPATH:=
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
