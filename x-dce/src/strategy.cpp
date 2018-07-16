@@ -108,7 +108,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	this->pproxy_ = pproxy;
 	id_ = this->setting_.config.st_id;
 
-	max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
+	max_log_lines_ = GetId() * 180 + 5000;
 	clog_warning("[%s] strategy:%d; max_log_lines_ :%d", module_name_, this->GetId(), max_log_lines_ );
 
 	// TODO: lic
