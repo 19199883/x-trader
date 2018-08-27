@@ -215,6 +215,12 @@ StdQuote5* L2MDProducer::GetData(int32_t index)
 
 bool L2MDProducer::IsDominant(const char *contract)
 {
+#ifdef PERSISTENCE_ENABLED 
+	// 持久化行情时，需要记录所有合约
+	clog_warning("[%s] return TRUE in IsDominant.",module_name_);
+	return true;
+#else
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
+#endif
 }
 
