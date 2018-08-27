@@ -95,40 +95,76 @@ const ZCEINT4 ZCEErrCode_ReachMaxLoginNum	= 11;	//登录失败，超出最大允
 
 // added by wangying on 20161028, jinrui future company, udp level2
 #pragma pack(push,8)
-struct StdQuote5
-{
-	char instrument[32]; // e.g. SM1802
-	char updateTime[9];
-	// millisecond component of update time
-	int updateMS;
-	// last price
-	double price;
-	// cumulate quantity
-	int volume;
-	double turnover;
-	int openinterest;
-	double askPrice1;
-	int askVolume1;
-	double bidPrice1;
-	int bidVolume1;
-	double askPrice2;
-	int askVolume2;
-	double bidPrice2;
-	int bidVolume2;
-	double askPrice3;
-	int askVolume3;
-	double bidPrice3;
-	int bidVolume3;
-	double askPrice4;
-	int askVolume4;
-	double bidPrice4;
-	int bidVolume4;
-	double askPrice5;
-	int askVolume5;
-	double bidPrice5;
-	int bidVolume5;
-	unsigned long long totalbid;
-	unsigned long long totalask;		 
+struct StdQuote5{
+
+    char instrument[32];
+
+    //char tradingDay[9];
+
+    char updateTime[9];
+
+    int updateMS;
+
+    double price;
+
+    int volume;
+
+    double turnover;
+
+    double highlimit;
+
+    double lowlimit;
+
+    int openinterest;
+
+    int 	buyv;	//买委托总量
+
+    int 	sellv;	//卖委托总量
+
+    double	buyp;	//加权平均委买价格
+
+    double	sellp;	//加权平均委卖价格
+
+    double askPrice1;
+
+    int askVolume1;
+
+    double bidPrice1;
+
+    int bidVolume1;
+
+    double askPrice2;
+
+    int askVolume2;
+
+    double bidPrice2;
+
+    int bidVolume2;
+
+    double askPrice3;
+
+    int askVolume3;
+
+    double bidPrice3;
+
+    int bidVolume3;
+
+    double askPrice4;
+
+    int askVolume4;
+
+    double bidPrice4;
+
+    int bidVolume4;
+
+    double askPrice5;
+
+    int askVolume5;
+
+    double bidPrice5;
+
+    int bidVolume5;
+
 };
 
 #pragma pack(pop)

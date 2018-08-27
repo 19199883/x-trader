@@ -85,8 +85,8 @@ void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole_MY *tap_data,
 	strcpy(data.TimeStamp+19,".");
 	sprintf(data.TimeStamp+20,"%03d",other.updateMS); // 策略需要该时间字段
 
-	data.TotalBidLot = (int)other.totalbid;	/*委买总量*/
-	data.TotalAskLot = (int)other.totalask;	/*委卖总量*/
+	data.TotalBidLot = (int)other.buyv;	/*委买总量*/
+	data.TotalAskLot = (int)other.sellv;	/*委卖总量*/
 
 	data.TotalVolume = other.volume;
 	data.ContractIDType = 0;			/*合约类型 0->目前应该为0， 扩充：0:期货,1:期权,2:组合*/

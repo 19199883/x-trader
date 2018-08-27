@@ -1,3 +1,13 @@
+2018-08-27
+x-zce:StdQuote5 changes, the following fields added:
+	int	buyv;	//买委托总量
+	int	sellv;	//卖委托总量
+	double	buyp;	//加权平均委买价格
+	double	sellp;	//加权平均委卖价格
+	double highlimit;
+	double lowlimit;
+
+
 2018-05-18
 x-zce,x-dce,x-ees:增加许可检查功能：
 (1) 对so加密
