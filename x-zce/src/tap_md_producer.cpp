@@ -246,7 +246,7 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 
 		Convert(*info, target_data_);
 
-		clog_debug("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
+		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
 			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
@@ -366,8 +366,14 @@ void TapMDProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCod
 
 bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_no)
 {
+#ifdef PERSISTENCE_ENABLED 
+	// 持久化行情时，需要记录所有合约
+	clog_warning("[%s], return TRUE in IsDominant.",module_name_);
+	return true;
+#else
 	return IsDominantImp(commciodity_no, contract_no, dominant_contracts_, 
 			dominant_contract_count_);
+#endif
 }
 
 // lic
