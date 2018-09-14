@@ -10,6 +10,7 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 : l2_md_producer_(l2_md_producer), l1_md_producer_(l1_md_producer), 
   module_name_("MdHelper")
 {
+	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",module_name_,L1_DOMINANT_MD_BUFFER_SIZE);
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
 		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
 		strcpy(tmp.CommodityNo, "");

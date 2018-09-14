@@ -76,6 +76,13 @@ class TapMDProducer : public ITapQuoteAPINotify
 		int32_t l1data_cursor_;
 		bool ended_;
 
+		void SubscribeDominantContracts();
+#ifdef PERSISTENCE_ENABLED 
+		void SubscribeAllContracts();
+		void qry_contract(TapAPICommodity &qryReq);
+		void subscribe_quote(TapAPIContract contract);
+#endif
+
 		void Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole_MY &data);
 
 		/*

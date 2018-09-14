@@ -14,7 +14,11 @@
 #include "quote_datatype_czce_level2.h"
 #include "quote_cmn_save.h"
 
-#define L1_DOMINANT_MD_BUFFER_SIZE 14
+#ifdef PERSISTENCE_ENABLED 
+	#define L1_DOMINANT_MD_BUFFER_SIZE 600
+#else
+	#define L1_DOMINANT_MD_BUFFER_SIZE 14
+#endif
 
 using namespace std;
 

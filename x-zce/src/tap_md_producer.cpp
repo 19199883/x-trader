@@ -11,6 +11,10 @@
 using namespace std::placeholders;
 using namespace std;
 
+static std::mutex quote_mutex;
+static std::mutex exchange_list_mutex;
+static std::mutex commodity_list_mutex;
+static std::mutex contract_list_mutex;
 
 TapMDProducer::TapMDProducer(struct vrt_queue  *queue)
 :module_name_("TapMDProducer")
@@ -175,6 +179,55 @@ void TapMDProducer::OnAPIReady()
 {
     clog_warning("[%s] TAP - OnAPIReady", module_name_);
 
+#ifdef PERSISTENCE_ENABLED 
+	SubscribeAllContracts();
+#else
+	SubscribeDominantContracts();
+#endif
+}
+
+#ifdef PERSISTENCE_ENABLED 
+void TapMDProducer::SubscribeAllContracts()
+{
+	TapAPICommodity tmp;
+	strcpy(tmp.ExchangeNo, "ZCE");
+	tmp.CommodityType = TAPI_COMMODITY_TYPE_FUTURES;
+	strcpy(tmp.CommodityNo, "");
+	qry_contract(tmp);
+}
+
+void TapMDProducer::qry_contract(TapAPICommodity &qryReq)
+{
+    int ret = 0;
+    while ((ret = api_->QryContract(sID, &qryReq)) != 0) {
+        clog_error("TAP - QryContract failed, ExchangeNo is %s, CommodityNo is %s, errorCode is %d.",
+				qryReq.ExchangeNo, qryReq.CommodityNo, ret);
+        sleep(5);
+    }
+
+    clog_warning("TAP - QryContract successful, ExchangeNo is %s, CommodityNo is %s.", 
+		qryReq.ExchangeNo, qryReq.CommodityNo);
+}
+
+void TapMDProducer::subscribe_quote(TapAPIContract contract)
+{
+    int ret = 0;
+    while ((ret = api_->SubscribeQuote(sID, &contract)) != 0) {
+        clog_error("TAP - SubscribeQuote failed, ExchangeNo is %s, CommodityNo is %s, "
+			"ContractNo is %s, errorCode is %d.",
+            contract.Commodity.ExchangeNo, contract.Commodity.CommodityNo, contract.ContractNo1,
+			ret);
+        sleep(5);
+    }
+
+    clog_warning("TAP - SubscribeQuote successful, ExchangeNo is %s, CommodityNo is %s,"
+		"ContractNo is %s.", contract.Commodity.ExchangeNo,
+        contract.Commodity.CommodityNo, contract.ContractNo1);
+}
+#endif
+
+void TapMDProducer::SubscribeDominantContracts()
+{
 	std::string exchange_no = "ZCE";
 	char commodity_type = TAPI_COMMODITY_TYPE_FUTURES;
 
@@ -231,7 +284,23 @@ void TapMDProducer::OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 	const TapAPIQuoteCommodityInfo *info) { }
 
 void TapMDProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast,
-	const TapAPIQuoteContractInfo *info) { }
+	const TapAPIQuoteContractInfo *info)
+{
+    clog_warning("TAP - OnRspQryContract");
+    if (0 == errorCode) {
+        if ( NULL != info) {
+			subscribe_quote(info->Contract);
+			clog_warning("TAP - OnRspQryContract successful, ExchangeNo is %s, CommodityNo is %s,"
+				"ContractNo is %s.", info->Contract.Commodity.ExchangeNo,
+				info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1);
+        } else {
+            clog_warning("TAP - OnRspQryContract the info is NULL.");
+        }
+
+    } else {
+        clog_error("TAP - QryContract failed, the error code is %d.", errorCode);
+    }
+}
 
 void TapMDProducer::OnRtnContract(const TapAPIQuoteContractInfo *info) { }
 
