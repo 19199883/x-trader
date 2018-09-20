@@ -30,7 +30,13 @@ SIG_handler(int s)
 
 int main(/*int argc, const char **argv*/)
 {
-
+	// clog setting		   CLOG_LEVEL_WARNING
+	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	FILE *fp;/*文件指针*/
+	fp=fopen("./x-trader.log","w+");
+	Log::fp = fp;
+	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
+	clog_handler_push_process(clog_handler);
 
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
@@ -55,16 +61,8 @@ int main(/*int argc, const char **argv*/)
 	SIGINT_act.sa_flags = 0;
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
-	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
-	FILE *fp;/*文件指针*/
-	fp=fopen("./x-trader.log","w+");
-	Log::fp = fp;
-	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
-	clog_handler_push_process(clog_handler);
-
 	// version
-	clog_warning("version:x-ees_2018-6-20_r"); 
+	clog_warning("version:x-ees_2018-9-20_r"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;

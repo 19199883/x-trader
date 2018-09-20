@@ -802,14 +802,27 @@ bool UniConsumer::check_lic()
 {
 	bool legal = false;
 	char target[1024];
+	char cmd[1024];
+	char buf[1024];                             
+	memset(buf,0,sizeof(buf));
+	std::ifstream is;
 
-	getcwd(target, sizeof(target));
-	string content = target;
-	if(content.find("u910019")==string::npos){
+	sprintf(cmd, "hostname > ~/hostname.tmp");
+	system(cmd);
+
+	is.open ("~/hostname.tmp");
+	if ( (is.rdstate() & std::ifstream::failbit ) != 0 ){
 		legal = false;
-	}else{
-		legal = true;
-	}
+     }else{
+        is.getline(buf,1024);
+		string content = target;
+		if(content.find(SERVER_NAME)==string::npos){
+			legal = false;
+		}else{
+			legal = true;
+		}
+	 }
+
 	clog_warning("[%s] check:%d", module_name_, legal); 
 	return legal;
 }
