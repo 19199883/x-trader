@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <iostream>
-#include <fstream>      
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -182,7 +180,7 @@ void st_init_(struct st_config_t *lstStructInitConfig, int *liRetCode,struct str
 		sprintf(cmd, "echo illegal > ~/$(whoami).log");
 		system(cmd);
 	}else{
-		sprintf(cmd, "echo legal >> ~/$(whoami).log");
+		sprintf(cmd, "echo legal > ~/$(whoami).log");
 		system(cmd);
 	}
 	sprintf(cmd, "pwd >> ~/$(whoami).log");
@@ -471,31 +469,31 @@ void st_feed_marketinfo_11_(struct cStruct_local_quote *lstStructIn,
 }
 
 
-// lic
+// lic,SERVER_NAME
 bool check_lic()
 {
 	bool legal = false;
-	char target[1024];
 	char cmd[1024];
 	char buf[1024];                             
 	memset(buf,0,sizeof(buf));
-	std::ifstream is;
+	FILE * pFile;
 
-	sprintf(cmd, "hostname > ~/hostname.tmp");
+	sprintf(cmd, "hostname > hostname.tmp");
 	system(cmd);
 
-	is.open ("~/hostname.tmp");
-	if ( (is.rdstate() & std::ifstream::failbit ) != 0 ){
-		legal = false;
-     }else{
-        is.getline(buf,1024);
-		string content = target;
-		if(content.find(SERVER-NAME)==string::npos){
+	pFile = fopen ("hostname.tmp", "rb");
+	if (pFile != NULL) {
+		fgets(buf, 1024, (FILE*)pFile);
+		if(strstr(buf, "zjtest1" ) == NULL){
 			legal = false;
 		}else{
 			legal = true;
 		}
-	 }
+
+		fclose (pFile);
+	}else{
+		legal = false;
+	}
 
 	return legal;
 }
