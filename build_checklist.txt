@@ -8,7 +8,7 @@
 	5. 版本： clog_warning("version:x-shfe_20180130_r");
 	6. #define LATENCY_MEASURE
 	7. x-ees: choice: EES_UDP_TOPSPEED_QUOTE,FEMAS_TOPSPEED_QUOTE
-	8. 部署服务器的linux用户名必须是：u910019. 否则需要重新编译：将合规检查的检查用户名做适应修改 
+	8. 许可是绑定到服务器名，所以需要根据服务器名做相应的编译修改:SERVER_NAME
 
 
 

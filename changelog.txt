@@ -1,3 +1,15 @@
+2018-10-22
+x-ees:升级盛立通道到版本-rem_api_3.1.3.47
+
+
+2018-09-24
+x-ees 配置文件strategis改名为：models，迫使盗用者必须使用新的trader
+在uni_consumer.cpp增加上传信息到云服务器，监控是否有人盗用
+
+2018-09-20
+(1)x-ees：修改许可方法，绑定指定的服务器名
+(2) st-lic: 修改许可方法，绑定指定的服务器名，并上传服务器信息到云服务器
+
 2018-08-27
 x-zce:StdQuote5 changes, the following fields added:
 	int	buyv;	//买委托总量
