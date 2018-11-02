@@ -1,17 +1,17 @@
 /**
-* Copyright (C) 2015-2016, 大连飞创信息技术有限公司
+* Copyright (C) 2015-2017, 大连飞创信息技术有限公司
 * @file <X1FtdcTraderApi.h>
 * @brief <定义X1交易接口>
-* @version <1.3.2.3>
+* @version <1.5.1.2>
 * @author <X1项目组>
-* @date <2015年12月2日>
+* @date <2017年8月16日>
 */
 
 /**
  * @mainpage X1 UserAPI 用户文档
  *
  *  X1柜台用户API帮助手册
- *  Copyright (C) 2015-2016, 大连飞创信息技术有限公司
+ *  Copyright (C) 2015-2017, 大连飞创信息技术有限公司
  *
  */
 
@@ -246,6 +246,7 @@ namespace x1ftdcapi {
         */
         virtual void OnRspQryExchangeStatus(struct CX1FtdcRspExchangeStatusField * pRspExchangeStatusData) {
         };
+
         /**
           * @brief 交易所状态通知
           * @details 支持交易所状态通知和品种状态通知，在x1柜台可配
@@ -299,7 +300,6 @@ namespace x1ftdcapi {
         virtual void OnRspCancelAllOrder(struct CX1FtdcCancelAllOrderRspField *pRspCancelAllOrderData, struct CX1FtdcRspErrorField * pErrorInfo) {
         };
 
-
         /**
         * @brief 询价响应
         * @param pRspForQuoteData:询价请求响应结构地址。
@@ -343,7 +343,6 @@ namespace x1ftdcapi {
         virtual void OnRspQryQuoteNotice(struct CX1FtdcQryQuoteNoticeRtnField * pRtnQryQuoteNoticeData, struct CX1FtdcRspErrorField * pErrorInfo, bool bIsLast) {
         };
 
-
         /**
         * @brief 套利合约查询响应:当用户发出套利合约查询指令后，前置返回响应时该方法会被调用。
         * @param pAbiInstrumentData:返回套利合约信息结构的地址。
@@ -353,7 +352,6 @@ namespace x1ftdcapi {
         virtual void OnRspArbitrageInstrument(struct CX1FtdcAbiInstrumentRtnField * pAbiInstrumentData, struct CX1FtdcRspErrorField * pErrorInfo, bool bIsLast) {
         };
 
-
         /**
         * @brief 做市商询价通知，无需订阅，做市商客户自动收到询价通知
         * @param pForQuoteRspData:指向询价通知回报地址的指针。
@@ -361,9 +359,36 @@ namespace x1ftdcapi {
         virtual void OnRtnForQuoteRsp(struct CX1FtdcQuoteSubscribeRtnField * pForQuoteRspData) {
         };
 
+        /**
+        * @brief 交易所连接状态通知
+        * @param pExchangeConnectionStatusData:指向交易所连接状态通知地址的指针。
+        */
         virtual void OnNtyExchangeConnectionStatus(CX1FtdcExchangeConnectionStatusRtnField *pExchangeConnectionStatusData) {
         };
 
+        /**
+        * @brief 重置密码响应:当用户发出重置密码指令后，前置返回响应时该方法会被调用。
+        * @param pResetPasswordData:指向重置密码响应的指针。
+        * @param pErrorInfo:若重置密码失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspResetPassword(struct CX1FtdcRspResetPasswordField * pResetPasswordData, struct CX1FtdcRspErrorField* pErrorInfo) {
+        };
+
+        /**
+        * 查询组合持仓明细响应:当用户发出查询持仓明细后，前置返回响应时该方法会被调用。
+        * @param pPositionDetailRtn:返回持仓明细结构的地址。
+        * @param pErrorInfo:若查询失败，返回错误信息地址，该结构含有错误信息。
+        * @param bIsLast:表明是否是最后一条响应信息（0 -否   1 -是）。
+        */
+        virtual void OnRspQryArbitrageCombineDetail(struct CX1FtdcArbitrageCombineDetailRtnField * pPositionDetail, struct CX1FtdcRspErrorField * pErrorInfo, bool bIsLast) {
+        };
+
+        /**
+        * 交易日确认响应:用于接收交易日信息。
+        * @param pTradingDayRtnData: 返回交易日请求确认响应结构的地址。
+        */
+        virtual void OnRspTradingDay(struct CX1FtdcTradingDayRtnField * pTradingDayRtnData) {
+        };
     };//end of CX1FtdcTraderSpi
 
     /**
@@ -454,6 +479,9 @@ namespace x1ftdcapi {
         */
         virtual void SubscribePrivateTopic(int priflow_req_flag, unsigned int pri_no) = 0;
 
+        /**
+        * @brief 设置深度成交信息（暂不支持） 
+        */
         virtual void SetMatchInfoAdvanced(bool matchinfo_advanced) = 0;
 
         /**
@@ -477,6 +505,17 @@ namespace x1ftdcapi {
         *         </ul>
         */
         virtual int ReqUserLogout(struct CX1FtdcReqUserLogoutField * pUserLogoutData) = 0;
+
+        /**
+        * @brief 用户发出重置密码请求
+        * @param pResetPasswordData 指向用户重置密码请求结构的地址。
+        * @return 返回值
+        *         <ul>
+        *           <li> 0      -  请求发送成功
+        *           <li> 非零   -  错误码
+        *         </ul>
+        */
+        virtual int ReqResetPassword(struct CX1FtdcReqResetPasswordField * pResetPasswordData) = 0;
 
         /**
         * @brief 期货委托报单请求。
@@ -595,7 +634,6 @@ namespace x1ftdcapi {
         */
         virtual int ReqQryExchangeStatus(struct CX1FtdcQryExchangeStatusField *pQryExchangeStatusData) = 0;
 
-
         /**
         * @brief 查询交易所套利合约列表。
         * @param pAbtriInstrumentData:交易所套利合约查询结构地址。
@@ -603,8 +641,6 @@ namespace x1ftdcapi {
         */
         virtual int ReqQryArbitrageInstrument(struct CX1FtdcAbiInstrumentField * pAbtriInstrumentData) = 0;
 
-
-        ///////以下做市商相关
         /**
         * @brief 做市商报单请求
         * @param pQuoteInsertOrderData:做市商报单请求结构地址。
@@ -655,9 +691,26 @@ namespace x1ftdcapi {
         * @return 0 - 请求发送成功 -1 - 请求发送失败  -其它 -检测异常。
         */
         virtual int ReqQryQuoteNotice(struct CX1FtdcQryQuoteNoticeField * pQryQuoteNoticeData) = 0;
-        ///////以上做市商相关
 
+        /**
+        * 组合持仓明细查询请求
+        * @param pQryArbitrageCombineDetailData:查询组合持仓请求结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败  -其它 -检测异常。
+        */
+        virtual int ReqQryArbitrageCombineDetail(struct CX1FtdcArbitrageCombineDetailField *pQryArbitrageCombineDetailData) = 0;
 
+        /**
+        * 交易日查询请求
+        * @param pTradingDay:交易日查询请求结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqTradingDay(struct CX1FtdcTradingDayField * pTradingDay) = 0;
+        
+        /**
+        * @brief 获取版本号
+        * @return 版本号字符串
+        */
+        virtual const char * GetVersion() = 0;
     };//end of CX1FtdcTraderApi
 }
 //end of namespace
