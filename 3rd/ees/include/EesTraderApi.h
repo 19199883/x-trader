@@ -283,8 +283,6 @@ public:
 
 };
 
-
-
 /// \brief EES交易客户端纯虚基类
 class SL_EES_TRADE_CLASS EESTraderApi
 {
@@ -294,14 +292,10 @@ public:
 	}
 
 	/// 连接服务器
+	/// 提供2种接口，新增的形式，兼容极致版的接口，第一种接口即使用TCP模式
+	virtual RESULT	ConnServer(const char* svrAddr, int nPort, EESTraderEvent* pEvent, const char* qrySvrAddr, int nQrySvrPort) = 0;
+	virtual RESULT	ConnServer(const EES_TradeSvrInfo& param, EESTraderEvent* pEvent)  = 0 ;
 	
-		/// \param  const char* svrAddr		    服务器的地址
-		/// \param  int nPort					服务端口
-		/// \return RESULT						连接成功或是失败，0表示连接成功，非0表示连接失败。参考 EesTraderErr.h文件
-	
-	/// virtual RESULT	ConnServer(const char* svrAddr, int nPort, EESTraderEvent* pEvent, const char* qrySvrAddr, int nQrySvrPort)  = 0 ;
-	virtual RESULT	ConnServer(const EES_TradeSvrInfo& param, EESTraderEvent* pEvent)  = 0;	
-
 	/// 断开服务器
 	
 		/// \return RESULT						参考 EesTraderErr.h文件
@@ -446,7 +440,7 @@ public:
 	/// 注意每个报单的的OrderToken必须保证在外部就设置好不重复，
 	/// pArrOrders: EES_EnterOrderField结构体数组，最多4个，nCount必须 >=1，且 <=4
 	/// \return: 成功返回0，任意一个报单有错，则返回非0值，且所有报单都不会被发送
-	virtual RESULT EnterMultiOrders(EES_EnterOrderField* pArrOrders, int nCount) = 0;
+	//virtual RESULT EnterMultiOrders(EES_EnterOrderField* pArrOrders, int nCount) = 0;
 
 	/// 按照交易所的深度行情查询请求，注意：后台系统必须配置支持深度行情，该功能才会工作	
 	/// nRequestId: 客户自行编号，对应的返回事件OnQueryMarketMBLData中，会返回这个RequestId，客户可用于匹配自己的查询请求
@@ -461,6 +455,16 @@ public:
 	/// nSide: 0-双边； 1-买方向Bid； 2-卖方向Ask
 	/// \return: 成功返回0，数据在OnQueryMarketMBLData中返回
 	virtual RESULT QueryMarketMBLData(int nRequestId, const char* startSymbol, const char* endSymbol, int nSide) = 0;
+
+	/// 调整客户端流控参数
+	/// 登录成功后，可从登录返回消息结构EES_LogonResponse中，获取到当前登录的流控参数（单位是每多少毫秒，多少次下单/撤单）
+	/// 由于服务端对于下单的控制是根据账号，而我们系统允许一个账号多点登录同时下单，因此实际流控可能会比获得的参数更加严格
+	/// 因此提供该接口，客户可以根据自己是否需要多点登录下单，对流控参数进行更加严格的调整，防止触发了服务器的流控从而被断连且熔断登录
+	/// 本接口只允许调整下单次数，且只能调得更少，且不能将次数调成0
+	/// OrderCount：更新下单次数控制
+	/// CancelCount：更新撤单次数控制
+	/// 接口不会返回正确还是错误，如果传入了错误的参数，则原参数不会变化
+	virtual RESULT ChangeFCParam(unsigned int OrderCount, unsigned int CancelCount) = 0;
 
 };
 

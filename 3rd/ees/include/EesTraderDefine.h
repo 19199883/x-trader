@@ -14,7 +14,7 @@
 #include <string.h>
 
 
-#define SL_EES_API_VERSION    "3.1.1.38"				///<  api版本号
+#define SL_EES_API_VERSION    "3.1.3.47"				///<  api版本号
 
 typedef int RESULT;										///< 定义返回值 
 typedef int ERR_NO;										///< 定义错误值 
@@ -49,12 +49,9 @@ typedef unsigned char EES_SideType;						///< 买卖方向
 #define EES_SideType_open_short                 4		///< =卖单（开今）
 #define EES_SideType_close_ovn_short            5		///< =买单（平昨）
 #define EES_SideType_close_ovn_long             6		///< =卖单（平昨）
-#define EES_SideType_force_close_ovn_short      7		///< =买单 （强平昨）
-#define EES_SideType_force_close_ovn_long       8		///< =卖单 （强平昨）
-#define EES_SideType_force_close_today_short    9		///< =买单 （强平今）
-#define EES_SideType_force_close_today_long     10		///< =卖单 （强平今）
 #define EES_SideType_opt_exec					11		///< =期权行权
-
+#define EES_SideType_close_short				21		///< =买单（平仓）
+#define EES_SideType_close_long					22		///< =卖单（平仓）
 
 
 typedef unsigned char EES_ExchangeID;					///< 交易所ID
@@ -166,6 +163,10 @@ struct EES_LogonResponse
 	EES_UserID			m_UserId;							///< 登录名对应的用户ID
 	unsigned int		m_TradingDate;						///< 交易日，格式为yyyyMMdd的int型值
 	EES_ClientToken		m_MaxToken;							///< 以前的最大 token 
+	unsigned int		m_OrderFCCount;						///< 下单流控参数，单位时间内下单次数限制的次数
+	unsigned int		m_OrderFCInterval;					///< 下单流控参数，单位时间内下单次数限制单位时间，微秒值
+	unsigned int		m_CancelFCCount;					///< 撤单流控参数，单位时间内撤单次数限制的次数
+	unsigned int		m_CancelFCInterval;					///< 撤单流控参数，单位时间内撤单次数限制单位时间，微秒值
 };
 
 
@@ -188,8 +189,10 @@ struct EES_EnterOrderField
 														///< 常规日内报单，请设为0.无论哪种情况，该值如果>m_Qty将被REM系统拒绝
 	
 	EES_CustomFieldType m_CustomField;					///< 用户自定义字段，8个字节。用户在下单时指定的值，将会在OnOrderAccept，OnQueryTradeOrder事件中返回
-	EES_MarketSessionId m_MarketSessionId;				///< 交易所席位代码，从OnResponseQueryMarketSessionId获取合法值，如果填入0或者其他非法值，REM系统将自行决定送单的席位
+	EES_MarketSessionId m_MarketSessionId;				///< 交易所席位代码，从OnResponseQueryMarketSessionId获取合法值，如果填入0或者其他非法值，REM系统将自行决定送单的席位	，除非m_ForceMarketSessionId为true
 	EES_HedgeFlag		m_HedgeFlag;					///< 投机套利标志
+	unsigned char		m_ForceMarketSessionId;			///< 如果为true，当客户指定席位代码，但是该席位不可用或者非法时，指示服务器不要自行决定送单席位，而是拒绝下单
+	unsigned char		m_DoNotAdjustCoverSide;			///< 默认情况下，如果是中金/大连交易所的“平今/平昨”订单，API会自动将之转换为“平仓”订单，该值如果为true，则不进行此转换，一般用于测试场景
 	EES_EnterOrderField()
 	{
 		memset(this, 0, sizeof(*this));
@@ -198,6 +201,8 @@ struct EES_EnterOrderField
 		m_MarketSessionId = 0;
 		m_HedgeFlag = EES_HedgeFlag_Speculation;
 		m_SecType = EES_SecType_fut;
+		m_ForceMarketSessionId = 0;
+		m_DoNotAdjustCoverSide = 0;
 	}
 
 };
@@ -233,7 +238,7 @@ struct EES_OrderMarketAcceptField
 	EES_MarketOrderId m_MarketOrderId;    ///< 市场订单号
 	EES_Nanosecond    m_MarketTime;       ///< 市场时间信息
 	EES_UserID        m_UserID;			  ///< 订单的 user id 
-	EES_ClientToken   m_ClientOrderToken; ///< 下单的时候，返回给你的token
+	EES_ClientToken   m_ClientOrderToken; ///< 订单的ClientToken
 };
 
 /// 下单被柜台系统拒绝
@@ -256,9 +261,9 @@ struct EES_OrderMarketRejectField
 	EES_Account     m_Account;           ///< 用户代码
 	EES_MarketToken m_MarketOrderToken;	 ///< 盛立系统产生的单子号，和盛立交流时可用该号。
 	EES_Nanosecond  m_MarketTimestamp;   ///< 市场时间信息, 从1970年1月1日0时0分0秒开始的纳秒时间，请使用ConvertFromTimestamp接口转换为可读的时间
-	EES_ReasonText  m_ReasonText;      
-	EES_UserID      m_UserID;			  ///< 订单的 user id 
-	EES_ClientToken m_ClientOrderToken; ///< 下单的时候，返回给你的token
+	EES_ReasonText  m_ReasonText;		 ///< 交易所返回的错误字符串，GB2312编码
+	EES_UserID      m_UserID;			 ///< 订单的 user id 
+	EES_ClientToken m_ClientOrderToken;  ///< 订单的ClientToken
 };
 
 /// 订单成交消息体
@@ -280,6 +285,8 @@ struct EES_CancelOrder
 	EES_MarketToken m_MarketOrderToken;					///< 盛立系统产生的单子号，和盛立交流时可用该号。
 	unsigned int    m_Quantity;							///< 这是该单子被取消后所希望剩下的数量，如为0，改单子为全部取消。在中国目前必须填0，其他值当0处理。
 	EES_Account     m_Account;							///< 帐户ID号
+	EES_MarketSessionId m_MarketSessionId;				///< 交易所席位代码，从OnResponseQueryMarketSessionId获取合法值，如果填入0或者其他非法值，REM系统将自行决定送单的席位	，除非m_ForceMarketSessionId为true	
+	unsigned char	m_ForceMarketSessionId;				///< 如果为1，当客户指定席位代码，但是该席位不可用或者非法时，指示服务器不要自行决定送单席位，而是拒绝下单
 };
 
 /// 订单撤销完成
@@ -464,6 +471,8 @@ struct EES_CxlOrderRej
 	EES_MarketToken		m_MarketOrderToken;				///< 盛立内部用的orderID
 	unsigned int		m_ReasonCode;					///< 错误码，每个字符映射一种检查错误原因，见文件末尾的附录，这是用二进制位表示的一个原因组合
 	EES_ReasonText		m_ReasonText;					///< 错误字符串，未使用
+	EES_UserID			m_UserID;						///< 要撤订单的 user id，如果是因为找不到原订单，则为0
+	EES_ClientToken		m_ClientOrderToken;				///< 要撤订单的ClientToken，如果是因为找不到原订单，则为0
 };
 
 /// 被动订单
@@ -551,7 +560,7 @@ struct EES_TradeSvrInfo
 //	
 //	0	向交易所发送报单时出现错误。
 //	1	强平原因非法，目前只支持“0-非强平”
-//	2	交易所代码非法，目前只支持“102-中金所”
+//	2	交易所代码非法
 //	3	不使用
 //	4	TIF不在合法值范围，目前只支持：EES_OrderTif_IOC(0) 和 EES_OrderTif_Day(99998)
 //	5	不使用

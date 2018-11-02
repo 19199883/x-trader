@@ -38,22 +38,25 @@
 /// 设置订单 token 错误
 #define ORDER_TOKEN_ERROR			9
 
-//非法的密码，目前只支持全空密码检测
+/// 非法的密码，目前只支持全空密码检测
 #define INVALID_PASSWORD_ERROR		10
 
-//调用一次下多个订单式，订单数量错误，必须在1-4之间
+/// 调用一次下多个订单式，订单数量错误，必须在1-4之间
 #define INVALID_ORDER_COUNT			11
 
-//合约类型错误，只支持2-期权，以及3-期货
+/// 合约类型错误，只支持2-期权，以及3-期货
 #define INVALID_SEC_TYPE			12
 
-//期权合约代码错误，无法解析的期权合约代码，形式必须为m1703-C-2250
+/// 期权合约代码错误，无法解析的期权合约代码，形式必须为m1703-C-2250
 #define INVALID_OPT_SYMBOL			13
 
-//黄金合约代码错误，超出了交易的合约代码限制
+/// 黄金合约代码错误，超出了交易的合约代码限制
 #define INVALID_SGE_SYMBOL			14
 
-// 客户端流控
+/// 流控，客户端根据服务器配置的流控参数，阻止客户短时间密集发送撤单或者下单
 #define CLT_ORDER_SPEED_FLOWCTRL    15
+
+/// 流控参数修改，超出了允许的范围	
+#define FLOWCTRL_PARAM_INVALID		16
 
 #endif
