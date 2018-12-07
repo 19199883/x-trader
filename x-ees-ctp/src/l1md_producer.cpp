@@ -248,12 +248,33 @@ void L1MDProducer::ToString(CDepthMarketDataField &data)
 //A使用飞马UDP行情
 /////////////////
 #ifdef FEMAS_TOPSPEED_QUOTE
-void L1MDProducer::InitMDApi()
+/////////////added by wangying
+void L1MDProducer::OnFrontConnected()
 {
-    api_ = CMdclientApi::Create(this,config_.mcPort,config_.mcIp);
-	clog_warning("[%s] CMdclientApi ip:%s, port:%d", module_name_, config_.mcIp,config_.mcPort);
+    MY_LOG_INFO("shfe_ex(CTP): OnFrontConnected");
+
+    CThostFtdcReqUserLoginField req_login;
+    memset(&req_login, 0, sizeof(CThostFtdcReqUserLoginField));
+    api_->ReqUserLogin(&req_login, 0);
+
+    MY_LOG_INFO("CTP - request logon");
+}
+
+void L1MDProducer::OnFrontDisconnected(int nReason)
+{
+    logoned_ = false;
+    MY_LOG_ERROR("CTP - OnFrontDisconnected, nReason: %d", nReason);
+}
+
+// done
+void L1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
+			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    int error_code = pRspInfo ? pRspInfo->ErrorID : 0;
+    clog_warning("[%s] CTP - OnRspUserLogin, error code: %d", module_name,_error_code);
 
 	std::ifstream is;
+	int count = 0;
 	is.open (config_.contracts_file);
 	string contrs = "";
 	if (is) {
@@ -264,14 +285,79 @@ void L1MDProducer::InitMDApi()
 		string contr = "";
 		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
 			contr = contrs.substr (start_pos, end_pos-start_pos);
-			api_->Subscribe((char*)contr.c_str());
-			clog_warning("[%s] CMdclientApi subscribe:%s",module_name_,contr.c_str());
+			strcpy(pp_instruments_[count], contr.c_str());
+			clog_warning("[%s] ThostFtdcMdApi subscribe:%s",module_name_,contr.c_str());
 			start_pos = end_pos + 1;
+			count++;
 		}
-	}else { clog_error("[%s] CMdclientApi can't open: %s", module_name_, config_.contracts_file); }
+	}else { clog_error("[%s] ThostFtdcMdApi can't open: %s", module_name_, config_.contracts_file); }
 
-    int err = api_->Start();
-	clog_warning("[%s] CMdclientApi start: %d", module_name_, err);
+    if (error_code == 0){
+        api_->SubscribeMarketData(pp_instruments_, count);
+    } else {
+        std::string err_str("null");
+        if (pRspInfo && pRspInfo->ErrorMsg[0] != '\0') {
+            err_str = pRspInfo->ErrorMsg;
+        }
+        clog_warning("[%s] CTP-Logon fail, error code: %d; error info: %s",module_name_,
+			error_code, err_str.c_str());
+    }
+}
+
+void L1MDProducer::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, 
+			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    MY_LOG_DEBUG("CTP - OnRspSubMarketData, code: %s", pSpecificInstrument->InstrumentID);
+    if (bIsLast) { }
+}
+
+void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
+    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    MY_LOG_DEBUG("CTP - OnRspUnSubMarketData, code: %s", pSpecificInstrument->InstrumentID);
+}
+
+void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
+{
+    try{
+        timeval t;
+        gettimeofday(&t, NULL);
+
+        RalaceInvalidValue_CTP(*p);
+        CDepthMarketDataField q_level1 = Convert(*p);
+
+        if (quote_data_handler_
+            && (subscribe_contracts_.empty() || subscribe_contracts_.find(p->InstrumentID) != subscribe_contracts_.end())) {
+            quote_data_handler_(&q_level1);
+        }
+
+        // 存起来
+        p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
+    } catch (...) {
+        MY_LOG_FATAL("CTP - Unknown exception in OnRtnDepthMarketData.");
+    }
+}
+
+void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    int error_code = pRspInfo ? 0 : pRspInfo->ErrorID;
+    if (error_code != 0) {
+        MY_LOG_INFO("CTP - OnRspError, code: %d; info: %s", error_code, pRspInfo->ErrorMsg);
+    }
+}
+
+/////////////////////
+
+// done
+void L1MDProducer::InitMDApi()
+{
+    api_ = CThostFtdcMdApi::CreateFtdcMdApi();
+    api_->RegisterSpi(this);
+	char addr[100];
+	sprintf (addr, "tcp://%s:%d", config_.mcIp, config_.mcPort);
+	api_->RegisterFront(addr);
+    api_->Init();
+	clog_warning("[%s] CTP - RegisterFront, addr: %s", module_name_, addr);
 }
 
 
@@ -338,16 +424,16 @@ void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
     d.CurrDelta = InvalidToZeroD(d.CurrDelta);
 }
 
-
 void L1MDProducer::End()
 {
 	if(!ended_){
 		ended_ = true;
 
 		if (api_) {
-			int err = api_->Stop();
-			clog_warning("[%s] CMdclientApi stop: %d", module_name_, err);
+			api_->RegisterSpi(NULL);
+			api_->Release();
 			api_ = NULL;
+			clog_warning("[%s] ThostFtdcMdApi stop: %d", module_name_, err);
 		}
 
 		vrt_producer_eof(producer_);

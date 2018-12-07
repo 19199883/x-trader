@@ -15,6 +15,10 @@
 #include "quote_cmn_save.h"
 #include "efh_sf_api.h"
 
+///added by wangying
+#include "ThostFtdcMdApi.h"
+
+
 /*
  * 10 power of 2
  */
@@ -52,7 +56,7 @@ class L1MDProducerHelper
 };
 
 #ifdef FEMAS_TOPSPEED_QUOTE
-class L1MDProducer : public CMdclientSpi
+class L1MDProducer : public CThostFtdcMdSpi
 {
 	public:
 		L1MDProducer(struct vrt_queue  *queue);
@@ -75,6 +79,27 @@ class L1MDProducer : public CMdclientSpi
 		/*
 		 * 与API相关
 		 */
+		///// added by wangying
+		// 当客户端与交易托管系统建立起通信连接，客户端需要进行登录
+		virtual void OnFrontConnected();
+		// 当客户端与交易托管系统通信连接断开时，该方法被调用
+		virtual void OnFrontDisconnected(int nReason);
+		// 当客户端发出登录请求之后，该方法会被调用，通知客户端登录是否成功
+		virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
+				CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		///订阅行情应答
+		virtual void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
+					CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		///取消订阅行情应答
+		virtual void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument,
+					CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		// 行情应答
+		virtual void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData);
+		// 针对用户请求的出错通知
+		virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+		
+		//////////////////////
 		virtual void OnRtnDepthMarketData(CDepthMarketDataField *pDepthMarketData);
 
 		void ToString(CDepthMarketDataField &data);
@@ -87,7 +112,8 @@ class L1MDProducer : public CMdclientSpi
 		 * 与API相关
 		 */
 		void InitMDApi();
-		CMdclientApi *api_;
+		CThostFtdcMdApi *api_;
+		char * pp_instruments_[100][15];
 
 		/*
 		 * 与逻辑处理相关
