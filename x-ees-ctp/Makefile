@@ -3,10 +3,11 @@
 CC:=g++
 DEBUG:=n
 TOP:=..
-DIST_DIR:=$(TOP)/x-ees/dist
+DIST_DIR:=$(TOP)/x-ees-ctp/dist
 INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/tinyxml/include \
-		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ees/lib \
+		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include \
+		 -I$(TOP)/3rd/ctp/include
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ees/lib -L$(TOP)/3rd/ctp/lib \
 		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib \
 		 -L$(TOP)/3rd/shfe_md/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
@@ -16,12 +17,12 @@ OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lEESTraderApi -lEESQuoteApi -ltinyxml -lutils -ldl -lpthread  \
 	  -lbowsprit -lclogger -lcork -lvrt \
-	  -lboost_filesystem  -lboost_system -lmdclient
+	  -lboost_filesystem  -lboost_system -lthostmduserapi
 DEPS:=.depends
-OUT:=x-ees
+OUT:=x-ees-ctp
 PACKAGE_NAME:=$(OUT)
 
-SUBDIR:=$(TOP)/x-ees/src 
+SUBDIR:=$(TOP)/x-ees-ctp/src 
 
 vpath %.cpp $(SUBDIR)
 
@@ -60,10 +61,11 @@ $(DEPS):$(SRCS)
 dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/x-ees/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-ees/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-ees/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-ees-ctp/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-ees-ctp/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-ees-ctp/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/ees/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/ctp/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/shfe_md/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/shfe_md/config/* $(DIST_DIR)/$(PACKAGE_NAME)/

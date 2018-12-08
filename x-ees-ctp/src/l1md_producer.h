@@ -9,13 +9,11 @@
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
-#include "mdclient.h"
 #include "quote_datatype_level1.h"
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
 #include "efh_sf_api.h"
 
-///added by wangying
 #include "ThostFtdcMdApi.h"
 
 
@@ -98,8 +96,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 		// 针对用户请求的出错通知
 		virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
-		
-		//////////////////////
 		void ToString(CDepthMarketDataField &data);
 
 		// lic
@@ -111,7 +107,7 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 */
 		void InitMDApi();
 		CThostFtdcMdApi *api_;
-		char * pp_instruments_[100][15];
+		char * pp_instruments_[100];
 
 		/*
 		 * 与逻辑处理相关
