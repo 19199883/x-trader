@@ -100,8 +100,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 
 		
 		//////////////////////
-		virtual void OnRtnDepthMarketData(CDepthMarketDataField *pDepthMarketData);
-
 		void ToString(CDepthMarketDataField &data);
 
 		// lic
@@ -124,6 +122,8 @@ class L1MDProducer : public CThostFtdcMdSpi
 		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
 		int32_t l1data_cursor_;
 		bool ended_;
+		void Convert(CDepthMarketDataField &quote_level1, const CThostFtdcDepthMarketDataField &ctp_data);
+		CDepthMarketDataField quote_level1_;
 
 		/*
 		 * check whether the given contract is dominant.

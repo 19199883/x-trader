@@ -262,7 +262,6 @@ void L1MDProducer::OnFrontConnected()
 
 void L1MDProducer::OnFrontDisconnected(int nReason)
 {
-    logoned_ = false;
     MY_LOG_ERROR("CTP - OnFrontDisconnected, nReason: %d", nReason);
 }
 
@@ -317,25 +316,35 @@ void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpec
     MY_LOG_DEBUG("CTP - OnRspUnSubMarketData, code: %s", pSpecificInstrument->InstrumentID);
 }
 
-void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *p)
+void L1MDProducer::Convert(CDepthMarketDataField &quote_level1,const CThostFtdcDepthMarketDataField &ctp_data)
 {
-    try{
-        timeval t;
-        gettimeofday(&t, NULL);
-
-        RalaceInvalidValue_CTP(*p);
-        CDepthMarketDataField q_level1 = Convert(*p);
-
-        if (quote_data_handler_
-            && (subscribe_contracts_.empty() || subscribe_contracts_.find(p->InstrumentID) != subscribe_contracts_.end())) {
-            quote_data_handler_(&q_level1);
-        }
-
-        // 存起来
-        p_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &q_level1);
-    } catch (...) {
-        MY_LOG_FATAL("CTP - Unknown exception in OnRtnDepthMarketData.");
-    }
+    memcpy(quote_level1.TradingDay, ctp_data.TradingDay, 9); /// char       TradingDay[9];
+    //SettlementGroupID[9];       /// char       SettlementGroupID[9];
+    //SettlementID ;        /// int            SettlementID;
+    quote_level1.LastPrice = ctp_data.LastPrice;           /// double LastPrice;
+    quote_level1.PreSettlementPrice = ctp_data.PreSettlementPrice;  /// double PreSettlementPrice;
+    quote_level1.PreClosePrice = ctp_data.PreClosePrice;       /// double PreClosePrice;
+    quote_level1.PreOpenInterest = ctp_data.PreOpenInterest;     /// double PreOpenInterest;
+    quote_level1.OpenPrice = ctp_data.OpenPrice;           /// double OpenPrice;
+    quote_level1.HighestPrice = ctp_data.HighestPrice;        /// double HighestPrice;
+    quote_level1.LowestPrice = ctp_data.LowestPrice;         /// double LowestPrice;
+    quote_level1.Volume = ctp_data.Volume;              /// int            Volume;
+    quote_level1.Turnover = ctp_data.Turnover;            /// double Turnover;
+    quote_level1.OpenInterest = ctp_data.OpenInterest;        /// double OpenInterest;
+    quote_level1.ClosePrice = ctp_data.ClosePrice;          /// double ClosePrice;
+    quote_level1.SettlementPrice = ctp_data.SettlementPrice;     /// double SettlementPrice;
+    quote_level1.UpperLimitPrice = ctp_data.UpperLimitPrice;     /// double UpperLimitPrice;
+    quote_level1.LowerLimitPrice = ctp_data.LowerLimitPrice;     /// double LowerLimitPrice;
+    quote_level1.PreDelta = ctp_data.PreDelta;            /// double PreDelta;
+    quote_level1.CurrDelta = ctp_data.CurrDelta;           /// double CurrDelta;
+    memcpy(quote_level1.UpdateTime, ctp_data.UpdateTime, 9);       /// char       UpdateTime[9]; typedef char TThostFtdcTimeType[9];
+    quote_level1.UpdateMillisec = ctp_data.UpdateMillisec;      /// int            UpdateMillisec;
+    memcpy(quote_level1.InstrumentID, ctp_data.InstrumentID, 31); /// char       InstrumentID[31]; typedef char TThostFtdcInstrumentIDType[31];
+    quote_level1.BidPrice1 = ctp_data.BidPrice1;           /// double BidPrice1;
+    quote_level1.BidVolume1 = ctp_data.BidVolume1;          /// int            BidVolume1;
+    quote_level1.AskPrice1 = ctp_data.AskPrice1;           /// double AskPrice1;
+    quote_level1.AskVolume1 = ctp_data.AskVolume1;          /// int            AskVolume1;
+        //ActionDay[9];        /// char       ActionDay[9];
 }
 
 void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -360,34 +369,34 @@ void L1MDProducer::InitMDApi()
 	clog_warning("[%s] CTP - RegisterFront, addr: %s", module_name_, addr);
 }
 
-
-void L1MDProducer::OnRtnDepthMarketData(CDepthMarketDataField *data)
+void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 {
 	if (ended_) return;
 
 	// 抛弃非主力合约
 	if(!(IsDominant(data->InstrumentID))) return;
 
-	RalaceInvalidValue_Femas(*data);
+	Convert(quote_level1_, *data);
+	RalaceInvalidValue_Femas(quote_level1_);
 	
 	// debug
-	// ToString(*data);
+	// ToString(quote_level1_ );
 
 	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
+	//	module_name_,quote_level1_->InstrumentID,quote_level1_->UpdateTime,quote_level1_->UpdateMillisec);
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);
 	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-	ivalue->index = Push(*data);
-	ivalue->data = L1_MD;
+	ivalue->index = Push(quote_level1_);
+	ivalue->quote_level1_ = L1_MD;
 	vrt_producer_publish(producer_);
 
 #ifdef PERSISTENCE_ENABLED 
     timeval t;
     gettimeofday(&t, NULL);
-    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
+    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, quote_level1_);
 #endif
 }
 
@@ -406,16 +415,16 @@ void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
     d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
 
     d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
-    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
-    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
-    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
-    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
+//    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
+//    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
+//    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
+//    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
 
 	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
-    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
-    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
-    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
-    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
+//    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
+//    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
+//    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
+//    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
 
 	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
 	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
@@ -635,27 +644,27 @@ void L1MDProducer::RalaceInvalidValue_EES(EESMarketDepthQuoteData &data_src,
 	data_dest.AskPrice1 =			InvalidToZeroD(data_src.AskPrice1);
     data_dest.AskVolume1 =			data_src.AskVolume1;
 
-    data_dest.BidPrice2 =			InvalidToZeroD(data_src.BidPrice2);
-    data_dest.BidVolume2 =			data_src.BidVolume2;
-	data_dest.AskPrice2 =			InvalidToZeroD(data_src.AskPrice2);
-    data_dest.AskVolume2 =			data_src.AskVolume2;
-
-    data_dest.BidPrice3 =			InvalidToZeroD(data_src.BidPrice3);
-    data_dest.BidVolume3 =			data_src.BidVolume3;
-	data_dest.AskPrice3 =			InvalidToZeroD(data_src.AskPrice3);
-    data_dest.AskVolume3 =			data_src.AskVolume3;
-
-    data_dest.BidPrice4 =			InvalidToZeroD(data_src.BidPrice4);
-    data_dest.BidVolume4 =			data_src.BidVolume4;
-	data_dest.AskPrice4 =			InvalidToZeroD(data_src.AskPrice4);
-    data_dest.AskVolume4 =			data_src.AskVolume4;
-
-    data_dest.BidPrice5 =			InvalidToZeroD(data_src.BidPrice5);
-    data_dest.BidVolume5 =			data_src.BidVolume5;
-	data_dest.AskPrice5 =			InvalidToZeroD(data_src.AskPrice5);
-    data_dest.AskVolume5 =			data_src.AskVolume5;
-
-    //data_dest.AveragePrice =			InvalidToZeroD(data_src.AveragePrice);
+//    data_dest.BidPrice2 =			InvalidToZeroD(data_src.BidPrice2);
+//    data_dest.BidVolume2 =			data_src.BidVolume2;
+//	data_dest.AskPrice2 =			InvalidToZeroD(data_src.AskPrice2);
+//    data_dest.AskVolume2 =			data_src.AskVolume2;
+//
+//    data_dest.BidPrice3 =			InvalidToZeroD(data_src.BidPrice3);
+//    data_dest.BidVolume3 =			data_src.BidVolume3;
+//	data_dest.AskPrice3 =			InvalidToZeroD(data_src.AskPrice3);
+//    data_dest.AskVolume3 =			data_src.AskVolume3;
+//
+//    data_dest.BidPrice4 =			InvalidToZeroD(data_src.BidPrice4);
+//    data_dest.BidVolume4 =			data_src.BidVolume4;
+//	data_dest.AskPrice4 =			InvalidToZeroD(data_src.AskPrice4);
+//    data_dest.AskVolume4 =			data_src.AskVolume4;
+//
+//    data_dest.BidPrice5 =			InvalidToZeroD(data_src.BidPrice5);
+//    data_dest.BidVolume5 =			data_src.BidVolume5;
+//	data_dest.AskPrice5 =			InvalidToZeroD(data_src.AskPrice5);
+//    data_dest.AskVolume5 =			data_src.AskVolume5;
+//
+    data_dest.AveragePrice =		InvalidToZeroD(data_src.AveragePrice);
 }
 
 
