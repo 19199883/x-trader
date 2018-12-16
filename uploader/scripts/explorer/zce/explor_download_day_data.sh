@@ -29,8 +29,8 @@ TICK_DATA="/home/u910019/md/download/day/backup/czce_md_${SUFFIX}_`date +%y%m%d`
 echo $STRA_LOG
 echo $TICK_DATA
 
-scp -P 8012  "u910019@123.149.20.60:${STRA_LOG}" ${STRATEGY_DIR}
-scp -P 8012  "u910019@123.149.20.60:${TICK_DATA}" ${TICKDATA_DIR}
+scp -P 8012  "u910019@1.193.38.91:${STRA_LOG}" ${STRATEGY_DIR}
+scp -P 8012  "u910019@1.193.38.91:${TICK_DATA}" ${TICKDATA_DIR}
 
 #tar again to make compress format from gz to biz2
 cd ${STRATEGY_DIR}

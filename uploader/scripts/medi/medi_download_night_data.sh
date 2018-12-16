@@ -35,17 +35,6 @@ function download(){
 }
 
 
-function download_zp(){
-	if [ ! -d $DEST ] 
-	then
-		mkdir $DEST 
-	fi
-
-	SRC_STRA_LOG="~/${DAY_NGT}/backup/${EXT}_stra_${SUFFIX}_`date +%y%m%d`.tar.${COMPRESS}"
-
-	scp  -P ${host_port} "${host_user}@${host_ip}:${SRC_STRA_LOG}" ${DEST}
-}
-
 enter_cur_dir
 
 # download data form shfe server for medi
@@ -87,7 +76,7 @@ DAY_NGT="night"
 download
 
 # download data form dce server for medi
-host_ip="123.149.20.60"
+host_ip="1.193.38.91"
 host_user="u910019"
 host_port="8012"
 EXT="czce"
@@ -97,24 +86,6 @@ SUFFIX="ngt"
 DAY_NGT="night"
 download
 
-#SRC="${DEST}/${EXT}_stra_${SUFFIX}_`date +%y%m%d`.tar.${COMPRESS}"
-#tar -C $DEST -xvzf ${SRC}
-#rm -r $SRC
-
-#host_ip="123.149.20.60"
-#host_user="u910223"
-#host_port="8012"
-#EXT="czce"
-#COMPRESS="gz"
-#SUFFIX="ngt"
-#DAY_NGT="night"
-#download_zp
-#SRC="${DEST}/${EXT}_stra_${SUFFIX}_`date +%y%m%d`.tar.${COMPRESS}"
-#tar -C $DEST -xvzf $SRC
-#rm -r $SRC
-
-#tar -cvjf $SRC -C $DEST "./backup"
-#rm -r "${DEST}/backup"
 
 
 ######################################
