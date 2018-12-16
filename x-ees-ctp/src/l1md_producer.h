@@ -40,6 +40,7 @@ struct L1MDConfig
 	unsigned short mcLocalPort; // EES行情服务组播
 	char userid[20];			// EES user id
 	char password[20];			// EES password
+	char is_multicast[20];		// CTP quote
 };
 
 class L1MDProducerHelper
@@ -107,7 +108,8 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 */
 		void InitMDApi();
 		CThostFtdcMdApi *api_;
-		char * pp_instruments_[100];
+		char * pp_instruments_[700];
+		bool is_multicast_;
 
 		/*
 		 * 与逻辑处理相关

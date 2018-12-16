@@ -35,6 +35,7 @@ CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, 
 L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProducer")
 {
 	l1data_cursor_ = L1MD_BUFFER_SIZE - 1;
+	is_multicast_ = false;
 	ended_ = false;
     api_ = NULL;
 	clog_warning("[%s] L1MD_BUFFER_SIZE:%d;",module_name_,L1MD_BUFFER_SIZE);
@@ -92,6 +93,15 @@ void L1MDProducer::ParseConfig()
 
 		strcpy(config_.userid, l1md_node->Attribute("userid"));
 		strcpy(config_.password, l1md_node->Attribute("password"));
+
+		strcpy(config_.is_multicast, l1md_node->Attribute("isMulticast"));
+		if(strcmp(config_.is_multicast, "true")==0){
+			is_multicast_ = true;
+		}else{ 
+			is_multicast_ = false;
+		}
+		clog_warning("[%s] is_multicast:%d ", module_name_,is_multicast_); 
+
 	} else{
 		clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); 
 	}
@@ -144,7 +154,7 @@ bool L1MDProducer::IsDominant(const char *contract)
 {
 #ifdef PERSISTENCE_ENABLED 
 	// 持久化行情时，需要记录所有合约
-	clog_warning("[%s] return TRUE in IsDominant.",module_name_);
+	//clog_warning("[%s] return TRUE in IsDominant.",module_name_);
 	return true;
 #else
 	return IsDominantImp(contract, dominant_contracts_, contract_count_);
@@ -282,15 +292,18 @@ void L1MDProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		string contr = "";
 		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
 			contr = contrs.substr (start_pos, end_pos-start_pos);
-			pp_instruments_[count] = (char*)contr.c_str();
-			clog_warning("[%s] ThostFtdcMdApi subscribe:%s",module_name_,contr.c_str());
+			pp_instruments_[count] = new char(strlen(contr.c_str())+1);
+			strcpy(pp_instruments_[count],contr.c_str());
+			clog_warning("[%s] ThostFtdcMdApi subscribe:%d, %s",module_name_, count, 
+						pp_instruments_[count]);
 			start_pos = end_pos + 1;
 			count++;
 		}
 	}else { clog_error("[%s] ThostFtdcMdApi can't open: %s", module_name_, config_.contracts_file); }
 
     if (error_code == 0){
-        api_->SubscribeMarketData(pp_instruments_, count);
+        int err = api_->SubscribeMarketData(pp_instruments_, count);
+			clog_warning("[%s] TSubscribeMarketData:%d",module_name_,err);
     } else {
         std::string err_str("null");
         if (pRspInfo && pRspInfo->ErrorMsg[0] != '\0') {
@@ -355,7 +368,11 @@ void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, 
 
 void L1MDProducer::InitMDApi()
 {
-    api_ = CThostFtdcMdApi::CreateFtdcMdApi();
+	if(is_multicast_){
+		api_ = CThostFtdcMdApi::CreateFtdcMdApi("", true, true);
+	}else{
+		api_ = CThostFtdcMdApi::CreateFtdcMdApi("", false, false);
+	}
     api_->RegisterSpi(this);
 	char addr[100];
 	sprintf (addr, "tcp://%s:%d", config_.mcIp, config_.mcPort);
@@ -377,8 +394,8 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	// debug
 	// ToString(quote_level1_ );
 
-	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-	//	module_name_,quote_level1_->InstrumentID,quote_level1_->UpdateTime,quote_level1_->UpdateMillisec);
+	clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
+		module_name_,quote_level1_.InstrumentID,quote_level1_.UpdateTime,quote_level1_.UpdateMillisec);
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -391,7 +408,7 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 #ifdef PERSISTENCE_ENABLED 
     timeval t;
     gettimeofday(&t, NULL);
-    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, quote_level1_);
+    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &quote_level1_);
 #endif
 }
 
@@ -589,7 +606,7 @@ void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType,
 	RalaceInvalidValue_EES(*data_src,data);
 	
 	// debug
-	ToString(data);
+	//ToString(data);
 	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
 	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
 
