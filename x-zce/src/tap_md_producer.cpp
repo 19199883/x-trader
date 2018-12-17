@@ -289,7 +289,9 @@ void TapMDProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
     clog_warning("TAP - OnRspQryContract");
     if (0 == errorCode) {
         if ( NULL != info) {
+#ifdef PERSISTENCE_ENABLED 
 			subscribe_quote(info->Contract);
+#endif		
 			clog_warning("TAP - OnRspQryContract successful, ExchangeNo is %s, CommodityNo is %s,"
 				"ContractNo is %s.", info->Contract.Commodity.ExchangeNo,
 				info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1);
@@ -307,6 +309,9 @@ void TapMDProducer::OnRtnContract(const TapAPIQuoteContractInfo *info) { }
 void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
 	TAPIYNFLAG isLast, const TapAPIQuoteWhole *info)
 {
+		clog_info("[test] [%s] OnRspSubscribeQuote contract:%s%s, time:%s, ended:%d", module_name_, 
+			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp, ended_);
+
 	if(ended_) return;
 
     if (errorCode == 0 && NULL != info){
@@ -338,6 +343,8 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 
 void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 {
+		clog_info("[test] [%s] OnRtnQuote contract:%s%s, time:%s, ended:%d", module_name_, 
+			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp, ended_);
 	if(ended_) return;
 
     if ( NULL != info) {
@@ -357,7 +364,7 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 		ivalue->data = L1_MD;
 		vrt_producer_publish(producer_);
 		
-        clog_debug("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, CommodityNo is %s,"
+        clog_info("[%s] TAP - OnRtnQuote Successful, ExchangNo is %s, CommodityNo is %s,"
 			"ContractNo is %s.", module_name_,
             info->Contract.Commodity.ExchangeNo, info->Contract.Commodity.CommodityNo, 
 			info->Contract.ContractNo1);
@@ -437,7 +444,7 @@ bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_n
 {
 #ifdef PERSISTENCE_ENABLED 
 	// 持久化行情时，需要记录所有合约
-	clog_warning("[%s], return TRUE in IsDominant.",module_name_);
+	//clog_warning("[%s], return TRUE in IsDominant.",module_name_);
 	return true;
 #else
 	return IsDominantImp(commciodity_no, contract_no, dominant_contracts_, 

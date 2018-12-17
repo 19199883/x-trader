@@ -157,8 +157,8 @@ void L2MDProducer::RevData()
 		StdQuote5* md = (StdQuote5 *)(buf);
 
 		bool dominant = IsDominant(md->instrument);
-		clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", module_name_, 
-			dominant, md->instrument, md->updateTime, md->updateMS);
+	//	clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", module_name_, 
+	//		dominant, md->instrument, md->updateTime, md->updateMS);
 
 		// 抛弃非主力合约
 		if(!dominant) continue;
@@ -175,6 +175,11 @@ void L2MDProducer::RevData()
 		ivalue->index = Push(*md);
 		ivalue->data = L2_MD;
 		vrt_producer_publish(producer_);
+
+
+		clog_info("[test] after push StdQuote5 [%s]dominant:%d contract:%s, time:%s %d,idx:%d", 
+					module_name_, dominant, md->instrument, md->updateTime, md->updateMS,ivalue->index);
+
     } // end while (!ended_) 
 	clog_warning("[%s] RevData exit.",module_name_);
 
@@ -217,7 +222,7 @@ bool L2MDProducer::IsDominant(const char *contract)
 {
 #ifdef PERSISTENCE_ENABLED 
 	// 持久化行情时，需要记录所有合约
-	clog_warning("[%s] %s, return TRUE in IsDominant.",module_name_,contract);
+	//clog_warning("[%s] %s, return TRUE in IsDominant.",module_name_,contract);
 	return true;
 #else
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
