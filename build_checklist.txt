@@ -4,11 +4,12 @@
 	1. debug版本:Makefile
 	2. 合规检查:COMPLIANCE_CHECK
 	3. 日志级别:clog_set_minimum_level(CLOG_LEVEL_WARNING);
-	4. 行情日志开关:PERSISTENCE_ENABLED
+	4. 行情开关:PERSISTENCE_ENABLED
 	5. 版本： clog_warning("version:x-shfe_20180130_r");
 	6. #define LATENCY_MEASURE
 	7. x-ees: choice: EES_UDP_TOPSPEED_QUOTE,FEMAS_TOPSPEED_QUOTE
 	8. 许可是绑定到服务器名，所以需要根据服务器名做相应的编译修改:SERVER_NAME
+	9. 编译行情程序：需定义PERSISTENCE_ENABLED
 
 
 

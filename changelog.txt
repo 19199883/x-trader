@@ -1,3 +1,6 @@
+2018-12-11
+x-eex-ctp: x-trader.config L1Md节点加isMulticast属性：true（采用多播行情）；false（TCP行情）
+
 2018-12-7
 加项目x-eex-ctp。该项目使用CTP行情代替原来的一档极速行情（一档极速行情已被金瑞停用）
 CTP:v6.3.11_20180109_api_tradeapi_linux64

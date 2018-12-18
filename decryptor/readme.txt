@@ -1,4 +1,4 @@
-uploader:用于云服务器从生产服务器现在日志和行情数据
+decryptor:对加密脚本进行解密并执行。脚本加密：防止在云服务器的脚本被外人窃取，从而访问生产环境
 
 压缩
 tar -czvf /path/to/file.tar.gz file
