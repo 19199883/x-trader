@@ -1,3 +1,6 @@
+2018-12-20
+x-zce:SettlePrice暂时存储成交金额(StdQuote5.turnover)（黄志平用）
+
 2018-12-11
 x-eex-ctp: x-trader.config L1Md节点加isMulticast属性：true（采用多播行情）；false（TCP行情）
 
