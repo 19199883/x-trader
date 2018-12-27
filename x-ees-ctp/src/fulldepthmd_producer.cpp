@@ -151,6 +151,11 @@ void FullDepthMDProducer::RevData()
 
         MDPack *md = (MDPack *)recv_buf;
 
+		// TODO: debug
+		clog_info("[%s] FullDepthMDProducer::RevData InstrumentID:%s",
+			module_name_,md->instrument);
+
+
 		// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
 		// 解决方法：将sc与其它品种行情分成2种独立行情
 		if(md->instrument[0]=='s' && md->instrument[1]=='c'){
