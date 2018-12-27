@@ -343,8 +343,6 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 
 void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 {
-		clog_info("[test] [%s] OnRtnQuote contract:%s%s, time:%s, ended:%d", module_name_, 
-			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp, ended_);
 	if(ended_) return;
 
     if ( NULL != info) {

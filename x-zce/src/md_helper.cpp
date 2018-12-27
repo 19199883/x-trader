@@ -39,10 +39,13 @@ void MdHelper::ProcL2Data(int32_t index)
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
 
-	clog_info("[test] ProcL2Data contract:%s, idx:%d", md->instrument,index);
+	clog_info("[test] ProcL2Data StdQuote5 contract:%s, idx:%d, turnover:%f", md->instrument,index,md->turnover);
 
 	l1_md =  GetData(md->instrument); // md->instrument, e.g. SR1801
 	if(NULL != l1_md){
+		clog_info("[test] [%s] ProcL2Data L1 contract:%s%s, time:%s, turnover:%f", module_name_, 
+			l1_md->CommodityNo, l1_md->ContractNo1, l1_md->DateTimeStamp, l1_md->QTotalTurnover);
+
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
 
@@ -94,6 +97,8 @@ void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole_MY *tap_data,
 	data.TotalBidLot = (int)other.buyv;	/*委买总量*/
 	data.TotalAskLot = (int)other.sellv;	/*委卖总量*/
 
+	// 
+	data.SettlePrice = other.turnover; // SettlePrice暂时存储成交金额(StdQuote5.turnover)（黄志平用）
 	data.TotalVolume = other.volume;
 	data.ContractIDType = 0;			/*合约类型 0->目前应该为0， 扩充：0:期货,1:期权,2:组合*/
 	data.LastPrice = InvalidToZeroD(other.price);		/*最新价*/
