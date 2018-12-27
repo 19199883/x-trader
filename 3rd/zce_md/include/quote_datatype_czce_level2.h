@@ -30,7 +30,7 @@ struct DLL_PUBLIC ZCEL2QuotSnapshotField_MY
     int TotalVolume;        /*总成交量*/
     int OpenInterest;       /*持仓量*/
     double ClosePrice;      /*收盘价*/
-    double SettlePrice;     /*结算价*/
+    double SettlePrice;     /*结算价*/ // SettlePrice暂时存储成交金额(StdQuote5.turnover)（黄志平用）
     double AveragePrice;    /*均价*/
     double LifeHigh;        /*历史最高成交价格*/
     double LifeLow;         /*历史最低成交价格*/
