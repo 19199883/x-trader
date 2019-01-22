@@ -47,13 +47,13 @@ DMDProducer::DMDProducer(struct vrt_queue  *queue) : module_name_("DMDProducer")
 	max_traverse_count_ = contract_count_ * 4;
 
 #ifdef PERSISTENCE_ENABLED 
-    p_depthMarketData_save_ = new QuoteDataSave<depthMarketData>("depthMarketData", SHFE_EX_QUOTE_TYPE);
+    p_depthMarketData_save_ = new QuoteDataSave<depthMarketData>("depthMarketData", DEPTHMARKETDATA_QUOTE_TYPE);
 #endif
 
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
 	InitMDApi();
 
-	this->producer_ = vrt_producer_new("l1md_producer", 1, queue);
+	this->producer_ = vrt_producer_new("dmd_producer", 1, queue);
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield	= vrt_yield_strategy_threaded();
@@ -76,24 +76,14 @@ void DMDProducer::ParseConfig()
 		strcpy(config_.yield, disruptor_node->Attribute("yield"));
 	} else { clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); }
 
-    TiXmlElement *l1md_node = RootElement->FirstChildElement("L1Md");
+    TiXmlElement *l1md_node = RootElement->FirstChildElement("depthMarketData");
 	if (l1md_node != NULL){
-		strcpy(config_.efh_sf_eth, l1md_node->Attribute("efh_sf_eth"));
-
 		strcpy(config_.mcIp, l1md_node->Attribute("mcIp"));
 		int mcPort = 0;
 		 l1md_node->QueryIntAttribute("mcPort", &mcPort);
 		this->config_.mcPort = mcPort;
-
-		strcpy(config_.mcLocalIp, l1md_node->Attribute("mcLocalIp"));
-		int localUDPPort = 0;
-		 l1md_node->QueryIntAttribute("mcLocalPort", &localUDPPort);
-		this->config_.mcLocalPort = localUDPPort;
-
-		strcpy(config_.userid, l1md_node->Attribute("userid"));
-		strcpy(config_.password, l1md_node->Attribute("password"));
 	} else{
-		clog_error("[%s] x-shmd.config error: L1Md node missing.", module_name_); 
+		clog_error("[%s] x-trader.config error: depthMarkerData node missing.", module_name_); 
 	}
 	
 	// contracts file
@@ -106,18 +96,18 @@ void DMDProducer::ParseConfig()
 DMDProducer::~DMDProducer()
 {
 #ifdef PERSISTENCE_ENABLED 
-    if (p_level1_save_) delete p_level1_save_;
+    if (p_depthMarketData_save_) delete p_depthMarketData_save_;
 #endif
 }
 
 
 int32_t DMDProducer::Push(const depthMarketData& md){
-	l1data_cursor_++;
-	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0){
-		l1data_cursor_ = 0;
+	dmd_cursor_++;
+	if (dmd_cursor_ % DMD_BUFFER_SIZE == 0){
+		dmd_cursor_ = 0;
 	}
-	md_buffer_[l1data_cursor_] = md;
-	return l1data_cursor_;
+	md_buffer_[dmd_cursor_] = md;
+	return dmd_cursor_;
 }
 
 depthMarketData* DMDProducer::GetData(int32_t index)
@@ -129,14 +119,14 @@ depthMarketData* DMDProducer::GetData(int32_t index)
 depthMarketData* DMDProducer::GetLastDataForIllegaluser(const char *contract)
 {
 	depthMarketData* data = DMDProducerHelper::GetLastDataImp(
-		contract,0,md_buffer_,L1MD_BUFFER_SIZE,L1MD_BUFFER_SIZE);
+		contract,0,md_buffer_,DMD_BUFFER_SIZE,DMD_BUFFER_SIZE);
 	return data;
 }
 
 depthMarketData* DMDProducer::GetLastData(const char *contract, int32_t last_index)
 {
 	depthMarketData* data = DMDProducerHelper::GetLastDataImp(
-		contract,last_index,md_buffer_,L1MD_BUFFER_SIZE,max_traverse_count_);
+		contract,last_index,md_buffer_,DMD_BUFFER_SIZE,max_traverse_count_);
 	return data;
 }
 
@@ -154,94 +144,32 @@ bool DMDProducer::IsDominant(const char *contract)
 void DMDProducer::ToString(depthMarketData &data)
 {
 	clog_warning("[%s] depthMarketData\n"
-		"TradingDay:%s\n"
-		"SettlementGroupID:%s\n"
-		"SettlementID:%d\n"
-		"LastPrice:%f \n"
-		"PreSettlementPrice:%f \n"
-		"PreClosePrice:%f \n"
-		"PreOpenInterest:%f \n"
-		"OpenPrice:%f \n"
-		"HighestPrice:%f \n"
-		"LowestPrice:%f \n"
-		"Volume:%d \n"
-		"Turnover:%f \n"
-		"OpenInterest:%f \n"
-		"ClosePrice:%f \n"
-		"SettlementPrice:%f \n"
-		"UpperLimitPrice:%f \n"
-		"LowerLimitPrice:%f \n"
-		"PreDelta:%f \n"
-		"CurrDelta:%f \n"
-		"UpdateTime[9]:%s \n"
-		"UpdateMillisec:%d \n"
-		"InstrumentID:%s \n"
-		"BidPrice1:%f \n"
-		"BidVolume1:%d \n"
-		"AskPrice1:%f \n"
-		"AskVolume1:%d \n"
-		"BidPrice2:%f \n"
-		"BidVolume2:%d \n"
-		"AskPrice2:%f \n"
-		"AskVolume2:%d \n"
-		"BidPrice3:%f \n"
-		"BidVolume3:%d \n"
-		"AskPrice3:%f \n"
-		"AskVolume3:%d \n"
-		"BidPrice4:%f \n"
-		"BidVolume4:%d \n"
-		"AskPrice4:%f \n"
-		"AskVolume4:%d \n"
-		"BidPrice5:%f \n"
-		"BidVolume5:%d \n"
-		"AskPrice5:%f \n"
-		"AskVolume5:%d \n"
-		"ActionDay:%s \n",
+		"name:%s \n"
+		"transactTime:%lu \n"
+		"bid1(price:%f, size:%d, numberOfOrders:%d)\n"
+		"bid2(price:%f, size:%d, numberOfOrders:%d)\n"
+		"bid3(price:%f, size:%d, numberOfOrders:%d)\n"
+		"bid9(price:%f, size:%d, numberOfOrders:%d)\n"
+		"bid10(price:%f, size:%d, numberOfOrders:%d)\n"
+		"ask1(price:%f, size:%d, numberOfOrders:%d)\n"
+		"ask2(price:%f, size:%d, numberOfOrders:%d)\n"
+		"ask3(price:%f, size:%d, numberOfOrders:%d)\n"
+		"ask9(price:%f, size:%d, numberOfOrders:%d)\n"
+		"ask10(price:%f, size:%d, numberOfOrders:%d)\n",			
 		module_name_,
-		data.TradingDay,
-		data.SettlementGroupID,
-		data.SettlementID,
-		data.LastPrice,
-		data.PreSettlementPrice,
-		data. PreClosePrice,
-		data.PreOpenInterest,
-		data.OpenPrice,
-		data. HighestPrice,
-		data. LowestPrice,
-		data.Volume,
-		data.Turnover,
-		data.OpenInterest,
-		data.ClosePrice,
-		data.SettlementPrice,
-		data.UpperLimitPrice,
-		data.LowerLimitPrice,
-		data.PreDelta,
-		data.CurrDelta,
-		data.UpdateTime,
-		data.UpdateMillisec,
-		data.InstrumentID,
-		data.BidPrice1,
-		data.BidVolume1,
-		data.AskPrice1,
-		data.AskVolume1,
-		data.BidPrice2,
-		data.BidVolume2,
-		data.AskPrice2,
-		data.AskVolume2,
-		data.BidPrice3,
-		data.BidVolume3,
-		data.AskPrice3,
-		data.AskVolume3,
-		data.BidPrice4,
-		data.BidVolume4,
-		data.AskPrice4,
-		data.AskVolume4,
-		data.BidPrice5,
-		data.BidVolume5,
-		data.AskPrice5,
-		data.AskVolume5,
-		data.ActionDay);
-
+		data.name,
+		data.transactTime,
+		data.bid[0].price, data.bid[0].size, data.bid[0].numberOfOrders,
+		data.bid[1].price, data.bid[1].size, data.bid[1].numberOfOrders,
+		data.bid[2].price, data.bid[2].size, data.bid[2].numberOfOrders,
+		data.bid[8].price, data.bid[8].size, data.bid[8].numberOfOrders,
+		data.bid[9].price, data.bid[9].size, data.bid[9].numberOfOrders,		
+		data.ask[0].price, data.ask[0].size, data.ask[0].numberOfOrders,
+		data.ask[1].price, data.ask[1].size, data.ask[1].numberOfOrders,
+		data.ask[2].price, data.ask[2].size, data.ask[2].numberOfOrders,
+		data.ask[8].price, data.ask[8].size, data.ask[8].numberOfOrders,
+		data.ask[9].price, data.ask[9].size, data.ask[9].numberOfOrders
+		);
 }
 
 void DMDProducer::InitMDApi()

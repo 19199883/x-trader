@@ -64,6 +64,9 @@
 //飞鼠
 #define SGIT_QUOTE_TYPE             24
 
+// CME 芝加哥交易所
+#define DEPTHMARKETDATA_QUOTE_TYPE             30
+
 // data identities of kmds {"stockcode", "stockquote", "indexquote", "optionquote", "ordqueue", "perentrust", "perbargain"};
 #define KMDS_CODETABLE_TYPE         0xc0
 #define KMDS_STOCK_SNAPSHOT_TYPE    0xc1
