@@ -74,7 +74,7 @@ class DMDProducer
 		/*
 		 * 与API相关
 		 */
-		void InitMDApi();
+		int InitMDApi();
 		int udp_client_fd_;
 
 		/*
@@ -86,6 +86,9 @@ class DMDProducer
 		depthMarketData md_buffer_[DMD_BUFFER_SIZE];
 		int32_t dmd_cursor_;
 		bool ended_;
+
+		void RevData();
+		std::thread *thread_rev_;
 
 		/*
 		 * check whether the given contract is dominant.

@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include "quote_datatype_shfe_deep.h"
 
 #define gettid() syscall(__NR_gettid)
 

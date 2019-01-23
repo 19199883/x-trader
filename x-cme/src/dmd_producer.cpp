@@ -1,6 +1,13 @@
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
 #include <functional>   // std::bind
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <errno.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
 #include "dmd_producer.h"
 #include "quote_cmn_utility.h"
 #include <tinyxml.h>
@@ -34,9 +41,8 @@ depthMarketData* DMDProducerHelper::GetLastDataImp(const char *contract, int32_t
 
 DMDProducer::DMDProducer(struct vrt_queue  *queue) : module_name_("DMDProducer")
 {
-	data_cursor_ = DMD_BUFFER_SIZE - 1;
+	dmd_cursor_ = DMD_BUFFER_SIZE - 1;
 	ended_ = false;
-    api_ = NULL;
 	clog_warning("[%s] DMD_BUFFER_SIZE:%d;",module_name_,DMD_BUFFER_SIZE);
 
 	ParseConfig();
@@ -61,7 +67,7 @@ DMDProducer::DMDProducer(struct vrt_queue  *queue) : module_name_("DMDProducer")
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		this->producer_ ->yield	 = vrt_yield_strategy_hybrid();
 	}
-	thread_rev_ = new std::thread(&FullDepthMDProducer::RevData, this);
+	thread_rev_ = new std::thread(&DMDProducer::RevData, this);
 }
 
 void DMDProducer::ParseConfig()
@@ -168,11 +174,10 @@ void DMDProducer::ToString(depthMarketData &data)
 		data.ask[1].price, data.ask[1].size, data.ask[1].numberOfOrders,
 		data.ask[2].price, data.ask[2].size, data.ask[2].numberOfOrders,
 		data.ask[8].price, data.ask[8].size, data.ask[8].numberOfOrders,
-		data.ask[9].price, data.ask[9].size, data.ask[9].numberOfOrders
-		);
+		data.ask[9].price, data.ask[9].size, data.ask[9].numberOfOrders);
 }
 
-void DMDProducer::InitMDApi()
+int DMDProducer::InitMDApi()
 {
     // init udp socket
     int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -275,7 +280,7 @@ void DMDProducer::RevData()
 		p_depthMarketData_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, md);
 #endif
 		// debug
-		ToString(*data);
+		ToString(*md);
 
     } // end while (!ended_) 
 	clog_warning("[%s] RevData exit.",module_name_);
@@ -294,8 +299,8 @@ void DMDProducer::End()
 	if(!ended_){
 		ended_ = true;
 
-		shutdown(udp_fd_, SHUT_RDWR);
-		int err = close(udp_fd_);
+		shutdown(udp_client_fd_, SHUT_RDWR);
+		int err = close(udp_client_fd_);
 		clog_warning("close udp:%d.", err); 
 		thread_rev_->join();
 

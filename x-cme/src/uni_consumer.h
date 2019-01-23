@@ -110,7 +110,7 @@ class EESFieldConverter
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, depthMarketData *md_producer, 
+		UniConsumer(struct vrt_queue  *queue, DMDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
@@ -121,7 +121,7 @@ class UniConsumer
 		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		DepthMDProducer *md_producer_;
+		DMDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;

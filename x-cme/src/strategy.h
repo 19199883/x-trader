@@ -10,7 +10,7 @@
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "tunn_rpt_producer.h"
-#include "quote_datatype_shfe_my.h"
+#include "quote_datatype_cme.h"
 
 using namespace std;
 
@@ -78,7 +78,8 @@ public:
 	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
 	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log);
-	typedef void ( *FeedShfeMarketData_ptr)(MYShfeMarketData* md, int *sig_cnt, 
+	// TODO: cme
+	typedef void ( *FeedShfeMarketData_ptr)(depthMarketData* md, int *sig_cnt, 
 				signal_t* signals, struct strat_out_log *log);	
 	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, 
 				symbol_pos_t *pos, int *sig_cnt, signal_t* sigs, struct strat_out_log *log);
@@ -92,7 +93,7 @@ public:
 	// things relating to strategy interface
 	void Init(StrategySetting &setting, CLoadLibraryProxy *pproxy);
 	void FeedInitPosition();
-	void FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* signals);
+	void FeedMd(depthMarketData* md, int *sig_cnt, signal_t* signals);
 	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos,
 				int *sig_cnt, signal_t* sigs);
 

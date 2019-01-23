@@ -4,9 +4,9 @@ CC:=g++
 DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/x-cme/dist
-INCPATH:=-I$(TOP)/3rd/cme/include -I$(TOP)/3rd/tinyxml/include \
-		 -I$(TOP)/3rd/utils/include \
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/cme/lib \
+INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/cme_md/include -I$(TOP)/3rd/tinyxml/include \
+		 -I$(TOP)/3rd/utils/include
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ees/lib  -L$(TOP)/3rd/cme_md/lib \
 		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
@@ -15,7 +15,7 @@ OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lEESTraderApi -lEESQuoteApi -ltinyxml -lutils -ldl -lpthread  \
 	  -lbowsprit -lclogger -lcork -lvrt \
-	  -lboost_filesystem  -lboost_system -lmdclient
+	  -lboost_filesystem  -lboost_system
 DEPS:=.depends
 OUT:=x-cme
 PACKAGE_NAME:=$(OUT)
@@ -62,7 +62,7 @@ dist:
 	-cp -arf $(TOP)/x-cme/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/x-cme/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/x-cme/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/cme/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/ees/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/cme/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf /usr/local/lib/libboost_filesystem.so*  $(DIST_DIR)/$(PACKAGE_NAME)/
