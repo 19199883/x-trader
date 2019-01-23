@@ -51,7 +51,6 @@ DMDProducer::DMDProducer(struct vrt_queue  *queue) : module_name_("DMDProducer")
 #endif
 
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
-	InitMDApi();
 
 	this->producer_ = vrt_producer_new("dmd_producer", 1, queue);
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
@@ -62,6 +61,7 @@ DMDProducer::DMDProducer(struct vrt_queue  *queue) : module_name_("DMDProducer")
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		this->producer_ ->yield	 = vrt_yield_strategy_hybrid();
 	}
+	thread_rev_ = new std::thread(&FullDepthMDProducer::RevData, this);
 }
 
 void DMDProducer::ParseConfig()
@@ -143,7 +143,7 @@ bool DMDProducer::IsDominant(const char *contract)
 
 void DMDProducer::ToString(depthMarketData &data)
 {
-	clog_warning("[%s] depthMarketData\n"
+	clog_info("[%s] depthMarketData\n"
 		"name:%s \n"
 		"transactTime:%lu \n"
 		"bid1(price:%f, size:%d, numberOfOrders:%d)\n"
@@ -174,92 +174,118 @@ void DMDProducer::ToString(depthMarketData &data)
 
 void DMDProducer::InitMDApi()
 {
-    api_ = CMdclientApi::Create(this,config_.mcPort,config_.mcIp);
-	clog_warning("[%s] CMdclientApi ip:%s, port:%d", module_name_, config_.mcIp,config_.mcPort);
+    // init udp socket
+    int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    /* set reuse and non block for this socket */
+    int son = 1;
+    setsockopt(udp_client_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&son, sizeof(son));
 
-	std::ifstream is;
-	is.open (config_.contracts_file);
-	string contrs = "";
-	if (is) {
-		getline(is, contrs);
-		contrs += " ";
-		size_t start_pos = 0;
-		size_t end_pos = 0;
-		string contr = "";
-		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
-			contr = contrs.substr (start_pos, end_pos-start_pos);
-			api_->Subscribe((char*)contr.c_str());
-			clog_warning("[%s] CMdclientApi subscribe:%s",module_name_,contr.c_str());
-			start_pos = end_pos + 1;
-		}
-	}else { clog_error("[%s] CMdclientApi can't open: %s", module_name_, config_.contracts_file); }
+    // bind address and port
+    struct sockaddr_in servaddr;
+    memset(&servaddr, 0, sizeof(servaddr));
+    servaddr.sin_family = AF_INET; //IPv4协议
+    servaddr.sin_addr.s_addr = inet_addr(config_.mcIp);
+    servaddr.sin_port = htons(config_.mcPort);
+	clog_warning("[%s] UDP - bind:%s:%d",module_name_,config_.mcIp,config_.mcPort);
+    if (bind(udp_client_fd, (sockaddr *) &servaddr, sizeof(servaddr)) != 0){
+        clog_error("[%s] UDP - bind failed:%s:%d",module_name_,config_.mcIp,config_.mcPort);
+        return -1;
+    }
 
-    int err = api_->Start();
-	clog_warning("[%s] CMdclientApi start: %d", module_name_, err);
+// 查哪种模式最时时
+    // set nonblock flag
+//    int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
+//    if (socket_ctl_flag < 0)
+//    {
+//        MY_LOG_WARN("UDP - get socket control flag failed.");
+//    }
+//    if (fcntl(udp_client_fd, F_SETFL, socket_ctl_flag | O_NONBLOCK) < 0)
+//    {
+//        MY_LOG_WARN("UDP - set socket control flag with nonblock failed.");
+//    }
+
+    // set buffer length
+    int rcvbufsize = 1 * 1024 * 1024;
+    int ret = setsockopt(udp_client_fd,SOL_SOCKET,SO_RCVBUF,
+				(const void *)&rcvbufsize,sizeof(rcvbufsize));
+    if (ret != 0){
+        clog_error("[%a] UDP - set SO_RCVBUF failed.",module_name_);
+    }
+
+    int broadcast_on = 1;
+    ret = setsockopt(udp_client_fd, SOL_SOCKET, SO_BROADCAST, &broadcast_on, sizeof(broadcast_on));
+    if (ret != 0){
+        clog_error("[%s] UDP - set SO_RCVBUF failed.",module_name_);
+    }
+
+    return udp_client_fd;
 }
 
-
-void DMDProducer::OnRtnDepthMarketData(depthMarketData *data)
+void DMDProducer::RevData()
 {
-	if (ended_) return;
+	int udp_fd = InitMDApi();
+	udp_client_fd_ = udp_fd;
+    if (udp_fd < 0){
+        clog_error("[%s] InitMDApi failed.",module_name_);
+        return;
+    }
+	clog_warning("[%s] InitMDApi succeeded.",module_name_);
 
-	// 抛弃非主力合约
-	if(!(IsDominant(data->InstrumentID))) return;
+    char buf[2048];
+    int data_len = 0;
+    sockaddr_in src_addr;
+    unsigned int addr_len = sizeof(sockaddr_in);
+    while (!ended_){
+        data_len = recvfrom(udp_fd, buf, 2048, 0, (sockaddr *)&src_addr, &addr_len);
+        if (data_len == -1) {
+            int error_no = errno;
+			clog_error("[%s] UDP-recvfrom failed, error_no=%d.",module_name_,error_no);
+			fflush (Log::fp);
+            if (error_no == 0 || error_no == 251 || 
+				error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
+                continue;
+            }else{
+                continue;
+            }
+        }
 
-	RalaceInvalidValue_Femas(*data);
-	
-	// debug
-	// ToString(*data);
+		depthMarketData* md = (depthMarketData*)(buf);
+		RelaceInvalidValue(*md);
+		bool dominant = IsDominant(md->name);
+		// 抛弃非主力合约
+		if(!dominant) continue;
+#ifdef LATENCY_MEASURE
+		 static int cnt = 0;
+		 perf_ctx::insert_t0(cnt);
+		 cnt++;
+#endif
 
-	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-	//	module_name_,data->InstrumentID,data->UpdateTime,data->UpdateMillisec);
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+		ivalue->index = Push(*md);
+		ivalue->data = Depth_MD;
+		vrt_producer_publish(producer_);
 
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	vrt_producer_claim(producer_, &vvalue);
-	ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-	ivalue->index = Push(*data);
-	ivalue->data = L1_MD;
-	vrt_producer_publish(producer_);
 
 #ifdef PERSISTENCE_ENABLED 
-    timeval t;
-    gettimeofday(&t, NULL);
-    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
+		timeval t;
+		gettimeofday(&t, NULL);
+		p_depthMarketData_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, md);
 #endif
+		// debug
+		ToString(*data);
+
+    } // end while (!ended_) 
+	clog_warning("[%s] RevData exit.",module_name_);
+
 }
 
-void DMDProducer::RalaceInvalidValue_Femas(depthMarketData &d)
+void DMDProducer::RelaceInvalidValue(depthMarketData &d)
 {
-    d.Turnover = InvalidToZeroD(d.Turnover);
-    d.LastPrice = InvalidToZeroD(d.LastPrice);
-    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
-    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
-    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
-    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
-    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
-    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
-    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
-    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
-    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
-
-    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
-    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
-    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
-    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
-    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
-
-	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
-    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
-    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
-    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
-    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
-
-	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
-	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
-
-    d.PreDelta = InvalidToZeroD(d.PreDelta);
-    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
+    //d.Turnover = InvalidToZeroD(d.Turnover);
+    //d.LastPrice = InvalidToZeroD(d.LastPrice);
 }
 
 
@@ -268,11 +294,10 @@ void DMDProducer::End()
 	if(!ended_){
 		ended_ = true;
 
-		if (api_) {
-			int err = api_->Stop();
-			clog_warning("[%s] CMdclientApi stop: %d", module_name_, err);
-			api_ = NULL;
-		}
+		shutdown(udp_fd_, SHUT_RDWR);
+		int err = close(udp_fd_);
+		clog_warning("close udp:%d.", err); 
+		thread_rev_->join();
 
 		vrt_producer_eof(producer_);
 		clog_warning("[%s] End exit", module_name_);

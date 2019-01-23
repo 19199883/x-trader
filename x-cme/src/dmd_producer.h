@@ -75,11 +75,12 @@ class DMDProducer
 		 * 与API相关
 		 */
 		void InitMDApi();
+		int udp_client_fd_;
 
 		/*
 		 * 与逻辑处理相关
 		 */
-		void RalaceInvalidValue(depthMarketData &d);
+		void RelaceInvalidValue(depthMarketData &d);
 		int32_t Push(const depthMarketData& md);
 		struct vrt_producer  *producer_;
 		depthMarketData md_buffer_[DMD_BUFFER_SIZE];
