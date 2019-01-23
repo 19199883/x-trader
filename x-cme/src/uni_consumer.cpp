@@ -14,11 +14,10 @@ using namespace std::placeholders;
 EES_EnterOrderField EESFieldConverter::new_order_;
 EES_CancelOrder EESFieldConverter::cancel_order_;
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
-	L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer)
+UniConsumer::UniConsumer(struct vrt_queue  *queue, DMDProducer *md_producer, 
+	TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
-  fulldepth_md_producer_(fulldepth_md_producer),
-  l1_md_producer_(l1_md_producer),
+  md_producer_(md_producer),
   tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
 {
 	// lic
@@ -254,15 +253,6 @@ void UniConsumer::Start()
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
-	MYQuoteData myquotedata(fulldepth_md_producer_, l1_md_producer_);
-	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
-	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
-
-	// INE sc 
-	MYIneQuoteData myinequotedata(fulldepth_md_producer_,l1_md_producer_,myquotedata.p_my_shfe_md_save_);
-	auto f_inemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
-	myinequotedata.SetQuoteDataHandler(f_inemarketdata);
-
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
@@ -272,15 +262,18 @@ void UniConsumer::Start()
 					parent);
 			switch (ivalue->data){
 				case L1_MD:
+					// TODO UniConsumer::ProcShfeMarketData
 					myquotedata.ProcL1MdData(ivalue->index);
 					myinequotedata.ProcL1MdData(ivalue->index);
 					break;
 				// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
 				// 解决方法：将sc与其它品种行情分成2种独立行情
 				case INE_FULL_DEPTH_MD:
+					// TODO
 					myinequotedata.ProcFullDepthData(ivalue->index);
 					break;
 				case FULL_DEPTH_MD:
+					// TODO
 					myquotedata.ProcFullDepthData(ivalue->index);
 					break;
 				case TUNN_RPT:
@@ -302,8 +295,7 @@ void UniConsumer::Start()
 void UniConsumer::Stop()
 {
 	if(running_){		
-		l1_md_producer_->End();
-		fulldepth_md_producer_->End();
+		md_producer_->End();
 		tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
 		compliance_.Save();
@@ -628,7 +620,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 	if(!legal_){ // illegal user
-		CDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
+		depthMarketData* data = md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
 		while(true){
 			if(EES_SideType_open_long==ord->m_Side ||
 				EES_SideType_close_today_short==ord->m_Side){

@@ -16,9 +16,7 @@
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "compliance.h"
-#include "quote_interface_shfe_my.h"
-#include "fulldepthmd_producer.h"
-#include "l1md_producer.h"
+#include "dmd_producer.h"
 
 /*
  * 最多支持策略数量
@@ -123,8 +121,7 @@ class UniConsumer
 		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		FullDepthMDProducer *fulldepth_md_producer_;
-		L1MDProducer *l1_md_producer_;
+		DepthMDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;

@@ -16,11 +16,6 @@
 //#define PERSISTENCE_ENABLED
 //#define LATENCY_MEASURE
 
-// 飞马极速行情
-#define FEMAS_TOPSPEED_QUOTE
-// 盛立极速行情 API multicast
-//#define EES_UDP_TOPSPEED_QUOTE
-
 // software license
 #define SERVER_NAME  "zjtest1"
 
@@ -59,20 +54,6 @@ extern "C" {
 	};
 #endif /* __cplusplus */
 
-	class MDPackEx
-	{
-		public:
-			MDPackEx(): damaged(false) { }
-
-			MDPackEx(MDPack &cur_content): damaged(false)
-			{
-				this->content = cur_content;
-			}
-
-			MDPack content;
-			bool damaged;
-	};
-
 	class Log
 	{
 		public:
@@ -84,7 +65,7 @@ extern "C" {
 	 */
 
 	enum HybridData {
-		L1_MD = 0, 
+		Depth_MD = 0, 
 		FULL_DEPTH_MD,
 		INE_FULL_DEPTH_MD,
 		HybridData, 
