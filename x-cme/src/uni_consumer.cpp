@@ -261,20 +261,20 @@ void UniConsumer::Start()
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, 
 					parent);
 			switch (ivalue->data){
-				case L1_MD:
+				//case L1_MD:
 					// TODO UniConsumer::ProcShfeMarketData
-					myquotedata.ProcL1MdData(ivalue->index);
-					myinequotedata.ProcL1MdData(ivalue->index);
+				//	myquotedata.ProcL1MdData(ivalue->index);
+				//	myinequotedata.ProcL1MdData(ivalue->index);
 					break;
 				// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
 				// 解决方法：将sc与其它品种行情分成2种独立行情
-				case INE_FULL_DEPTH_MD:
+				//case INE_FULL_DEPTH_MD:
 					// TODO
-					myinequotedata.ProcFullDepthData(ivalue->index);
+				//	myinequotedata.ProcFullDepthData(ivalue->index);
 					break;
-				case FULL_DEPTH_MD:
+				//case FULL_DEPTH_MD:
 					// TODO
-					myquotedata.ProcFullDepthData(ivalue->index);
+				//	myquotedata.ProcFullDepthData(ivalue->index);
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -322,11 +322,13 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
-void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
+void UniConsumer::ProcShfeMarketData(depthMarketData* md)
 {
+	// TODO:
 	//clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
 	//	md->InstrumentID, md->GetQuoteTime().c_str());
-
+// TODO: commented by wangying on 20190123
+/*
 #ifdef LATENCY_MEASURE
 		 static int cnt = 0;
 		 perf_ctx::insert_t0(cnt);
@@ -394,6 +396,7 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
 		clog_warning("[%s] ProcL2QuoteSnapshot latency:%d us", module_name_, latency); 
 #endif
+*/
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)

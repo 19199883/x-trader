@@ -3,12 +3,11 @@
 CC:=g++
 DEBUG:=n
 TOP:=..
-DIST_DIR:=$(TOP)/x-ees/dist
-INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/tinyxml/include \
-		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ees/lib \
-		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib \
-		 -L$(TOP)/3rd/shfe_md/lib
+DIST_DIR:=$(TOP)/x-cme/dist
+INCPATH:=-I$(TOP)/3rd/cme/include -I$(TOP)/3rd/tinyxml/include \
+		 -I$(TOP)/3rd/utils/include \
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/cme/lib \
+		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
@@ -18,10 +17,10 @@ LIBS:=-lEESTraderApi -lEESQuoteApi -ltinyxml -lutils -ldl -lpthread  \
 	  -lbowsprit -lclogger -lcork -lvrt \
 	  -lboost_filesystem  -lboost_system -lmdclient
 DEPS:=.depends
-OUT:=x-ees
+OUT:=x-cme
 PACKAGE_NAME:=$(OUT)
 
-SUBDIR:=$(TOP)/x-ees/src 
+SUBDIR:=$(TOP)/x-cme/src 
 
 vpath %.cpp $(SUBDIR)
 
@@ -60,13 +59,12 @@ $(DEPS):$(SRCS)
 dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/x-ees/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-ees/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-ees/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/ees/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-cme/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-cme/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-cme/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/cme/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/shfe_md/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/shfe_md/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/cme/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf /usr/local/lib/libboost_filesystem.so*  $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf /usr/local/lib/libboost_system.so*  $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libbowsprit.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/

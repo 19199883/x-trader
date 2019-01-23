@@ -110,8 +110,8 @@ class EESFieldConverter
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
-			L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer);
+		UniConsumer(struct vrt_queue  *queue, depthMarketData *md_producer, 
+			TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();
@@ -166,7 +166,7 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcShfeMarketData(MYShfeMarketData* md);
+		void ProcShfeMarketData(depthMarketData* md);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);
