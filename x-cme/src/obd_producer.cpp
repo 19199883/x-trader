@@ -8,7 +8,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include "dmd_producer.h"
+#include "obd_producer.h"
 #include "quote_cmn_utility.h"
 #include <tinyxml.h>
 #include <tinystr.h>
@@ -16,12 +16,12 @@
 using namespace std::placeholders;
 using namespace std;
 
-depthMarketData* DMDProducerHelper::GetLastDataImp(const char *contract, int32_t last_index,
-	depthMarketData *buffer, int32_t buffer_size,int32_t traverse_count) 
+orderbookData* OBDProducerHelper::GetLastDataImp(const char *contract, int32_t last_index,
+	orderbookData *buffer, int32_t buffer_size,int32_t traverse_count) 
 {
-	depthMarketData* data = NULL;
+	orderbookData* data = NULL;
 
-	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
+	// 从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
 	int i = 0;
 	for(; i<traverse_count; i++){
 		int data_index = last_index - i;
@@ -29,7 +29,7 @@ depthMarketData* DMDProducerHelper::GetLastDataImp(const char *contract, int32_t
 			data_index = data_index + buffer_size;
 		}
 
-		depthMarketData &tmp = buffer[data_index];
+		orderbookData &tmp = buffer[data_index];
 		if(strcmp(contract, tmp.name)==0){
 			data = &tmp; 
 			break;
@@ -39,11 +39,11 @@ depthMarketData* DMDProducerHelper::GetLastDataImp(const char *contract, int32_t
 	return data;
 }
 
-DMDProducer::DMDProducer(struct vrt_queue  *queue) : module_name_("DMDProducer")
+OBDProducer::OBDProducer(struct vrt_queue  *queue) : module_name_("OBDProducer")
 {
-	dmd_cursor_ = DMD_BUFFER_SIZE - 1;
+	obd_cursor_ = OBD_BUFFER_SIZE - 1;
 	ended_ = false;
-	clog_warning("[%s] DMD_BUFFER_SIZE:%d;",module_name_,DMD_BUFFER_SIZE);
+	clog_warning("[%s] OBD_BUFFER_SIZE:%d;",module_name_,OBD_BUFFER_SIZE);
 
 	ParseConfig();
 
@@ -53,12 +53,12 @@ DMDProducer::DMDProducer(struct vrt_queue  *queue) : module_name_("DMDProducer")
 	max_traverse_count_ = contract_count_ * 4;
 
 #ifdef PERSISTENCE_ENABLED 
-    p_depthMarketData_save_ = new QuoteDataSave<depthMarketData>("depthMarketData", DEPTHMARKETDATA_QUOTE_TYPE);
+    p_orderbookData_save_ = new QuoteDataSave<orderbookData>("orderbookData", ORDERBOOKDATA_QUOTE_TYPE);
 #endif
 
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
 
-	this->producer_ = vrt_producer_new("dmd_producer", 1, queue);
+	this->producer_ = vrt_producer_new("obd_producer", 1, queue);
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0){
 		this->producer_ ->yield	= vrt_yield_strategy_threaded();
@@ -67,10 +67,10 @@ DMDProducer::DMDProducer(struct vrt_queue  *queue) : module_name_("DMDProducer")
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		this->producer_ ->yield	 = vrt_yield_strategy_hybrid();
 	}
-	thread_rev_ = new std::thread(&DMDProducer::RevData, this);
+	thread_rev_ = new std::thread(&OBDProducer::RevData, this);
 }
 
-void DMDProducer::ParseConfig()
+void OBDProducer::ParseConfig()
 {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
     config.LoadFile();
@@ -82,14 +82,14 @@ void DMDProducer::ParseConfig()
 		strcpy(config_.yield, disruptor_node->Attribute("yield"));
 	} else { clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); }
 
-    TiXmlElement *l1md_node = RootElement->FirstChildElement("depthMarketData");
+    TiXmlElement *l1md_node = RootElement->FirstChildElement("orderbookData");
 	if (l1md_node != NULL){
 		strcpy(config_.mcIp, l1md_node->Attribute("mcIp"));
 		int mcPort = 0;
 		 l1md_node->QueryIntAttribute("mcPort", &mcPort);
 		this->config_.mcPort = mcPort;
 	} else{
-		clog_error("[%s] x-trader.config error: depthMarkerData node missing.", module_name_); 
+		clog_error("[%s] x-trader.config error: orderbookData node missing.", module_name_); 
 	}
 	
 	// contracts file
@@ -99,44 +99,44 @@ void DMDProducer::ParseConfig()
 	} else { clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); }
 }
 
-DMDProducer::~DMDProducer()
+OBDProducer::~OBDProducer()
 {
 #ifdef PERSISTENCE_ENABLED 
-    if (p_depthMarketData_save_) delete p_depthMarketData_save_;
+    if (p_orderbookData_save_) delete p_orderbookData_save_;
 #endif
 }
 
 
-int32_t DMDProducer::Push(const depthMarketData& md){
-	dmd_cursor_++;
-	if (dmd_cursor_ % DMD_BUFFER_SIZE == 0){
-		dmd_cursor_ = 0;
+int32_t OBDProducer::Push(const orderbookData& md){
+	obd_cursor_++;
+	if (obd_cursor_ % OBD_BUFFER_SIZE == 0){
+		obd_cursor_ = 0;
 	}
-	md_buffer_[dmd_cursor_] = md;
-	return dmd_cursor_;
+	md_buffer_[obd_cursor_] = md;
+	return obd_cursor_;
 }
 
-depthMarketData* DMDProducer::GetData(int32_t index)
+orderbookData* OBDProducer::GetData(int32_t index)
 {
 	return &md_buffer_[index];
 }
 
 // lic
-depthMarketData* DMDProducer::GetLastDataForIllegaluser(const char *contract)
+orderbookData* OBDProducer::GetLastDataForIllegaluser(const char *contract)
 {
-	depthMarketData* data = DMDProducerHelper::GetLastDataImp(
-		contract,0,md_buffer_,DMD_BUFFER_SIZE,DMD_BUFFER_SIZE);
+	orderbookData* data = OBDProducerHelper::GetLastDataImp(
+		contract,0,md_buffer_,OBD_BUFFER_SIZE,OBD_BUFFER_SIZE);
 	return data;
 }
 
-depthMarketData* DMDProducer::GetLastData(const char *contract, int32_t last_index)
+orderbookData* OBDProducer::GetLastData(const char *contract, int32_t last_index)
 {
-	depthMarketData* data = DMDProducerHelper::GetLastDataImp(
-		contract,last_index,md_buffer_,DMD_BUFFER_SIZE,max_traverse_count_);
+	orderbookData* data = OBDProducerHelper::GetLastDataImp(
+		contract,last_index,md_buffer_,OBD_BUFFER_SIZE,max_traverse_count_);
 	return data;
 }
 
-bool DMDProducer::IsDominant(const char *contract)
+bool OBDProducer::IsDominant(const char *contract)
 {
 #ifdef PERSISTENCE_ENABLED 
 	// 持久化行情时，需要记录所有合约
@@ -147,37 +147,19 @@ bool DMDProducer::IsDominant(const char *contract)
 #endif
 }
 
-void DMDProducer::ToString(depthMarketData &data)
+void OBDProducer::ToString(orderbookData &data)
 {
-	clog_info("[%s] depthMarketData\n"
+	clog_info("[%s] orderbookData\n"
 		"name:%s \n"
 		"transactTime:%lu \n"
-		"bid1(price:%f, size:%d, numberOfOrders:%d)\n"
-		"bid2(price:%f, size:%d, numberOfOrders:%d)\n"
-		"bid3(price:%f, size:%d, numberOfOrders:%d)\n"
-		"bid9(price:%f, size:%d, numberOfOrders:%d)\n"
-		"bid10(price:%f, size:%d, numberOfOrders:%d)\n"
-		"ask1(price:%f, size:%d, numberOfOrders:%d)\n"
-		"ask2(price:%f, size:%d, numberOfOrders:%d)\n"
-		"ask3(price:%f, size:%d, numberOfOrders:%d)\n"
-		"ask9(price:%f, size:%d, numberOfOrders:%d)\n"
-		"ask10(price:%f, size:%d, numberOfOrders:%d)\n",			
+		"(price:%f, size:%d)\n",			
 		module_name_,
 		data.name,
 		data.transactTime,
-		data.bid[0].price, data.bid[0].size, data.bid[0].numberOfOrders,
-		data.bid[1].price, data.bid[1].size, data.bid[1].numberOfOrders,
-		data.bid[2].price, data.bid[2].size, data.bid[2].numberOfOrders,
-		data.bid[8].price, data.bid[8].size, data.bid[8].numberOfOrders,
-		data.bid[9].price, data.bid[9].size, data.bid[9].numberOfOrders,		
-		data.ask[0].price, data.ask[0].size, data.ask[0].numberOfOrders,
-		data.ask[1].price, data.ask[1].size, data.ask[1].numberOfOrders,
-		data.ask[2].price, data.ask[2].size, data.ask[2].numberOfOrders,
-		data.ask[8].price, data.ask[8].size, data.ask[8].numberOfOrders,
-		data.ask[9].price, data.ask[9].size, data.ask[9].numberOfOrders);
+		data.price, data.orderQty);
 }
 
-int DMDProducer::InitMDApi()
+int OBDProducer::InitMDApi()
 {
     int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
 	if (udp_client_fd  < 0){   
@@ -229,7 +211,7 @@ int DMDProducer::InitMDApi()
     return udp_client_fd;
 }
 
-void DMDProducer::RevData()
+void OBDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
 	udp_client_fd_ = udp_fd;
@@ -259,7 +241,7 @@ void DMDProducer::RevData()
             }
         }
 
-		depthMarketData* md = (depthMarketData*)(buf);
+		orderbookData* md = (orderbookData*)(buf);
 		RelaceInvalidValue(*md);
 		//
 		// debug
@@ -279,14 +261,14 @@ void DMDProducer::RevData()
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 		ivalue->index = Push(*md);
-		ivalue->data = Depth_MD;
+		ivalue->data = Orderbook_MD;
 		vrt_producer_publish(producer_);
 
 
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);
-		p_depthMarketData_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, md);
+		p_orderbookData_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, md);
 #endif
 
     } // end while (!ended_) 
@@ -294,14 +276,14 @@ void DMDProducer::RevData()
 
 }
 
-void DMDProducer::RelaceInvalidValue(depthMarketData &d)
+void OBDProducer::RelaceInvalidValue(orderbookData &d)
 {
     //d.Turnover = InvalidToZeroD(d.Turnover);
     //d.LastPrice = InvalidToZeroD(d.LastPrice);
 }
 
 
-void DMDProducer::End()
+void OBDProducer::End()
 {
 	if(!ended_){
 		ended_ = true;

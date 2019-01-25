@@ -14,11 +14,20 @@ using namespace std::placeholders;
 EES_EnterOrderField EESFieldConverter::new_order_;
 EES_CancelOrder EESFieldConverter::cancel_order_;
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, DMDProducer *md_producer, 
-	TunnRptProducer *tunn_rpt_producer)
-: module_name_("uni_consumer"),running_(true), 
-  md_producer_(md_producer),
-  tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
+UniConsumer::UniConsumer(struct vrt_queue  *queue, 
+			// TODO: cme
+			DMDProducer *dmd_producer, 
+			RTDProducer *rtd_producer, 
+			OBDProducer *obd_producer, 
+			TVDProducer *tvd_producer, 
+			TunnRptProducer *tunn_rpt_producer)
+	: module_name_("uni_consumer"),
+	  running_(true), 
+	  dmd_producer_(dmd_producer),
+	  rtd_producer_(rtd_producer),
+	  obd_producer_(obd_producer),
+	  tvd_producer_(tvd_producer),
+	  tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
 {
 	// lic
 	legal_ = check_lic();
@@ -265,17 +274,17 @@ void UniConsumer::Start()
 					// TODO UniConsumer::ProcShfeMarketData
 				//	myquotedata.ProcL1MdData(ivalue->index);
 				//	myinequotedata.ProcL1MdData(ivalue->index);
-					break;
+					//break;
 				// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
 				// 解决方法：将sc与其它品种行情分成2种独立行情
 				//case INE_FULL_DEPTH_MD:
 					// TODO
 				//	myinequotedata.ProcFullDepthData(ivalue->index);
-					break;
+				//	break;
 				//case FULL_DEPTH_MD:
 					// TODO
 				//	myquotedata.ProcFullDepthData(ivalue->index);
-					break;
+				//	break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
 					break;
@@ -295,7 +304,11 @@ void UniConsumer::Start()
 void UniConsumer::Stop()
 {
 	if(running_){		
-		md_producer_->End();
+		// TODO: cme
+		dmd_producer_->End();
+		rtd_producer_->End();
+		obd_producer_->End();
+		tvd_producer_->End();
 		tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
 		compliance_.Save();
@@ -324,7 +337,7 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcShfeMarketData(depthMarketData* md)
 {
-	// TODO:
+	// TODO: cme
 	//clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
 	//	md->InstrumentID, md->GetQuoteTime().c_str());
 // TODO: commented by wangying on 20190123
@@ -623,7 +636,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 	if(!legal_){ // illegal user
-		depthMarketData* data = md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
+		depthMarketData* data = dmd_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
 		while(true){
 			if(EES_SideType_open_long==ord->m_Side ||
 				EES_SideType_close_today_short==ord->m_Side){

@@ -17,6 +17,10 @@
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 #include "dmd_producer.h"
+// TODO: cme
+#include "rtd_producer.h"
+#include "obd_producer.h"
+#include "tvd_producer.h"
 
 /*
  * 最多支持策略数量
@@ -110,8 +114,13 @@ class EESFieldConverter
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, DMDProducer *md_producer, 
-			TunnRptProducer *tunn_rpt_producer);
+		UniConsumer(struct vrt_queue  *queue, 
+					DMDProducer *dmd_producer, 
+					RTDProducer *rtd_producer, 
+					// TODO: cme
+					OBDProducer *obd_producer, 
+					TVDProducer *tvd_producer, 
+					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();
@@ -121,7 +130,11 @@ class UniConsumer
 		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		DMDProducer *md_producer_;
+		DMDProducer *dmd_producer_;
+		RTDProducer *rtd_producer_;
+		// TODO: cme
+		OBDProducer *obd_producer_;
+		TVDProducer *tvd_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;

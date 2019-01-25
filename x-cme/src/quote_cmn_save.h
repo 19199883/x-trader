@@ -66,6 +66,9 @@
 
 // CME 芝加哥交易所
 #define DEPTHMARKETDATA_QUOTE_TYPE             30
+#define REALTIMEDATA_QUOTE_TYPE             31
+#define ORDERBOOKDATA_QUOTE_TYPE             32
+#define TRADEVOLUMEDATA_QUOTE_TYPE             33
 
 // data identities of kmds {"stockcode", "stockquote", "indexquote", "optionquote", "ordqueue", "perentrust", "perbargain"};
 #define KMDS_CODETABLE_TYPE         0xc0

@@ -1,5 +1,5 @@
-#ifndef __DMD_PRODUCER_H__
-#define __DMD_PRODUCER_H__
+#ifndef __OBD_PRODUCER_H__
+#define __OBD_PRODUCER_H__
 
 #include <functional>
 #include <fcntl.h>
@@ -20,16 +20,16 @@
 /*
  * 10 power of 2
  */
-#define DMD_BUFFER_SIZE 1000 
+#define OBD_BUFFER_SIZE 1000 
 
 /*
- * 识depthMarketData行情处于未接收数居前的未知位置
+ * 识orderbookData行情处于未接收数居前的未知位置
  */
-#define DMD_NPOS -1 
+#define OBD_NPOS -1 
 
 using namespace std;
 
-struct DMDConfig 
+struct OBDConfig 
 {
 	char mcIp[30];
 	int mcPort;
@@ -37,27 +37,27 @@ struct DMDConfig
 	char yield[20];				// disruptor yield strategy
 };
 
-class DMDProducerHelper
+class OBDProducerHelper
 {
 	public:
 		/*
 		 * 获取指定合约的最新行情。
 		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
 		 */
-		static depthMarketData* GetLastDataImp(const char *contract, int32_t last_index,
-			depthMarketData *buffer, int32_t buffer_size,int32_t traverse_count);
+		static orderbookData* GetLastDataImp(const char *contract, int32_t last_index,
+			orderbookData *buffer, int32_t buffer_size,int32_t traverse_count);
 };
 
-class DMDProducer
+class OBDProducer
 {
 	public:
-		DMDProducer(struct vrt_queue  *queue);
-		~DMDProducer();
+		OBDProducer(struct vrt_queue  *queue);
+		~OBDProducer();
 
 		/*
 		 * 与逻辑处理相关
 		 */
-		depthMarketData* GetData(int32_t index);
+		orderbookData* GetData(int32_t index);
 
 		/*
 		 * contract: 要获取行情的合约
@@ -65,14 +65,14 @@ class DMDProducer
 		 * 获取指定合约最新的一档行情。
 		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
 		 */
-		depthMarketData* GetLastData(const char *contract, int32_t last_index);
+		orderbookData* GetLastData(const char *contract, int32_t last_index);
 		void End();
 
 
-		void ToString(depthMarketData &data);
+		void ToString(orderbookData &data);
 
 		// lic
-		depthMarketData* GetLastDataForIllegaluser(const char *contract);
+		orderbookData* GetLastDataForIllegaluser(const char *contract);
 
 	private:
 		/*
@@ -85,11 +85,11 @@ class DMDProducer
 		/*
 		 * 与逻辑处理相关
 		 */
-		void RelaceInvalidValue(depthMarketData &d);
-		int32_t Push(const depthMarketData& md);
+		void RelaceInvalidValue(orderbookData &d);
+		int32_t Push(const orderbookData& md);
 		struct vrt_producer  *producer_;
-		depthMarketData md_buffer_[DMD_BUFFER_SIZE];
-		int32_t dmd_cursor_;
+		orderbookData md_buffer_[OBD_BUFFER_SIZE];
+		int32_t obd_cursor_;
 		bool ended_;
 
 		void RevData();
@@ -103,7 +103,7 @@ class DMDProducer
 		int max_traverse_count_;
 		int  contract_count_;
 
-		QuoteDataSave<depthMarketData> *p_depthMarketData_save_;
+		QuoteDataSave<orderbookData> *p_orderbookData_save_;
 
 		/*
 		 *日志相关
@@ -114,7 +114,7 @@ class DMDProducer
 		 * 配置相关
 		 */
 		void ParseConfig();
-		DMDConfig config_;
+		OBDConfig config_;
 };
 
-#endif // __DMD_PRODUCER_H__
+#endif // __OBD_PRODUCER_H__
