@@ -289,7 +289,8 @@ void UniConsumer::Start()
 					ProcTunnRpt(ivalue->index);
 					break;
 				default:
-					clog_error("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
+					// TODO: cme
+					//clog_error("[%s] [start] unexpected index: %d", module_name_, ivalue->index);
 					break;
 			}
 		}
