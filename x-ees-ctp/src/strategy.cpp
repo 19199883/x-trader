@@ -183,23 +183,26 @@ void Strategy::FeedInitPosition()
 	strategy_init_pos_t init_pos;
 
 	position_t &today_pos = init_pos._cur_pos;
-	today_pos.symbol_cnt = 2; 
-	symbol_pos_t& first = today_pos.s_pos[0];
-	symbol_pos_t& second = today_pos.s_pos[1];
+	today_pos.symbol_cnt = this->setting_.config.symbols_cnt+1; 
 
-	strncpy(first.symbol, "#CASH", sizeof(first.symbol));
+	strncpy(today_pos.s_pos[0].symbol, "#CASH", sizeof(today_pos.s_pos[0].symbol));
 
-	strncpy(second.symbol, this->GetContract(), sizeof(second.symbol));
-	second.long_volume = position_.cur_long;
-	second.short_volume = position_.cur_short;
-	second.exchg_code = this->GetExchange(); 
+	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
+		const char* cur_sym = this->setting_.config.symbols[i].name;
+		symbol_pos_t &sym_pos = today_pos.s_pos[i+1];
+		strncpy(sym_pos.symbol, cur_sym, sizeof(sym_pos.symbol));
+		sym_pos.long_volume = 0;
+		sym_pos.short_volume = 0;
+		sym_pos.exchg_code = this->GetExchange(cur_sym); 
+
+		clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
+					module_name_, GetId(), sym_pos.symbol, sym_pos.exchg_code, 
+					sym_pos.long_volume, sym_pos.short_volume);
+	}
 
 	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
 	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
-	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
-				module_name_, GetId(), second.symbol, second.exchg_code, 
-				second.long_volume, second.short_volume);
 }
 
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
@@ -260,19 +263,27 @@ int32_t Strategy::GetId()
 	return id_;
 }
 
-const char* Strategy::GetContract()
+//const char* Strategy::GetContract()
+//{
+//	return this->setting_.config.symbols[0].name;
+//}
+
+exchange_names Strategy::GetExchange(const char* contract)
 {
-	return this->setting_.config.symbols[0].name;
+	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
+		if (strcmp(this->setting_.config.symbols[i].name, contract) == 0){
+			return this->setting_.config.symbols[i].exchange;
+		}
+	}
 }
 
-exchange_names Strategy::GetExchange()
+int32_t Strategy::GetMaxPosition(const char* contract)
 {
-	return this->setting_.config.symbols[0].exchange;
-}
-
-int32_t Strategy::GetMaxPosition()
-{
-	return this->setting_.config.symbols[0].max_pos;
+	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
+		if (strcmp(this->setting_.config.symbols[i].name, contract) == 0){
+			return this->setting_.config.symbols[i].max_pos;
+		}
+	}
 }
 
 const char* Strategy::GetSoFile()
@@ -322,28 +333,29 @@ int Strategy::GetVol(const signal_t &sig)
 	return vol;
 }
 
-int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol)
+int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, 
+			unsigned short int sig_act, int32_t vol, const char *contract)
 {
 	int updated_vol = 0;
 
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_open_long==0){
-			updated_vol = GetMaxPosition() - position_.cur_long + position_.cur_short;
+			updated_vol = GetMaxPosition(contract) - position_.cur_long + position_.cur_short;
 		} 
 	}
 	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
 		if (position_.frozen_open_short==0){
-			updated_vol = GetMaxPosition() - position_.cur_short + position_.cur_long;
+			updated_vol = GetMaxPosition(contract) - position_.cur_short + position_.cur_long;
 		} 
 	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_close_short==0){
-			updated_vol = GetMaxPosition()+ position_.cur_short - position_.cur_long;
+			updated_vol = GetMaxPosition(contract)+ position_.cur_short - position_.cur_long;
 			if (updated_vol >  position_.cur_short) updated_vol =  position_.cur_short;
 		} 
 	}
 	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
 		if (position_.frozen_close_long==0){
-			updated_vol = GetMaxPosition() + position_.cur_long - position_.cur_short;
+			updated_vol = GetMaxPosition(contract) + position_.cur_long - position_.cur_short;
 			if (updated_vol >  position_.cur_long) updated_vol =  position_.cur_long;
 		}
 	}
@@ -635,8 +647,8 @@ void Strategy::LoadPosition()
 void Strategy::SavePosition()
 {
 	char buffer[1024];
-	sprintf (buffer, "%d;%s;%s;%d;%d",GetId(), GetSoFile(),
-		GetContract(), position_.cur_long, position_.cur_short); 
+	//sprintf (buffer, "%d;%s;%s;%d;%d",GetId(), GetSoFile(),
+	//	GetContract(), position_.cur_long, position_.cur_short); 
 
 	string fname = this->GetSoFile();
 	fname += ".pos";

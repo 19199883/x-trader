@@ -99,9 +99,9 @@ public:
 	// things relating to x-trader internal logic
 	void finalize(void);
 	int32_t GetId();
-	const char* GetContract();
-	exchange_names GetExchange();
-	int32_t GetMaxPosition();
+	//const char* GetContract();
+	exchange_names GetExchange(const char* contract);
+	int32_t GetMaxPosition(const char* contract);
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);
 	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act);
@@ -112,7 +112,7 @@ public:
 	int32_t GetCounterByLocalOrderID(long local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
 	void Push(const signal_t &sig);
-	int GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol);
+	int GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, const char* contract);
 	int GetVol(const signal_t &sig);
 	void End(void);
 	int32_t GetSignalIdxBySigId(long sigid);
@@ -128,6 +128,7 @@ public:
 	bool IsLogFull();
 	int32_t FullLineCount();
 	FILE * get_log_file();
+	StrategySetting setting_;
 private:
 	string generate_log_name(char * log_path);
 
@@ -171,7 +172,6 @@ private:
 
 
 	CLoadLibraryProxy *pproxy_;
-	StrategySetting setting_;
 	const char *module_name_;  
 	StrategyPosition position_;
 	void LoadPosition();
