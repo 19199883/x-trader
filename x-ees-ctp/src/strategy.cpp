@@ -186,6 +186,9 @@ void Strategy::FeedInitPosition()
 	today_pos.symbol_cnt = this->setting_.config.symbols_cnt+1; 
 
 	strncpy(today_pos.s_pos[0].symbol, "#CASH", sizeof(today_pos.s_pos[0].symbol));
+	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
+				module_name_, GetId(), today_pos.s_pos[0].symbol, today_pos.s_pos[0].exchg_code, 
+				today_pos.s_pos[0].long_volume, today_pos.s_pos[0].short_volume);
 
 	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
 		const char* cur_sym = this->setting_.config.symbols[i].name;
@@ -203,12 +206,18 @@ void Strategy::FeedInitPosition()
 	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
 	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
 
+	// TODO: debug on 2019-02-12
+	//MYShfeMarketData md;
+	//strcpy(md.InstrumentID, "hc1903");
+	//int sin_cnt = 0;
+	//signal_t sigss[5];
+	//FeedMd(&md, &sig_cnt, sigss);
 }
 
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
-//	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
-//		md->InstrumentID, md->GetQuoteTime().c_str());
+	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
+		md->InstrumentID, md->GetQuoteTime().c_str());
 //	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
 //				module_name_, md->data_flag, GetId());				
 
