@@ -17,6 +17,7 @@ EES_CancelOrder EESFieldConverter::cancel_order_;
 UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
 	L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
+// TODO: multi to here
   fulldepth_md_producer_(fulldepth_md_producer),
   l1_md_producer_(l1_md_producer),
   tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
@@ -426,20 +427,16 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				 rpt->ErrorID);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
+	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 	if (rpt->OrderStatus == SIG_STATUS_CANCEL){
 		// TODO: multi
-		// TODO: to here
-		for(int i=0; i< strategy.setting_.config.symbols_cnt; i++){
-			const char* cur_sym = strategy.setting_.config.symbols[i].name;
-			compliance_.AccumulateCancelTimes(cur_sym);
-		}
+		compliance_.AccumulateCancelTimes(strategy.GetContractBySigIdx(sigidx));
 	}
 #endif
 
-	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 
 #ifdef COMPLIANCE_CHECK
@@ -541,10 +538,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		memset(&rpt, 0, sizeof(rpt));
 		
 		// 从pending队列中撤单
-		// TODO: multi to here
-		// find contract
 		rpt.ErrorID = CANCELLED_FROM_PENDING;   
-
 		rpt.OrderStatus = SIG_STATUS_CANCEL;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
@@ -562,10 +556,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 {
 	// improve place, cancel
 	int32_t ori_sigid = sig.orig_sig_id;
-	bool cancelled = CancelPendingSig(strategy, ori_sigid, sig.symbol);
+	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
 
-	if (!strategy.HasFrozenPosition()){
+	if (!strategy.HasFrozenPosition(strategy.GetContractBySigIdx(ori_sigid))){
 		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}

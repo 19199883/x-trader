@@ -394,8 +394,8 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	// debug
 	// ToString(quote_level1_ );
 
-	clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
-		module_name_,quote_level1_.InstrumentID,quote_level1_.UpdateTime,quote_level1_.UpdateMillisec);
+	//clog_info("[%s] OnRtnDepthMarketData InstrumentID:%s,UpdateTime:%s,UpdateMillisec:%d",
+	//	module_name_,quote_level1_.InstrumentID,quote_level1_.UpdateTime,quote_level1_.UpdateMillisec);
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -593,7 +593,7 @@ void L1MDProducer::OnEqsDisconnected()
 void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType, 
 			EESMarketDepthQuoteData* data_src)
 {
-	clog_info("[%s] OnQuoteUpdated invoked.", module_name_);
+	//clog_info("[%s] OnQuoteUpdated invoked.", module_name_);
 	
 	if(EQS_FUTURE != chInstrumentType) return;
 

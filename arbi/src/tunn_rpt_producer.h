@@ -33,7 +33,6 @@ struct Tunnconfig
 
 struct TunnRpt
 {
-	char symbol[64];
 	int									LocalOrderID;                 ///< 本地委托号
 	long long int						SysOrderID;                   ///盛立系统产生的单子号
 	if_sig_state_t						OrderStatus;                  ///< 委托状态

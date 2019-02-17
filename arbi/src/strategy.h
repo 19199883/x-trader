@@ -109,7 +109,7 @@ public:
 	void PrepareForExecutingSig(long localorderid, const signal_t &sig,
 				int32_t actual_vol);
 	void FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
-	bool HasFrozenPosition();
+	bool HasFrozenPosition(const char *contract);
 	int32_t GetCounterByLocalOrderID(long local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
 	void Push(const signal_t &sig);
@@ -120,6 +120,7 @@ public:
 	int32_t GetSignalIdxByLocalOrdId(long localordid);
 	unsigned int GetSysOrderIdBySigID(int32_t sig_id);
 	if_sig_state_t GetStatusBySigIdx(int32_t sig_idx);
+	const char *GetContractBySigIdx(int32_t sig_idx);
 
 	// log
 	/*
@@ -182,10 +183,12 @@ private:
 	 */
 	void UpdateSigrptByTunnrpt(int32_t lastqty, double last_price, signal_resp_t& sigrpt, 
 			if_sig_state_t &status, int err);
-	void UpdatePosition(StrategyPosition &stra_pos,int32_t lastqty, if_sig_state_t status, unsigned short sig_openclose,
+	void UpdatePosition(StrategyPosition *stra_pos,int32_t lastqty, if_sig_state_t status,
+				unsigned short sig_openclose,
 			unsigned short int sig_act, int err);
 	void FillPositionRpt();
 	// const char * GetSymbol();
-	bool Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol);
+	bool Freeze(StrategyPosition *stra_pos,unsigned short sig_openclose, 
+				unsigned short int sig_act, int32_t updated_vol);
 };
 

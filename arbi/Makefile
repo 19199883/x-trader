@@ -3,7 +3,7 @@
 CC:=g++
 DEBUG:=y
 TOP:=..
-DIST_DIR:=$(TOP)/x-ees-ctp/dist
+DIST_DIR:=$(TOP)/arbi/dist
 INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/tinyxml/include \
 		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include \
 		 -I$(TOP)/3rd/ctp/include
@@ -19,10 +19,10 @@ LIBS:=-lEESTraderApi -lEESQuoteApi -ltinyxml -lutils -ldl -lpthread  \
 	  -lbowsprit -lclogger -lcork -lvrt \
 	  -lboost_filesystem  -lboost_system -lthostmduserapi
 DEPS:=.depends
-OUT:=x-ees-ctp
+OUT:=arbi
 PACKAGE_NAME:=$(OUT)
 
-SUBDIR:=$(TOP)/x-ees-ctp/src 
+SUBDIR:=$(TOP)/arbi/src 
 
 vpath %.cpp $(SUBDIR)
 
@@ -61,9 +61,9 @@ $(DEPS):$(SRCS)
 dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/x-ees-ctp/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-ees-ctp/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-ees-ctp/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/arbi/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/arbi/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/arbi/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/ees/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/ctp/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/

@@ -152,8 +152,8 @@ void FullDepthMDProducer::RevData()
         MDPack *md = (MDPack *)recv_buf;
 
 		// TODO: debug
-		clog_info("[%s] FullDepthMDProducer::RevData InstrumentID:%s",
-			module_name_,md->instrument);
+		//clog_info("[%s] FullDepthMDProducer::RevData InstrumentID:%s",
+		//	module_name_,md->instrument);
 
 
 		// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
@@ -229,10 +229,10 @@ bool FullDepthMDProducer::IsDominant(const char *contract)
 }
 
 std::string FullDepthMDProducer::ToString(const MDPack &d) {
-	clog_info("MDPack Data:instrument:%s;"
-		"islast:%d seqno:%d direction:%c count:%d",
-		d.instrument, (int)d.islast, d.seqno,
-		d.direction, d.count);
+	//clog_info("MDPack Data:instrument:%s;"
+	//	"islast:%d seqno:%d direction:%c count:%d",
+	//	d.instrument, (int)d.islast, d.seqno,
+	//	d.direction, d.count);
 	for(int i = 0; i < d.count; i++) {
 		 clog_info("price%d: %lf, volume%d: %d",
 			 i, d.data[i].price, i, d.data[i].volume);

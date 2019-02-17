@@ -45,7 +45,7 @@ Strategy::Strategy()
 
 void Strategy::End(void)
 {
-	if (valid_) SavePosition();
+//	if (valid_) SavePosition();
 
 	fclose(pfDayLogFile_);
 	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
@@ -212,8 +212,8 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
-		md->InstrumentID, md->GetQuoteTime().c_str());
+	//clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
+	//	md->InstrumentID, md->GetQuoteTime().c_str());
 //	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
 //				module_name_, md->data_flag, GetId());				
 
@@ -236,16 +236,15 @@ void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 
 		sigs[i].st_id = this->GetId();
 
-		 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d; sig_id:%d; "
-					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
-					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-					module_name_, md->data_flag, sigs[i].st_id, sigs[i].sig_id,
-					sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
-					sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
+	//	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d; sig_id:%d; "
+	//				 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
+	//				 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+	//				module_name_, md->data_flag, sigs[i].st_id, sigs[i].sig_id,
+	//				sigs[i].exchange, sigs[i].symbol, sigs[i].open_volume, sigs[i].buy_price,
+	//				sigs[i].close_volume, sigs[i].sell_price, sigs[i].sig_act, sigs[i].sig_openclose, sigs[i].orig_sig_id); 
 	}
 }
 
-// TODO: to here
 void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig_cnt, signal_t* sigs)
 {
 	*sig_cnt = 0;
@@ -302,30 +301,36 @@ long Strategy::GetLocalOrderID(int32_t sig_id)
 	return sigid_localorderid_map_table_[sig_id];
 }
 
-// TODO: multi to here
+// TODO: multi 
 // 
-bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol)
+bool Strategy::Freeze(StrategyPosition *stra_pos,unsigned short sig_openclose, 
+			unsigned short int sig_act, int32_t updated_vol)
 {
 	// 开仓限制要使用多空仓位的差值，锁仓部分不算
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
-		position_.frozen_open_long += updated_vol;
+		stra_pos->frozen_open_long += updated_vol;
 	} else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
-		position_.frozen_open_short += updated_vol;
+		stra_pos->frozen_open_short += updated_vol;
 	} 
 
 	if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
-		position_.frozen_close_short += updated_vol;
+		stra_pos->frozen_close_short += updated_vol;
 	}
 	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
-		position_.frozen_close_long += updated_vol;
+		stra_pos->frozen_close_long += updated_vol;
 	}
 
 	clog_debug("[%s] Freeze: strategy id:%d; current long:%d; current short:%d; \
 				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
 				frozen_open_short:%d; ",
-				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
-				position_.frozen_close_long, position_.frozen_close_short,
-				position_.frozen_open_long, position_.frozen_open_short);
+				module_name_, 
+				setting_.config.st_id, 
+				stra_pos->cur_long, 
+				stra_pos->cur_short,
+				stra_pos->frozen_close_long, 
+				stra_pos->frozen_close_short,
+				stra_pos->frozen_open_long, 
+				stra_pos->frozen_open_short);
 }
 
 int Strategy::GetVol(const signal_t &sig)
@@ -341,30 +346,39 @@ int Strategy::GetVol(const signal_t &sig)
 	return vol;
 }
 
+// TODO: multi 
 int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, 
 			unsigned short int sig_act, int32_t vol, const char *contract)
 {
+	StrategyPosition *cur_pos = NULL;
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		if(strcmp(position_[i].contract, contract)==0){
+			cur_pos = &position_[i];
+			break;
+		}
+	}
+
 	int updated_vol = 0;
 
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
-		if (position_.frozen_open_long==0){
-			updated_vol = GetMaxPosition(contract) - position_.cur_long + position_.cur_short;
+		if (cur_pos->frozen_open_long==0){
+			updated_vol = GetMaxPosition(contract) - cur_pos->cur_long + cur_pos->cur_short;
 		} 
 	}
 	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
-		if (position_.frozen_open_short==0){
-			updated_vol = GetMaxPosition(contract) - position_.cur_short + position_.cur_long;
+		if (cur_pos->frozen_open_short==0){
+			updated_vol = GetMaxPosition(contract) - cur_pos->cur_short + cur_pos->cur_long;
 		} 
 	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
-		if (position_.frozen_close_short==0){
-			updated_vol = GetMaxPosition(contract)+ position_.cur_short - position_.cur_long;
-			if (updated_vol >  position_.cur_short) updated_vol =  position_.cur_short;
+		if (cur_pos->frozen_close_short==0){
+			updated_vol = GetMaxPosition(contract)+ cur_pos->cur_short - cur_pos->cur_long;
+			if (updated_vol >  cur_pos->cur_short) updated_vol =  cur_pos->cur_short;
 		} 
 	}
 	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
-		if (position_.frozen_close_long==0){
-			updated_vol = GetMaxPosition(contract) + position_.cur_long - position_.cur_short;
-			if (updated_vol >  position_.cur_long) updated_vol =  position_.cur_long;
+		if (cur_pos->frozen_close_long==0){
+			updated_vol = GetMaxPosition(contract) + cur_pos->cur_long - cur_pos->cur_short;
+			if (updated_vol >  cur_pos->cur_long) updated_vol =  cur_pos->cur_long;
 		}
 	}
 	else{ 
@@ -377,34 +391,50 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose,
 	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 				"frozen_open_short:%d; updated vol:%d",
-				module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
-				position_.frozen_close_long, position_.frozen_close_short,
-				position_.frozen_open_long, position_.frozen_open_short, updated_vol);
+				module_name_, 
+				setting_.config.st_id, 
+				sig_id, 
+				cur_pos->cur_long, 
+				cur_pos->cur_short,
+				cur_pos->frozen_close_long, 
+				cur_pos->frozen_close_short,
+				cur_pos->frozen_open_long, 
+				cur_pos->frozen_open_short, 
+				updated_vol);
 
 	return updated_vol;
 } 
 
 
+// TODO: multi
 bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act)
 {
+	const char* contract = GetContractBySigIdx(sig_id);
+	StrategyPosition *cur_pos = NULL;
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		if(strcmp(position_[i].contract, contract)==0){
+			cur_pos = &position_[i];
+			break;
+		}
+	}
 	bool result = false;
 
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
-		if (position_.frozen_open_long==0){
+		if (cur_pos->frozen_open_long==0){
 			result = false;
 		} else { result = true; }
 	}
 	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
-		if (position_.frozen_open_short==0){
+		if (cur_pos->frozen_open_short==0){
 			result = false;
 		} else { result = true; }
 	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
-		if (position_.frozen_close_short==0){
+		if (cur_pos->frozen_close_short==0){
 			result = false;
 		} else { result = true; }
 	}
 	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
-		if (position_.frozen_close_long==0){
+		if (cur_pos->frozen_close_long==0){
 			result = false;
 		} else { result = true; }
 	}
@@ -417,9 +447,15 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 	clog_debug("[%s] Deferred: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 				"frozen_open_short:%d; ",
-				module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
-				position_.frozen_close_long, position_.frozen_close_short,
-				position_.frozen_open_long, position_.frozen_open_short);
+				module_name_, 
+				setting_.config.st_id, 
+				sig_id, 
+				cur_pos->cur_long, 
+				cur_pos->cur_short,
+				cur_pos->frozen_close_long, 
+				cur_pos->frozen_close_short,
+				cur_pos->frozen_open_long, 
+				cur_pos->frozen_open_short);
 
 	return result;
 } 
@@ -470,7 +506,14 @@ void Strategy::Push(const signal_t &sig)
 void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig.sig_id];
-	this->Freeze(sig.sig_openclose, sig.sig_act, actual_vol);
+	StrategyPosition *cur_pos = NULL;
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		if(strcmp(position_[i].contract, sig.symbol)==0){
+			cur_pos = &position_[i];
+			break;
+		}
+	}
+	this->Freeze(cur_pos,sig.sig_openclose, sig.sig_act, actual_vol);
 	sigrpt_table_[cursor].order_volume = actual_vol;
 	// mapping table
 	// sigid_sigandrptidx_map_table_[sig.sig_id] = cursor;
@@ -519,35 +562,53 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 	// update signal report
 	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.TradePrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
-	// TODO: multi
-	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
-		if(strcmp(position_[i].contract, rpt);
+	// TODO: multi 
+	StrategyPosition *cur_pos = NULL;
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		if(strcmp(position_[i].contract, sig.symbol)==0){
+			cur_pos = &position_[i];
+			break;
+		}
 	}
-	UpdatePosition(rpt.MatchedAmount, status, sig.sig_openclose, sig.sig_act, rpt.ErrorID);
+	UpdatePosition(cur_pos, rpt.MatchedAmount, status, sig.sig_openclose, sig.sig_act, rpt.ErrorID);
 	if (rpt.MatchedAmount > 0){
 		// fill signal position report by tunnel report
-		FillPositionRpt(pos_cache_);
+		FillPositionRpt();
 	}
 
-	// TODO: multi
-	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
+	// TODO: multi 
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		if(strcmp(pos_cache_.s_pos[i].symbol, sig.symbol)==0){
+			feed_sig_response(&sigrpt, &pos_cache_.s_pos[i], sig_cnt, sigs);
 
-	clog_info("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d; \
-				symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f; \
-				exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
-				module_name_, setting_.config.st_id, pos_cache_.s_pos[0].symbol, pos_cache_.s_pos[0].long_volume, 
-				pos_cache_.s_pos[0].short_volume, sigrpt.sig_id, sigrpt.symbol,
-				sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
-				sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,sigrpt.rejected);
+			clog_info("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d; \
+						symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f; \
+						exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
+						module_name_, setting_.config.st_id, pos_cache_.s_pos[i].symbol, 
+						pos_cache_.s_pos[0].long_volume, 
+						pos_cache_.s_pos[i].short_volume, sigrpt.sig_id, sigrpt.symbol,
+						sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
+						sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,
+						sigrpt.rejected);
+		}
+	}
 
 }
 
-bool Strategy::HasFrozenPosition()
+// TODO: multi 
+bool Strategy::HasFrozenPosition(const char *contract)
 {
-	if (position_.frozen_open_long > 0 ||
-		position_.frozen_open_short > 0 || 
-		position_.frozen_close_long > 0 || 
-		position_.frozen_close_short > 0){
+	StrategyPosition *cur_pos = NULL;
+	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
+		if(strcmp(position_[i].contract, contract)==0){
+			cur_pos = &position_[i];
+			break;
+		}
+	}
+	if (cur_pos->frozen_open_long > 0 ||
+		cur_pos->frozen_open_short > 0 || 
+		cur_pos->frozen_close_long > 0 || 
+		cur_pos->frozen_close_short > 0){
 		return true;
 	}else{
 		return false;
@@ -555,26 +616,26 @@ bool Strategy::HasFrozenPosition()
 
 }
 
-void Strategy::UpdatePosition(StrategyPosition &stra_pos, int32_t lastqty, if_sig_state_t status,
+void Strategy::UpdatePosition(StrategyPosition *stra_pos, int32_t lastqty, if_sig_state_t status,
 			unsigned short sig_openclose, unsigned short int sig_act, int err)
 {
 	// TODO: multi
 	if (lastqty > 0){
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
-			stra_pos.cur_long += lastqty;
-			stra_pos.frozen_open_long -= lastqty;
+			stra_pos->cur_long += lastqty;
+			stra_pos->frozen_open_long -= lastqty;
 		}
 		else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
-			stra_pos.cur_short += lastqty;
-			stra_pos.frozen_open_short -= lastqty;
+			stra_pos->cur_short += lastqty;
+			stra_pos->frozen_open_short -= lastqty;
 		}
 		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
-			stra_pos.cur_short -= lastqty;
-			stra_pos.frozen_close_short -= lastqty;
+			stra_pos->cur_short -= lastqty;
+			stra_pos->frozen_close_short -= lastqty;
 		}
 		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
-			stra_pos.cur_long -= lastqty;
-			stra_pos.frozen_close_long -= lastqty;
+			stra_pos->cur_long -= lastqty;
+			stra_pos->frozen_close_long -= lastqty;
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
@@ -585,16 +646,16 @@ void Strategy::UpdatePosition(StrategyPosition &stra_pos, int32_t lastqty, if_si
 			status==SIG_STATUS_CANCEL||
 			status==SIG_STATUS_REJECTED){ // 释放冻结仓位
 			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
-				stra_pos.frozen_open_long = 0;
+				stra_pos->frozen_open_long = 0;
 			}
 			else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
-				stra_pos.frozen_open_short = 0;
+				stra_pos->frozen_open_short = 0;
 			}
 			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
-				stra_pos.frozen_close_short = 0;
+				stra_pos->frozen_close_short = 0;
 			}
 			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
-				stra_pos.frozen_close_long = 0;
+				stra_pos->frozen_close_long = 0;
 			}
 		}
 	}
@@ -602,9 +663,9 @@ void Strategy::UpdatePosition(StrategyPosition &stra_pos, int32_t lastqty, if_si
 	clog_info("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d; \
 				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
 				frozen_open_short:%d; ",
-				module_name_, setting_.config.st_id, stra_pos.cur_long, stra_pos.cur_short,
-				stra_pos.frozen_close_long, stra_pos.frozen_close_short,
-				stra_pos.frozen_open_long, stra_pos.frozen_open_short);
+				module_name_, setting_.config.st_id, stra_pos->cur_long, stra_pos->cur_short,
+				stra_pos->frozen_close_long, stra_pos->frozen_close_short,
+				stra_pos->frozen_open_long, stra_pos->frozen_open_short);
 }
 
 void Strategy::FillPositionRpt()
@@ -668,23 +729,23 @@ void Strategy::LoadPosition()
 //	}
 }
 
-void Strategy::SavePosition()
-{
-	char buffer[1024];
-	//sprintf (buffer, "%d;%s;%s;%d;%d",GetId(), GetSoFile(),
-	//	GetContract(), position_.cur_long, position_.cur_short); 
+//void Strategy::SavePosition()
+//{
+//	char buffer[1024];
+//	//sprintf (buffer, "%d;%s;%s;%d;%d",GetId(), GetSoFile(),
+//	//	GetContract(), position_.cur_long, position_.cur_short); 
+//
+//	string fname = this->GetSoFile();
+//	fname += ".pos";
+//	std::ofstream outfile (fname);
+//	outfile.write (buffer, strlen(buffer));
+//	outfile.close();
+//}
 
-	string fname = this->GetSoFile();
-	fname += ".pos";
-	std::ofstream outfile (fname);
-	outfile.write (buffer, strlen(buffer));
-	outfile.close();
-}
-
-const char * Strategy::GetSymbol()
-{
-	return setting_.config.symbols[0].name;
-}
+//const char * Strategy::GetSymbol()
+//{
+//	return setting_.config.symbols[0].name;
+//}
 
 // strategy log
 FILE * Strategy::get_log_file()
@@ -720,4 +781,9 @@ void Strategy::get_log(vector<strat_out_log> &log_buffer, int32_t &count)
 }
 
 
+const char* Strategy::GetContractBySigIdx(int32_t sig_idx)
+{
+	signal_t& sig = sig_table_[sig_idx];
+	return sig.symbol;
+}
 
