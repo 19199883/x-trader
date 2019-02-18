@@ -559,7 +559,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
 
-	if (!strategy.HasFrozenPosition(strategy.GetContractBySigIdx(ori_sigid))){
+	if (!strategy.HasFrozenPosition(strategy.GetContractBySigId(ori_sigid))){
 		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
 		return;
 	}

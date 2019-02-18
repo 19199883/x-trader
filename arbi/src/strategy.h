@@ -120,7 +120,8 @@ public:
 	int32_t GetSignalIdxByLocalOrdId(long localordid);
 	unsigned int GetSysOrderIdBySigID(int32_t sig_id);
 	if_sig_state_t GetStatusBySigIdx(int32_t sig_idx);
-	const char *GetContractBySigIdx(int32_t sig_idx);
+	const char *GetContractBySigId(int32_t sig_id);
+	const char* GetContractBySigIdx(int32_t sig_idx);
 
 	// log
 	/*

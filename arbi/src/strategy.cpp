@@ -409,7 +409,7 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose,
 // TODO: multi
 bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act)
 {
-	const char* contract = GetContractBySigIdx(sig_id);
+	const char* contract = GetContractBySigId(sig_id);
 	StrategyPosition *cur_pos = NULL;
 	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
 		if(strcmp(position_[i].contract, contract)==0){
@@ -780,6 +780,12 @@ void Strategy::get_log(vector<strat_out_log> &log_buffer, int32_t &count)
 	log_cursor_ = 0;
 }
 
+
+const char* Strategy::GetContractBySigId(int32_t sig_id)
+{
+	signal_t& sig = sig_table_[sigid_sigidx_map_table_[sig_id]];
+	return sig.symbol;
+}
 
 const char* Strategy::GetContractBySigIdx(int32_t sig_idx)
 {
