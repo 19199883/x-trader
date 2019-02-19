@@ -235,14 +235,11 @@ void UniConsumer::CreateStrategies()
 		}
 #endif
 
-	for(int i=0; i< stra_table_[strategy_counter_].setting_.config.symbols_cnt; i++){
-		const char* cur_sym = stra_table_[strategy_counter_].setting_.config.symbols[i].name;
 		clog_warning("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),
-					cur_sym, 
-					stra_table_[strategy_counter_].GetMaxPosition(cur_sym), 
+					stra_table_[strategy_counter_].GetContract(), 
+					stra_table_[strategy_counter_].GetMaxPosition(), 
 					stra_table_[strategy_counter_].GetSoFile());
-	}
 
 		strategy_counter_++;
 	}
@@ -389,16 +386,13 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-		for(int i=0; i< strategy.setting_.config.symbols_cnt; i++){
-			const char* cur_sym = strategy.setting_.config.symbols[i].name;
-			if (strcmp(cur_sym, md->InstrumentID) == 0){
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+		if (strcmp(strategy.GetContract(), md->InstrumentID) == 0){
+			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
-				// strategy log
-				WriteStrategyLog(strategy);
+			// strategy log
+			WriteStrategyLog(strategy);
 
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			}
+			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
 #endif
@@ -430,10 +424,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 	if (rpt->OrderStatus == SIG_STATUS_CANCEL){
-		for(int i=0; i< strategy.setting_.config.symbols_cnt; i++){
-			const char* cur_sym = strategy.setting_.config.symbols[i].name;
-			compliance_.AccumulateCancelTimes(cur_sym);
-		}
+		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
 #endif
 
@@ -599,7 +590,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
-	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, sig.symbol);
+	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol);
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
