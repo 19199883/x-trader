@@ -1,3 +1,13 @@
+2019-2-13
+arbi:
+	支持一个策略接收多个合约行情，处理多个合约的信号的交易程序
+
+2019-2-11
+arbi: 支持一个策略接收多个合约的行情
+
+2019-1-28:
+x-dce has beed upgraded to X-One API V1.6.1.08
+
 2018-12-20
 x-zce:SettlePrice暂时存储成交金额(StdQuote5.turnover)（黄志平用）
 
