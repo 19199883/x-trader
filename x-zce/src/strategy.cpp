@@ -178,6 +178,7 @@ void Strategy::FeedInitPosition()
 	signal_t sigs[10];
 	int sig_cnt = 0;
 	strategy_init_pos_t init_pos;
+	memset(&init_pos, 0, sizeof(init_pos));
 
 	position_t &today_pos = init_pos._cur_pos;
 	today_pos.symbol_cnt = 2; 
