@@ -59,7 +59,7 @@ int main(/*int argc, const char **argv*/)
 	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);
 	SIGINT_act.sa_flags = 0;
-	sigaction(SIGUSR1, &SIGINT_act, NULL);
+	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// version
 	clog_warning("version:x-ees_2018-10-22_r"); 
