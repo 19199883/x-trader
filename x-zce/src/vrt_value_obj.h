@@ -6,7 +6,7 @@
 
 //#define LATENCY_MEASURE
 // 行情持久化开关
-#define PERSISTENCE_ENABLED
+// #define PERSISTENCE_ENABLED
 
 /*
  * 行情UDP通讯设置成非阻塞模式

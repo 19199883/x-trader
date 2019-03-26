@@ -522,7 +522,13 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 
-	this->tunn_rpt_producer_->ReqOrderAction(rptforcancel.ServerFlag, rptforcancel.OrderNo);
+	// TODO: debug on 2019032
+	int rtn = this->tunn_rpt_producer_->ReqOrderAction(rptforcancel.ServerFlag, rptforcancel.OrderNo);
+	if(rtn != 0){
+		clog_error("[%s] CancelOrder - return:%d, strategy id:%d, sig_id:%d, orig_sig_id:%d, "
+				   "ori_localorderid:%d", 
+				   module_name_, rtn, sig.st_id, sig.sig_id, sig.orig_sig_id);
+	}
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
