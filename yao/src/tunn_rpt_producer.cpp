@@ -112,15 +112,17 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 	return ret;
 }
 
+// done
 // 撤单操作请求
-int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
+int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 {
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	int counter = GetCounterByLocalOrderID(p->RequestID);
+	int localordid = stoi(p->OrderRef);
+	int counter = GetCounterByLocalOrderID(localordid);
 	cancel_requests_[counter] = true;
-	int ret = api_->ReqCancelOrder(p);
+	int ret = api_->ReqCancelOrder(p, 0);
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -130,85 +132,117 @@ int TunnRptProducer::ReqOrderAction(CX1FtdcCancelOrderField *p)
 
 	if (ret != 0){
 		clog_warning("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
+			module_name_, ret, CtpDatatypeFormater::ToString(p).c_str());
 	} else {
 		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, X1DatatypeFormater::ToString(p).c_str());
+			module_name_, ret, CtpDatatypeFormater::ToString(p).c_str());
 	}
 
 	return ret;
 }
 
 
-
+// done
 void TunnRptProducer::ReqLogin()
 {
-    CX1FtdcReqUserLoginField login_data;
-    memset(&login_data, 0, sizeof(CX1FtdcReqUserLoginField));
-    strncpy(login_data.AccountID, this->config_.userid.c_str(), sizeof(login_data.AccountID));
+    CThostFtdcReqUserLoginField login_data;
+    memset(&login_data, 0, sizeof(CThostFtdcReqUserLoginField));
+	strncpy(login_data.BrokerID, this->config_.brokerid.c_str(), sizeof(login_data.BrokerID));
+    strncpy(login_data.UserID, this->config_.userid.c_str(), sizeof(login_data.UserID));
     strncpy(login_data.Password, this->config_.password.c_str(), sizeof(login_data.Password));
     
-	int rtn = api_->ReqUserLogin(&login_data);
+	int rtn = api_->ReqUserLogin2(&login_data);
 
     clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
     clog_warning("[%s] ReqLogin:   %s", 
-			module_name_, X1DatatypeFormater::ToString(&login_data).c_str());
+			module_name_, CtpDatatypeFormater::ToString(&login_data).c_str());
 }
 
+// done
 void TunnRptProducer::OnFrontConnected()
 {
     clog_warning("[%s] OnFrontConnected.", module_name_);
 	this->ReqLogin();
 }
 
+// done
 void TunnRptProducer::OnFrontDisconnected(int nReason)
 {
     clog_error("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
 }
 
+// done
 void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
 {
-	// TODO:
+	clog_warning("[%s] OnHeartBeatWarning.", module_name_);
 }
 
-void TunnRptProducer::OnRspUserLogin(struct CX1FtdcRspUserLoginField* pfield, struct CX1FtdcRspErrorField * perror)
+// done
+void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
+	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     clog_warning("[%s] OnRspUserLogin:%s %s",
         module_name_,
-		X1DatatypeFormater::ToString(pfield).c_str(),
-        X1DatatypeFormater::ToString(perror).c_str());
+		CtpDatatypeFormater::ToString(pRspUserLogin).c_str(),
+        CtpDatatypeFormater::ToString(pRspInfo).c_str());
 
-    if (perror == NULL) {
-		clog_warning("[%s] OnRspUserLogin,error: %d", module_name_, pfield->LoginResult);
+	strcpy(this->TradingDay_, pRspUserLogin->TradingDay);
+	this->FrontID_ = pRspUserLogin->FrontID;	
+	this->SessionID_ = pRspUserLogin->SessionID;	
+	this->MaxOrderRef_ = pRspUserLogin->MaxOrderRef;
+	
+    if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
+		clog_warning("[%s] OnRspUserLogin successfully.", module_name_);
     }
     else {
-		clog_error("[%s] OnRspUserLogin, error: %d", module_name_, perror->ErrorID);
+		clog_error("[%s] OnRspUserLogin, error: %d, msg: %s", module_name_, 
+			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
     }
 }
 
-void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, struct CX1FtdcRspErrorField * pe)
+// done
+void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, 
+	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     clog_info("[%s] OnRspUserLogout:%s %s",
         module_name_,
-		X1DatatypeFormater::ToString(pf).c_str(),
-        X1DatatypeFormater::ToString(pe).c_str());
-}
-
-
-void TunnRptProducer::End()
-{
-	if(!ended_){
-		ended_ = true;
-		if (api_) {
+		CtpDatatypeFormater::ToString(pUserLogout).c_str(),
+        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+		
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
+		clog_warning("[%s] OnRspUserLogout successfully.", module_name_);
+		if (NULL != api_) {
 			api_->Release();
 			api_ = NULL;
 			clog_warning("[%s]api release.", module_name_);
 		}
 		(vrt_producer_eof(producer_));
 		clog_warning("[%s] End exit", module_name_);
+    }
+    else {
+		clog_error("[%s] OnRspUserLogout, error: %d, msg: %s", module_name_, 
+			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+    }
+}
+
+// done
+void TunnRptProducer::End()
+{
+	if(!ended_){
+		CThostFtdcUserLogoutField logoutinfo = {0};		 
+		strncpy(logoutinfo.BrokerID, this->config_.brokerid.c_str(), sizeof(logoutinfo.BrokerID));
+		strncpy(logoutinfo.UserID, this->config_.userid.c_str(), sizeof(logoutinfo.UserID));		    
+		int rtn = api_->ReqUserLogout(&logoutinfo);
+		
+		ended_ = true;		
 	}
 }
 
+// TODO: to here
+
+
+//////////////////////////////////////
+/////////////// old below
 void TunnRptProducer::OnRspInsertOrder(struct CX1FtdcRspOperOrderField* pfield, struct CX1FtdcRspErrorField* perror)
 {
     clog_debug("[%s] OnRspInsertOrder ended_:%d", ended_);

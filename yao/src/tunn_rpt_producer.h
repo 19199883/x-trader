@@ -109,6 +109,12 @@ private:
 	int32_t Push();
 
 	CThostFtdcTraderApi *api_;
+	char TradingDay_[9];
+	TThostFtdcFrontIDType	FrontID_;
+	///会话编号
+	TThostFtdcSessionIDType	SessionID_;
+	///最大报单引用
+	TThostFtdcOrderRefType	MaxOrderRef_;
 };
 
 #endif

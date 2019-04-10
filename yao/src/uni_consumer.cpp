@@ -613,6 +613,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 #endif
 }
 
+// done
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
@@ -628,7 +629,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.OrderStatus = X1_FTDC_SPD_ERROR; 
+		rpt.OrderStatus = THOST_FTDC_OAS_Rejected; 
 		rpt.ErrorID = -1; 
 		int32_t sigidx = strategy.GetSignalIdxBySigId(sig.sig_id);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
@@ -641,12 +642,13 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	}
 
 	// TODO: to here
-	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(sig,localorderid,updated_vol);
+	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
+		sig, localorderid, updated_vol);
 
 #ifdef COMPLIANCE_CHECK
-	int32_t counter = strategy.GetCounterByLocalOrderID(ord->LocalOrderID);
+	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID,
-				ord->InsertPrice,ord->BuySellType, ord->OpenCloseType);
+				ord->LimitPrice,ord->Direction, ord->CombOffsetFlag[0]);
 	if(result){
 #endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
@@ -654,12 +656,12 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 		if(!legal_){ // illegal user
-			MDBestAndDeep_MY* data = md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
+			YaoQuote* data = md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
 			while(true){
-				if(X1_FTDC_SPD_BUY==ord->BuySellType){
+				if(THOST_FTDC_D_Buy==ord->Direction){
 					ord->InsertPrice = data->RiseLimit;// uppet limit
 				}
-				else if(X1_FTDC_SPD_SELL==ord->BuySellType){
+				else if(THOST_FTDC_D_Sell==ord->Direction){
 					ord->InsertPrice = data->FallLimit;// lowerest limit
 				}
 				tunn_rpt_producer_->ReqOrderInsert(ord);
@@ -674,14 +676,14 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		if(rtn != 0){ // feed rejeted info
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
-			rpt.LocalOrderID = ord->LocalOrderID;
-			rpt.OrderStatus = X1_FTDC_SPD_ERROR;
+			rpt.LocalOrderID = localorderid;
+			rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
 			rpt.ErrorID = rtn;
 
 			compliance_.End(counter);
 
 			int sig_cnt = 0;
-			int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
+			int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(localorderid);
 			strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 
 			// strategy log
@@ -691,13 +693,13 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_warning("[%s] matched with myself:%ld", module_name_, ord->LocalOrderID);
+		clog_warning("[%s] matched with myself:%ld", module_name_, localorderid);
 
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.LocalOrderID = ord->LocalOrderID;
-		rpt.OrderStatus = X1_FTDC_SPD_ERROR;
+		rpt.LocalOrderID = localorderid;
+		rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
 		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
