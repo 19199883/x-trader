@@ -238,27 +238,68 @@ void TunnRptProducer::End()
 	}
 }
 
-// TODO: to here
+// done
 void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	 clog_info("[%s] OnRspOrderInsert:%s %s",
+	if (ended_) return;
+	
+	 clog_info("[%s] OnRspOrderInsert:%s %s; bIsLast: %d",
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+        CtpDatatypeFormater::ToString(pRspInfo).c_str(),
+		bIsLast);
 		
-	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
-		// TODO: logic
-		
-    }else {
-		// TODO: 写错误日志
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
+    }else {		
 		 clog_error("[%s] OnRspOrderInsert:%s %s",
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
-		
-		// TODO: logic
+				
+		int32_t cursor = Push();		
+		struct TunnRpt &rpt = rpt_buffer_[cursor];	 // LocalOrderID也只需要赋值一次	
+		rpt.LocalOrderID = stoi(pInputOrder->OrderRef);
+		rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
+		rpt.ErrorID = perror->ErrorID;
+
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		(vrt_producer_claim(producer_, &vvalue));
+		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+		ivalue->index = cursor;
+		ivalue->data = TUNN_RPT;
+	
+		clog_info("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%s",
+			module_name_, ivalue->index, ivalue->data, pfield->OrderRef);
+	
+		(vrt_producer_publish(producer_));
 	}
+}
+
+// done
+void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, 
+	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	clog_info("[%s] pInputOrderAction:%s %s; bIsLast: %d",
+        module_name_,
+		CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
+        CtpDatatypeFormater::ToString(pRspInfo).c_str(),
+		bIsLast);
+		
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
+    }else {		
+		 clog_error("[%s] pInputOrderAction:%s %s",
+        module_name_,
+		CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
+        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+}
+		
+// TODO: to here
+void TunnRptProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, 
+	int nRequestID, bool bIsLast)
+{
+		
 }
 	
 

@@ -417,24 +417,24 @@ void L1MDProducer::InitMDApi()
 	tcp_info.m_eqsPort = this->config_.mcPort;
 	vector<EqsTcpInfo> vecTcp;
 	vecTcp.push_back(tcp_info);
-	bool rtn = api_->ConnServer(vecTcp, this);
-	clog_warning("[%s] ConnectServer invoke:%d - mc ip:%s, mc port:%d,",
-				module_name_, (int)rtn, vecTcp[0].m_eqsIp, vecTcp[0].m_eqsPort);
+	// bool rtn = api_->ConnServer(vecTcp, this);
+	//clog_warning("[%s] ConnectServer invoke:%d - mc ip:%s, mc port:%d,",
+	//			module_name_, (int)rtn, vecTcp[0].m_eqsIp, vecTcp[0].m_eqsPort);
 
 	// multicast
-//	EqsMulticastInfo emi;
-//	strcpy(emi. m_mcIp, this->config_.mcIp);
-//	emi.m_mcPort = this->config_.mcPort;
-//	strcpy(emi. m_mcLoacalIp, this->config_.mcLocalIp);
-//	emi. m_mcLocalPort = this->config_.mcLocalPort;	
-//	strcpy(emi.m_exchangeId, "SHFE");
-//	vector<EqsMulticastInfo> vecEmi;
-//	vecEmi.push_back(emi);
-//	bool rtn = this->api_->InitMulticast(vecEmi, this);
-//	clog_warning("[%s] InitMulticast invoke:%d - mc ip:%s, mc port:%d,"
-//				"mc local ip:%s, mc local port:%d, exchange:%s",
-//				module_name_, (int)rtn, vecEmi[0].m_mcIp, vecEmi[0].m_mcPort, 
-//				vecEmi[0].m_mcLoacalIp, vecEmi[0].m_mcLocalPort, vecEmi[0].m_exchangeId);
+	EqsMulticastInfo emi;
+	strcpy(emi. m_mcIp, this->config_.mcIp);
+	emi.m_mcPort = this->config_.mcPort;
+	strcpy(emi. m_mcLoacalIp, this->config_.mcLocalIp);
+	emi. m_mcLocalPort = this->config_.mcLocalPort;	
+	strcpy(emi.m_exchangeId, "SHFE");
+	vector<EqsMulticastInfo> vecEmi;
+	vecEmi.push_back(emi);
+	bool rtn = this->api_->InitMulticast(vecEmi, this);
+	clog_warning("[%s] InitMulticast invoke:%d - mc ip:%s, mc port:%d,"
+				"mc local ip:%s, mc local port:%d, exchange:%s",
+				module_name_, (int)rtn, vecEmi[0].m_mcIp, vecEmi[0].m_mcPort, 
+				vecEmi[0].m_mcLoacalIp, vecEmi[0].m_mcLocalPort, vecEmi[0].m_exchangeId);
 }
 
 
@@ -486,7 +486,7 @@ void L1MDProducer::OnEqsDisconnected()
 void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType, 
 			EESMarketDepthQuoteData* data_src)
 {
-	clog_info("[%s] OnQuoteUpdated invoked.", module_name_);
+	clog_warning("[%s] OnQuoteUpdated invoked.", module_name_);
 	
 	if(EQS_FUTURE != chInstrumentType) return;
 
@@ -514,7 +514,7 @@ void L1MDProducer::OnQuoteUpdated(EesEqsIntrumentType chInstrumentType,
 #ifdef PERSISTENCE_ENABLED 
     timeval t;
     gettimeofday(&t, NULL);
-    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
+    p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &data);
 #endif
 }
 
