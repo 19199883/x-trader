@@ -239,7 +239,28 @@ void TunnRptProducer::End()
 }
 
 // TODO: to here
-
+void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
+	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+	 clog_info("[%s] OnRspOrderInsert:%s %s",
+        module_name_,
+		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
+        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+		
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
+		// TODO: logic
+		
+    }else {
+		// TODO: 写错误日志
+		 clog_error("[%s] OnRspOrderInsert:%s %s",
+        module_name_,
+		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
+        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+		
+		// TODO: logic
+	}
+}
+	
 
 //////////////////////////////////////
 /////////////// old below

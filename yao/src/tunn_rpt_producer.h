@@ -76,15 +76,15 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		//委托撤单响应
 		virtual void OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 		
-			virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
-			///报单通知
-			virtual void OnRtnOrder(CThostFtdcOrderField *pOrder);
-			///成交通知
-			virtual void OnRtnTrade(CThostFtdcTradeField *pTrade);
-			///报单录入错误回报
-			virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo);
-			//报单操作错误回报
-			virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, CThostFtdcRspInfoField *pRspInfo);
+		virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		///报单通知
+		virtual void OnRtnOrder(CThostFtdcOrderField *pOrder);
+		///成交通知
+		virtual void OnRtnTrade(CThostFtdcTradeField *pTrade);
+		///报单录入错误回报
+		virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo);
+		//报单操作错误回报
+		virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, CThostFtdcRspInfoField *pRspInfo);
 
 private:
     void ParseConfig();
