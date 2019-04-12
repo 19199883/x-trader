@@ -212,6 +212,7 @@ void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
 		clog_warning("[%s] OnRspUserLogout successfully.", module_name_);
 		if (NULL != api_) {
+			api_->RegisterSpi(NULL);
 			api_->Release();
 			api_ = NULL;
 			clog_warning("[%s]api release.", module_name_);
@@ -223,6 +224,20 @@ void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
 		clog_error("[%s] OnRspUserLogout, error: %d, msg: %s", module_name_, 
 			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
     }
+}
+
+// done
+bool TunnRptProducer::IsFinal(TThostFtdcOrderStatusType   OrderStatus)
+{
+	if(THOST_FTDC_OST_AllTraded==OrderStatus ||
+		THOST_FTDC_OST_Canceled==OrderStatus ||
+		THOST_FTDC_OST_NoTradeNotQueueing==OrderStatus ||
+		THOST_FTDC_OST_PartTradedNotQueueing==OrderStatus ||
+		THOST_FTDC_OAS_Rejected==OrderStatus){
+			return true;
+		}else{
+			return false;
+		}
 }
 
 // done
@@ -295,13 +310,78 @@ void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOr
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
 }
 		
-// TODO: to here
+// done
 void TunnRptProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, 
 	int nRequestID, bool bIsLast)
 {
-		
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
+    }else {		
+		 clog_error("[%s] pInputOrderAction:%s",
+        module_name_,		
+        CtpDatatypeFormater::ToString(pRspInfo).c_str());	
 }
 	
+// done
+void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
+{
+	if (ended_) return;
+
+    clog_info("[%s] OnRtnOrder:%s", module_name_, CtpDatatypeFormater::ToString(pOrder).c_str());
+
+	if (pOrder->OrderStatus == THOST_FTDC_OAS_Rejected){
+		clog_warning("[%s] OnRtnOrder:%s",
+			module_name_,
+			CtpDatatypeFormater::ToString(pOrder).c_str());
+	}
+
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	rpt.LocalOrderID = stoi(pOrder->OrderRef);
+	rpt.OrderStatus = pOrder->OrderStatus;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+
+	clog_debug("[%s] OnRtnOrder: index,%d; data,%d; OrderRef:%s",
+		module_name_, ivalue->index, ivalue->data, pOrder->OrderRef);
+
+	(vrt_producer_publish(producer_));
+}
+
+// TODO: 如何自动处理平今仓，平昨仓问题 启动时查仓位
+
+// TODO: to here
+void TunnRptProducer::OnRtnTrade(CThostFtdcTradeField *pTrade)
+{
+	if (ended_) return;
+
+    clog_info("[%s] OnRtnTrade:%s", module_name_, CtpDatatypeFormater::ToString(pTrade).c_str());
+
+	int32_t cursor = Push();
+	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	rpt.LocalOrderID = stoi(pfield->OrderRef);
+	// TODO: 因为没有状态，所以需要在strategy中根据累计成交量来确定部分成交还是完全成交
+	rpt.OrderStatus = pfield->OrderStatus;
+	rpt.MatchedAmount = pfield->MatchedAmount;
+	rpt.MatchedPrice = pfield->MatchedPrice;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	(vrt_producer_claim(producer_, &vvalue));
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+
+	clog_info("[%s] OnRtnTrade: index,%d; data,%d; LocalOrderID:%ld",
+				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
+
+	(vrt_producer_publish(producer_));
+}
+
 
 //////////////////////////////////////
 /////////////// old below

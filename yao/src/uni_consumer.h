@@ -50,7 +50,7 @@ class CtpFieldConverter
 			new_order_.TimeCondition = THOST_FTDC_TC_GFD;
 			strcpy(new_order_.GTDDate, "");
 			new_order_.VolumeCondition = THOST_FTDC_VC_AV;
-			new_order_.MinVolume = 0;
+			new_order_.MinVolume = 1;
 			new_order_.ContingentCondition = THOST_FTDC_CC_Immediately;
 			new_order_.StopPrice = 0;
 			// 强平原因

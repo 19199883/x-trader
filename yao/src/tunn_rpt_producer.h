@@ -33,6 +33,8 @@ struct TunnRpt
 	TThostFtdcVolumeType        MatchedAmount;  ///< 成交数量
 	TThostFtdcPriceType         MatchedPrice;   ///< 成交价格
 	TThostFtdcErrorIDType       ErrorID;        ///< 错误ID
+	TThostFtdcExchangeIDType	ExchangeID;
+	TThostFtdcOrderSysIDType	OrderSysID;
 };
 
 class TunnRptProducer: public CThostFtdcTraderSpi
@@ -89,6 +91,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 private:
     void ParseConfig();
     void ReqLogin();
+	bool IsFinal(TThostFtdcOrderStatusType   OrderStatus);
 
 	struct vrt_producer  *producer_;
 	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
