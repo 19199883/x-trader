@@ -594,6 +594,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		return;
 	}
 	
+	// TODO: sessionid, frontid, ordref, exchangeid, ordsysid
     CX1FtdcCancelOrderField cancel_order;
     memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
 	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);

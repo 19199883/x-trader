@@ -273,7 +273,8 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
 				
 		int32_t cursor = Push();		
-		struct TunnRpt &rpt = rpt_buffer_[cursor];	 // LocalOrderID也只需要赋值一次	
+		struct TunnRpt &rpt = rpt_buffer_[cursor];	 // LocalOrderID也只需要赋值一次
+		
 		rpt.LocalOrderID = stoi(pInputOrder->OrderRef);
 		rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
 		rpt.ErrorID = perror->ErrorID;
@@ -284,11 +285,11 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 		ivalue->index = cursor;
 		ivalue->data = TUNN_RPT;
-	
+		
 		clog_info("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%s",
 			module_name_, ivalue->index, ivalue->data, pfield->OrderRef);
-	
-		(vrt_producer_publish(producer_));
+		
+		(vrt_producer_publish(producer_));		
 	}
 }
 
@@ -335,9 +336,10 @@ void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
 	}
 
 	int32_t cursor = Push();
-	struct TunnRpt &rpt = rpt_buffer_[cursor];
+	struct TunnRpt &rpt = rpt_buffer_[cursor];	
 	rpt.LocalOrderID = stoi(pOrder->OrderRef);
 	rpt.OrderStatus = pOrder->OrderStatus;
+	strcpy(rpt.OrderSysID, pOrder->OrderSysID);
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -349,7 +351,7 @@ void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
 	clog_debug("[%s] OnRtnOrder: index,%d; data,%d; OrderRef:%s",
 		module_name_, ivalue->index, ivalue->data, pOrder->OrderRef);
 
-	(vrt_producer_publish(producer_));
+	(vrt_producer_publish(producer_));	
 }
 
 // TODO: 如何自动处理平今仓，平昨仓问题 启动时查仓位
@@ -363,11 +365,11 @@ void TunnRptProducer::OnRtnTrade(CThostFtdcTradeField *pTrade)
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
-	rpt.LocalOrderID = stoi(pfield->OrderRef);
+	rpt.LocalOrderID = stoi(pTrade->OrderRef);
 	// TODO: 因为没有状态，所以需要在strategy中根据累计成交量来确定部分成交还是完全成交
-	rpt.OrderStatus = pfield->OrderStatus;
-	rpt.MatchedAmount = pfield->MatchedAmount;
-	rpt.MatchedPrice = pfield->MatchedPrice;
+	rpt.OrderStatus = THOST_FTDC_OST_Unknown; // 因ctp状态与成交是分开返回的
+	rpt.MatchedAmount = pTrade->Volume;
+	rpt.MatchedPrice = pTrade->Price;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -377,7 +379,7 @@ void TunnRptProducer::OnRtnTrade(CThostFtdcTradeField *pTrade)
 	ivalue->data = TUNN_RPT;
 
 	clog_info("[%s] OnRtnTrade: index,%d; data,%d; LocalOrderID:%ld",
-				module_name_, ivalue->index, ivalue->data, pfield->LocalOrderID);
+		module_name_, ivalue->index, ivalue->data, rpt->LocalOrderID);
 
 	(vrt_producer_publish(producer_));
 }
