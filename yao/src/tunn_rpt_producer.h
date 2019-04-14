@@ -3,6 +3,7 @@
 
 #include <array>
 #include <string>
+#include <unordered_map>
 #include "vrt_value_obj.h"
 #include "ThostFtdcTraderApi.h"
 
@@ -49,7 +50,8 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		// 下发指令接口
 		int ReqOrderInsert(CThostFtdcInputOrderField *p);
 		// 撤单操作请求
-		int ReqOrderAction(CThostFtdcInputOrderActionField *p);
+		int ReqOrderAction(CThostFtdcInputOrderActionField *p,const char*ordref, 
+			const char*exchageid, const char*ordersysid);
 		/*
 		 * things relating to x-trader internal logic
 		 */
@@ -87,6 +89,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		virtual void OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, CThostFtdcRspInfoField *pRspInfo);
 		//报单操作错误回报
 		virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, CThostFtdcRspInfoField *pRspInfo);
+		virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 private:
     void ParseConfig();
@@ -119,6 +122,8 @@ private:
 	///最大报单引用
 	TThostFtdcOrderRefType	MaxOrderRef_;
 	int counter_;
+	// key: 合约；value：仓位对象
+	std::unordered_map<std::string,CThostFtdcInvestorPositionField> positions_;
 };
 
 #endif

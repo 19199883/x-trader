@@ -39,7 +39,13 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	const char* ver = CThostFtdcTraderApi::GetApiVersion();
 	clog_warning("[%s] ctp version: %s.", module_name_, ver);
 
-    api_ = CThostFtdcTraderApi::CreateFtdcTraderApi(); 
+	//Create Directory
+    char cur_path[256];
+    char full_path[256];
+    getcwd(cur_path, sizeof(cur_path));
+    sprintf(full_path, "%s/ctp_flow_dir_%s", cur_path, this->config_.userid.c_str());
+	if (opendir(full_path) == NULL) mkdir(full_path, 0755);    
+    api_ = CThostFtdcTraderApi::CreateFtdcTraderApi(full_path); 
     api_->RegisterSpi(this);
     api_->SubscribePrivateTopic(THOST_TERT_QUICK);
     api_->SubscribePublicTopic(THOST_TERT_QUICK);
@@ -92,7 +98,7 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	int ret = api_->ReqInsertOrder(p, 0);
+	int ret = api_->ReqInsertOrder(p, 1); // requestid==1，表示是下单请求
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -114,7 +120,8 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 
 // done
 // 撤单操作请求
-int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
+int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p,
+	const char*ordref, const char*exchageid, const char*ordersysid)
 {
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -122,12 +129,18 @@ int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 	int localordid = stoi(p->OrderRef);
 	int counter = GetCounterByLocalOrderID(localordid);
 	cancel_requests_[counter] = true;
-	int ret = api_->ReqCancelOrder(p, 0);
+	p->sessionid = this->sessionid_;
+    p->frontid = this->frontid_;
+	strncpy(p->OrderRef, ordref, sizeof(p->OrderRef));
+	strncpy(p->ExchangeID, exchageid, sizeof(p->ExchangeID));
+	strncpy(p->OrderSysID, ordersysid, sizeof(p->OrderSysID));
+ 
+	int ret = api_->ReqCancelOrder(p, 2); // requestid==2，表示是撤单请求
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
 		clog_warning("[%s] ReqOrderAction latency:%d us", 
-					module_name_,latency); 
+			module_name_,latency); 
 #endif
 
 	if (ret != 0){
@@ -189,11 +202,18 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 	strcpy(this->TradingDay_, pRspUserLogin->TradingDay);
 	this->FrontID_ = pRspUserLogin->FrontID;	
 	this->SessionID_ = pRspUserLogin->SessionID;	
-	this->MaxOrderRef_ = pRspUserLogin->MaxOrderRef;
+	strncpy(this->MaxOrderRef_, pRspUserLogin->MaxOrderRef, sizeof(this->MaxOrderRef_));
 	this->counter_ = GetCounterByLocalOrderID(stoi(this->MaxOrderRef_));
 	
     if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
 		clog_warning("[%s] OnRspUserLogin successfully.", module_name_);
+		
+		CThostFtdcSettlementInfoConfirmField req;
+        memset(&req, 0, sizeof(req));
+        strncpy(req.BrokerID, this->config_.brokerid.c_str(), sizeof(TThostFtdcBrokerIDType));
+        strncpy(req.InvestorID, this->config_.userid.c_str(), sizeof(TThostFtdcInvestorIDType));
+        int ret = api_->ReqSettlementInfoConfirm(&req, 0);
+        clog_warning("[%s] ReqSettlementInfoConfirm, return: %d", module_name_, ret);
     }
     else {
 		clog_error("[%s] OnRspUserLogin, error: %d, msg: %s", module_name_, 
@@ -446,14 +466,19 @@ int32_t TunnRptProducer::Push()
 	return cursor;
 }
 
-void TunnRptProducer::OnRspQryPosition(struct CX1FtdcRspPositionField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
-{
-}
+void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, 
+	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 
-void TunnRptProducer::OnRspQryPositionDetail(struct CX1FtdcRspPositionDetailField* pf, struct CX1FtdcRspErrorField* pe, bool bIsLast)
 {
+	clog_warning("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d,
+        module_name_,
+		CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
+        CtpDatatypeFormater::ToString(pRspInfo).c_str(),
+		bIsLast);	
+	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {		
+		positions_[pInvestorPosition->InstrumentID] = *pInvestorPosition;
+    }
 }
-
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
 {	
