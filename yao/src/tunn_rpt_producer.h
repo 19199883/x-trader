@@ -118,6 +118,7 @@ private:
 	TThostFtdcSessionIDType	SessionID_;
 	///最大报单引用
 	TThostFtdcOrderRefType	MaxOrderRef_;
+	int counter_;
 };
 
 #endif
