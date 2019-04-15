@@ -62,6 +62,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		int32_t GetCounterByLocalOrderID(long local_ord_id);
 
 		void End();
+		bool IsReady();
 
 	private:
 		/*
@@ -90,6 +91,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		//报单操作错误回报
 		virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, CThostFtdcRspInfoField *pRspInfo);
 		virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		virtual void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 private:
     void ParseConfig();
@@ -124,6 +126,9 @@ private:
 	int counter_;
 	// key: 合约；value：仓位对象
 	std::unordered_map<std::string,CThostFtdcInvestorPositionField> positions_;
+	
+	bool position_ready_;
+	
 };
 
 #endif

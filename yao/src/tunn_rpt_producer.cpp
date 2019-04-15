@@ -14,6 +14,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
 	ended_ = false;
+	position_ready_ = false;
 
 	for(auto &item : cancel_requests_) item = false;
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
@@ -214,11 +215,32 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         strncpy(req.InvestorID, this->config_.userid.c_str(), sizeof(TThostFtdcInvestorIDType));
         int ret = api_->ReqSettlementInfoConfirm(&req, 0);
         clog_warning("[%s] ReqSettlementInfoConfirm, return: %d", module_name_, ret);
-    }
-    else {
+		
+		// 查询仓位
+		CThostFtdcQryInvestorPositionField a = { 0 };
+		strcpy_s(a.BrokerID, this->config_.brokerid.c_str());
+		strcpy_s(a.InvestorID, this->config_.userid.c_str());
+		strcpy_s(a.InstrumentID, "");//不填写合约则返回所有持仓
+		int rtn = api_->ReqQryInvestorPosition(&a, 0);
+		if(0 != rtn){
+			 clog_error("[%s] ReqQryInvestorPosition, return: %d", module_name_, ret);
+			 exit (EXIT_FAILURE);
+		}
+
+    }else {
 		clog_error("[%s] OnRspUserLogin, error: %d, msg: %s", module_name_, 
 			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
     }
+}
+
+void TunnRptProducer::::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
+    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{    
+     clog_warning("[%s] OnRspSettlementInfoConfirm: requestid = %d, last_flag=%d \n%s \n%s",
+         module_name_,
+		 nRequestID, bIsLast,
+         CTPDatatypeFormater::ToString(pSettlementInfoConfirm).c_str(),
+         CTPDatatypeFormater::ToString(pRspInfo).c_str());    
 }
 
 // done
@@ -477,7 +499,26 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 		bIsLast);	
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {		
 		positions_[pInvestorPosition->InstrumentID] = *pInvestorPosition;
-    }
+    }else{
+		clog_error("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d,
+        module_name_,
+		CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
+        CtpDatatypeFormater::ToString(pRspInfo).c_str(),
+		bIsLast);	
+		
+		exit (EXIT_FAILURE);
+	}
+	
+	if(bIsLast) position_ready_ = true;
+}
+
+bool TunnRptProducer::IsReady()
+{
+	if(position_ready_){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
