@@ -33,68 +33,7 @@ struct Uniconfig
 	char yield[20];
 };
 
-class CtpFieldConverter
-{
-	public:
-		static void InitNewOrder(const char *userid, const char* brokerid)
-		{
-			// done
-			memset(&new_order_, 0, sizeof(CThostFtdcInputOrderField));
 
-			new_order_.RequestID = 0;
-			strncpy(new_order_.BrokerID, brokerid, sizeof(TThostFtdcBrokerIDType));
-			strncpy(new_order_.InvestorID, userid, sizeof(TThostFtdcInvestorIDType));
-			strncpy(new_order_.UserID, userid, sizeof(TThostFtdcInvestorIDType));
-			new_order_.OrderPriceType = THOST_FTDC_OPT_LimitPrice;
-			new_order_.CombHedgeFlag[0] = THOST_FTDC_HF_Speculation;
-			new_order_.TimeCondition = THOST_FTDC_TC_GFD;
-			strcpy(new_order_.GTDDate, "");
-			new_order_.VolumeCondition = THOST_FTDC_VC_AV;
-			new_order_.MinVolume = 1;
-			new_order_.ContingentCondition = THOST_FTDC_CC_Immediately;
-			new_order_.StopPrice = 0;
-			// 强平原因
-			new_order_.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;
-			// 自动挂起标志
-			new_order_.IsAutoSuspend = 0;
-			//用户强平标志
-			new_order_.UserForceClose = 0;
-		}
-
-		static CX1FtdcInsertOrderField*  Convert(const signal_t& sig,long localorderid,int32_t vol)
-		{
-			new_order_.LocalOrderID = localorderid;
-			new_order_.RequestID = localorderid;
-			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
-
-			if (sig.sig_act == signal_act_t::buy){
-				new_order_.InsertPrice = sig.buy_price;
-				new_order_.BuySellType = X1_FTDC_SPD_BUY;
-			}else if (sig.sig_act == signal_act_t::sell){
-				new_order_.InsertPrice = sig.sell_price;
-				new_order_.BuySellType = X1_FTDC_SPD_SELL;
-			}else{
-				 clog_warning("[%s] do support BuySellType value:%d; sig id:%d", "X1FieldConverter",
-					new_order_.BuySellType, sig.sig_id); 
-			}
-
-			if (sig.sig_openclose == alloc_position_effect_t::open_){
-				new_order_.OpenCloseType = X1_FTDC_SPD_OPEN;
-			}else if (sig.sig_openclose == alloc_position_effect_t::close_){
-				new_order_.OpenCloseType = X1_FTDC_SPD_CLOSE;
-			}else{
-				clog_warning("[%s] do support sig_openclose value:%d; sig id:%d", "X1FieldConverter",
-				sig.sig_openclose, sig.sig_id); 
-			}
-
-			new_order_.OrderAmount = vol;
-
-			return &new_order_;
-		}
-
-	private:
-		static CThostFtdcInputOrderField new_order_;
-};
 
 class UniConsumer
 {

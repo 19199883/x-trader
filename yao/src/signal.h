@@ -12,7 +12,7 @@ struct StrategyLog1{
 enum exchange_names
 {
 	// SHANGHAI FUTURES EXCHANGE
-	XSGE = 'A',
+	SHFE = 'A',
 
 	// CHINA FINANCIAL FUTURES EXCHANGE
 	CCFX = 'G',

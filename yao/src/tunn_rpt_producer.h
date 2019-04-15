@@ -38,6 +38,81 @@ struct TunnRpt
 	TThostFtdcOrderSysIDType	OrderSysID;
 };
 
+class CtpFieldConverter
+{
+	public:
+		static void InitNewOrder(const char *userid, const char* brokerid)
+		{
+			// done
+			memset(&new_order_, 0, sizeof(CThostFtdcInputOrderField));
+
+			new_order_.RequestID = 0;
+			strncpy(new_order_.BrokerID, brokerid, sizeof(TThostFtdcBrokerIDType));
+			strncpy(new_order_.InvestorID, userid, sizeof(TThostFtdcInvestorIDType));
+			strncpy(new_order_.UserID, userid, sizeof(TThostFtdcInvestorIDType));
+			new_order_.OrderPriceType = THOST_FTDC_OPT_LimitPrice;
+			new_order_.CombHedgeFlag[0] = THOST_FTDC_HF_Speculation;
+			new_order_.TimeCondition = THOST_FTDC_TC_GFD;
+			strcpy(new_order_.GTDDate, "");
+			new_order_.VolumeCondition = THOST_FTDC_VC_AV;
+			new_order_.MinVolume = 1;
+			new_order_.ContingentCondition = THOST_FTDC_CC_Immediately;
+			new_order_.StopPrice = 0;
+			// 强平原因
+			new_order_.ForceCloseReason = THOST_FTDC_FCC_NotForceClose;
+			// 自动挂起标志
+			new_order_.IsAutoSuspend = 0;
+			//用户强平标志
+			new_order_.UserForceClose = 0;
+		}
+
+		/*
+			将策略产生的信号等信息生成ctp需要的下单对象
+		*/
+		static CThostFtdcInputOrderField*  Convert(const signal_t& sig,long localorderid,int32_t vol)
+		{			
+			if(exchange_names::SHFE == sig.exchange){
+				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_SHFE, sizeof(new_order_.ExchangeID));
+			}else if(exchange_names::XDCE == sig.exchange){
+				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_DCE, sizeof(new_order_.ExchangeID));
+			}else if(exchange_names::XZCE == sig.exchange){
+				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_CZCE, sizeof(new_order_.ExchangeID));
+			}
+			
+			new_order_.RequestID = OEDERINSERT_REQUESTID;
+			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(new_order_.InstrumentID));
+			snprintf(new_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%lld", localorderid);
+ 
+			if (sig.sig_act == signal_act_t::buy){
+				new_order_.LimitPrice = sig.buy_price;
+				new_order_.Direction = THOST_FTDC_D_Buy;
+			}else if (sig.sig_act == signal_act_t::sell){
+				new_order_.LimitPrice = sig.sell_price;
+				new_order_.Direction = THOST_FTDC_D_Sell;
+			}else{
+				 clog_warning("[%s] do support Direction value:%d; sig id:%d", "CtpFieldConverter",
+					new_order_.Direction, sig.sig_id); 
+			}
+
+			// TODO: 是否平今还是平昨，需要根据市场和昨仓决定
+			if (sig.sig_openclose == alloc_position_effect_t::open_){
+				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
+			}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Close;
+			}else{
+				clog_warning("[%s] do support sig_openclose value:%d; sig id:%d", "CtpFieldConverter",
+				sig.sig_openclose, sig.sig_id); 
+			}
+
+			new_order_.VolumeTotalOriginal = vol;
+
+			return &new_order_;
+		}
+
+	private:
+		static CThostFtdcInputOrderField new_order_;
+};
+
 class TunnRptProducer: public CThostFtdcTraderSpi
 {
 	public:
