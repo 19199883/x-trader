@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include <dlfcn.h>
 #include <string>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 
 #include <signal.h>     /* signal */
 #include "vrt_value_obj.h"
@@ -74,6 +76,9 @@ int main(/*int argc, const char **argv*/)
 	l2_md_producer = new L2MDProducer(queue);
 	l1_md_producer = new TapMDProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
+	while(!tunnRptProducer->IsReady()){
+		std::this_thread::sleep_for (std::chrono::seconds(1));
+	}
 	uniConsumer = new UniConsumer (queue, l1_md_producer, l2_md_producer, tunnRptProducer);
 	uniConsumer->Start();
 
