@@ -7,7 +7,7 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 
-CX1FtdcInsertOrderField X1FieldConverter::new_order_;
+
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer)
@@ -21,7 +21,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
-	X1FieldConverter::InitNewOrder(tunn_rpt_producer_->GetAccount());
+	
 
 	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
@@ -594,7 +594,9 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		return;
 	}
 	
+	// TODO: to here 1
 	// TODO: sessionid, frontid, ordref, exchangeid, ordsysid
+	signal_t *orig_sig = strategy.GetSignalBySigID(ori_sigid);
     CX1FtdcCancelOrderField cancel_order;
     memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
 	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);

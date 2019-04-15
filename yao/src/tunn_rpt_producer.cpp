@@ -34,6 +34,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
+		
 	// create ctp object
 	char addr[2048];
 	strcpy(addr, this->config_.address.c_str());
@@ -99,7 +100,7 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	int ret = api_->ReqInsertOrder(p, 1); // requestid==1，表示是下单请求
+	int ret = api_->ReqInsertOrder(p, OEDERINSERT_REQUESTID); // requestid==1，表示是下单请求
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -136,7 +137,7 @@ int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p,
 	strncpy(p->ExchangeID, exchageid, sizeof(p->ExchangeID));
 	strncpy(p->OrderSysID, ordersysid, sizeof(p->OrderSysID));
  
-	int ret = api_->ReqCancelOrder(p, 2); // requestid==2，表示是撤单请求
+	int ret = api_->ReqCancelOrder(p, ORDERCANCEL_REQUESTID); // requestid==2，表示是撤单请求
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -209,6 +210,11 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
 		clog_warning("[%s] OnRspUserLogin successfully.", module_name_);
 		
+		// TODO:
+		CtpFieldConverter::InitNewOrder(this->config_.userid.c_str(), this->config_.brokerid.c_str());
+		CtpFieldConverter::InitCancelOrder(this->config_.userid.c_str(), 
+			this->config_.brokerid.c_str(), this->FrontID_, this->SessionID_);
+	
 		CThostFtdcSettlementInfoConfirmField req;
         memset(&req, 0, sizeof(req));
         strncpy(req.BrokerID, this->config_.brokerid.c_str(), sizeof(TThostFtdcBrokerIDType));

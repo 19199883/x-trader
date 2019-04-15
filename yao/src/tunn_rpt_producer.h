@@ -109,8 +109,41 @@ class CtpFieldConverter
 			return &new_order_;
 		}
 
+		static void InitCancelOrder(const char *userid, const char* brokerid,
+			TThostFtdcFrontIDType frontid, TThostFtdcSessionIDType	sessionid)
+		{
+			memset(&cancel_order_, 0, sizeof(cancel_order_));
+			strncpy(cancel_order_.BrokerID, brokerid, sizeof(TThostFtdcBrokerIDType));
+			strncpy(cancel_order_.InvestorID, userid, sizeof(TThostFtdcInvestorIDType));
+			cancel_order_.ActionFlag = THOST_FTDC_AF_Delete;	
+			strncpy(cancel_order_.UserID, userid, sizeof(TThostFtdcInvestorIDType));
+			cancel_order_.FrontID = frontid;
+			cancel_order_.SessionID = sessionid;					
+		}
+		
+		static CThostFtdcInputOrderActionField* Convert(const signal_t* cancel_sig,
+			const signal_t* orig_sig, int cancel_localorderid, int orig_localorderid,
+			TThostFtdcOrderSysIDType ordersysid)
+		{
+			cancel_order_.OrderActionRef = cancel_localorderid;
+			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), 
+				"%lld", orig_localorderid);
+			
+			if(exchange_names::SHFE == orig_sig->exchange){
+				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_SHFE, sizeof(new_order_.ExchangeID));
+			}else if(exchange_names::XDCE == sig.exchange){
+				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_DCE, sizeof(new_order_.ExchangeID));
+			}else if(exchange_names::XZCE == sig.exchange){
+				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_CZCE, sizeof(new_order_.ExchangeID));
+			}
+
+			// TODO: to here
+			//strncpy(cancle_order.OrderSysID, SysOrderIDToCTPFormat
+		}
+		
 	private:
 		static CThostFtdcInputOrderField new_order_;
+		static CThostFtdcInputOrderActionField cancel_order_;
 };
 
 class TunnRptProducer: public CThostFtdcTraderSpi
