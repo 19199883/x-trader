@@ -213,6 +213,7 @@ void UniConsumer::CreateStrategies()
 		}
 #endif
 
+		// TODO: 需要支持一个策略交易多个合约
 		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),
 					stra_table_[strategy_counter_].GetContract(), 
@@ -236,6 +237,7 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
+				// TODO: 需要支持Yao的行情
 				case BESTANDDEEP:
 					ProcBestAndDeep(ivalue->index);
 					break;
@@ -284,6 +286,7 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
+// TODO: 需要支持Yao的行情
 void UniConsumer::ProcBestAndDeep(int32_t index)
 {
 #ifdef LATENCY_MEASURE
@@ -358,6 +361,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 #endif
 }
 
+// TODO: 需要支持Yao的行情
 void UniConsumer::ProcOrderStatistic(int32_t index)
 {
 #ifdef LATENCY_MEASURE
@@ -447,25 +451,26 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_debug("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%d; MatchedAmount:%ld;"
-				" ErrorID:%d ",
-				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
-				rpt->ErrorID);
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; "
+		MatchedAmount:%d; ErrorID:%d ",
+		module_name_, 
+		index, 
+		rpt->LocalOrderID, 
+		rpt->OrderStatus, 
+		rpt->MatchedAmount,
+		rpt->ErrorID);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
+	// TODO: to here
 #ifdef COMPLIANCE_CHECK
-	if (rpt->OrderStatus == X1_FTDC_SPD_CANCELED ||
-			rpt->OrderStatus == X1_FTDC_SPD_PARTIAL_CANCELED ||
-			rpt->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
+	if (rpt->OrderStatus == THOST_FTDC_OST_PartTradedNotQueueing ||
+			rpt->OrderStatus == THOST_FTDC_OST_NoTradeNotQueueing ||
+			rpt->OrderStatus == THOST_FTDC_OST_Canceled){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
 
-	if (rpt->OrderStatus==X1_FTDC_SPD_CANCELED ||
-			rpt->OrderStatus==X1_FTDC_SPD_FILLED ||
-			rpt->OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
-			rpt->OrderStatus==X1_FTDC_SPD_ERROR ||
-			rpt->OrderStatus==X1_FTDC_SPD_IN_CANCELED){
+	if (tunn_rpt_producer_->IsFinal(rpt->OrderStatus)){
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
@@ -568,7 +573,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		// 从pending队列中撤单
 		rpt.ErrorID = CANCELLED_FROM_PENDING;   
 
-		rpt.OrderStatus = X1_FTDC_SPD_CANCELED ;   
+		rpt.OrderStatus = THOST_FTDC_OST_Canceled ;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 
@@ -593,9 +598,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 			module_name_); 
 		return;
 	}
-	
-	// TODO: to here 1
-	// TODO: sessionid, frontid, ordref, exchangeid, ordsysid
+			
 	int orderRef = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	signal_t *orig_sig = strategy.GetSignalBySigID(ori_sigid);
 	int orig_orderRef = strategy.GetLocalOrderID(sig.orig_sig_id); // 即LocalOrderId
@@ -637,8 +640,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 		return;
 	}
-
-	// TODO: to here
+	
 	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
 		sig, localorderid, updated_vol);
 
@@ -656,10 +658,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			YaoQuote* data = md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
 			while(true){
 				if(THOST_FTDC_D_Buy==ord->Direction){
-					ord->InsertPrice = data->RiseLimit;// uppet limit
+					ord->LimitPrice = data->RiseLimit;// uppet limit
 				}
 				else if(THOST_FTDC_D_Sell==ord->Direction){
-					ord->InsertPrice = data->FallLimit;// lowerest limit
+					ord->LimitPrice = data->FallLimit;// lowerest limit
 				}
 				tunn_rpt_producer_->ReqOrderInsert(ord);
 				std::this_thread::sleep_for (std::chrono::milliseconds(500));
