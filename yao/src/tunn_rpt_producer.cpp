@@ -122,8 +122,7 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 
 // done
 // 撤单操作请求
-int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p,
-	const char*ordref, const char*exchageid, const char*ordersysid)
+int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 {
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -132,11 +131,7 @@ int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p,
 	int counter = GetCounterByLocalOrderID(localordid);
 	cancel_requests_[counter] = true;
 	p->sessionid = this->sessionid_;
-    p->frontid = this->frontid_;
-	strncpy(p->OrderRef, ordref, sizeof(p->OrderRef));
-	strncpy(p->ExchangeID, exchageid, sizeof(p->ExchangeID));
-	strncpy(p->OrderSysID, ordersysid, sizeof(p->OrderSysID));
- 
+    p->frontid = this->frontid_;		
 	int ret = api_->ReqCancelOrder(p, ORDERCANCEL_REQUESTID); // requestid==2，表示是撤单请求
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();

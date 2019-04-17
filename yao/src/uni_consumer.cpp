@@ -22,7 +22,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 	
-
 	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
@@ -590,25 +589,20 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	if(cancelled) return;
 
 	if (!strategy.HasFrozenPosition()){
-		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", 
+			module_name_); 
 		return;
 	}
 	
 	// TODO: to here 1
 	// TODO: sessionid, frontid, ordref, exchangeid, ordsysid
+	int orderRef = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	signal_t *orig_sig = strategy.GetSignalBySigID(ori_sigid);
-    CX1FtdcCancelOrderField cancel_order;
-    memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
-	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
-	cancel_order.RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
-    cancel_order.X1OrderID = 0; // only use LocalOrderID to cancel order
-	// 验证是否需要合约
-    strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
-
-	clog_info("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
-				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID, cancel_order.InstrumentID); 
-
-	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
+	int orig_orderRef = strategy.GetLocalOrderID(sig.orig_sig_id); // 即LocalOrderId
+	char* orig_sysOrderId = strategy.GetSysOrderIdBySigID(sig.orig_sig_id); 
+	CThostFtdcInputOrderActionField* orderAction = CtpFieldConverter::Convert(
+		&sig, orig_sig, orderRef, orig_orderRef, orig_sysOrderId);    		  	
+	this->tunn_rpt_producer_->ReqOrderAction(orderAction);
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);

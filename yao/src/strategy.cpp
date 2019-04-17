@@ -471,7 +471,7 @@ if_sig_state_t Strategy::GetStatusBySigIdx(int32_t sig_idx)
 	return (if_sig_state_t )sigrpt_table_[sig_idx].status;
 }
 
-unsigned int Strategy::GetSysOrderIdBySigID(int32_t sig_id)
+char* Strategy::GetSysOrderIdBySigID(int32_t sig_id)
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig_id];
 	return sys_order_id_[cursor];
@@ -556,7 +556,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 {
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
-	sys_order_id_[sigidx] = rpt.SysOrderID;
+	strncpy(sys_order_id_[sigidx], rpt.SysOrderID, sizeof(sys_order_id_[sigidx]));
 
 	if_sig_state_t status = rpt.OrderStatus;
 	// update signal report

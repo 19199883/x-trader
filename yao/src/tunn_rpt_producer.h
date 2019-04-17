@@ -29,7 +29,7 @@ struct Tunnconfig
 
 struct TunnRpt
 {
-	int					        LocalOrderID;   ///< 本地委托号
+	int					        LocalOrderID;   ///< 本地委托号,对应ctp的OrderRef
 	TThostFtdcOrderStatusType   OrderStatus;    ///< 委托状态
 	TThostFtdcVolumeType        MatchedAmount;  ///< 成交数量
 	TThostFtdcPriceType         MatchedPrice;   ///< 成交价格
@@ -136,9 +136,11 @@ class CtpFieldConverter
 			}else if(exchange_names::XZCE == sig.exchange){
 				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_CZCE, sizeof(new_order_.ExchangeID));
 			}
-
-			// TODO: to here
-			//strncpy(cancle_order.OrderSysID, SysOrderIDToCTPFormat
+			
+			strncpy(cancle_order_.OrderSysID, ordersysid, sizeof(cancle_order_.OrderSysID)
+			strncpy(cancle_order_.ExchangeID, exchageid, sizeof(p->ExchangeID));
+			strncpy(cancle_order_.InstrumentID, orig_sig->symbol, sizeof(cancle_order_.InstrumentID));
+	
 		}
 		
 	private:
@@ -158,8 +160,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		// 下发指令接口
 		int ReqOrderInsert(CThostFtdcInputOrderField *p);
 		// 撤单操作请求
-		int ReqOrderAction(CThostFtdcInputOrderActionField *p,const char*ordref, 
-			const char*exchageid, const char*ordersysid);
+		int ReqOrderAction(CThostFtdcInputOrderActionField *p);
 		/*
 		 * things relating to x-trader internal logic
 		 */
