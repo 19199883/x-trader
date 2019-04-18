@@ -1,7 +1,7 @@
 ﻿#ifndef SELFBUYSELLCHECK_H_
 #define SELFBUYSELLCHECK_H_
 
-#include "X1FtdcApiDataType.h"
+#include "ThostFtdcUserApiDataType.h"
 #include "vrt_value_obj.h"
 
 #define DOUBLE_CHECH_PRECISION 0.000001
@@ -26,7 +26,7 @@ class Compliance
 		 * 返回值：true表示成功；false表示失败 
 		 */
 		bool TryReqOrderInsert(int ord_counter, const char * contract, double price,
-					TX1FtdcBuySellTypeType side,TX1FtdcOpenCloseTypeType offset);
+			TThostFtdcDirectionEnType side, TThostFtdcOffsetFlagType offset);
 
 		void End(int ord_counter);
 		void Save();

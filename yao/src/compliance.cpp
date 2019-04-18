@@ -67,11 +67,11 @@ int Compliance::GetCancelTimes(const char* contract)
 }
 
 bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
-			double price, TX1FtdcBuySellTypeType side,TX1FtdcOpenCloseTypeType offset)
+	double price, TThostFtdcDirectionType side, TThostFtdcOffsetFlagType offset)
 {
     bool ret = true;
 
-	if(offset == X1_FTDC_SPD_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_)){
+	if(offset == THOST_FTDC_OF_Open && (GetCancelTimes(contract) >= cancel_upper_limit_)){
 		clog_error("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
 			module_name_, ord_counter, GetCancelTimes(contract));
 		return false;
@@ -82,8 +82,8 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		if (!ord.valid) continue;
 
 		if (strcmp(ord.contract, contract)==0 && side != ord.side){
-			if ((side == X1_FTDC_SPD_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
-				(side != X1_FTDC_SPD_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
+			if ((side == THOST_FTDC_DEN_Buy && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
+				(side != THOST_FTDC_DEN_Buy && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
 				ret = false;
 				break;
 			}
