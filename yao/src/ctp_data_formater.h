@@ -35,10 +35,10 @@ public:
 	static std::string ToString(const CThostFtdcInstrumentField *pdata);
 
 private:
-	CTPDatatypeFormater()
+	CtpDatatypeFormater()
 	{
 	}
-	~CTPDatatypeFormater()
+	~CtpDatatypeFormater()
 	{
 	}
 };

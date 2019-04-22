@@ -1,4 +1,9 @@
 #include <thread>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include<sys/types.h>
+#include<dirent.h>
+#include <unistd.h>
 #include <chrono>
 #include <ctime>
 #include <ratio>
@@ -100,7 +105,7 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	int ret = api_->ReqInsertOrder(p, OEDERINSERT_REQUESTID); // requestid==1，表示是下单请求
+	int ret = api_->ReqOrderInsert(pInputOrder, OEDERINSERT_REQUESTID); // requestid==1，表示是下单请求
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -110,11 +115,11 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 	
 	// report rejected if ret!=0
 	if (ret != 0){
-		clog_warning("[%s] ReqInsertOrder- ret=%d - %s", 
-			module_name_, ret, CtpDatatypeFormater::ToString(p).c_str());
+		clog_warning("[%s] ReqOrderInsert- ret=%d - %s", 
+			module_name_, ret, CtpDatatypeFormater::ToString(pInputOrder).c_str());
 	}else {
-		clog_info("[%s] ReqInsertOrder - ret=%d - %s", 
-			module_name_, ret, CtpDatatypeFormater::ToString(p).c_str());
+		clog_info("[%s] ReqOrderInsert - ret=%d - %s", 
+			module_name_, ret, CtpDatatypeFormater::ToString(pInputOrder).c_str());
 	}
 
 	return ret;
@@ -130,9 +135,9 @@ int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 	int localordid = stoi(p->OrderRef);
 	int counter = GetCounterByLocalOrderID(localordid);
 	cancel_requests_[counter] = true;
-	p->sessionid = this->sessionid_;
-    p->frontid = this->frontid_;		
-	int ret = api_->ReqCancelOrder(p, ORDERCANCEL_REQUESTID); // requestid==2，表示是撤单请求
+	p->SessionID = this->sessionid_;
+    p->FrontID = this->frontid_;		
+	int ret = api_->ReqOrderAction(p, ORDERCANCEL_REQUESTID); // requestid==2，表示是撤单请求
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
@@ -161,7 +166,7 @@ void TunnRptProducer::ReqLogin()
     strncpy(login_data.UserID, this->config_.userid.c_str(), sizeof(login_data.UserID));
     strncpy(login_data.Password, this->config_.password.c_str(), sizeof(login_data.Password));
     
-	int rtn = api_->ReqUserLogin2(&login_data);
+	int rtn = api_->ReqUserLogin2(&login_data, 0);
 
     clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
     clog_warning("[%s] ReqLogin:   %s", 
@@ -197,8 +202,8 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
 
 	strcpy(this->TradingDay_, pRspUserLogin->TradingDay);
-	this->FrontID_ = pRspUserLogin->FrontID;	
-	this->SessionID_ = pRspUserLogin->SessionID;	
+	this->frontid_ = pRspUserLogin->FrontID;	
+	this->sessionid_ = pRspUserLogin->SessionID;	
 	strncpy(this->MaxOrderRef_, pRspUserLogin->MaxOrderRef, sizeof(this->MaxOrderRef_));
 	this->counter_ = GetCounterByLocalOrderID(stoi(this->MaxOrderRef_));
 	
@@ -208,7 +213,7 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		// TODO:
 		CtpFieldConverter::InitNewOrder(this->config_.userid.c_str(), this->config_.brokerid.c_str());
 		CtpFieldConverter::InitCancelOrder(this->config_.userid.c_str(), 
-			this->config_.brokerid.c_str(), this->FrontID_, this->SessionID_);
+			this->config_.brokerid.c_str(), this->frontid_, this->sessionid_);
 	
 		CThostFtdcSettlementInfoConfirmField req;
         memset(&req, 0, sizeof(req));
@@ -219,9 +224,9 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		
 		// 查询仓位
 		CThostFtdcQryInvestorPositionField a = { 0 };
-		strcpy_s(a.BrokerID, this->config_.brokerid.c_str());
-		strcpy_s(a.InvestorID, this->config_.userid.c_str());
-		strcpy_s(a.InstrumentID, "");//不填写合约则返回所有持仓
+		strncpy(a.BrokerID, this->config_.brokerid.c_str(), sizeof(a.BrokerID));
+		strncpy(a.InvestorID, this->config_.userid.c_str(), sizeof(a.InvestorID));
+		strncpy(a.InstrumentID, "", sizeof(a.InstrumentID));//不填写合约则返回所有持仓
 		int rtn = api_->ReqQryInvestorPosition(&a, 0);
 		if(0 != rtn){
 			 clog_error("[%s] ReqQryInvestorPosition, return: %d", module_name_, ret);
@@ -234,14 +239,14 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     }
 }
 
-void TunnRptProducer::::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
+void TunnRptProducer::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {    
      clog_warning("[%s] OnRspSettlementInfoConfirm: requestid = %d, last_flag=%d \n%s \n%s",
          module_name_,
 		 nRequestID, bIsLast,
-         CTPDatatypeFormater::ToString(pSettlementInfoConfirm).c_str(),
-         CTPDatatypeFormater::ToString(pRspInfo).c_str());    
+         CtpDatatypeFormater::ToString(pSettlementInfoConfirm).c_str(),
+         CtpDatatypeFormater::ToString(pRspInfo).c_str());    
 }
 
 // done

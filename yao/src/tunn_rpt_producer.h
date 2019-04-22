@@ -16,6 +16,9 @@ using namespace std;
 #define CTP_EXCHANGE_DCE "DCE"
 #define CTP_EXCHANGE_CZCE "CZCE"
 
+#define OEDERINSERT_REQUESTID 1
+#define ORDERCANCEL_REQUESTID 2
+
 /*
  * 10 power of 2
  */
@@ -57,7 +60,7 @@ class CtpFieldConverter
 				return CTP_EXCHANGE_DCE;
 			}else if(exchange_names::XZCE == yExc){
 				return CTP_EXCHANGE_CZCE;
-			}else{return ""}			
+			}else{return "";}			
 		}
 		
 		static void InitNewOrder(const char *userid, const char* brokerid)
@@ -138,12 +141,10 @@ class CtpFieldConverter
 			TThostFtdcOrderSysIDType ordersysid)
 		{
 			cancel_order_.OrderActionRef = cancel_localorderid;
-			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), 
-				"%lld", orig_localorderid);
-			strncpy(new_order_.ExchangeID, ConvertExchange(sig.exchange), sizeof(new_order_.ExchangeID));						
-			strncpy(cancle_order_.OrderSysID, ordersysid, sizeof(cancle_order_.OrderSysID)
-			strncpy(cancle_order_.ExchangeID, exchageid, sizeof(p->ExchangeID));
-			strncpy(cancle_order_.InstrumentID, orig_sig->symbol, sizeof(cancle_order_.InstrumentID));
+			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%lld", orig_localorderid);
+			strncpy(cancel_order_.ExchangeID, ConvertExchange(orig_sig->exchange), sizeof(cancel_order_.ExchangeID));						
+			strncpy(cancel_order_.OrderSysID, ordersysid, sizeof(cancel_order_.OrderSysID));
+			strncpy(cancel_order_.InstrumentID, orig_sig->symbol, sizeof(cancel_order_.InstrumentID));
 	
 		}
 		
@@ -231,9 +232,9 @@ private:
 
 	CThostFtdcTraderApi *api_;
 	char TradingDay_[9];
-	TThostFtdcFrontIDType	FrontID_;
+	TThostFtdcFrontIDType	frontid_;
 	///会话编号
-	TThostFtdcSessionIDType	SessionID_;
+	TThostFtdcSessionIDType	sessionid_;
 	///最大报单引用
 	TThostFtdcOrderRefType	MaxOrderRef_;
 	int counter_;
