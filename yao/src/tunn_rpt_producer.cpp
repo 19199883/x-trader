@@ -434,7 +434,7 @@ void TunnRptProducer::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder
 {
 		if (ended_) return;
 	
-	 clog_info("[%s] OnErrRtnOrderInsert:%s %s;,
+	 clog_info("[%s] OnErrRtnOrderInsert:%s %s;",
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
@@ -493,7 +493,7 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 
 {
-	clog_warning("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d,
+	clog_warning("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d",
         module_name_,
 		CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str(),
@@ -501,7 +501,7 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {		
 		positions_[pInvestorPosition->InstrumentID] = *pInvestorPosition;
     }else{
-		clog_error("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d,
+		clog_error("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d",
         module_name_,
 		CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str(),

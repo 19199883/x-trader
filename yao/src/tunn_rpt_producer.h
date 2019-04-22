@@ -6,10 +6,15 @@
 #include <unordered_map>
 #include "vrt_value_obj.h"
 #include "ThostFtdcTraderApi.h"
+#include "signal.h"
 
 using namespace std;
 
 #define CANCELLED_FROM_PENDING 99999999
+
+#define CTP_EXCHANGE_SHFE "SHFE"
+#define CTP_EXCHANGE_DCE "DCE"
+#define CTP_EXCHANGE_CZCE "CZCE"
 
 /*
  * 10 power of 2
@@ -41,6 +46,20 @@ struct TunnRpt
 class CtpFieldConverter
 {
 	public:
+		/*
+			将yao系统内部的交易所定义转换成ctp中的交易所定义
+		*/
+		static const char* ConvertExchange(exchange_names yExc)
+		{
+			if(exchange_names::SHFE == yExc){
+				return CTP_EXCHANGE_SHFE;
+			}else if(exchange_names::XDCE == yExc){
+				return CTP_EXCHANGE_DCE;
+			}else if(exchange_names::XZCE == yExc){
+				return CTP_EXCHANGE_CZCE;
+			}else{return ""}			
+		}
+		
 		static void InitNewOrder(const char *userid, const char* brokerid)
 		{
 			// done
@@ -70,15 +89,8 @@ class CtpFieldConverter
 			将策略产生的信号等信息生成ctp需要的下单对象
 		*/
 		static CThostFtdcInputOrderField*  Convert(const signal_t& sig,long localorderid,int32_t vol)
-		{			
-			if(exchange_names::SHFE == sig.exchange){
-				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_SHFE, sizeof(new_order_.ExchangeID));
-			}else if(exchange_names::XDCE == sig.exchange){
-				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_DCE, sizeof(new_order_.ExchangeID));
-			}else if(exchange_names::XZCE == sig.exchange){
-				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_CZCE, sizeof(new_order_.ExchangeID));
-			}
-			
+		{	
+			strncpy(new_order_.ExchangeID, ConvertExchange(sig.exchange), sizeof(new_order_.ExchangeID));						
 			new_order_.RequestID = OEDERINSERT_REQUESTID;
 			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(new_order_.InstrumentID));
 			snprintf(new_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%lld", localorderid);
@@ -128,15 +140,7 @@ class CtpFieldConverter
 			cancel_order_.OrderActionRef = cancel_localorderid;
 			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), 
 				"%lld", orig_localorderid);
-			
-			if(exchange_names::SHFE == orig_sig->exchange){
-				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_SHFE, sizeof(new_order_.ExchangeID));
-			}else if(exchange_names::XDCE == sig.exchange){
-				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_DCE, sizeof(new_order_.ExchangeID));
-			}else if(exchange_names::XZCE == sig.exchange){
-				strncpy(new_order_.ExchangeID, CTP_EXCHANGE_CZCE, sizeof(new_order_.ExchangeID));
-			}
-			
+			strncpy(new_order_.ExchangeID, ConvertExchange(sig.exchange), sizeof(new_order_.ExchangeID));						
 			strncpy(cancle_order_.OrderSysID, ordersysid, sizeof(cancle_order_.OrderSysID)
 			strncpy(cancle_order_.ExchangeID, exchageid, sizeof(p->ExchangeID));
 			strncpy(cancle_order_.InstrumentID, orig_sig->symbol, sizeof(cancle_order_.InstrumentID));
