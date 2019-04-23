@@ -59,7 +59,9 @@ class Log
 };
 
 	enum HybridData {
-		L1_MD = 0, 
+		BESTANDDEEP = 0, 
+		ORDERSTATISTIC_DATA,
+		L1_MD, 
 		L2_MD, 
 		HybridData, 
 		PENDING_SIGNAL, 

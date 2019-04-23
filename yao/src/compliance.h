@@ -12,7 +12,7 @@ struct OrderInfo
 {
 	bool valid;
     char contract[7];
-    TX1FtdcBuySellTypeType side;
+    TThostFtdcDirectionEnType side;
     double price;
 };
 

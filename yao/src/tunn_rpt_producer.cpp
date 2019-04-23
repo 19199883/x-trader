@@ -15,6 +15,9 @@
 
 using namespace std::chrono;
 
+CThostFtdcInputOrderField CtpFieldConverter::new_order_;
+CThostFtdcInputOrderActionField CtpFieldConverter::cancel_order_;
+
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
 {
@@ -296,7 +299,7 @@ void TunnRptProducer::End()
 		CThostFtdcUserLogoutField logoutinfo = {0};		 
 		strncpy(logoutinfo.BrokerID, this->config_.brokerid.c_str(), sizeof(logoutinfo.BrokerID));
 		strncpy(logoutinfo.UserID, this->config_.userid.c_str(), sizeof(logoutinfo.UserID));		    
-		int rtn = api_->ReqUserLogout(&logoutinfo);
+		int rtn = api_->ReqUserLogout(&logoutinfo, 0);
 		
 		ended_ = true;		
 	}
@@ -326,7 +329,7 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 		
 		rpt.LocalOrderID = stoi(pInputOrder->OrderRef);
 		rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
-		rpt.ErrorID = perror->ErrorID;
+		rpt.ErrorID = pRspInfo->ErrorID;
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
@@ -336,7 +339,7 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 		ivalue->data = TUNN_RPT;
 		
 		clog_info("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%s",
-			module_name_, ivalue->index, ivalue->data, pfield->OrderRef);
+			module_name_, ivalue->index, ivalue->data, pInputOrder->OrderRef);
 		
 		(vrt_producer_publish(producer_));		
 	}
@@ -358,6 +361,7 @@ void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOr
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
+	}
 }
 		
 // done
@@ -366,9 +370,10 @@ void TunnRptProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo,
 {
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
     }else {		
-		 clog_error("[%s] pInputOrderAction:%s",
+		 clog_error("[%s] OnRspError:%s",
         module_name_,		
         CtpDatatypeFormater::ToString(pRspInfo).c_str());	
+	}
 }
 	
 // done
@@ -428,7 +433,7 @@ void TunnRptProducer::OnRtnTrade(CThostFtdcTradeField *pTrade)
 	ivalue->data = TUNN_RPT;
 
 	clog_info("[%s] OnRtnTrade: index,%d; data,%d; LocalOrderID:%ld",
-		module_name_, ivalue->index, ivalue->data, rpt->LocalOrderID);
+		module_name_, ivalue->index, ivalue->data, rpt.LocalOrderID);
 
 	(vrt_producer_publish(producer_));
 }
@@ -481,6 +486,7 @@ void TunnRptProducer::OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderActi
 		 clog_error("[%s] pOrderAction:%s",
         module_name_,		
         CtpDatatypeFormater::ToString(pRspInfo).c_str());		
+	}
 }
 
 int32_t TunnRptProducer::Push()

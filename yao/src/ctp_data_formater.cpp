@@ -14,7 +14,7 @@ using namespace std;
 static std::string indent_string = "    ";
 static std::string newline_string = "\n";
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcReqUserLoginField *pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcReqUserLoginField *pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcReqUserLoginField		///Login Request" << endl;
@@ -31,7 +31,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcReqUserLoginField *pda
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcQryTradingAccountField *pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcQryTradingAccountField *pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcQryTradingAccountField		///Capital account query" << endl;
@@ -46,7 +46,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcQryTradingAccountField
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcQryOrderField *pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcQryOrderField *pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcQryOrderField		///Order query" << endl;
@@ -67,7 +67,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcQryOrderField *pdata)
 
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcQryInvestorPositionField *pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcQryInvestorPositionField *pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcQryInvestorPositionField" << endl;
@@ -106,7 +106,7 @@ std::string ToString(const CThostFtdcQryInvestorPositionDetailField *p)
     return buf;
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcRspUserLoginField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcRspUserLoginField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcRspUserLoginField		///Login Respond" << endl;
@@ -131,7 +131,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcRspUserLoginField* pda
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcUserLogoutField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcUserLogoutField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcUserLogoutField		///Logout Request" << endl;
@@ -146,7 +146,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcUserLogoutField* pdata
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcUserPasswordUpdateField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcUserPasswordUpdateField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcUserPasswordUpdateField		///Password change" << endl;
@@ -163,7 +163,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcUserPasswordUpdateFiel
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcInputOrderField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcInputOrderField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcInputOrderField" << endl;
@@ -198,7 +198,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcInputOrderField* pdata
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcInputOrderActionField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcInputOrderActionField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcInputOrderActionField" << endl;
@@ -225,7 +225,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcInputOrderActionField*
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcOrderActionField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcOrderActionField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcOrderActionField	" << endl;
@@ -262,7 +262,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcOrderActionField* pdat
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcOrderField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcOrderField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcOrderField" << endl;
@@ -337,7 +337,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcOrderField* pdata)
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcTradeField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcTradeField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcTradeField" << endl;
@@ -392,7 +392,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcTradeField* pdata)
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcSettlementInfoConfirmField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcSettlementInfoConfirmField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcSettlementInfoConfirmField" << endl;
@@ -409,7 +409,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcSettlementInfoConfirmF
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcInvestorPositionField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcInvestorPositionField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcInvestorPositionField" << endl;
@@ -462,7 +462,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcInvestorPositionField*
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcRspInfoField* pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcRspInfoField* pdata)
 {
     stringstream ss;
     ss << newline_string << indent_string << "structName=CThostFtdcRspInfoField" << endl;
@@ -478,7 +478,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcRspInfoField* pdata)
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcTradingAccountField *pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcTradingAccountField *pdata)
 {
     stringstream ss;
     ss << std::fixed << newline_string << "structName=CThostFtdcTradingAccountField" << endl;
@@ -521,7 +521,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcTradingAccountField *p
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcSettlementInfoField *pdata)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcSettlementInfoField *pdata)
 {
     stringstream ss;
     ss << std::fixed << newline_string << "structName=CThostFtdcSettlementInfoField" << endl;
@@ -540,7 +540,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcSettlementInfoField *p
     return ss.str();
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcInvestorPositionDetailField *p)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcInvestorPositionDetailField *p)
 {
     char buf[2048];
 
@@ -609,7 +609,7 @@ std::string CTPDatatypeFormater::ToString(const CThostFtdcInvestorPositionDetail
     return buf;
 }
 
-std::string CTPDatatypeFormater::ToString(const CThostFtdcInstrumentField *p)
+std::string CtpDatatypeFormater::ToString(const CThostFtdcInstrumentField *p)
 {
     char buf[2048];
 

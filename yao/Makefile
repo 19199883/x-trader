@@ -3,8 +3,10 @@
 CC:=g++
 DEBUG:=n
 TOP:=..
-DIST_DIR:=$(TOP)/ytrader/dist
-INCPATH:=-I$(TOP)/3rd/ctp/include -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include	-I$(TOP)/3rd/zce_md/include -I$(TOP)/3rd/dce_md/include -I$(TOP)/3rd/shfe_md/include
+DIST_DIR:=$(TOP)/yao/dist
+INCPATH:=-I$(TOP)/3rd/ctp/include -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include \
+		 -I$(TOP)/3rd/zce_md/include -I$(TOP)/3rd/dce_md/include -I$(TOP)/3rd/shfe_md/include
+
 LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ctp/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/zce_md/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=

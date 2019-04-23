@@ -100,7 +100,7 @@ public:
 	// things relating to x-trader internal logic
 	void finalize(void);
 	int32_t GetId();
-	//const char* GetContract();
+	const char* GetContract();
 	exchange_names GetExchange(const char* contract);
 	int32_t GetMaxPosition(const char* contract);
 	const char* GetSoFile();

@@ -2,12 +2,12 @@
 #ifndef   YAOQUOTE_H_
 #define   YAOQUOTE_H_
 
-enum Exchanges
+enum YaoExchanges
 {
-	SHFE	= 'A',
-	CFFEX	= 'G',
-	DCE		= 'B',
-	CZCE	= 'C'
+	YSHFE	= 'A',
+	YCFFEX	= 'G',
+	YDCE		= 'B',
+	YCZCE	= 'C'
 };
 
 enum FeedTypes
@@ -28,11 +28,11 @@ enum FeedTypes
 	CTPLevel1 = 12
 };
 
-class YaoQuote
+struct YaoQuote
 {
 	FeedTypes feed_type;				
 	char symbol[48];			//	合约代码: 如'm1801','SR801','Au(T+D)'
-	Exchanges exchange;			//	交易所代码
+	YaoExchanges exchange;			//	交易所代码
 	//	交易所行情时间(HHMMssmmm), 如：90000306表示09:00:00 306. 0点-3点的数据 +24hrs
 	int int_time;				
 	float pre_close_px;			//	昨收盘价

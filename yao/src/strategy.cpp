@@ -268,10 +268,11 @@ int32_t Strategy::GetId()
 	return id_;
 }
 
-//const char* Strategy::GetContract()
-//{
-//	return this->setting_.config.symbols[0].name;
-//}
+// TODO: 需要支持多个合约
+const char* Strategy::GetContract()
+{
+	return this->setting_.config.symbols[0].name;
+}
 
 exchange_names Strategy::GetExchange(const char* contract)
 {
@@ -556,11 +557,12 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 {
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
-	strncpy(sys_order_id_[sigidx], rpt.SysOrderID, sizeof(sys_order_id_[sigidx]));
+	strncpy(sys_order_id_[sigidx], rpt.OrderSysID, sizeof(sys_order_id_[sigidx]));
 
-	if_sig_state_t status = rpt.OrderStatus;
+	// TODO:
+	if_sig_state_t status; // 转换状态 = rpt.OrderStatus;
 	// update signal report
-	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.TradePrice, sigrpt, status, rpt.ErrorID);
+	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.MatchedPrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
 	// TODO: multi 
 	StrategyPosition *cur_pos = NULL;

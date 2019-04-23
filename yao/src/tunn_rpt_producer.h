@@ -177,6 +177,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 
 		void End();
 		bool IsReady();
+		bool IsFinal(TThostFtdcOrderStatusType   OrderStatus);
 
 	private:
 		/*
@@ -207,41 +208,39 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 		virtual void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
-private:
-    void ParseConfig();
-    void ReqLogin();
-	bool IsFinal(TThostFtdcOrderStatusType   OrderStatus);
+		void ParseConfig();
+		void ReqLogin();
 
-	struct vrt_producer  *producer_;
-	TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
-	Tunnconfig config_;
-	const char * module_name_;  
-	bool ended_;
+		struct vrt_producer  *producer_;
+		TunnRpt rpt_buffer_[RPT_BUFFER_SIZE];
+		Tunnconfig config_;
+		const char * module_name_;  
+		bool ended_;
 
-	/*
-	 * true: cancel request; false; place request
-	 * 请求与在数组存储位置的关系：RequestID与LocalOrderID相同，
-	 * RequestID的counter部分作为数组下标
-	 */
-	bool cancel_requests_[COUNTER_UPPER_LIMIT];
+		/*
+		 * true: cancel request; false; place request
+		 * 请求与在数组存储位置的关系：RequestID与LocalOrderID相同，
+		 * RequestID的counter部分作为数组下标
+		 */
+		bool cancel_requests_[COUNTER_UPPER_LIMIT];
 
-	/*
-	 * things relating to counter API
-	 */
-	int32_t Push();
+		/*
+		 * things relating to counter API
+		 */
+		int32_t Push();
 
-	CThostFtdcTraderApi *api_;
-	char TradingDay_[9];
-	TThostFtdcFrontIDType	frontid_;
-	///会话编号
-	TThostFtdcSessionIDType	sessionid_;
-	///最大报单引用
-	TThostFtdcOrderRefType	MaxOrderRef_;
-	int counter_;
-	// key: 合约；value：仓位对象
-	std::unordered_map<std::string,CThostFtdcInvestorPositionField> positions_;
-	
-	bool position_ready_;
+		CThostFtdcTraderApi *api_;
+		char TradingDay_[9];
+		TThostFtdcFrontIDType	frontid_;
+		///会话编号
+		TThostFtdcSessionIDType	sessionid_;
+		///最大报单引用
+		TThostFtdcOrderRefType	MaxOrderRef_;
+		int counter_;
+		// key: 合约；value：仓位对象
+		std::unordered_map<std::string,CThostFtdcInvestorPositionField> positions_;
+		
+		bool position_ready_;
 	
 };
 

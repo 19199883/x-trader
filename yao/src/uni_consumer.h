@@ -10,12 +10,14 @@
 #include "vrt_value_obj.h"
 #include "strategy.h"
 #include "l2md_producer.h"
+#include "dce_md_producer.h"
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "compliance.h"
+#include "quote_datatype_dce_level2.h"
 
 #define SIG_BUFFER_SIZE 32 
 
@@ -38,7 +40,7 @@ struct Uniconfig
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
+		UniConsumer(struct vrt_queue  *queue, DceMDProducer *md_producer,
 					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
@@ -53,7 +55,7 @@ class UniConsumer
 		bool running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		MDProducer *md_producer_;
+		DceMDProducer *md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;

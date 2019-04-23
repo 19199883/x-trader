@@ -6,10 +6,10 @@
 #include "perfctx.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include "YaoQuote.h"
 
 
-
-UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
+UniConsumer::UniConsumer(struct vrt_queue  *queue, DceMDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), 
   md_producer_(md_producer),
@@ -214,11 +214,11 @@ void UniConsumer::CreateStrategies()
 #endif
 
 		// TODO: 需要支持一个策略交易多个合约
-		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
-					module_name_, stra_table_[strategy_counter_].GetId(),
-					stra_table_[strategy_counter_].GetContract(), 
-					stra_table_[strategy_counter_].GetMaxPosition(), 
-					stra_table_[strategy_counter_].GetSoFile());
+//		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
+//					module_name_, stra_table_[strategy_counter_].GetId(),
+//					stra_table_[strategy_counter_].GetContract(), 
+//					stra_table_[strategy_counter_].GetMaxPosition(), 
+//					stra_table_[strategy_counter_].GetSoFile());
 
 		strategy_counter_++;
 	}
@@ -238,12 +238,12 @@ void UniConsumer::Start()
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
 				// TODO: 需要支持Yao的行情
-				case BESTANDDEEP:
-					ProcBestAndDeep(ivalue->index);
-					break;
-				case ORDERSTATISTIC_DATA:
-					ProcOrderStatistic(ivalue->index);
-					break;
+			//	case BESTANDDEEP:
+			//		ProcBestAndDeep(ivalue->index);
+			//		break;
+			//	case ORDERSTATISTIC_DATA:
+			//		ProcOrderStatistic(ivalue->index);
+			//		break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
 					break;
@@ -345,8 +345,10 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
+		// TODO: 需要支持多个合约
 		if (strcmp(strategy.GetContract(), md->Contract) == 0){
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+			// TODO: 需要支持多个合约
+			// strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			// strategy log
 			WriteStrategyLog(strategy);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
@@ -423,7 +425,8 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 			clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", 
 				module_name_, index, md->ContractID);
 
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+			// TODO: 需要支持多个合约
+			//strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
 			// strategy log
 			WriteStrategyLog(strategy);
@@ -452,7 +455,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
 	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; "
-		MatchedAmount:%d; ErrorID:%d ",
+		"MatchedAmount:%d; ErrorID:%d ",
 		module_name_, 
 		index, 
 		rpt->LocalOrderID, 
@@ -593,7 +596,9 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
 
-	if (!strategy.HasFrozenPosition()){
+	// TODO: 需要支持多个合约
+	const char *contract = NULL; //get contract fron sig
+	if (!strategy.HasFrozenPosition(contract)){
 		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", 
 			module_name_); 
 		return;
@@ -617,7 +622,8 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
-	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol);
+	// TODO: 需要支持多个合约
+	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, sig.symbol);
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
@@ -655,13 +661,14 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 		if(!legal_){ // illegal user
-			YaoQuote* data = md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
+			// TODO: 
+			YaoQuote* data = NULL; //md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
 			while(true){
 				if(THOST_FTDC_D_Buy==ord->Direction){
-					ord->LimitPrice = data->RiseLimit;// uppet limit
+					ord->LimitPrice = data->upper_limit_px; // upper limit
 				}
 				else if(THOST_FTDC_D_Sell==ord->Direction){
-					ord->LimitPrice = data->FallLimit;// lowerest limit
+					ord->LimitPrice = data->lower_limit_px;	// lowerest limit
 				}
 				tunn_rpt_producer_->ReqOrderInsert(ord);
 				std::this_thread::sleep_for (std::chrono::milliseconds(500));
