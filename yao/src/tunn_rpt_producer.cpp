@@ -12,6 +12,7 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "ctp_data_formater.h"
+#include "DataCollect.h"
 
 using namespace std::chrono;
 
@@ -43,6 +44,11 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	}
 
 		
+	char pSystemInfo[344];
+	int len;
+	int rtn = CTP_GetSystemInfo(pSystemInfo, len);
+	clog_warning("[%s] CTP_GetSystemInfo:%d; systeminfo:%s",
+				module_name_, rtn, pSystemInfo);
 	// create ctp object
 	char addr[2048];
 	strcpy(addr, this->config_.address.c_str());
@@ -169,7 +175,7 @@ void TunnRptProducer::ReqLogin()
     strncpy(login_data.UserID, this->config_.userid.c_str(), sizeof(login_data.UserID));
     strncpy(login_data.Password, this->config_.password.c_str(), sizeof(login_data.Password));
     
-	int rtn = api_->ReqUserLogin2(&login_data, 0);
+	int rtn = api_->ReqUserLogin(&login_data, 0);
 
     clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
     clog_warning("[%s] ReqLogin:   %s", 

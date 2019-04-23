@@ -1,19 +1,22 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/yao/dist
-INCPATH:=-I$(TOP)/3rd/ctp/include -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include \
+INCPATH:=-I$(TOP)/3rd/ctp/include_se -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include \
 		 -I$(TOP)/3rd/zce_md/include -I$(TOP)/3rd/dce_md/include -I$(TOP)/3rd/shfe_md/include
 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ctp/lib -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/zce_md/lib
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ctp/lib -L$(TOP)/3rd/tinyxml/lib \
+		-L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/zce_md/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lTapQuoteAPI -ltinyxml -lutils -ldl -lbowsprit -lcheck -lclogger -lcork -lvrt -luuid -lboost_filesystem -lboost_system -lthostmduserapi -lthosttraderapi
+LIBS:=-lpthread -lTapQuoteAPI -ltinyxml -lutils -ldl -lbowsprit -lcheck -lclogger \
+	  -lcork -lvrt -luuid -lboost_filesystem -lboost_system -lthostmduserapi_se \
+	  -lthosttraderapi_se -lLinuxDataCollect
 DEPS:=.depends
 OUT:=ytrader
 PACKAGE_NAME:=$(OUT)
@@ -58,7 +61,7 @@ $(DEPS):$(SRCS)
 dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/ytrader/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/yao/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/ctp/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/zce_md/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
@@ -72,12 +75,12 @@ dist:
 	-cp -Lp /usr/local/lib/libcork.so.15 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -Lp /usr/local/lib/libvrt.so.2 $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/zce_md/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -a $(TOP)/ytrader/scripts/pos*.* 						$(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -a $(TOP)/ytrader/scripts/st*.sh 						$(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -a $(TOP)/yao/scripts/pos*.* 						$(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -a $(TOP)/yao/scripts/st*.sh 						$(DIST_DIR)/$(PACKAGE_NAME)/
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)/tools/
-	-cp -a $(TOP)/ytrader/scripts/configurator.py 			$(DIST_DIR)/$(PACKAGE_NAME)/tools/
-	-cp -a $(TOP)/ytrader/scripts/update.sh 					$(DIST_DIR)/$(PACKAGE_NAME)/tools/
-	-cp -a $(TOP)/ytrader/scripts/stra_sett_dce_day100.csv 	$(DIST_DIR)/$(PACKAGE_NAME)/tools/
+	-cp -a $(TOP)/yao/scripts/configurator.py 			$(DIST_DIR)/$(PACKAGE_NAME)/tools/
+	-cp -a $(TOP)/yao/scripts/update.sh 					$(DIST_DIR)/$(PACKAGE_NAME)/tools/
+	-cp -a $(TOP)/yao/scripts/stra_sett_dce_day100.csv 	$(DIST_DIR)/$(PACKAGE_NAME)/tools/
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)/log/
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)/ev/
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)/iv/
