@@ -236,7 +236,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		///会话编号
 		TThostFtdcSessionIDType	sessionid_;
 		///最大报单引用
-		TThostFtdcOrderRefType	MaxOrderRef_;
+		int	MaxOrderRef_;
 		int counter_;
 		// key: 合约；value：仓位对象
 		std::unordered_map<std::string,CThostFtdcInvestorPositionField> positions_;

@@ -192,15 +192,18 @@ void TunnRptProducer::OnFrontConnected()
 {
     clog_warning("[%s] OnFrontConnected.", module_name_);
 
-	CThostFtdcReqAuthenticateField a = { 0 };
-	strcpy(a.BrokerID, this->config_.brokerid.c_str());
-	strcpy(a.UserID, this->config_.userid.c_str());
-	strcpy(a.UserProductInfo, this->appid_);
-	strcpy(a.AuthCode, this->authcode_); 
-	strcpy(a.AppID, this->appid_);
-	int ret = api_->ReqAuthenticate(&a, 0);
-	clog_warning("[%s] ReqAuthenticate - ret=%d - %s", 
-		module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
+	this->ReqLogin();
+
+	// TODO: 穿透版
+	//CThostFtdcReqAuthenticateField a = { 0 };
+	//strcpy(a.BrokerID, this->config_.brokerid.c_str());
+	//strcpy(a.UserID, this->config_.userid.c_str());
+	//strcpy(a.UserProductInfo, this->appid_);
+	//strcpy(a.AuthCode, this->authcode_); 
+	//strcpy(a.AppID, this->appid_);
+	//int ret = api_->ReqAuthenticate(&a, 0);
+	//clog_warning("[%s] ReqAuthenticate - ret=%d - %s", 
+	//	module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
 
 }
 
@@ -241,8 +244,12 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 	strcpy(this->TradingDay_, pRspUserLogin->TradingDay);
 	this->frontid_ = pRspUserLogin->FrontID;	
 	this->sessionid_ = pRspUserLogin->SessionID;	
-	strncpy(this->MaxOrderRef_, pRspUserLogin->MaxOrderRef, sizeof(this->MaxOrderRef_));
-	this->counter_ = GetCounterByLocalOrderID(stoi(this->MaxOrderRef_));
+	if(strcmp(pRspUserLogin->MaxOrderRef, "")==0){
+		this->MaxOrderRef_ = 0;
+	}else{
+		this->MaxOrderRef_ =  stoi(pRspUserLogin->MaxOrderRef);
+	}
+	this->counter_ = GetCounterByLocalOrderID(this->MaxOrderRef_);
 	
     if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
 		clog_warning("[%s] OnRspUserLogin successfully.", module_name_);
@@ -255,10 +262,12 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		CThostFtdcSettlementInfoConfirmField req;
         memset(&req, 0, sizeof(req));
         strncpy(req.BrokerID, this->config_.brokerid.c_str(), sizeof(TThostFtdcBrokerIDType));
-        strncpy(req.InvestorID, this->config_.userid.c_str(), sizeof(TThostFtdcInvestorIDType));
+		// TODO:
+        // strncpy(req.InvestorID, this->config_.userid.c_str(), sizeof(TThostFtdcInvestorIDType));
         int ret = api_->ReqSettlementInfoConfirm(&req, 0);
         clog_warning("[%s] ReqSettlementInfoConfirm, return: %d", module_name_, ret);
 		
+		std::this_thread::sleep_for (std::chrono::seconds(3));
 		// 查询仓位
 		CThostFtdcQryInvestorPositionField a = { 0 };
 		strncpy(a.BrokerID, this->config_.brokerid.c_str(), sizeof(a.BrokerID));
@@ -266,7 +275,7 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		strncpy(a.InstrumentID, "", sizeof(a.InstrumentID));//不填写合约则返回所有持仓
 		int rtn = api_->ReqQryInvestorPosition(&a, 0);
 		if(0 != rtn){
-			 clog_error("[%s] ReqQryInvestorPosition, return: %d", module_name_, ret);
+			 clog_error("[%s] ReqQryInvestorPosition, return: %d", module_name_, rtn);
 			 exit (EXIT_FAILURE);
 		}
 
@@ -284,6 +293,7 @@ void TunnRptProducer::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirm
 		 nRequestID, bIsLast,
          CtpDatatypeFormater::ToString(pSettlementInfoConfirm).c_str(),
          CtpDatatypeFormater::ToString(pRspInfo).c_str());    
+
 }
 
 // done

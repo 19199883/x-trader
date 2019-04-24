@@ -26,7 +26,7 @@ TunnRptProducer *tunnRptProducer = NULL;
 static void
 SIG_handler(int s)
 {
-	//uniConsumer->Stop();
+	uniConsumer->Stop();
 }
 
 int main(/*int argc, const char **argv*/)
@@ -36,7 +36,7 @@ int main(/*int argc, const char **argv*/)
 	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);
 	SIGINT_act.sa_flags = 0;
-	sigaction(SIGUSR1, &SIGINT_act, NULL);
+	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
 	clog_set_minimum_level(CLOG_LEVEL_INFO);

@@ -687,8 +687,9 @@ std::string CtpDatatypeFormater::ToString(const CThostFtdcReqAuthenticateField *
     }
     ss << indent_string << "BrokerID=" << pdata->BrokerID << endl;
     ss << indent_string << "UserID=" << pdata->UserID << endl;
-    ss << indent_string << "AuthCode=" << pdata->AuthCode << endl;
-    ss << indent_string << "AppID=" << pdata->AppID << endl;
+	// TODO: 穿透版
+//    ss << indent_string << "AuthCode=" << pdata->AuthCode << endl;
+//    ss << indent_string << "AppID=" << pdata->AppID << endl;
 
     return ss.str();
 }

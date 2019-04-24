@@ -4,7 +4,7 @@ CC:=g++
 DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/yao/dist
-INCPATH:=-I$(TOP)/3rd/ctp/include_se -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include \
+INCPATH:=-I$(TOP)/3rd/ctp/include -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include \
 		 -I$(TOP)/3rd/zce_md/include -I$(TOP)/3rd/dce_md/include -I$(TOP)/3rd/shfe_md/include
 
 LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ctp/lib -L$(TOP)/3rd/tinyxml/lib \
@@ -15,8 +15,8 @@ LDFLAGS:=
 OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lpthread -lTapQuoteAPI -ltinyxml -lutils -ldl -lbowsprit -lcheck -lclogger \
-	  -lcork -lvrt -luuid -lboost_filesystem -lboost_system -lthostmduserapi_se \
-	  -lthosttraderapi_se -lLinuxDataCollect
+	  -lcork -lvrt -luuid -lboost_filesystem -lboost_system -lthostmduserapi \
+	  -lthosttraderapi -lLinuxDataCollect
 DEPS:=.depends
 OUT:=ytrader
 PACKAGE_NAME:=$(OUT)
