@@ -98,13 +98,18 @@ void TunnRptProducer::ParseConfig()
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
+		strcpy(this->appid_, tunn_node->Attribute("appid"));
+		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
 
-		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
+		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s"
+					"appid:%s, authcode:%s",
 					module_name_, 
 					this->config_.address.c_str(), 
 					this->config_.brokerid.c_str(),
 					this->config_.userid.c_str(),
-					this->config_.password.c_str());
+					this->config_.password.c_str(),
+					this->appid_,
+					this->authcode_);
 	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
 }
 
@@ -186,7 +191,30 @@ void TunnRptProducer::ReqLogin()
 void TunnRptProducer::OnFrontConnected()
 {
     clog_warning("[%s] OnFrontConnected.", module_name_);
-	this->ReqLogin();
+
+	CThostFtdcReqAuthenticateField a = { 0 };
+	strcpy(a.BrokerID, this->config_.brokerid.c_str());
+	strcpy(a.UserID, this->config_.userid.c_str());
+	strcpy(a.UserProductInfo, this->appid_);
+	strcpy(a.AuthCode, this->authcode_); 
+	strcpy(a.AppID, this->appid_);
+	int ret = api_->ReqAuthenticate(&a, 0);
+	clog_warning("[%s] ReqAuthenticate - ret=%d - %s", 
+		module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
+
+}
+
+void TunnRptProducer::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, 
+			CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
+		clog_warning("[%s] OnRspAuthenticate successfully.", module_name_);
+		
+		this->ReqLogin();
+    }else {
+		clog_error("[%s] OnRspAuthenticate , error: %d, msg: %s", module_name_, 
+			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+    }
 }
 
 // done

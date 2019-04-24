@@ -675,3 +675,20 @@ std::string CtpDatatypeFormater::ToString(const CThostFtdcInstrumentField *p)
 
     return buf;
 }
+
+std::string CtpDatatypeFormater::ToString(const CThostFtdcReqAuthenticateField *pdata)
+{
+    stringstream ss;
+    ss << newline_string << indent_string << "structName=CThostFtdcReqAuthenticateField /// Authenticate Request" << endl;
+    if (!pdata)
+    {
+        ss << "<null>" << endl;
+        return ss.str();
+    }
+    ss << indent_string << "BrokerID=" << pdata->BrokerID << endl;
+    ss << indent_string << "UserID=" << pdata->UserID << endl;
+    ss << indent_string << "AuthCode=" << pdata->AuthCode << endl;
+    ss << indent_string << "AppID=" << pdata->AppID << endl;
+
+    return ss.str();
+}

@@ -33,6 +33,7 @@ public:
 	static std::string ToString(const CThostFtdcInvestorPositionDetailField *pdata);
 
 	static std::string ToString(const CThostFtdcInstrumentField *pdata);
+	static std::string ToString(const CThostFtdcReqAuthenticateField *pdata);
 
 private:
 	CtpDatatypeFormater()

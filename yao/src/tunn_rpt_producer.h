@@ -207,6 +207,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		virtual void OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, CThostFtdcRspInfoField *pRspInfo);
 		virtual void OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *pInvestorPosition, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 		virtual void OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+		virtual void OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 		void ParseConfig();
 		void ReqLogin();
@@ -241,6 +242,8 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		std::unordered_map<std::string,CThostFtdcInvestorPositionField> positions_;
 		
 		bool position_ready_;
+		char appid_[30];
+		char authcode_[40];
 	
 };
 
