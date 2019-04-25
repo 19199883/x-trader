@@ -136,15 +136,14 @@ class CtpFieldConverter
 			cancel_order_.SessionID = sessionid;					
 		}
 		
-		static CThostFtdcInputOrderActionField* Convert(const signal_t* cancel_sig,
-			const signal_t* orig_sig, int cancel_localorderid, int orig_localorderid,
-			TThostFtdcOrderSysIDType ordersysid)
+		static CThostFtdcInputOrderActionField* Convert(exchange_names exchange, const char* symbol, 
+				int cancel_localorderid, int orig_localorderid, TThostFtdcOrderSysIDType ordersysid)
 		{
 			cancel_order_.OrderActionRef = cancel_localorderid;
 			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%lld", orig_localorderid);
-			strncpy(cancel_order_.ExchangeID, ConvertExchange(orig_sig->exchange), sizeof(cancel_order_.ExchangeID));						
+			strncpy(cancel_order_.ExchangeID, ConvertExchange(exchange), sizeof(cancel_order_.ExchangeID));						
 			strncpy(cancel_order_.OrderSysID, ordersysid, sizeof(cancel_order_.OrderSysID));
-			strncpy(cancel_order_.InstrumentID, orig_sig->symbol, sizeof(cancel_order_.InstrumentID));
+			strncpy(cancel_order_.InstrumentID, symbol, sizeof(cancel_order_.InstrumentID));
 	
 		}
 		

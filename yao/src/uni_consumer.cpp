@@ -230,6 +230,29 @@ void UniConsumer::Start()
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
+	// TODO: debug
+	// //////////////////////////
+	// debug start
+	// 1. place order
+	// //////////////////////
+	signal_t sig;
+	sig.sig_id = 34;
+	sig.exchange = exchange_names::SHFE;
+	strcpy(sig.symbol, "rb1910");
+	sig.open_volume = 20;
+	sig.buy_price = 3800;
+	sig.sig_act = signal_act_t::buy;
+	sig.sig_openclose  = alloc_position_effect_t::open_;
+
+	long localorderid = tunn_rpt_producer_->NewLocalOrderID(34);
+	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
+		sig, localorderid, 200);
+	int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
+
+	//////////////////////////////////////////////
+	// debug end
+	// ///////////////////
+
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
@@ -463,6 +486,25 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 		rpt->MatchedAmount,
 		rpt->ErrorID);
 
+	//////////////////////////////
+	//	TODO: debug start
+	//
+	//	//////////////////////////
+	signal_t orig_sig;
+	CThostFtdcInputOrderActionField* ordAct = CtpFieldConverter::Convert(
+				exchange_names::SHFE, 
+				"rb1910", 
+				tunn_rpt_producer_->NewLocalOrderID(34),
+				rpt->LocalOrderID,
+				rpt->OrderSysID);
+	this->tunn_rpt_producer_->ReqOrderAction(ordAct);
+	return;
+
+	/////////////////
+	//
+	// TODO: debug end
+	// //////////////////
+
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
 	// TODO: to here
@@ -609,7 +651,7 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	int orig_orderRef = strategy.GetLocalOrderID(sig.orig_sig_id); // 即LocalOrderId
 	char* orig_sysOrderId = strategy.GetSysOrderIdBySigID(sig.orig_sig_id); 
 	CThostFtdcInputOrderActionField* orderAction = CtpFieldConverter::Convert(
-		&sig, orig_sig, orderRef, orig_orderRef, orig_sysOrderId);    		  	
+		orig_sig->exchange, orig_sig->symbol, orderRef, orig_orderRef, orig_sysOrderId);    		  	
 	this->tunn_rpt_producer_->ReqOrderAction(orderAction);
 
 #ifdef LATENCY_MEASURE

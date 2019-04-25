@@ -192,18 +192,18 @@ void TunnRptProducer::OnFrontConnected()
 {
     clog_warning("[%s] OnFrontConnected.", module_name_);
 
-	this->ReqLogin();
+	// this->ReqLogin();
 
 	// TODO: 穿透版
-	//CThostFtdcReqAuthenticateField a = { 0 };
-	//strcpy(a.BrokerID, this->config_.brokerid.c_str());
-	//strcpy(a.UserID, this->config_.userid.c_str());
-	//strcpy(a.UserProductInfo, this->appid_);
-	//strcpy(a.AuthCode, this->authcode_); 
-	//strcpy(a.AppID, this->appid_);
-	//int ret = api_->ReqAuthenticate(&a, 0);
-	//clog_warning("[%s] ReqAuthenticate - ret=%d - %s", 
-	//	module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
+	CThostFtdcReqAuthenticateField a = { 0 };
+	strcpy(a.BrokerID, this->config_.brokerid.c_str());
+	strcpy(a.UserID, this->config_.userid.c_str());
+	strcpy(a.UserProductInfo, this->appid_);
+	strcpy(a.AuthCode, this->authcode_); 
+	strcpy(a.AppID, this->appid_);
+	int ret = api_->ReqAuthenticate(&a, 0);
+	clog_warning("[%s] ReqAuthenticate - ret=%d - %s", 
+		module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
 
 }
 
@@ -213,11 +213,11 @@ void TunnRptProducer::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuth
     if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
 		clog_warning("[%s] OnRspAuthenticate successfully.", module_name_);
 		
-		this->ReqLogin();
     }else {
 		clog_error("[%s] OnRspAuthenticate , error: %d, msg: %s", module_name_, 
 			pRspInfo->ErrorID, pRspInfo->ErrorMsg);
     }
+	this->ReqLogin();
 }
 
 // done
@@ -263,21 +263,10 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         memset(&req, 0, sizeof(req));
         strncpy(req.BrokerID, this->config_.brokerid.c_str(), sizeof(TThostFtdcBrokerIDType));
 		// TODO:
-        // strncpy(req.InvestorID, this->config_.userid.c_str(), sizeof(TThostFtdcInvestorIDType));
+        strncpy(req.InvestorID, this->config_.userid.c_str(), sizeof(TThostFtdcInvestorIDType));
         int ret = api_->ReqSettlementInfoConfirm(&req, 0);
         clog_warning("[%s] ReqSettlementInfoConfirm, return: %d", module_name_, ret);
 		
-		std::this_thread::sleep_for (std::chrono::seconds(3));
-		// 查询仓位
-		CThostFtdcQryInvestorPositionField a = { 0 };
-		strncpy(a.BrokerID, this->config_.brokerid.c_str(), sizeof(a.BrokerID));
-		strncpy(a.InvestorID, this->config_.userid.c_str(), sizeof(a.InvestorID));
-		strncpy(a.InstrumentID, "", sizeof(a.InstrumentID));//不填写合约则返回所有持仓
-		int rtn = api_->ReqQryInvestorPosition(&a, 0);
-		if(0 != rtn){
-			 clog_error("[%s] ReqQryInvestorPosition, return: %d", module_name_, rtn);
-			 exit (EXIT_FAILURE);
-		}
 
     }else {
 		clog_error("[%s] OnRspUserLogin, error: %d, msg: %s", module_name_, 
@@ -294,6 +283,19 @@ void TunnRptProducer::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirm
          CtpDatatypeFormater::ToString(pSettlementInfoConfirm).c_str(),
          CtpDatatypeFormater::ToString(pRspInfo).c_str());    
 
+	// 查询仓位
+	CThostFtdcQryInvestorPositionField a = { 0 };
+	strncpy(a.BrokerID, this->config_.brokerid.c_str(), sizeof(a.BrokerID));
+	strncpy(a.InvestorID, this->config_.userid.c_str(), sizeof(a.InvestorID));
+	strncpy(a.InstrumentID, "", sizeof(a.InstrumentID));//不填写合约则返回所有持仓
+	int ret = api_->ReqQryInvestorPosition(&a, 0);
+	if (ret != 0){
+		clog_warning("[%s] ReqQryInvestorPosition- ret=%d - %s", 
+			module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
+	}else {
+		clog_info("[%s] ReqQryInvestorPosition- ret=%d - %s", 
+			module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
+	}
 }
 
 // done
@@ -548,14 +550,16 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 
 {
+	// 如果没有仓位，则pInvestorPosition,pRspInfo为NULL
+	// TODO:
 	clog_warning("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d",
         module_name_,
 		CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str(),
 		bIsLast);	
-	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {		
-		positions_[pInvestorPosition->InstrumentID] = *pInvestorPosition;
-    }else{
+
+	
+	if(NULL != pRspInfo && 0 != pRspInfo->ErrorID ){
 		clog_error("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d",
         module_name_,
 		CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
@@ -563,6 +567,10 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 		bIsLast);	
 		
 		exit (EXIT_FAILURE);
+	}else{
+		if (pInvestorPosition != NULL) {		
+			positions_[pInvestorPosition->InstrumentID] = *pInvestorPosition;
+		}
 	}
 	
 	if(bIsLast) position_ready_ = true;
