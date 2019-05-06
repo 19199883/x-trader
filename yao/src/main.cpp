@@ -32,6 +32,9 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 
+	// TODO: debug
+	int a = sizeof(int);
+	int test = 200000000;
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);
@@ -89,10 +92,10 @@ int main(/*int argc, const char **argv*/)
   // free vrt_queue
 	vrt_queue_free(queue);
 
-  delete uniConsumer;
   delete tunnRptProducer; 
 	delete dcemd_producer; 
 	delete l1_md_producer;
+  delete uniConsumer;
 
 // clog: free resources
 	pos_calc::destroy_instance();

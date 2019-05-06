@@ -104,20 +104,20 @@ public:
 	exchange_names GetExchange(const char* contract);
 	int32_t GetMaxPosition(const char* contract);
 	const char* GetSoFile();
-	long GetLocalOrderID(int32_t sig_id);
+	int GetLocalOrderID(int32_t sig_id);
 	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act);
-	void PrepareForExecutingSig(long localorderid, const signal_t &sig,
+	void PrepareForExecutingSig(int localorderid, const signal_t &sig,
 				int32_t actual_vol);
 	void FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
 	bool HasFrozenPosition(const char *contract);
-	int32_t GetCounterByLocalOrderID(long local_ord_id);
+	int32_t GetCounterByLocalOrderID(int local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
 	void Push(const signal_t &sig);
 	int GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, const char* contract);
 	int GetVol(const signal_t &sig);
 	void End(void);
 	int32_t GetSignalIdxBySigId(long sigid);
-	int32_t GetSignalIdxByLocalOrdId(long localordid);
+	int32_t GetSignalIdxByLocalOrdId(int localordid);
 	char* GetSysOrderIdBySigID(int32_t sig_id);
 	if_sig_state_t GetStatusBySigIdx(int32_t sig_idx);
 	const char *GetContractBySigId(int32_t sig_id);
@@ -142,7 +142,7 @@ private:
 	Destroy_ptr pfn_destroy_;
 	FeedInitPosition_ptr pfn_feedinitposition_;
 
-	long GetLocalOrderIDByCounter(long counter);
+	int GetLocalOrderIDByCounter(int counter);
 
 	int cursor_;
 	signal_t sig_table_[SIGANDRPT_TABLE_SIZE];
@@ -155,7 +155,7 @@ private:
 	int localorderid_sigandrptidx_map_table_[SIGANDRPT_TABLE_SIZE * MAX_STRATEGY_COUNT]; 
 
 	// key: signal id; value: LocalOrderID
-	long sigid_localorderid_map_table_[SIGANDRPT_TABLE_SIZE];
+	int sigid_localorderid_map_table_[SIGANDRPT_TABLE_SIZE];
 	
 	// key: signal id; value: 号所存数组的位置
 	long sigid_sigidx_map_table_[SIGANDRPT_TABLE_SIZE];

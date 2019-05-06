@@ -238,17 +238,29 @@ void UniConsumer::Start()
 	signal_t sig;
 	sig.sig_id = 34;
 	sig.exchange = exchange_names::SHFE;
-	strcpy(sig.symbol, "rb1910");
+	strcpy(sig.symbol, "rb1905");
 	sig.open_volume = 20;
-	sig.buy_price = 3800;
+	sig.buy_price = 2923;
 	sig.sig_act = signal_act_t::buy;
 	sig.sig_openclose  = alloc_position_effect_t::open_;
 
-	long localorderid = tunn_rpt_producer_->NewLocalOrderID(34);
+	int localorderid = tunn_rpt_producer_->NewLocalOrderID(34);
 	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
 		sig, localorderid, 200);
 	int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 
+	sig.sig_id = 35;
+	sig.exchange = exchange_names::SHFE;
+	strcpy(sig.symbol, "rb1905");
+	sig.open_volume = 0;
+	sig.sell_price = 2923;
+	sig.sig_act = 6;//signal_act_t::sell;
+	sig.sig_openclose  = alloc_position_effect_t::open_;
+
+	localorderid = tunn_rpt_producer_->NewLocalOrderID(35);
+	ord = CtpFieldConverter::Convert(
+		sig, localorderid, 200);
+	rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 	//////////////////////////////////////////////
 	// debug end
 	// ///////////////////
@@ -288,6 +300,7 @@ void UniConsumer::Stop()
 	if(running_){
 		md_producer_->End();
 		tunn_rpt_producer_->End();
+
 #ifdef COMPLIANCE_CHECK
 			compliance_.Save();
 #endif
@@ -477,7 +490,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; "
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %d; OrderStatus:%c; "
 		"MatchedAmount:%d; ErrorID:%d ",
 		module_name_, 
 		index, 
@@ -666,7 +679,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	int vol = strategy.GetVol(sig);
 	// TODO: 需要支持多个合约
 	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, sig.symbol);
-	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+	int localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
 
 	// vol:0, rejected
@@ -677,7 +690,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.OrderStatus = THOST_FTDC_OAS_Rejected; 
+		rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected; 
 		rpt.ErrorID = -1; 
 		int32_t sigidx = strategy.GetSignalIdxBySigId(sig.sig_id);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
@@ -725,7 +738,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
 			rpt.LocalOrderID = localorderid;
-			rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
+			rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected;
 			rpt.ErrorID = rtn;
 
 			compliance_.End(counter);
@@ -741,13 +754,13 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		}
 #ifdef COMPLIANCE_CHECK
 	}else{
-		clog_warning("[%s] matched with myself:%ld", module_name_, localorderid);
+		clog_warning("[%s] matched with myself:%d", module_name_, localorderid);
 
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		rpt.LocalOrderID = localorderid;
-		rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
+		rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
 		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);

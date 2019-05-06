@@ -72,12 +72,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 TunnRptProducer::~TunnRptProducer()
 {
-//	if (this->producer_ != NULL){
-//		vrt_producer_free(this->producer_);
-//		this->producer_ = NULL;
-//		clog_info("[%s] release tunnrpt_producer.", module_name_);
-//	}
-
+	clog_info("[%s] release tunnrpt_producer.", module_name_);
 }
 
 void TunnRptProducer::ParseConfig()
@@ -298,6 +293,11 @@ void TunnRptProducer::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirm
 	}
 }
 
+bool TunnRptProducer::Ended()
+{
+	return ended_;
+}
+
 // done
 void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -309,14 +309,6 @@ void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
 		
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
 		clog_warning("[%s] OnRspUserLogout successfully.", module_name_);
-		if (NULL != api_) {
-			api_->RegisterSpi(NULL);
-			api_->Release();
-			api_ = NULL;
-			clog_warning("[%s]api release.", module_name_);
-		}
-		(vrt_producer_eof(producer_));
-		clog_warning("[%s] End exit", module_name_);
     }
     else {
 		clog_error("[%s] OnRspUserLogout, error: %d, msg: %s", module_name_, 
@@ -327,11 +319,12 @@ void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
 // done
 bool TunnRptProducer::IsFinal(TThostFtdcOrderStatusType   OrderStatus)
 {
+	// TODO: 状态的各种值需要重新核对，因版本不同有变化
 	if(THOST_FTDC_OST_AllTraded==OrderStatus ||
-		THOST_FTDC_OST_Canceled==OrderStatus ||
-		THOST_FTDC_OST_NoTradeNotQueueing==OrderStatus ||
 		THOST_FTDC_OST_PartTradedNotQueueing==OrderStatus ||
-		THOST_FTDC_OAS_Rejected==OrderStatus){
+		THOST_FTDC_OST_NoTradeNotQueueing==OrderStatus ||
+		THOST_FTDC_OST_Canceled==OrderStatus ||
+		THOST_FTDC_OSS_InsertRejected==OrderStatus){
 			return true;
 		}else{
 			return false;
@@ -347,7 +340,15 @@ void TunnRptProducer::End()
 		strncpy(logoutinfo.UserID, this->config_.userid.c_str(), sizeof(logoutinfo.UserID));		    
 		int rtn = api_->ReqUserLogout(&logoutinfo, 0);
 		
-		ended_ = true;		
+		if (NULL != api_) {
+			api_->RegisterSpi(NULL);
+			api_->Release();
+			//api_ = NULL;
+			ended_ = true;		
+			clog_warning("[%s]api release.", module_name_);
+		}
+		(vrt_producer_eof(producer_));
+		clog_warning("[%s] End exit", module_name_);
 	}
 }
 
@@ -372,9 +373,8 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 				
 		int32_t cursor = Push();		
 		struct TunnRpt &rpt = rpt_buffer_[cursor];	 // LocalOrderID也只需要赋值一次
-		
 		rpt.LocalOrderID = stoi(pInputOrder->OrderRef);
-		rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
+		rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected;
 		rpt.ErrorID = pRspInfo->ErrorID;
 
 		struct vrt_value  *vvalue;
@@ -429,7 +429,7 @@ void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
 
     clog_info("[%s] OnRtnOrder:%s", module_name_, CtpDatatypeFormater::ToString(pOrder).c_str());
 
-	if (pOrder->OrderStatus == THOST_FTDC_OAS_Rejected){
+	if (pOrder->OrderStatus == THOST_FTDC_OSS_InsertRejected){
 		clog_warning("[%s] OnRtnOrder:%s",
 			module_name_,
 			CtpDatatypeFormater::ToString(pOrder).c_str());
@@ -478,7 +478,7 @@ void TunnRptProducer::OnRtnTrade(CThostFtdcTradeField *pTrade)
 	ivalue->index = cursor;
 	ivalue->data = TUNN_RPT;
 
-	clog_info("[%s] OnRtnTrade: index,%d; data,%d; LocalOrderID:%ld",
+	clog_info("[%s] OnRtnTrade: index,%d; data,%d; LocalOrderID:%d",
 		module_name_, ivalue->index, ivalue->data, rpt.LocalOrderID);
 
 	(vrt_producer_publish(producer_));
@@ -506,7 +506,7 @@ void TunnRptProducer::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder
 		struct TunnRpt &rpt = rpt_buffer_[cursor];	 // LocalOrderID也只需要赋值一次
 		
 		rpt.LocalOrderID = stoi(pInputOrder->OrderRef);
-		rpt.OrderStatus = THOST_FTDC_OAS_Rejected;
+		rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected;
 		rpt.ErrorID = pRspInfo->ErrorID;
 
 		struct vrt_value  *vvalue;
@@ -585,10 +585,10 @@ bool TunnRptProducer::IsReady()
 	}
 }
 
-long TunnRptProducer::NewLocalOrderID(int32_t strategyid)
+int TunnRptProducer::NewLocalOrderID(int32_t strategyid)
 {	
 	counter_++;
-    long localorderid = strategyid+ counter_ * 1000;			
+    int localorderid = strategyid+ counter_ * 1000;			
 	return localorderid;
 }
 
@@ -607,7 +607,7 @@ int32_t TunnRptProducer::GetStrategyID(TunnRpt& rpt)
 	return rpt.LocalOrderID % 1000;
 }
 
-int32_t TunnRptProducer::GetCounterByLocalOrderID(long local_ord_id)
+int32_t TunnRptProducer::GetCounterByLocalOrderID(int local_ord_id)
 {
 	return local_ord_id/1000;
 }

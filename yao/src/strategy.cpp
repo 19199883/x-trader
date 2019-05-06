@@ -297,7 +297,7 @@ const char* Strategy::GetSoFile()
 	return this->setting_.file.c_str();
 }
 
-long Strategy::GetLocalOrderID(int32_t sig_id)
+int Strategy::GetLocalOrderID(int32_t sig_id)
 {
 	return sigid_localorderid_map_table_[sig_id];
 }
@@ -504,7 +504,7 @@ void Strategy::Push(const signal_t &sig)
 	cursor_++;
 }
 
-void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol)
+void Strategy::PrepareForExecutingSig(int localorderid, const signal_t &sig, int32_t actual_vol)
 {
 	int32_t cursor = sigid_sigidx_map_table_[sig.sig_id];
 	StrategyPosition *cur_pos = NULL;
@@ -523,16 +523,16 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
 	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d;"
-		"LocalOrderID:%ld;", module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
+		"LocalOrderID:%d;", module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
 }
 
 
-long Strategy::GetLocalOrderIDByCounter(long counter)
+int Strategy::GetLocalOrderIDByCounter(int counter)
 {
     return GetId() + counter * 1000;		
 }
 
-int32_t Strategy::GetCounterByLocalOrderID(long local_ord_id)
+int32_t Strategy::GetCounterByLocalOrderID(int local_ord_id)
 {
 	return (local_ord_id - GetId()) / 1000;
 }
@@ -544,7 +544,7 @@ int32_t Strategy::GetSignalIdxBySigId(long sigid)
 }
 
 // improve place, cancel
-int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
+int32_t Strategy::GetSignalIdxByLocalOrdId(int localordid)
 {
 	// get signal report by LocalOrderID
 	int32_t counter = GetCounterByLocalOrderID(localordid);

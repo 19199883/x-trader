@@ -91,12 +91,12 @@ class CtpFieldConverter
 		/*
 			将策略产生的信号等信息生成ctp需要的下单对象
 		*/
-		static CThostFtdcInputOrderField*  Convert(const signal_t& sig,long localorderid,int32_t vol)
+		static CThostFtdcInputOrderField*  Convert(const signal_t& sig,int localorderid,int32_t vol)
 		{	
 			strncpy(new_order_.ExchangeID, ConvertExchange(sig.exchange), sizeof(new_order_.ExchangeID));						
 			new_order_.RequestID = OEDERINSERT_REQUESTID;
 			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(new_order_.InstrumentID));
-			snprintf(new_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%lld", localorderid);
+			snprintf(new_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%d", localorderid);
  
 			if (sig.sig_act == signal_act_t::buy){
 				new_order_.LimitPrice = sig.buy_price;
@@ -140,10 +140,11 @@ class CtpFieldConverter
 				int cancel_localorderid, int orig_localorderid, TThostFtdcOrderSysIDType ordersysid)
 		{
 			cancel_order_.OrderActionRef = cancel_localorderid;
-			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%lld", orig_localorderid);
+			snprintf(cancel_order_.OrderRef, sizeof(TThostFtdcOrderRefType), "%d", orig_localorderid);
 			strncpy(cancel_order_.ExchangeID, ConvertExchange(exchange), sizeof(cancel_order_.ExchangeID));						
 			strncpy(cancel_order_.OrderSysID, ordersysid, sizeof(cancel_order_.OrderSysID));
 			strncpy(cancel_order_.InstrumentID, symbol, sizeof(cancel_order_.InstrumentID));
+			return &cancel_order_;
 	
 		}
 		
@@ -168,15 +169,17 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		/*
 		 * things relating to x-trader internal logic
 		 */
-		long NewLocalOrderID(int32_t strategyid);
+		int NewLocalOrderID(int32_t strategyid);
 		const char* GetAccount();
 		TunnRpt* GetRpt(int32_t index);
 		int32_t GetStrategyID(TunnRpt& rpt);
-		int32_t GetCounterByLocalOrderID(long local_ord_id);
+		int32_t GetCounterByLocalOrderID(int local_ord_id);
 
 		void End();
 		bool IsReady();
 		bool IsFinal(TThostFtdcOrderStatusType   OrderStatus);
+
+		bool Ended();
 
 	private:
 		/*
