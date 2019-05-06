@@ -1,0 +1,405 @@
+INFO [TunnRptProducer] ReqQryInvestorPosition- ret=0 - 
+    structName=CThostFtdcQryInvestorPositionField
+    BrokerID=2084
+    InvestorID=999201576
+    InstrumentID=
+
+WARNING [TunnRptProducer] OnRspQryInvestorPosition:
+    structName=CThostFtdcInvestorPositionField
+    InstrumentID=rb1910
+    BrokerID=2084
+    InvestorID=999201576
+    PosiDirection=2
+    HedgeFlag=1
+    PositionDate=1
+    YdPosition=0
+    Position=0
+    LongFrozen=0
+    ShortFrozen=0
+    LongFrozenAmount=0
+    ShortFrozenAmount=0
+    OpenVolume=0
+    CloseVolume=0
+    OpenAmount=0
+    CloseAmount=0
+    PositionCost=0
+    PreMargin=0
+    UseMargin=0
+    FrozenMargin=0
+    FrozenCash=0
+    FrozenCommission=0
+    CashIn=0
+    Commission=0
+    CloseProfit=0
+    PositionProfit=0
+    PreSettlementPrice=2139
+    SettlementPrice=2310
+    TradingDay=20190430
+    SettlementID=1
+    OpenCost=0
+    ExchangeMargin=0
+    CombPosition=0
+    CombLongFrozen=0
+    CombShortFrozen=0
+    CloseProfitByDate=0
+    CloseProfitByTrade=0
+    TodayPosition=0
+    MarginRateByMoney=0.09
+    MarginRateByVolume=0
+ 
+    structName=CThostFtdcRspInfoField
+<null>
+,isLast:0
+WARNING [TunnRptProducer] OnRspQryInvestorPosition:
+    structName=CThostFtdcInvestorPositionField
+    InstrumentID=rb1905
+    BrokerID=2084
+    InvestorID=999201576
+    PosiDirection=3
+    HedgeFlag=1
+    PositionDate=1
+    YdPosition=0
+    Position=400
+    LongFrozen=0
+    ShortFrozen=0
+    LongFrozenAmount=0
+    ShortFrozenAmount=0
+    OpenVolume=400
+    CloseVolume=0
+    OpenAmount=1.1692e+07
+    CloseAmount=0
+    PositionCost=1.1692e+07
+    PreMargin=0
+    UseMargin=1.1244e+06
+    FrozenMargin=0
+    FrozenCash=0
+    FrozenCommission=0
+    CashIn=0
+    Commission=526.14
+    CloseProfit=0
+    PositionProfit=0
+    PreSettlementPrice=2811
+    SettlementPrice=2923
+    TradingDay=20190430
+    SettlementID=1
+    OpenCost=1.1692e+07
+    ExchangeMargin=1.1244e+06
+    CombPosition=0
+    CombLongFrozen=0
+    CombShortFrozen=0
+    CloseProfitByDate=0
+    CloseProfitByTrade=0
+    TodayPosition=400
+    MarginRateByMoney=0.1
+    MarginRateByVolume=0
+ 
+    structName=CThostFtdcRspInfoField
+<null>
+,isLast:0
+WARNING [TunnRptProducer] OnRspQryInvestorPosition:
+    structName=CThostFtdcInvestorPositionField
+    InstrumentID=al1905
+    BrokerID=2084
+    InvestorID=999201576
+    PosiDirection=3
+    HedgeFlag=1
+    PositionDate=1
+    YdPosition=0
+    Position=0
+    LongFrozen=0
+    ShortFrozen=0
+    LongFrozenAmount=0
+    ShortFrozenAmount=0
+    OpenVolume=0
+    CloseVolume=0
+    OpenAmount=0
+    CloseAmount=0
+    PositionCost=0
+    PreMargin=0
+    UseMargin=0
+    FrozenMargin=0
+    FrozenCash=0
+    FrozenCommission=0
+    CashIn=0
+    Commission=0
+    CloseProfit=0
+    PositionProfit=0
+    PreSettlementPrice=6635
+    SettlementPrice=6635
+    TradingDay=20190430
+    SettlementID=1
+    OpenCost=0
+    ExchangeMargin=0
+    CombPosition=0
+    CombLongFrozen=0
+    CombShortFrozen=0
+    CloseProfitByDate=0
+    CloseProfitByTrade=0
+    TodayPosition=0
+    MarginRateByMoney=0.1
+    MarginRateByVolume=0
+ 
+    structName=CThostFtdcRspInfoField
+<null>
+,isLast:0
+WARNING [TunnRptProducer] OnRspQryInvestorPosition:
+    structName=CThostFtdcInvestorPositionField
+    InstrumentID=al1905
+    BrokerID=2084
+    InvestorID=999201576
+    PosiDirection=2
+    HedgeFlag=1
+    PositionDate=1
+    YdPosition=0
+    Position=0
+    LongFrozen=0
+    ShortFrozen=0
+    LongFrozenAmount=0
+    ShortFrozenAmount=0
+    OpenVolume=0
+    CloseVolume=0
+    OpenAmount=0
+    CloseAmount=0
+    PositionCost=0
+    PreMargin=0
+    UseMargin=0
+    FrozenMargin=0
+    FrozenCash=0
+    FrozenCommission=0
+    CashIn=0
+    Commission=0
+    CloseProfit=0
+    PositionProfit=0
+    PreSettlementPrice=6635
+    SettlementPrice=6635
+    TradingDay=20190430
+    SettlementID=1
+    OpenCost=0
+    ExchangeMargin=0
+    CombPosition=0
+    CombLongFrozen=0
+    CombShortFrozen=0
+    CloseProfitByDate=0
+    CloseProfitByTrade=0
+    TodayPosition=0
+    MarginRateByMoney=0.1
+    MarginRateByVolume=0
+ 
+    structName=CThostFtdcRspInfoField
+<null>
+,isLast:0
+WARNING [TunnRptProducer] OnRspQryInvestorPosition:
+    structName=CThostFtdcInvestorPositionField
+    InstrumentID=rb1905
+    BrokerID=2084
+    InvestorID=999201576
+    PosiDirection=2
+    HedgeFlag=1
+    PositionDate=1
+    YdPosition=0
+    Position=262
+    LongFrozen=0
+    ShortFrozen=0
+    LongFrozenAmount=0
+    ShortFrozenAmount=0
+    OpenVolume=262
+    CloseVolume=0
+    OpenAmount=7.65826e+06
+    CloseAmount=0
+    PositionCost=7.65826e+06
+    PreMargin=0
+    UseMargin=736482
+    FrozenMargin=0
+    FrozenCash=0
+    FrozenCommission=0
+    CashIn=0
+    Commission=344.622
+    CloseProfit=0
+    PositionProfit=0
+    PreSettlementPrice=2811
+    SettlementPrice=2923
+    TradingDay=20190430
+    SettlementID=1
+    OpenCost=7.65826e+06
+    ExchangeMargin=736482
+    CombPosition=0
+    CombLongFrozen=0
+    CombShortFrozen=0
+    CloseProfitByDate=0
+    CloseProfitByTrade=0
+    TodayPosition=262
+    MarginRateByMoney=0.1
+    MarginRateByVolume=0
+ 
+    structName=CThostFtdcRspInfoField
+<null>
+,isLast:0
+WARNING [TunnRptProducer] OnRspQryInvestorPosition:
+    structName=CThostFtdcInvestorPositionField
+    InstrumentID=ag1906
+    BrokerID=2084
+    InvestorID=999201576
+    PosiDirection=2
+    HedgeFlag=1
+    PositionDate=1
+    YdPosition=0
+    Position=0
+    LongFrozen=0
+    ShortFrozen=0
+    LongFrozenAmount=0
+    ShortFrozenAmount=0
+    OpenVolume=0
+    CloseVolume=0
+    OpenAmount=0
+    CloseAmount=0
+    PositionCost=0
+    PreMargin=0
+    UseMargin=0
+    FrozenMargin=0
+    FrozenCash=0
+    FrozenCommission=0
+    CashIn=0
+    Commission=0
+    CloseProfit=0
+    PositionProfit=0
+    PreSettlementPrice=846
+    SettlementPrice=846
+    TradingDay=20190430
+    SettlementID=1
+    OpenCost=0
+    ExchangeMargin=0
+    CombPosition=0
+    CombLongFrozen=0
+    CombShortFrozen=0
+    CloseProfitByDate=0
+    CloseProfitByTrade=0
+    TodayPosition=0
+    MarginRateByMoney=0.06
+    MarginRateByVolume=0
+ 
+    structName=CThostFtdcRspInfoField
+<null>
+,isLast:0
+WARNING [TunnRptProducer] OnRspQryInvestorPosition:
+    structName=CThostFtdcInvestorPositionField
+    InstrumentID=al1910
+    BrokerID=2084
+    InvestorID=999201576
+    PosiDirection=2
+    HedgeFlag=1
+    PositionDate=1
+    YdPosition=0
+    Position=0
+    LongFrozen=0
+    ShortFrozen=0
+    LongFrozenAmount=0
+    ShortFrozenAmount=0
+    OpenVolume=0
+    CloseVolume=0
+    OpenAmount=0
+    CloseAmount=0
+    PositionCost=0
+    PreMargin=0
+    UseMargin=0
+    FrozenMargin=0
+    FrozenCash=0
+    FrozenCommission=0
+    CashIn=0
+    Commission=0
+    CloseProfit=0
+    PositionProfit=0
+    PreSettlementPrice=5500
+    SettlementPrice=5500
+    TradingDay=20190430
+    SettlementID=1
+    OpenCost=0
+    ExchangeMargin=0
+    CombPosition=0
+    CombLongFrozen=0
+    CombShortFrozen=0
+    CloseProfitByDate=0
+    CloseProfitByTrade=0
+    TodayPosition=0
+    MarginRateByMoney=0.07
+    MarginRateByVolume=0
+ 
+    structName=CThostFtdcRspInfoField
+<null>
+,isLast:0
+WARNING [TunnRptProducer] OnRspQryInvestorPosition:
+    structName=CThostFtdcInvestorPositionField
+    InstrumentID=cu1910
+    BrokerID=2084
+    InvestorID=999201576
+    PosiDirection=2
+    HedgeFlag=1
+    PositionDate=1
+    YdPosition=0
+    Position=0
+    LongFrozen=0
+    ShortFrozen=0
+    LongFrozenAmount=0
+    ShortFrozenAmount=0
+    OpenVolume=0
+    CloseVolume=0
+    OpenAmount=0
+    CloseAmount=0
+    PositionCost=0
+    PreMargin=0
+    UseMargin=0
+    FrozenMargin=0
+    FrozenCash=0
+    FrozenCommission=0
+    CashIn=0
+    Commission=0
+    CloseProfit=0
+    PositionProfit=0
+    PreSettlementPrice=60000
+    SettlementPrice=60000
+    TradingDay=20190430
+    SettlementID=1
+    OpenCost=0
+    ExchangeMargin=0
+    CombPosition=0
+    CombLongFrozen=0
+    CombShortFrozen=0
+    CloseProfitByDate=0
+    CloseProfitByTrade=0
+    TodayPosition=0
+    MarginRateByMoney=0.07
+    MarginRateByVolume=0
+ 
+    structName=CThostFtdcRspInfoField
+<null>
+,isLast:1
+WARNING [Compliance] Compliance on.
+WARNING [Compliance] cancelUpperLimit:240;
+WARNING [uni_consumer] check:1
+ERROR [uni_consumer] legal_:1
+INFO [uni_consumer] method for finding strategies by contract:strcmp
+INFO [uni_consumer] MAX_STRATEGY_COUNT: 100;
+WARNING [uni_consumer] yield:spin
+INFO [TunnRptProducer] ReqOrderInsert - ret=0 - 
+    structName=CThostFtdcInputOrderField
+    BrokerID=2084
+    InvestorID=999201576
+    InstrumentID=rb1905
+    OrderRef=1034
+    UserID=999201576
+    OrderPriceType=2
+    Direction=0
+    CombOffsetFlag=0
+    CombHedgeFlag=1
+    LimitPrice=2923
+    VolumeTotalOriginal=200
+    TimeCondition=3
+    GTDDate=
+    VolumeCondition=1
+    MinVolume=1
+    ContingentCondition=1
+    StopPrice=0
+    ForceCloseReason=0
+    IsAutoSuspend=0
+    BusinessUnit=
+    RequestID=1
+    UserForceClose=0

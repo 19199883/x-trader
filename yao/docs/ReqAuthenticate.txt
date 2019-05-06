@@ -1,0 +1,13 @@
+WARNING [TunnRptProducer] ReqAuthenticate - ret=0 - 
+    structName=CThostFtdcReqAuthenticateField /// Authenticate Request
+    BrokerID=2084
+    UserID=999201576
+
+WARNING [TunnRptProducer] OnRspAuthenticate successfully.
+WARNING [TunnRptProducer] ReqLogin:  err_no,0
+WARNING [TunnRptProducer] ReqLogin:   
+    structName=CThostFtdcReqUserLoginField		///Login Request
+    BrokerID=2084
+    UserID=999201576
+    Password=jr888888
+    UserProductInfo=

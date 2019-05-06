@@ -1,0 +1,13 @@
+WARNING [TunnRptProducer] ReqSettlementInfoConfirm, return: 0
+WARNING [TunnRptProducer] OnRspSettlementInfoConfirm: requestid = 0, last_flag=1 
+
+    structName=CThostFtdcSettlementInfoConfirmField
+    BrokerID=2084
+    InvestorID=999201576
+    ConfirmDate=20190430
+    ConfirmTime=14:30:44
+ 
+
+    structName=CThostFtdcRspInfoField
+    ErrorID=0
+    ErrorMsg=正确
