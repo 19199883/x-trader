@@ -395,7 +395,7 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-	clog_info("[%s] pInputOrderAction:%s %s; bIsLast: %d",
+	clog_info("[%s] OnRspOrderAction:%s %s; bIsLast: %d",
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str(),
@@ -403,7 +403,7 @@ void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOr
 		
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
     }else {		
-		 clog_error("[%s] pInputOrderAction:%s %s",
+		 clog_error("[%s] OnRspOrderAction:%s %s",
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
@@ -528,8 +528,11 @@ void TunnRptProducer::OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderActi
 	CThostFtdcRspInfoField *pRspInfo)
 {
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
+		 clog_info("[%s] OnErrRtnOrderAction:%s",
+			module_name_,		
+			CtpDatatypeFormater::ToString(pRspInfo).c_str());		
     }else {		
-		 clog_error("[%s] pOrderAction:%s",
+		 clog_error("[%s] OnErrRtnOrderAction:%s",
         module_name_,		
         CtpDatatypeFormater::ToString(pRspInfo).c_str());		
 	}

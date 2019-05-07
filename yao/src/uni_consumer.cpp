@@ -237,30 +237,41 @@ void UniConsumer::Start()
 	// //////////////////////
 	signal_t sig;
 	sig.sig_id = 34;
-	sig.exchange = exchange_names::SHFE;
-	strcpy(sig.symbol, "rb1905");
-	sig.open_volume = 20;
-	sig.buy_price = 2923;
+	sig.exchange = exchange_names::XDCE;
+	strcpy(sig.symbol, "c1909");
+	sig.open_volume = 4;
+	sig.buy_price = 1922;
 	sig.sig_act = signal_act_t::buy;
 	sig.sig_openclose  = alloc_position_effect_t::open_;
 
-	int localorderid = tunn_rpt_producer_->NewLocalOrderID(34);
+	int localorderid = tunn_rpt_producer_->NewLocalOrderID(36);
 	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
-		sig, localorderid, 200);
+		sig, localorderid, 6);
 	int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
+
+	////
+	
+	signal_t orig_sig;
+	CThostFtdcInputOrderActionField* ordAct = CtpFieldConverter::Convert(
+				exchange_names::SHFE, 
+				"rb1910", 
+				tunn_rpt_producer_->NewLocalOrderID(34),
+				localorderid,
+				"");
+	//this->tunn_rpt_producer_->ReqOrderAction(ordAct);
 
 	sig.sig_id = 35;
 	sig.exchange = exchange_names::SHFE;
-	strcpy(sig.symbol, "rb1905");
-	sig.open_volume = 0;
-	sig.sell_price = 2923;
-	sig.sig_act = 6;//signal_act_t::sell;
+	strcpy(sig.symbol, "rb1910");
+	sig.open_volume = 1;
+	sig.sell_price = 3760;
+	sig.sig_act = signal_act_t::sell;
 	sig.sig_openclose  = alloc_position_effect_t::open_;
 
 	localorderid = tunn_rpt_producer_->NewLocalOrderID(35);
 	ord = CtpFieldConverter::Convert(
-		sig, localorderid, 200);
-	rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
+		sig, localorderid, 1);
+	//rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 	//////////////////////////////////////////////
 	// debug end
 	// ///////////////////
@@ -510,7 +521,9 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				tunn_rpt_producer_->NewLocalOrderID(34),
 				rpt->LocalOrderID,
 				rpt->OrderSysID);
-	this->tunn_rpt_producer_->ReqOrderAction(ordAct);
+	if(strcmp("", rpt->OrderSysID)!=0){
+		//this->tunn_rpt_producer_->ReqOrderAction(ordAct);
+	}
 	return;
 
 	/////////////////
