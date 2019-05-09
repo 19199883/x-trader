@@ -33,6 +33,12 @@ struct Tunnconfig
 
 	// disruptor yield strategy
 	char yield[20];
+	char TradingDay[20];
+	/*
+	 * true:夜盘交易
+	 * false：日盘交易
+	 */
+	bool IsNightTrading;
 };
 
 struct TunnRpt

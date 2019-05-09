@@ -237,6 +237,17 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
 
 	strcpy(this->TradingDay_, pRspUserLogin->TradingDay);
+
+	char login_hour[3] = {0};
+	strncpy(login_hour, pRspUserLogin->loginTime, 2);
+	int hours = stoi(login_hour);
+	if(hours>=8 && hours<16){
+		this->config_.IsNightTrading = false;
+	}else{
+		this->config_.IsNightTrading = true;
+	}
+    clog_warning("[%s] IsNightTrading:%d",module_name_,(int)this->config_.IsNightTrading);
+
 	this->frontid_ = pRspUserLogin->FrontID;	
 	this->sessionid_ = pRspUserLogin->SessionID;	
 	if(strcmp(pRspUserLogin->MaxOrderRef, "")==0){

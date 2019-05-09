@@ -168,7 +168,7 @@ public:
 	 * fixed length: 10000];.
 	 * specific element number is given by symbol_cnt member.
 	 */
-	symbol_pos_t s_pos[10];
+	symbol_pos_t s_pos[50];
 } ;
 
 class strategy_init_pos_t {

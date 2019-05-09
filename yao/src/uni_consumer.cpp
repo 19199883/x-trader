@@ -237,16 +237,16 @@ void UniConsumer::Start()
 	// //////////////////////
 	signal_t sig;
 	sig.sig_id = 34;
-	sig.exchange = exchange_names::XDCE;
-	strcpy(sig.symbol, "c1909");
-	sig.open_volume = 4;
-	sig.buy_price = 1922;
+	sig.exchange = exchange_names::XZCE;
+	strcpy(sig.symbol, "TA909");
+	sig.open_volume = 2;
+	sig.buy_price = 5658;
 	sig.sig_act = signal_act_t::buy;
 	sig.sig_openclose  = alloc_position_effect_t::open_;
 
 	int localorderid = tunn_rpt_producer_->NewLocalOrderID(36);
 	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
-		sig, localorderid, 6);
+		sig, localorderid, 2);
 	int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 
 	////
