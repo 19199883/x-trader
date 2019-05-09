@@ -118,9 +118,14 @@ class CtpFieldConverter
 			// TODO: 是否平今还是平昨，需要根据市场和昨仓决定
 			if (sig.sig_openclose == alloc_position_effect_t::open_){
 				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Open;
-			}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+			}
+			else if (sig.sig_openclose == alloc_position_effect_t::close_){
+				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_CloseToday;
+			}
+			else if (sig.sig_openclose == alloc_position_effect_t::close_yesterday){
 				new_order_.CombOffsetFlag[0] = THOST_FTDC_OF_Close;
-			}else{
+			}
+			else{
 				clog_warning("[%s] do support sig_openclose value:%d; sig id:%d", "CtpFieldConverter",
 				sig.sig_openclose, sig.sig_id); 
 			}
@@ -186,6 +191,8 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		bool IsFinal(TThostFtdcOrderStatusType   OrderStatus);
 
 		bool Ended();
+		void FillInitPosition(CThostFtdcInvestorPositionField *posField);
+		void SavePosition();
 
 	private:
 		/*
@@ -246,8 +253,8 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		///最大报单引用
 		int	MaxOrderRef_;
 		int counter_;
-		// key: 合约；value：仓位对象
-		std::unordered_map<std::string,CThostFtdcInvestorPositionField> positions_;
+		// 存储系统启动时当前账号的最新昨仓和今仓
+		strategy_init_pos_t init_positions_;
 		
 		bool position_ready_;
 		char appid_[30];

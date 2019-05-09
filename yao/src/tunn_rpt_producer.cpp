@@ -11,6 +11,7 @@
 #include "tunn_rpt_producer.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include <fstream>
 #include "ctp_data_formater.h"
 #include "DataCollect.h"
 
@@ -582,12 +583,89 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 		
 		exit (EXIT_FAILURE);
 	}else{
-		if (pInvestorPosition != NULL) {		
-			positions_[pInvestorPosition->InstrumentID] = *pInvestorPosition;
-		}
+		FillInitPosition(pInvestorPosition);
+		// TODO: yao
+		// 为每个策略重新分配仓位
 	}
 	
-	if(bIsLast) position_ready_ = true;
+	if(bIsLast){
+		SavePosition();
+		position_ready_ = true;
+	}
+}
+
+void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posiField)
+{
+	int index = 0;
+
+	// TODO: yao
+	// 同一合约，保证存储在_cur_pos，_yesterday_pos中存储在同一个索引位置，方便查找
+	if (posField != NULL) {		
+		int i=0;
+		for(; i<init_positions._cur_pos.symbol_cnt_; i++){
+			if(strcmp(init_positions._cur_pos[i].symbol,posField->InstrumentID)==0){
+				break;
+			}
+		}
+		index = i;
+		strncpy(init_positions._cur_pos[i].symbol, posField->InstrumentID,
+				sizeof(init_positions._cur_pos[i].symbol);
+		strncpy(init_positions._yesterday_pos[i].symbol, posField->InstrumentID,
+				sizeof(init_positions._yesterday_pos[i].symbol);
+
+		if(posField->PosiDirection==THOST_FTDC_PD_Long){
+			init_positions._cur_pos[i].long_volume = posField->TodayPosition;
+			init_positions._yesterday_pos[i].long_volume = 
+				posField->Position - posField->TodayPosition;
+		}
+		else if(posField->PosiDirection==THOST_FTDC_PD_Short){
+			init_positions._cur_pos[i].short_volume = posField->TodayPosition;
+			init_positions._yesterday_pos[i].short_volume = 
+				posField->Position - posField->TodayPosition;
+		}
+		else{
+			clog_warning("[%s] CThostFtdcInvestorPositionField.PosiDirection is net position!", module_name_);
+		}
+	}
+}
+
+void TunnRptProducer::SavePosition()
+{
+	// TODO: yao
+	// TODO: to here
+	std::ofstream of;
+	of.open("pos_sum.pos",std::ofstream::trunc);
+	if (of.good()) {
+		for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
+			char buffer[10];
+			const char *contract = init_positions._cur_pos[i].symbol;
+			// contract
+			of.write(contract, strlen(contract));	
+			of.write(";", 1);	
+			// yesterday long position
+			snprintf (buffer, sizeof(buffer), "%d", init_positions._yesterday_pos[i].long_volume);
+			of.write(buffer, strlen(buffer));
+			of.write(";", 1);	
+			// yesterday short position
+			snprintf (buffer, sizeof(buffer), "%d", init_positions._yesterday_pos[i].short_volume);
+			of.write(buffer, strlen(buffer));
+			of.write(";", 1);	
+			// today long position
+			snprintf (buffer, sizeof(buffer), "%d", init_positions._cur_pos[i].long_volume);
+			of.write(buffer, strlen(buffer));
+			of.write(";", 1);	
+			// today short position
+			snprintf (buffer, sizeof(buffer), "%d", init_positions._cur_pos[i].short_volume);
+			of.write(buffer, strlen(buffer));
+			of.write(";", 1);	
+			of.write("\n", 1);	
+		} // end for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
+	}
+	else{
+		clog_error("[%s] SavePosition failed due to failure to open file.", module_name_);
+	}
+
+	of.close();
 }
 
 bool TunnRptProducer::IsReady()

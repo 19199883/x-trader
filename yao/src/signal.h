@@ -123,7 +123,8 @@ public:
 	 * fixed length array and specific contract number
 	 * is specified by symbols_cnt member.
 	 */
-	symbol_t symbols[5];
+	// TODO: yao
+	symbol_t symbols[100];
 } ;
 
 class symbol_pos_t {
@@ -168,7 +169,8 @@ public:
 	 * fixed length: 10000];.
 	 * specific element number is given by symbol_cnt member.
 	 */
-	symbol_pos_t s_pos[50];
+	// TODO: yao
+	symbol_pos_t s_pos[100];
 } ;
 
 class strategy_init_pos_t {
@@ -182,6 +184,10 @@ public:
 
 	/* 今天持仓 */
 	position_t _cur_pos;
+
+	// TODO: yao
+	// 实时的昨仓，在系统启动时传递给策略so
+	position_t _yesterday_pos;
  } ;
 
 
@@ -215,6 +221,8 @@ enum instr_t
 enum alloc_position_effect_t {
 	open_	= 1,
 	close_	= 2,
+	// TODO: yao
+	close_yesterday	= 3,
 };
 
 class signal_resp_t{
