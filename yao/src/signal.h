@@ -125,6 +125,14 @@ public:
 	 */
 	// TODO: yao
 	symbol_t symbols[100];
+
+	// TODO: yao
+	char TradingDay[20];
+	/*
+	 * true:夜盘交易
+	 * false：日盘交易
+	 */
+	bool IsNightTrading;
 } ;
 
 class symbol_pos_t {

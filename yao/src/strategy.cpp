@@ -45,8 +45,6 @@ Strategy::Strategy()
 
 void Strategy::End(void)
 {
-//	if (valid_) SavePosition();
-
 	fclose(pfDayLogFile_);
 	clog_warning("[%s] strategy(id:%d) close log file", module_name_, this->setting_.config.st_id);
 
@@ -157,9 +155,11 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	clog_warning("[%s] open log file:%s", module_name_,setting_.config.log_name);
 
 	// TODO: multi
+	// TODO:position
 	LoadPosition();
 	
 	// TODO: multi
+	// TODO:position
 	memset(&pos_cache_, 0, sizeof(position_t));
 	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
 		strcpy(pos_cache_.s_pos[i].symbol, this->setting_.config.symbols[i].name);
@@ -186,24 +186,26 @@ void Strategy::FeedInitPosition()
 	memset(&init_pos, 0, sizeof(strategy_init_pos_t));
 
 	// TODO: multi
+	// TODO: yao to here
+	// TODO: position
 	position_t &today_pos = init_pos._cur_pos;
-	today_pos.symbol_cnt = this->setting_.config.symbols_cnt+1; 
-	strncpy(today_pos.s_pos[0].symbol, "#CASH", sizeof(today_pos.s_pos[0].symbol));
-	clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
-				module_name_, GetId(), today_pos.s_pos[0].symbol, today_pos.s_pos[0].exchg_code, 
-				today_pos.s_pos[0].long_volume, today_pos.s_pos[0].short_volume);
-
+	today_pos.symbol_cnt = this->setting_.config.symbols_cnt; 
 	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
 		const char* cur_sym = this->setting_.config.symbols[i].name;
-		symbol_pos_t &sym_pos = today_pos.s_pos[i+1];
+		symbol_pos_t &sym_pos = today_pos.s_pos[i];
 		strncpy(sym_pos.symbol, cur_sym, sizeof(sym_pos.symbol));
 		sym_pos.long_volume = 0;
 		sym_pos.short_volume = 0;
 		sym_pos.exchg_code = this->GetExchange(cur_sym); 
 
-		clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; long:%d; short:%d",
-					module_name_, GetId(), sym_pos.symbol, sym_pos.exchg_code, 
-					sym_pos.long_volume, sym_pos.short_volume);
+		clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; "
+					"long:%d; short:%d",
+					module_name_, 
+					GetId(), 
+					sym_pos.symbol, 
+					sym_pos.exchg_code, 
+					sym_pos.long_volume, 
+					sym_pos.short_volume);
 	}
 
 	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
@@ -708,41 +710,28 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, double last_price,
 
 void Strategy::LoadPosition()
 {
-//	pos_calc* pos_calc_ins = pos_calc::instance();
-//
-//	TODO: multi
-	memset(&position_, 0, sizeof(position_));
-	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
-		strcpy(position_[i].contract, this->setting_.config.symbols[i].name);
-	}
-//	string sett_cont = GetSymbol();
-//	string stra = GetSoFile();
-//	string cont = "";
-//	if (pos_calc_ins->exists(stra)){
-//		pos_calc_ins->get_pos(stra, position_.cur_long, position_.cur_short, cont);
-//	} else {
-//		position_.cur_long = 0;
-//		position_.cur_short = 0;
-//		cont = sett_cont;
-//	}
-//	if(sett_cont != cont){
-//		clog_error("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
-//			GetId(), cont.c_str(), sett_cont.c_str());
-//	}
-}
+	pos_calc* pos_calc_ins = pos_calc::instance();
 
-//void Strategy::SavePosition()
-//{
-//	char buffer[1024];
-//	//sprintf (buffer, "%d;%s;%s;%d;%d",GetId(), GetSoFile(),
-//	//	GetContract(), position_.cur_long, position_.cur_short); 
-//
-//	string fname = this->GetSoFile();
-//	fname += ".pos";
-//	std::ofstream outfile (fname);
-//	outfile.write (buffer, strlen(buffer));
-//	outfile.close();
-//}
+	//TODO: multi
+  memset(&position_, 0, sizeof(position_));
+  for(int i=0; i< this->setting_.config.symbols_cnt; i++){
+  	strcpy(position_[i].contract, this->setting_.config.symbols[i].name);
+  }
+	string sett_cont = GetSymbol();
+	string stra = GetSoFile();
+	string cont = "";
+	if (pos_calc_ins->exists(stra)){
+		pos_calc_ins->get_pos(stra, position_.cur_long, position_.cur_short, cont);
+	} else {
+		position_.cur_long = 0;
+		position_.cur_short = 0;
+		cont = sett_cont;
+	}
+	if(sett_cont != cont){
+		clog_error("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
+			GetId(), cont.c_str(), sett_cont.c_str());
+	}
+}
 
 //const char * Strategy::GetSymbol()
 //{

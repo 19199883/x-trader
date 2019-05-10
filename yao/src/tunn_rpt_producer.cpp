@@ -228,6 +228,16 @@ void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
 	clog_warning("[%s] OnHeartBeatWarning.", module_name_);
 }
 
+const char* TunnRptProducer::GetTradingDay()
+{
+	return this->TradingDay_;
+}
+
+bool TunnRptProducer::IsNightTrading()
+{
+	return this->IsNightTrading;
+}
+
 // done
 void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -243,9 +253,9 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 	strncpy(login_hour, pRspUserLogin->loginTime, 2);
 	int hours = stoi(login_hour);
 	if(hours>=8 && hours<16){
-		this->config_.IsNightTrading = false;
+		this->IsNightTrading = false;
 	}else{
-		this->config_.IsNightTrading = true;
+		this->IsNightTrading = true;
 	}
     clog_warning("[%s] IsNightTrading:%d",module_name_,(int)this->config_.IsNightTrading);
 
@@ -584,12 +594,17 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 		exit (EXIT_FAILURE);
 	}else{
 		FillInitPosition(pInvestorPosition);
-		// TODO: yao
-		// 为每个策略重新分配仓位
 	}
 	
 	if(bIsLast){
 		SavePosition();
+
+		// TODO: yao. pos_redist.py代码在实盘时需要修改
+		// 为每个策略重新分配仓位
+		char cmd[200];
+		sprintf(cmd, "sh pos_redis.sh");
+		system(cmd);
+
 		position_ready_ = true;
 	}
 }

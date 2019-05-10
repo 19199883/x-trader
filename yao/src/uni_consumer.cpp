@@ -183,6 +183,12 @@ void UniConsumer::CreateStrategies()
 	strategy_counter_ = 0;
 	for (auto &setting : this->strategy_settings_){
 		Strategy &strategy = stra_table_[strategy_counter_];
+
+		// TODO: yao
+		// read trading day and night or day trading
+		strcpy(seting.config.TradingDay, this->tunn_rpt_producer_->TradingDay);
+		seting.config.IsNightTrading = this->tunn_rpt_producer_->IsNightTrading;
+
 		strategy.Init(setting, this->pproxy_);
 		// mapping table
 		straid_straidx_map_table_[setting.config.st_id] = strategy_counter_ ;
@@ -214,6 +220,7 @@ void UniConsumer::CreateStrategies()
 #endif
 
 		// TODO: 需要支持一个策略交易多个合约
+		// TODO: yao
 //		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 //					module_name_, stra_table_[strategy_counter_].GetId(),
 //					stra_table_[strategy_counter_].GetContract(), 
