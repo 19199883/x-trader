@@ -105,7 +105,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	id_ = this->setting_.config.st_id;
 
 	max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
-	clog_warning("[%s] strategy:%d; max_log_lines_ :%d", module_name_, this->GetId(), max_log_lines_ ); 
+	clog_warning("[%s] strategy:%d; max_log_lines_ :%d", 
+				module_name_, 
+				this->GetId(), 
+				max_log_lines_ ); 
 
 	// lic
 	char cmd[1024];
@@ -118,34 +121,49 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	pfn_init_ = (Init_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_INIT, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_INIT, 
+					errno);
 	}
 
 	pfn_feedshfemarketdata_ = (FeedShfeMarketData_ptr )pproxy_->findObject(
 					bar_so, STRATEGY_METHOD_FEED_MD_MYSHFE);
 	if (!pfn_feedshfemarketdata_ ){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_FEED_MD_MYSHFE, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_FEED_MD_MYSHFE, 
+					errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
 				bar_so, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_FEED_INIT_POSITION, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_FEED_INIT_POSITION, 
+					errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
 				bar_so, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_FEED_SIG_RESP, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_FEED_SIG_RESP, 
+					errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
 		clog_warning("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_FEED_DESTROY, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_FEED_DESTROY, 
+					errno);
 	}
 
 	string model_log = generate_log_name(setting_.config.log_name);
@@ -154,18 +172,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 
 	clog_warning("[%s] open log file:%s", module_name_,setting_.config.log_name);
 
-	// TODO: multi
-	// TODO:position
 	LoadPosition();
-	
-	// TODO: multi
-	// TODO:position
-	memset(&pos_cache_, 0, sizeof(position_t));
-	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
-		strcpy(pos_cache_.s_pos[i].symbol, this->setting_.config.symbols[i].name);
-	}
-	pos_cache_.symbol_cnt = this->setting_.config.symbols_cnt;
-	FillPositionRpt();
 
 	string sym_log_name = generate_log_name(setting_.config.symbols[0].symbol_log_name);
 	strcpy(setting_.config.symbols[0].symbol_log_name, sym_log_name.c_str());
@@ -182,31 +189,6 @@ void Strategy::FeedInitPosition()
 {
 	signal_t sigs[10];
 	int sig_cnt = 0;
-	strategy_init_pos_t init_pos;
-	memset(&init_pos, 0, sizeof(strategy_init_pos_t));
-
-	// TODO: multi
-	// TODO: yao to here
-	// TODO: position
-	position_t &today_pos = init_pos._cur_pos;
-	today_pos.symbol_cnt = this->setting_.config.symbols_cnt; 
-	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
-		const char* cur_sym = this->setting_.config.symbols[i].name;
-		symbol_pos_t &sym_pos = today_pos.s_pos[i];
-		strncpy(sym_pos.symbol, cur_sym, sizeof(sym_pos.symbol));
-		sym_pos.long_volume = 0;
-		sym_pos.short_volume = 0;
-		sym_pos.exchg_code = this->GetExchange(cur_sym); 
-
-		clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; "
-					"long:%d; short:%d",
-					module_name_, 
-					GetId(), 
-					sym_pos.symbol, 
-					sym_pos.exchg_code, 
-					sym_pos.long_volume, 
-					sym_pos.short_volume);
-	}
 
 	this->pfn_feedinitposition_(&init_pos, log_.data()+log_cursor_);
 	if((log_.data()+log_cursor_)->exch_time > 0) log_cursor_++;
@@ -271,10 +253,11 @@ int32_t Strategy::GetId()
 }
 
 // TODO: 需要支持多个合约
-const char* Strategy::GetContract()
-{
-	return this->setting_.config.symbols[0].name;
-}
+// TODO: yao 
+//const char* Strategy::GetContract()
+//{
+//	return this->setting_.config.symbols[0].name;
+//}
 
 exchange_names Strategy::GetExchange(const char* contract)
 {
@@ -675,7 +658,6 @@ void Strategy::UpdatePosition(StrategyPosition *stra_pos, int32_t lastqty, if_si
 void Strategy::FillPositionRpt()
 {
 	position_t &pos = pos_cache_;
-	// TODO: multi
 	// 注意pos.s_pos与position_以同样的合约顺序存储
 	for(int i=0; i<this->setting_.config.symbols_cnt; i++){
 		pos.s_pos[i].long_volume  = position_[i].cur_long;
@@ -710,33 +692,67 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, double last_price,
 
 void Strategy::LoadPosition()
 {
-	pos_calc* pos_calc_ins = pos_calc::instance();
+	char* strategy;
+	char* contract;
+	int yLong;
+	int yShort;
+	int tLong;
+	int tShort;
 
-	//TODO: multi
-  memset(&position_, 0, sizeof(position_));
-  for(int i=0; i< this->setting_.config.symbols_cnt; i++){
-  	strcpy(position_[i].contract, this->setting_.config.symbols[i].name);
-  }
-	string sett_cont = GetSymbol();
-	string stra = GetSoFile();
-	string cont = "";
-	if (pos_calc_ins->exists(stra)){
-		pos_calc_ins->get_pos(stra, position_.cur_long, position_.cur_short, cont);
-	} else {
-		position_.cur_long = 0;
-		position_.cur_short = 0;
-		cont = sett_cont;
-	}
-	if(sett_cont != cont){
-		clog_error("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
-			GetId(), cont.c_str(), sett_cont.c_str());
+	// TODO: yao position
+	memset(&init_pos_, 0, sizeof(strategy_init_pos_t));
+	position_t &today_pos = init_pos._cur_pos;
+	today_pos.symbol_cnt = this->setting_.config.symbols_cnt; 
+	position_t &yesterday_pos = init_pos._yesterday_pos;
+	yesterday_pos.symbol_cnt = this->setting_.config.symbols_cnt; 
+
+	memset(&pos_cache_, 0, sizeof(pos_cache_));
+	pos_cache_.symbol_cnt = this->setting_.config.symbols_cnt;
+
+	memset(&position_, 0, sizeof(position_));
+	strategy = GetSoFile();
+	
+	// 注意pos.s_pos与position_以同样的合约顺序存储
+	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
+		contract = this->setting_.config.symbols[i].name;
+
+		strcpy(pos_cache_.s_pos[i].symbol, this->setting_.config.symbols[i].name);
+
+		strcpy(position_[i].contract, contract);
+		pos_calc::get_pos(strategy, contract, yLong, yShort, tLong, tShort);
+
+		position_[i].cur_long = yLong + tLong;
+		position_[i].cur_short = yShort + tShort;
+
+		pos.s_pos[i].long_volume  = yLong + tLong;
+		pos.s_pos[i].short_volume = tLong + tshort;
+
+		symbol_pos_t &yesterday_sym_pos = yesterday_pos.s_pos[i];
+		strncpy(yesterday_sym_pos.symbol, contract, sizeof(sym_pos.symbol));
+		yesterday_sym_pos.long_volume = yLong;
+		yesterday_sym_pos.short_volume = yshort;
+		yesterday_sym_pos.exchg_code = this->GetExchange(contract); 
+
+		symbol_pos_t &today_sym_pos = today_pos.s_pos[i];
+		strncpy(today_sym_pos.symbol, contract, sizeof(sym_pos.symbol));
+		today_sym_pos.long_volume = tLong;
+		today_sym_pos.short_volume = tShort;
+		today_sym_pos.exchg_code = this->GetExchange(contract); 
+
+		clog_warning("[%s] FeedInitPosition strategy id:%d; contract:%s; exchange:%d; "
+					"ylong:%d; yshort:%d; tlong:%d; tshort:%d; total_long:%d; total_short:%d",
+					module_name_, 
+					GetId(), 
+					sym_pos.symbol, 
+					sym_pos.exchg_code, 
+					yesterday_sym_pos.long_volume, 
+					yesterday_sym_pos.short_volume,
+					today_sym_pos.long_volume, 
+					today_sym_pos.short_volume,
+					position_[i].long_volume,
+					position_[i].short_volume);
 	}
 }
-
-//const char * Strategy::GetSymbol()
-//{
-//	return setting_.config.symbols[0].name;
-//}
 
 // strategy log
 FILE * Strategy::get_log_file()

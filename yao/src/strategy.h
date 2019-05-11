@@ -160,8 +160,6 @@ private:
 	// key: signal id; value: 号所存数组的位置
 	long sigid_sigidx_map_table_[SIGANDRPT_TABLE_SIZE];
 
-	// 用于推送策略，使用成员变量，不用分配内存，从而提高速度
-	position_t pos_cache_;
 
 	// log
 	FILE * pfDayLogFile_;
@@ -179,7 +177,11 @@ private:
 	const char *module_name_;  
 	// 储每个策略的仓位，在策略内部处理仓位逻辑时使用
 	StrategyPosition position_[100];
+	// 从仓位文件中加载文件
 	void LoadPosition();
+	strategy_init_pos_t init_pos_;
+	// 用于推送策略，使用成员变量，不用分配内存，从而提高速度
+	position_t pos_cache_;
 
 	/*
 	 * 
