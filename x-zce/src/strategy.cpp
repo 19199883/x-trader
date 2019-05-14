@@ -116,34 +116,48 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	pfn_init_ = (Init_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_INIT);
 	if (!pfn_init_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_INIT, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_INIT, 
+					errno);
 	}
 
 	pfn_feedl2quotesnapshot_ = (FeedL2QuoteSnapshot_ptr)pproxy_->findObject(
 					bar_so, STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT);
 	if (!pfn_feedl2quotesnapshot_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_FEED_MD_L2QUOTESNAPSHOT, 
+					errno);
 	}
 
 	pfn_feedinitposition_ = (FeedInitPosition_ptr)pproxy_->findObject(
 				bar_so, STRATEGY_METHOD_FEED_INIT_POSITION);
 	if (!pfn_feedinitposition_ ){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_FEED_INIT_POSITION, errno);
+					module_name_, 
+					bar_so, STRATEGY_METHOD_FEED_INIT_POSITION,
+					errno);
 	}
 
 	pfn_feedsignalresponse_ = (FeedSignalResponse_ptr)pproxy_->findObject(
 				bar_so, STRATEGY_METHOD_FEED_SIG_RESP);
 	if (!pfn_feedsignalresponse_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_FEED_SIG_RESP, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_FEED_SIG_RESP, 
+					errno);
 	}
 
 	pfn_destroy_ = (Destroy_ptr)pproxy_->findObject(bar_so, STRATEGY_METHOD_FEED_DESTROY );
 	if (!pfn_destroy_){
 		clog_error("[%s] findObject failed, file:%s; method:%s; errno:%d", 
-					module_name_, bar_so, STRATEGY_METHOD_FEED_DESTROY, errno);
+					module_name_, 
+					bar_so, 
+					STRATEGY_METHOD_FEED_DESTROY, 
+					errno);
 	}
 	
 	string model_log = generate_log_name(setting_.config.log_name);
@@ -151,8 +165,10 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	setting_.config.log_id = setting_.config.st_id;
 
 	
-	clog_warning("[%s] strategy id:%d;open log file:%s", module_name_,
-				GetId(),setting_.config.log_name);
+	clog_warning("[%s] strategy id:%d;open log file:%s", 
+				module_name_,
+				GetId(),
+				setting_.config.log_name);
 
 	LoadPosition();
 	
