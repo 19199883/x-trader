@@ -39,7 +39,7 @@ struct TunnRpt
 {
 	int					        LocalOrderID;   ///< 本地委托号,对应ctp的OrderRef
 	TThostFtdcOrderStatusType   OrderStatus;    ///< 委托状态
-	TThostFtdcVolumeType        MatchedAmount;  ///< 成交数量
+	TThostFtdcVolumeType        MatchedAmount;  ///< 累计成交数量
 	TThostFtdcPriceType         MatchedPrice;   ///< 成交价格
 	TThostFtdcErrorIDType       ErrorID;        ///< 错误ID
 	TThostFtdcExchangeIDType	ExchangeID;

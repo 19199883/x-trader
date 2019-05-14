@@ -10,12 +10,12 @@
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "tunn_rpt_producer.h"
-#include "quote_datatype_shfe_my.h"
+#include "YaoQuote.h"
 
 using namespace std;
 
 #define STRATEGY_METHOD_INIT "st_init_"
-#define STRATEGY_METHOD_FEED_MD_MYSHFE "st_feed_marketinfo_6_"
+#define STRATEGY_METHOD_FEED_MD_YAO "st_feed_marketinfo_"
 #define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_init_position_"
@@ -79,10 +79,15 @@ public:
 	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
 	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log);
-	typedef void ( *FeedShfeMarketData_ptr)(MYShfeMarketData* md, int *sig_cnt, 
-				signal_t* signals, struct strat_out_log *log);	
+	typedef void ( *FeedYaoMarketData_ptr)(YaoQuote* md, 
+				int *sig_cnt, 
+				signal_t* signals, 
+				struct strat_out_log *log);	
 	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, 
-				symbol_pos_t *pos, int *sig_cnt, signal_t* sigs, struct strat_out_log *log);
+				symbol_pos_t *pos, 
+				int *sig_cnt, 
+				signal_t* sigs, 
+				struct strat_out_log *log);
 	typedef void (*Destroy_ptr)();
 	typedef void (*FeedInitPosition_ptr)(strategy_init_pos_t *data, struct strat_out_log *log);
 
@@ -93,9 +98,11 @@ public:
 	// things relating to strategy interface
 	void Init(StrategySetting &setting, CLoadLibraryProxy *pproxy);
 	void FeedInitPosition();
-	void FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* signals);
-	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos,
-				int *sig_cnt, signal_t* sigs);
+	void FeedMd(YaoQuote* md, int *sig_cnt, signal_t* signals);
+	void feed_sig_response(signal_resp_t* rpt, 
+				symbol_pos_t *pos,
+				int *sig_cnt, 
+				signal_t* sigs);
 
 	// things relating to x-trader internal logic
 	void finalize(void);
@@ -133,11 +140,13 @@ public:
 	FILE * get_log_file();
 	StrategySetting setting_;
 private:
+	StrategyPosition *GetPosition(const char* contract);
+	if_sig_state_t ConvertStatusFromCtp(TThostFtdcOrderStatusType ctp_state);
 	string generate_log_name(char * log_path);
 
 	// things relating to strategy interface
 	Init_ptr pfn_init_;
-	FeedShfeMarketData_ptr pfn_feedshfemarketdata_;
+	FeedYaoMarketData_ptr pfn_feedyaomarketdata_;
 	FeedSignalResponse_ptr pfn_feedsignalresponse_;
 	Destroy_ptr pfn_destroy_;
 	FeedInitPosition_ptr pfn_feedinitposition_;
@@ -175,18 +184,31 @@ private:
 
 	CLoadLibraryProxy *pproxy_;
 	const char *module_name_;  
-	// 储每个策略的仓位，在策略内部处理仓位逻辑时使用
+	/*
+	 * 储每个策略的最新仓位，在策略内部处理仓位逻辑时使用
+	 */
 	StrategyPosition position_[100];
-	// 从仓位文件中加载文件
+	 
+	/*
+	 *从仓位文件中加载仓位，init_pos_，pos_cache_,position_.
+	 *
+	 */
 	void LoadPosition();
+
+	/*
+	 * 存储该策略测初始仓位
+	 */
 	strategy_init_pos_t init_pos_;
-	// 用于推送策略，使用成员变量，不用分配内存，从而提高速度
+
+	/*
+	 * 用于推送策略，使用成员变量，不用分配内存，从而提高速度
+	 */
 	position_t pos_cache_;
 
 	/*
 	 * 
 	 */
-	void UpdateSigrptByTunnrpt(int32_t lastqty, double last_price, signal_resp_t& sigrpt, 
+	void UpdateSigrptByTunnrpt(int32_t totalqty, double last_price, signal_resp_t& sigrpt, 
 			if_sig_state_t &status, int err);
 	void UpdatePosition(StrategyPosition *stra_pos,int32_t lastqty, if_sig_state_t status,
 				unsigned short sig_openclose,

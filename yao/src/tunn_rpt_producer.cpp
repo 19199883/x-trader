@@ -1,3 +1,4 @@
+// done
 #include <thread>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -109,7 +110,6 @@ void TunnRptProducer::ParseConfig()
 	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
 }
 
-// done
 int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 {
 #ifdef LATENCY_MEASURE
@@ -135,7 +135,6 @@ int TunnRptProducer::ReqOrderInsert(CThostFtdcInputOrderField *pInputOrder)
 	return ret;
 }
 
-// done
 // 撤单操作请求
 int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 {
@@ -145,8 +144,6 @@ int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 	int localordid = stoi(p->OrderRef);
 	int counter = GetCounterByLocalOrderID(localordid);
 	cancel_requests_[counter] = true;
-	p->SessionID = this->sessionid_;
-    p->FrontID = this->frontid_;		
 	int ret = api_->ReqOrderAction(p, ORDERCANCEL_REQUESTID); // requestid==2，表示是撤单请求
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -167,7 +164,6 @@ int TunnRptProducer::ReqOrderAction(CThostFtdcInputOrderActionField *p)
 }
 
 
-// done
 void TunnRptProducer::ReqLogin()
 {
     CThostFtdcReqUserLoginField login_data;
@@ -183,14 +179,10 @@ void TunnRptProducer::ReqLogin()
 			module_name_, CtpDatatypeFormater::ToString(&login_data).c_str());
 }
 
-// done
 void TunnRptProducer::OnFrontConnected()
 {
     clog_warning("[%s] OnFrontConnected.", module_name_);
 
-	// this->ReqLogin();
-
-	// TODO: 穿透版
 	CThostFtdcReqAuthenticateField a = { 0 };
 	strcpy(a.BrokerID, this->config_.brokerid.c_str());
 	strcpy(a.UserID, this->config_.userid.c_str());
@@ -200,7 +192,6 @@ void TunnRptProducer::OnFrontConnected()
 	int ret = api_->ReqAuthenticate(&a, 0);
 	clog_warning("[%s] ReqAuthenticate - ret=%d - %s", 
 		module_name_, ret, CtpDatatypeFormater::ToString(&a).c_str());
-
 }
 
 void TunnRptProducer::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateField, 
@@ -216,13 +207,11 @@ void TunnRptProducer::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuth
 	this->ReqLogin();
 }
 
-// done
 void TunnRptProducer::OnFrontDisconnected(int nReason)
 {
     clog_error("[%s] OnFrontDisconnected, nReason=%d", module_name_, nReason);
 }
 
-// done
 void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
 {
 	clog_warning("[%s] OnHeartBeatWarning.", module_name_);
@@ -238,7 +227,6 @@ bool TunnRptProducer::IsNightTrading()
 	return this->IsNightTrading;
 }
 
-// done
 void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
@@ -265,14 +253,16 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		this->MaxOrderRef_ = 0;
 	}else{
 		this->MaxOrderRef_ =  stoi(pRspUserLogin->MaxOrderRef);
+		clog_warning("[%s] MaxOrderRef_ :%d", module_name_, MaxOrderRef_);
 	}
 	this->counter_ = GetCounterByLocalOrderID(this->MaxOrderRef_);
+	clog_warning("[%s] counter_:%d", module_name_, this->counter_);
 	
     if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {
 		clog_warning("[%s] OnRspUserLogin successfully.", module_name_);
 		
-		// TODO:
-		CtpFieldConverter::InitNewOrder(this->config_.userid.c_str(), this->config_.brokerid.c_str());
+		CtpFieldConverter::InitNewOrder(this->config_.userid.c_str(), 
+			this->config_.brokerid.c_str());
 		CtpFieldConverter::InitCancelOrder(this->config_.userid.c_str(), 
 			this->config_.brokerid.c_str(), this->frontid_, this->sessionid_);
 	
@@ -291,17 +281,20 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
     }
 }
 
-void TunnRptProducer::OnRspSettlementInfoConfirm(CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
+void TunnRptProducer::OnRspSettlementInfoConfirm(
+	CThostFtdcSettlementInfoConfirmField *pSettlementInfoConfirm,
     CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {    
      clog_warning("[%s] OnRspSettlementInfoConfirm: requestid = %d, last_flag=%d \n%s \n%s",
          module_name_,
-		 nRequestID, bIsLast,
+		 nRequestID,
+		 (int)bIsLast,
          CtpDatatypeFormater::ToString(pSettlementInfoConfirm).c_str(),
          CtpDatatypeFormater::ToString(pRspInfo).c_str());    
 
 	// 查询仓位
-	CThostFtdcQryInvestorPositionField a = { 0 };
+	CThostFtdcQryInvestorPositionField a;
+	memset(&a, 0, sizeof(a));
 	strncpy(a.BrokerID, this->config_.brokerid.c_str(), sizeof(a.BrokerID));
 	strncpy(a.InvestorID, this->config_.userid.c_str(), sizeof(a.InvestorID));
 	strncpy(a.InstrumentID, "", sizeof(a.InstrumentID));//不填写合约则返回所有持仓
@@ -320,7 +313,6 @@ bool TunnRptProducer::Ended()
 	return ended_;
 }
 
-// done
 void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
@@ -338,28 +330,28 @@ void TunnRptProducer::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
     }
 }
 
-// done
 bool TunnRptProducer::IsFinal(TThostFtdcOrderStatusType   OrderStatus)
 {
 	// TODO: 状态的各种值需要重新核对，因版本不同有变化
 	if(THOST_FTDC_OST_AllTraded==OrderStatus ||
 		THOST_FTDC_OST_PartTradedNotQueueing==OrderStatus ||
 		THOST_FTDC_OST_NoTradeNotQueueing==OrderStatus ||
-		THOST_FTDC_OST_Canceled==OrderStatus ||
-		THOST_FTDC_OSS_InsertRejected==OrderStatus){
+		THOST_FTDC_OST_Canceled==OrderStatus){
 			return true;
 		}else{
 			return false;
 		}
 }
 
-// done
 void TunnRptProducer::End()
 {
 	if(!ended_){
-		CThostFtdcUserLogoutField logoutinfo = {0};		 
-		strncpy(logoutinfo.BrokerID, this->config_.brokerid.c_str(), sizeof(logoutinfo.BrokerID));
-		strncpy(logoutinfo.UserID, this->config_.userid.c_str(), sizeof(logoutinfo.UserID));		    
+		CThostFtdcUserLogoutField logoutinfo;
+		memest(&logoutinfo, 0, sizeof(logoutinfo));		 
+		strncpy(logoutinfo.BrokerID, this->config_.brokerid.c_str(), 
+				sizeof(logoutinfo.BrokerID));
+		strncpy(logoutinfo.UserID, this->config_.userid.c_str(), 
+				sizeof(logoutinfo.UserID));		    
 		int rtn = api_->ReqUserLogout(&logoutinfo, 0);
 		
 		if (NULL != api_) {
@@ -374,7 +366,6 @@ void TunnRptProducer::End()
 	}
 }
 
-// done
 void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
@@ -384,7 +375,7 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str(),
-		bIsLast);
+		(int)bIsLast);
 		
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
     }else {		
@@ -394,9 +385,9 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
 				
 		int32_t cursor = Push();		
-		struct TunnRpt &rpt = rpt_buffer_[cursor];	 // LocalOrderID也只需要赋值一次
+		struct TunnRpt &rpt = rpt_buffer_[cursor]; // LocalOrderID也只需要赋值一次
 		rpt.LocalOrderID = stoi(pInputOrder->OrderRef);
-		rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected;
+		rpt.OrderStatus = THOST_FTDC_OST_Canceled;
 		rpt.ErrorID = pRspInfo->ErrorID;
 
 		struct vrt_value  *vvalue;
@@ -407,13 +398,15 @@ void TunnRptProducer::OnRspOrderInsert(CThostFtdcInputOrderField *pInputOrder,
 		ivalue->data = TUNN_RPT;
 		
 		clog_info("[%s] OnRspInsertOrder: index,%d; data,%d; LocalOrderID:%s",
-			module_name_, ivalue->index, ivalue->data, pInputOrder->OrderRef);
+				  module_name_, 
+				  ivalue->index, 
+				  ivalue->data, 
+				  pInputOrder->OrderRef);
 		
 		(vrt_producer_publish(producer_));		
 	}
 }
 
-// done
 void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOrderAction, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
@@ -421,40 +414,40 @@ void TunnRptProducer::OnRspOrderAction(CThostFtdcInputOrderActionField *pInputOr
         module_name_,
 		CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str(),
-		bIsLast);
+		(int)bIsLast);
 		
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
     }else {		
 		 clog_error("[%s] OnRspOrderAction:%s %s",
-        module_name_,
-		CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+					module_name_,
+					CtpDatatypeFormater::ToString(pInputOrderAction).c_str(),
+					CtpDatatypeFormater::ToString(pRspInfo).c_str());
 	}
 }
 		
-// done
 void TunnRptProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, 
 	int nRequestID, bool bIsLast)
 {
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
     }else {		
 		 clog_error("[%s] OnRspError:%s",
-        module_name_,		
-        CtpDatatypeFormater::ToString(pRspInfo).c_str());	
+					module_name_,		
+					CtpDatatypeFormater::ToString(pRspInfo).c_str());	
 	}
 }
 	
-// done
 void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
 {
 	if (ended_) return;
 
-    clog_info("[%s] OnRtnOrder:%s", module_name_, CtpDatatypeFormater::ToString(pOrder).c_str());
+    clog_info("[%s] OnRtnOrder:%s", 
+				module_name_, 
+				CtpDatatypeFormater::ToString(pOrder).c_str());
 
 	if (pOrder->OrderStatus == THOST_FTDC_OSS_InsertRejected){
 		clog_warning("[%s] OnRtnOrder:%s",
-			module_name_,
-			CtpDatatypeFormater::ToString(pOrder).c_str());
+					module_name_,
+					CtpDatatypeFormater::ToString(pOrder).c_str());
 	}
 
 	int32_t cursor = Push();
@@ -471,92 +464,55 @@ void TunnRptProducer::OnRtnOrder(CThostFtdcOrderField *pOrder)
 	ivalue->data = TUNN_RPT;
 
 	clog_debug("[%s] OnRtnOrder: index,%d; data,%d; OrderRef:%s",
-		module_name_, ivalue->index, ivalue->data, pOrder->OrderRef);
+				module_name_, 
+				ivalue->index, 
+				ivalue->data, 
+				pOrder->OrderRef);
 
 	(vrt_producer_publish(producer_));	
 }
-
-// TODO: 如何自动处理平今仓，平昨仓问题 启动时查仓位
 
 // 看CThostFtdcOrderField.VolumeTraded是否有值
 void TunnRptProducer::OnRtnTrade(CThostFtdcTradeField *pTrade)
 {
 	if (ended_) return;
 
-    clog_info("[%s] OnRtnTrade:%s", module_name_, CtpDatatypeFormater::ToString(pTrade).c_str());
-
-	int32_t cursor = Push();
-	struct TunnRpt &rpt = rpt_buffer_[cursor];
-	rpt.LocalOrderID = stoi(pTrade->OrderRef);
-	// TODO: 因为没有状态，所以需要在strategy中根据累计成交量来确定部分成交还是完全成交
-	rpt.OrderStatus = THOST_FTDC_OST_Unknown; // 因ctp状态与成交是分开返回的
-	rpt.MatchedAmount = pTrade->Volume;
-	rpt.MatchedPrice = pTrade->Price;
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	(vrt_producer_claim(producer_, &vvalue));
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = cursor;
-	ivalue->data = TUNN_RPT;
-
-	clog_info("[%s] OnRtnTrade: index,%d; data,%d; LocalOrderID:%d",
-		module_name_, ivalue->index, ivalue->data, rpt.LocalOrderID);
-
-	(vrt_producer_publish(producer_));
+    clog_info("[%s] OnRtnTrade:%s", 
+				module_name_, 
+				CtpDatatypeFormater::ToString(pTrade).c_str());
 }
 
-//  看《CTP问题列表》，该回调可以忽略。需要验证
+//  看《CTP问题列表》，该回调可以忽略
 void TunnRptProducer::OnErrRtnOrderInsert(CThostFtdcInputOrderField *pInputOrder, 
 	CThostFtdcRspInfoField *pRspInfo)
 {
 		if (ended_) return;
 	
 	 clog_info("[%s] OnErrRtnOrderInsert:%s %s;",
-        module_name_,
-		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str());
+				module_name_,
+				CtpDatatypeFormater::ToString(pInputOrder).c_str(),
+				CtpDatatypeFormater::ToString(pRspInfo).c_str());
 		
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
     }else {		
 		 clog_error("[%s] OnErrRtnOrderInsert:%s %s",
-        module_name_,
-		CtpDatatypeFormater::ToString(pInputOrder).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str());
-				
-		int32_t cursor = Push();		
-		struct TunnRpt &rpt = rpt_buffer_[cursor];	 // LocalOrderID也只需要赋值一次
-		
-		rpt.LocalOrderID = stoi(pInputOrder->OrderRef);
-		rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected;
-		rpt.ErrorID = pRspInfo->ErrorID;
-
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = cursor;
-		ivalue->data = TUNN_RPT;
-		
-		clog_info("[%s] OnErrRtnOrderInsert: index,%d; data,%d; LocalOrderID:%s",
-			module_name_, ivalue->index, ivalue->data, pInputOrder->OrderRef);
-		
-		(vrt_producer_publish(producer_));		
+					module_name_,
+					CtpDatatypeFormater::ToString(pInputOrder).c_str(),
+					CtpDatatypeFormater::ToString(pRspInfo).c_str());
 	}
 }
 
-// done
 void TunnRptProducer::OnErrRtnOrderAction(CThostFtdcOrderActionField *pOrderAction, 
 	CThostFtdcRspInfoField *pRspInfo)
 {
 	if (pRspInfo==NULL || 0==pRspInfo->ErrorID) {				
 		 clog_info("[%s] OnErrRtnOrderAction:%s",
-			module_name_,		
-			CtpDatatypeFormater::ToString(pRspInfo).c_str());		
+					 module_name_,		
+					 CtpDatatypeFormater::ToString(pRspInfo).c_str());		
     }else {		
 		 clog_error("[%s] OnErrRtnOrderAction:%s",
-        module_name_,		
-        CtpDatatypeFormater::ToString(pRspInfo).c_str());		
+					 module_name_,		
+					 CtpDatatypeFormater::ToString(pRspInfo).c_str());		
 	}
 }
 
@@ -576,20 +532,19 @@ void TunnRptProducer::OnRspQryInvestorPosition(CThostFtdcInvestorPositionField *
 
 {
 	// 如果没有仓位，则pInvestorPosition,pRspInfo为NULL
-	// TODO:
 	clog_warning("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d",
-        module_name_,
-		CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str(),
-		bIsLast);	
+				module_name_,
+				CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
+				CtpDatatypeFormater::ToString(pRspInfo).c_str(),
+				(int)bIsLast);	
 
 	
 	if(NULL != pRspInfo && 0 != pRspInfo->ErrorID ){
 		clog_error("[%s] OnRspQryInvestorPosition:%s %s,isLast:%d",
-        module_name_,
-		CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
-        CtpDatatypeFormater::ToString(pRspInfo).c_str(),
-		bIsLast);	
+					module_name_,
+					CtpDatatypeFormater::ToString(pInvestorPosition).c_str(),
+					CtpDatatypeFormater::ToString(pRspInfo).c_str(),
+					(int)bIsLast);	
 		
 		exit (EXIT_FAILURE);
 	}else{
@@ -613,7 +568,6 @@ void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posiFiel
 {
 	int index = 0;
 
-	// TODO: yao
 	// 同一合约，保证存储在_cur_pos，_yesterday_pos中存储在同一个索引位置，方便查找
 	if (posField != NULL) {		
 		int i=0;
@@ -639,15 +593,14 @@ void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posiFiel
 				posField->Position - posField->TodayPosition;
 		}
 		else{
-			clog_warning("[%s] CThostFtdcInvestorPositionField.PosiDirection is net position!", module_name_);
+			clog_warning("[%s] CThostFtdcInvestorPositionField.PosiDirection is net position!", 
+				module_name_);
 		}
 	}
 }
 
 void TunnRptProducer::SavePosition()
 {
-	// TODO: yao
-	// TODO: to here
 	std::ofstream of;
 	of.open("pos_sum.pos",std::ofstream::trunc);
 	if (of.good()) {
@@ -685,11 +638,7 @@ void TunnRptProducer::SavePosition()
 
 bool TunnRptProducer::IsReady()
 {
-	if(position_ready_){
-		return true;
-	}else{
-		return false;
-	}
+	return position_ready_;
 }
 
 int TunnRptProducer::NewLocalOrderID(int32_t strategyid)
