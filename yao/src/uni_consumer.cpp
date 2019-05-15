@@ -1,3 +1,4 @@
+// done
 #include <thread>         
 #include <chrono>        
 #include <algorithm>    
@@ -25,16 +26,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, DceMDProducer *md_producer,
 	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
-#if FIND_STRATEGIES == 1
-	unordered_multimap 
-	clog_info("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-	memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
-	memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
-	clog_info("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
-#endif	
 
 #if FIND_STRATEGIES == 3 // strcmp
 	clog_info("[%s] method for finding strategies by contract:strcmp", module_name_);
@@ -59,25 +50,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, DceMDProducer *md_producer,
 	this->pproxy_ = CLoadLibraryProxy::CreateLoadLibraryProxy();
 	this->pproxy_->setModuleLoadLibrary(new CModuleLoadLibraryLinux());
 	this->pproxy_->setBasePathLibrary(this->pproxy_->getexedir());
-	
-	// pos_calc, check offline strategies
-	pos_calc *calc = pos_calc::instance();
-	list<string> stras;
-	calc->get_stras(stras);
-	for (string stra : stras){
-		bool online = false;
-		for (auto sett : strategy_settings_){  
-			if (sett.file == stra){
-				online = true;
-				break;
-			}
-		}
-		if (!online){
-			clog_warning("[%s] pos_calc error: offline(%s)", module_name_, stra.c_str());
-		}
-	}
-
-	// create Stratedy objects
 	CreateStrategies();
 }
 
@@ -156,28 +128,6 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 	return setting;
 }
 
-void UniConsumer::GetKeys(const char* contract, int &key1, int &key2)
-{
-	key1 = 0;
-	key2 = 0;
-	int i = 0;
-	for (; i < strlen(contract); i++){
-		if (isalpha(contract[i])) key1 += contract[i]; 
-		else{ break;}
-	}
-
-	key2 = atoi(contract +i);   
-}
-
-#if FIND_STRATEGIES== 2 // two-dimensional array
-int32_t UniConsumer::GetEmptyNode()
-{
-	for(int i=0; i < MAX_STRATEGY_COUNT; i++){
-		if(stra_idx_table_[i][0] < 0) return i;
-	}
-}
-#endif
-
 void UniConsumer::CreateStrategies()
 {
 	strategy_counter_ = 0;
@@ -185,8 +135,7 @@ void UniConsumer::CreateStrategies()
 		Strategy &strategy = stra_table_[strategy_counter_];
 
 		// TODO: yao
-		// read trading day and night or day trading
-		strcpy(seting.config.TradingDay, this->tunn_rpt_producer_->TradingDay);
+		seting.config.TradingDay = this->tunn_rpt_producer_->TradingDay;
 		seting.config.IsNightTrading = this->tunn_rpt_producer_->IsNightTrading;
 
 		strategy.Init(setting, this->pproxy_);
@@ -197,35 +146,12 @@ void UniConsumer::CreateStrategies()
 		WriteLogTitle(log_file);
 		WriteStrategyLog(strategy);
 
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-		// only support one contract for one strategy
-		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-		int key1 = 0;
-		int key2 = 0;
-		GetKeys(setting.config.symbols[0].name,key1,key2);
-		int32_t cur_node = -1;
-		if (cont_straidx_map_table_[key1][key2] < 0){
-			cur_node = GetEmptyNode();
-			cont_straidx_map_table_[key1][key2] = cur_node;
-		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
-		for(int i=0; i < MAX_STRATEGY_COUNT; i++){
-			if(stra_idx_table_[cur_node][i] < 0){
-				stra_idx_table_[cur_node][i] = strategy_counter_;
-				break;
-			}
-		}
-#endif
-
 		// TODO: 需要支持一个策略交易多个合约
 		// TODO: yao
-//		clog_info("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
-//					module_name_, stra_table_[strategy_counter_].GetId(),
-//					stra_table_[strategy_counter_].GetContract(), 
-//					stra_table_[strategy_counter_].GetMaxPosition(), 
-//					stra_table_[strategy_counter_].GetSoFile());
+		clog_info("[%s] [CreateStrategies] id:%d;  so:%s ", 
+					module_name_,
+					stra_table_[strategy_counter_].GetId(),
+					stra_table_[strategy_counter_].GetSoFile());
 
 		strategy_counter_++;
 	}
@@ -290,6 +216,7 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
 			switch (ivalue->data){
+				// TODO: yao
 				// TODO: 需要支持Yao的行情
 			//	case BESTANDDEEP:
 			//		ProcBestAndDeep(ivalue->index);
@@ -341,7 +268,7 @@ void UniConsumer::Stop()
 }
 
 // TODO: 需要支持Yao的行情
-void UniConsumer::ProcBestAndDeep(int32_t index)
+void UniConsumer::ProcYaoQuote(int32_t index)
 {
 #ifdef LATENCY_MEASURE
 		 static int cnt = 0;
@@ -352,150 +279,26 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 
-	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
+	YaoQuote* md = md_producer_->Data(index);
 
-	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
+	clog_debug("[%s] [YaoQuote] index: %d; contract: %s", module_name_, index, md->Contract);
 
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-	auto range = cont_straidx_map_table_.equal_range(md->Contract);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			Strategy &strategy = stra_table_[x.second];
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-			// strategy log
-			WriteStrategyLog(strategy);
-
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
-#endif
-
-#if FIND_STRATEGIES == 2 //  two-dimensional array
-	int32_t key1,key2;
-	int32_t sig_cnt = 0;
-	GetKeys(md->Contract,key1,key2);
-	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-	if (cur_node >= 0){
-		for(int i=0; i < MAX_STRATEGY_COUNT; i++){
-			if(stra_idx_table_[cur_node][i] >= 0){
-				int32_t stra_idx = stra_idx_table_[cur_node][i];
-				Strategy &strategy = stra_table_[stra_idx];
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-				// strategy log
-				WriteStrategyLog(strategy);
-
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			} else { break; }
-		}
-	}
-#endif
-
-#if FIND_STRATEGIES == 3 // strcmp
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 		// TODO: 需要支持多个合约
-		if (strcmp(strategy.GetContract(), md->Contract) == 0){
-			// TODO: 需要支持多个合约
-			// strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-			// strategy log
+		if (strategy.Subscribed(md->Contract)){
+			 strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			WriteStrategyLog(strategy);
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
-#endif
 
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
 		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
 		clog_warning("[%s] ProcBestAndDeep latency:%d us", module_name_, latency); 
 #endif
-}
-
-// TODO: 需要支持Yao的行情
-void UniConsumer::ProcOrderStatistic(int32_t index)
-{
-#ifdef LATENCY_MEASURE
-		 static int cnt = 0;
-		 perf_ctx::insert_t0(cnt);
-		 cnt++;
-#endif
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-	MDOrderStatistic_MY* md = md_producer_->GetOrderStatistic(index);
-
-	clog_debug("[%s] [ProcOrderStatistic] index: %d; contract: %s", module_name_, index, md->ContractID);
-
-#if FIND_STRATEGIES == 1 // unordered_multimap
-	auto range = cont_straidx_map_table_.equal_range(md->ContractID);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			Strategy &strategy = stra_table_[stra_idx];
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-			// strategy log
-			WriteStrategyLog(strategy);
-
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-	int32_t key1,key2;
-	int32_t sig_cnt = 0;
-	GetKeys(md->ContractID,key1,key2);
-	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-	if (cur_node >= 0){
-		for(int i=0; i < MAX_STRATEGY_COUNT; i++){
-			if(stra_idx_table_[cur_node][i] >= 0){
-				int32_t stra_idx = stra_idx_table_[cur_node][i];
-				Strategy &strategy = stra_table_[stra_idx];
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-				// strategy log
-				WriteStrategyLog(strategy);
-
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			} else { break; }		
-		}
-	}
-#endif
-
-#if FIND_STRATEGIES == 3 //strcmp
-	for(int i = 0; i < strategy_counter_; i++){ 
-		int sig_cnt = 0;
-		Strategy &strategy = stra_table_[i];
-		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
-			clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", 
-				module_name_, index, md->ContractID);
-
-			// TODO: 需要支持多个合约
-			//strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-			// strategy log
-			WriteStrategyLog(strategy);
-
-			ProcSigs(strategy, sig_cnt, sig_buffer_);
-		}
-	}
-#endif
-
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] ProcOrderStatistic latency:%d us", module_name_, latency); 
-#endif
-
 }
 
 void UniConsumer::ProcTunnRpt(int32_t index)
@@ -539,13 +342,18 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	// //////////////////
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
+	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
+	const char* contract = strategy.GetContractBySigIdx(sig_idx);
+	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
+	WriteStrategyLog(strategy);
 
 	// TODO: to here
 #ifdef COMPLIANCE_CHECK
+	// 拒绝也是THOST_FTDC_OST_Canceled状态，因而可能会造成多计算撤单次数，但不会产生大问题
 	if (rpt->OrderStatus == THOST_FTDC_OST_PartTradedNotQueueing ||
 			rpt->OrderStatus == THOST_FTDC_OST_NoTradeNotQueueing ||
 			rpt->OrderStatus == THOST_FTDC_OST_Canceled){
-		compliance_.AccumulateCancelTimes(strategy.GetContract());
+		compliance_.AccumulateCancelTimes(contract);
 	}
 
 	if (tunn_rpt_producer_->IsFinal(rpt->OrderStatus)){
@@ -553,12 +361,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 		compliance_.End(counter);
 	}
 #endif
-
-	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
-	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
-
-	// strategy log
-	WriteStrategyLog(strategy);
 
 	// improve place, cancel
 	// 虑当pending信号都处理了，如何标志
@@ -575,9 +377,18 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
 							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
 							 "sell_price:%f; sig_act:%d; sig_openclose:%d;index:%d ",
-					module_name_, sig->st_id, sig->sig_id,
-					sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
-					sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose,i); 
+							 module_name_, 
+							 sig->st_id, 
+							 sig->sig_id,
+							 sig->exchange, 
+							 sig->symbol, 
+							 sig->open_volume, 
+							 sig->buy_price, 
+							 sig->close_volume, 
+							 sig->sell_price, 
+							 sig->sig_act, 
+							 sig->sig_openclose,
+							 i); 
 				 break;
 			}
 		} // if(pending_signals_[st_id][i] >= 0)
@@ -594,7 +405,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 {
-	clog_debug("[%s] [ProcSigs] sig_cnt: %d; ", module_name_, sig_cnt);
+	clog_info("[%s] [ProcSigs] sig_cnt: %d; ", module_name_, sig_cnt);
 
 	for (int i = 0; i < sig_cnt; i++){
 		if (sigs[i].sig_act == signal_act_t::cancel){
@@ -609,7 +420,10 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
 						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
-									module_name_,sig.st_id,pending_signals_[sig.st_id][i],i);
+								  module_name_,
+								  sig.st_id,
+								  pending_signals_[sig.st_id][i],
+								  i);
 						break;
 					}
 				}
@@ -636,7 +450,11 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				cancelled = true;
 				clog_info("[%s] CancelPendingSig remove pending signal: strategy id:%d;"
-							"sig_id:%d;index:%d", module_name_, st_id, sig_id, i);
+						  "sig_id:%d;index:%d", 
+						  module_name_, 
+						  st_id, 
+						  sig_id, 
+						  i);
 
 				break;
 			}
@@ -654,10 +472,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		rpt.OrderStatus = THOST_FTDC_OST_Canceled ;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
-
-		// strategy log
 		WriteStrategyLog(strategy);
-
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
 
@@ -671,11 +486,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
 
-	// TODO: 需要支持多个合约
-	const char *contract = NULL; //get contract fron sig
+	const char* contract = strategy.GetContractBySigId(ori_sigid);
 	if (!strategy.HasFrozenPosition(contract)){
 		clog_debug("[%s] CancelOrder: ignore request due to frozen position.", 
-			module_name_); 
+					module_name_); 
 		return;
 	}
 			
@@ -693,37 +507,14 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 #endif
 }
 
-// done
 void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 {
 	int vol = strategy.GetVol(sig);
-	// TODO: 需要支持多个合约
-	int32_t updated_vol = strategy.GetAvailableVol(sig.sig_id, sig.sig_openclose, sig.sig_act, vol, sig.symbol);
 	int localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
-	strategy.PrepareForExecutingSig(localorderid, sig, updated_vol);
+	strategy.PrepareForExecutingSig(localorderid, sig, vol);
 
-	// vol:0, rejected
-	// improve place, cancel
-	if(updated_vol <= 0){
-		clog_info("[%s] rejected due to vol 0. strategy id:%d; sig id;%d", 
-			module_name_,sig.st_id, sig.sig_id);
-		int sig_cnt = 0;
-		TunnRpt rpt;
-		memset(&rpt, 0, sizeof(rpt));
-		rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected; 
-		rpt.ErrorID = -1; 
-		int32_t sigidx = strategy.GetSignalIdxBySigId(sig.sig_id);
-		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
-
-		// strategy log
-		WriteStrategyLog(strategy);
-
-		ProcSigs(strategy, sig_cnt, sig_buffer_);
-		return;
-	}
-	
 	CThostFtdcInputOrderField *ord = CtpFieldConverter::Convert(
-		sig, localorderid, updated_vol);
+		sig, localorderid, vol);
 
 #ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
@@ -736,7 +527,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 		if(!legal_){ // illegal user
-			// TODO: 
+			// TODO: yao
 			YaoQuote* data = NULL; //md_producer_->GetLastDataForIllegaluser(ord->InstrumentID);
 			while(true){
 				if(THOST_FTDC_D_Buy==ord->Direction){
@@ -758,7 +549,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
 			rpt.LocalOrderID = localorderid;
-			rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected;
+			rpt.OrderStatus = THOST_FTDC_OST_Canceled;
 			rpt.ErrorID = rtn;
 
 			compliance_.End(counter);
@@ -766,10 +557,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			int sig_cnt = 0;
 			int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(localorderid);
 			strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
-
-			// strategy log
 			WriteStrategyLog(strategy);
-
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 #ifdef COMPLIANCE_CHECK
@@ -780,15 +568,12 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		rpt.LocalOrderID = localorderid;
-		rpt.OrderStatus = THOST_FTDC_OSS_InsertRejected;
+		rpt.OrderStatus = THOST_FTDC_OST_Canceled;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
 		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
-
-		// strategy log
 		WriteStrategyLog(strategy);
-
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
 #endif

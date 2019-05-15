@@ -217,7 +217,7 @@ void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
 	clog_warning("[%s] OnHeartBeatWarning.", module_name_);
 }
 
-const char* TunnRptProducer::GetTradingDay()
+int TunnRptProducer::GetTradingDay()
 {
 	return this->TradingDay_;
 }
@@ -235,17 +235,20 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		CtpDatatypeFormater::ToString(pRspUserLogin).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
 
-	strcpy(this->TradingDay_, pRspUserLogin->TradingDay);
+	this->TradingDay_ = stoi(pRspUserLogin->TradingDay);
 
 	char login_hour[3] = {0};
 	strncpy(login_hour, pRspUserLogin->loginTime, 2);
 	int hours = stoi(login_hour);
 	if(hours>=8 && hours<16){
-		this->IsNightTrading = false;
+		this->IsNightTrading = 0;
 	}else{
-		this->IsNightTrading = true;
+		this->IsNightTrading = 1;
 	}
-    clog_warning("[%s] IsNightTrading:%d",module_name_,(int)this->config_.IsNightTrading);
+    clog_warning("[%s] TradingDay:%d; IsNightTrading:%d",
+				module_name_,
+				this->config_.TradingDay,
+				this->config_.IsNightTrading);
 
 	this->frontid_ = pRspUserLogin->FrontID;	
 	this->sessionid_ = pRspUserLogin->SessionID;	

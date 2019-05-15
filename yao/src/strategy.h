@@ -1,3 +1,4 @@
+// done
 #pragma once
 
 #include <list>
@@ -120,7 +121,6 @@ public:
 	int32_t GetCounterByLocalOrderID(int local_ord_id);
 	signal_t* GetSignalBySigID(int32_t sig_id);
 	void Push(const signal_t &sig);
-	int GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned short int sig_act, int32_t vol, const char* contract);
 	int GetVol(const signal_t &sig);
 	void End(void);
 	int32_t GetSignalIdxBySigId(long sigid);
@@ -129,6 +129,14 @@ public:
 	if_sig_state_t GetStatusBySigIdx(int32_t sig_idx);
 	const char *GetContractBySigId(int32_t sig_id);
 	const char* GetContractBySigIdx(int32_t sig_idx);
+
+	/*
+	 * 判断是否策略订阅了指定的合约。
+	 * true：订阅了
+	 * false：未定阅读
+	 *
+	 */
+	bool Subscribed(const char* contract);
 
 	// log
 	/*
@@ -208,7 +216,7 @@ private:
 	/*
 	 * 
 	 */
-	void UpdateSigrptByTunnrpt(int32_t totalqty, double last_price, signal_resp_t& sigrpt, 
+	void UpdateSigrptByTunnrpt(int32_t lastqty, double last_price, signal_resp_t& sigrpt, 
 			if_sig_state_t &status, int err);
 	void UpdatePosition(StrategyPosition *stra_pos,int32_t lastqty, if_sig_state_t status,
 				unsigned short sig_openclose,

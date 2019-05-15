@@ -92,8 +92,6 @@ class UniConsumer
 		StrategySetting CreateStrategySetting(const TiXmlElement *ele);
 		void ParseConfig();
 		void CreateStrategies();
-		void GetKeys(const char* contract, int &key1, int &key2);
-		int32_t GetEmptyNode();
 
 		// business logic
 		void ProcBestAndDeep(int32_t index);

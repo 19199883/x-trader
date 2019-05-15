@@ -127,12 +127,12 @@ public:
 	symbol_t symbols[100];
 
 	// TODO: yao
-	char TradingDay[20];
+	int TradingDay;
 	/*
-	 * true:夜盘交易
-	 * false：日盘交易
+	 * 0: 夜盘交易
+	 * 1：日盘交易
 	 */
-	bool IsNightTrading;
+	int IsNightTrading;
 } ;
 
 class symbol_pos_t {

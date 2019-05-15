@@ -289,6 +289,17 @@ exchange_names Strategy::GetExchange(const char* contract)
 	}
 }
 
+bool Strategy::Subscribed(const char* contract)
+{
+	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
+		if (strcmp(this->setting_.config.symbols[i].name, contract) == 0){
+			return true;
+		}
+	}
+
+	return false;
+}
+
 int32_t Strategy::GetMaxPosition(const char* contract)
 {
 	for(int i=0; i< this->setting_.config.symbols_cnt; i++){
@@ -318,10 +329,12 @@ bool Strategy::Freeze(StrategyPosition *stra_pos,unsigned short sig_openclose,
 		stra_pos->frozen_open_short += updated_vol;
 	} 
 
-	if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
+	if ((sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) &&
+		sig_act==signal_act_t::buy){
 		stra_pos->frozen_close_short += updated_vol;
 	}
-	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
+	else if ((sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && 
+		sig_act==signal_act_t::sell){
 		stra_pos->frozen_close_long += updated_vol;
 	}
 
@@ -344,10 +357,11 @@ int Strategy::GetVol(const signal_t &sig)
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		vol = sig.open_volume;
 	} 
-	else if (sig.sig_openclose == alloc_position_effect_t::close_){
+	else if ((sig.sig_openclose == alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday)){
 		vol = sig.close_volume;
 	} 
-	else{ clog_error("[%s] PlaceOrder: do support sig_openclose value:%d;", 
+	else{ 
+		clog_error("[%s] PlaceOrder: do support sig_openclose value:%d;", 
 				module_name_,
 				sig.sig_openclose); }
 
@@ -367,61 +381,6 @@ StrategyPosition* Strategy::GetPosition(const char* contract)
 	return cur_pos;
 }
 
-int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, 
-			unsigned short int sig_act, int32_t vol, const char *contract)
-{
-	StrategyPosition *cur_pos = GetPosition(contract);
-	int updated_vol = 0;
-
-	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
-		if (cur_pos->frozen_open_long==0){
-			updated_vol = GetMaxPosition(contract) - cur_pos->cur_long + cur_pos->cur_short;
-		} 
-	}
-	else if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::sell){
-		if (cur_pos->frozen_open_short==0){
-			updated_vol = GetMaxPosition(contract) - cur_pos->cur_short + cur_pos->cur_long;
-		} 
-	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
-		if (cur_pos->frozen_close_short==0){
-			updated_vol = GetMaxPosition(contract)+ cur_pos->cur_short - cur_pos->cur_long;
-			if (updated_vol >  cur_pos->cur_short) updated_vol =  cur_pos->cur_short;
-		} 
-	}
-	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
-		if (cur_pos->frozen_close_long==0){
-			updated_vol = GetMaxPosition(contract) + cur_pos->cur_long - cur_pos->cur_short;
-			if (updated_vol >  cur_pos->cur_long) updated_vol =  cur_pos->cur_long;
-		}
-	}
-	else{ 
-		clog_error("[%s] GetAvailableVol: strategy id:%d; act:%d; sig_openclose:%d, sig id:%d",
-					module_name_, 
-					setting_.config.st_id, 
-					sig_act, 
-					sig_openclose, 
-					sig_id); 
-	}
-
-	if (updated_vol > vol) updated_vol = vol; 
-
-	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
-				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
-				"frozen_open_short:%d; updated vol:%d",
-				module_name_, 
-				setting_.config.st_id, 
-				sig_id, 
-				cur_pos->cur_long, 
-				cur_pos->cur_short,
-				cur_pos->frozen_close_long, 
-				cur_pos->frozen_close_short,
-				cur_pos->frozen_open_long, 
-				cur_pos->frozen_open_short, 
-				updated_vol);
-
-	return updated_vol;
-} 
-
 bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act)
 {
 	const char* contract = GetContractBySigId(sig_id);
@@ -437,12 +396,15 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 		if (cur_pos->frozen_open_short==0){
 			result = false;
 		} else { result = true; }
-	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
+	} 
+	else if ((sig_openclose==alloc_position_effect_t::close_ ||sig_openclose==alloc_position_effect_t::close_yesterday)&& 
+		sig_act==signal_act_t::buy){
 		if (cur_pos->frozen_close_short==0){
 			result = false;
 		} else { result = true; }
 	}
-	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
+	else if ((sig_openclose==alloc_position_effect_t::close_ ||sig_openclose==alloc_position_effect_t::close_yesterday)&& 
+		sig_act==signal_act_t::sell){
 		if (cur_pos->frozen_close_long==0){
 			result = false;
 		} else { result = true; }
@@ -509,7 +471,7 @@ void Strategy::Push(const signal_t &sig)
 	// 从pending队列中撤单 done
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		sigrpt_table_[cursor_].order_volume = sig.open_volume;
-	}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+	}else if (sig.sig_openclose == alloc_position_effect_t::close_ ||sig_openclose==alloc_position_effect_t::close_yesterday){
 		sigrpt_table_[cursor_].order_volume = sig.close_volume;
 	}
 
@@ -596,15 +558,16 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 {
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
-	// TODO: cancel ctp
+	// TODO: yao cancel ctp
 	strncpy(sys_order_id_[sigidx], rpt.OrderSysID, sizeof(sys_order_id_[sigidx]));
 
 	if_sig_state_t status = ConvertFromCtp(rpt.OrderStatus);
+	int lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
 	// update signal report
-	UpdateSigrptByTunnrpt(rpt.MatchedAmount, rpt.MatchedPrice, sigrpt, status, rpt.ErrorID);
+	UpdateSigrptByTunnrpt(lastqty, rpt.MatchedPrice, sigrpt, status, rpt.ErrorID);
 	// update strategy's position
 	StrategyPosition *cur_pos = GetPosition(contract);
-	UpdatePosition(cur_pos, rpt.MatchedAmount, status, sig.sig_openclose, sig.sig_act, rpt.ErrorID);
+	UpdatePosition(cur_pos, lastqty, status, sig.sig_openclose, sig.sig_act, rpt.ErrorID);
 	if (rpt.MatchedAmount > 0){
 		// fill signal position report by tunnel report
 		FillPositionRpt();
@@ -653,6 +616,7 @@ bool Strategy::HasFrozenPosition(const char *contract)
 
 }
 
+// TODO: last volume
 void Strategy::UpdatePosition(StrategyPosition *stra_pos, int32_t lastqty, if_sig_state_t status,
 			unsigned short sig_openclose, unsigned short int sig_act, int err)
 {
@@ -722,14 +686,13 @@ void Strategy::FillPositionRpt()
 		pos.s_pos[i].changed = 1;
 	}
 }
-void Strategy::UpdateSigrptByTunnrpt(int32_t totalqty, double last_price, 
+void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty, double last_price, 
 			signal_resp_t& sigrpt, if_sig_state_t &status, int err)
 {
-	if (totalqty > 0){
-		// TODO: ctp last volume
+	if (lastqty > 0){
 		sigrpt.exec_price = last_price;
-		sigrpt.exec_volume = totalqty - sigrpt.acc_volume;
-		sigrpt.acc_volume = totalqty;
+		sigrpt.exec_volume = lastqty;
+		sigrpt.acc_volume += lastqty;
 	}
 
 	if (status == SIG_STATUS_CANCEL){

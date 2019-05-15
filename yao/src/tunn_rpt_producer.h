@@ -187,15 +187,15 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		bool Ended();
 		void FillInitPosition(CThostFtdcInvestorPositionField *posField);
 		void SavePosition();
-		const char* GetTradingDay();
-		bool IsNightTrading();
+		int GetTradingDay();
+		int IsNightTrading();
 
-		char TradingDay[20];
+		int TradingDay;
 		/*
 		 * true:夜盘交易
 		 * false：日盘交易
 		 */
-		bool IsNightTrading;
+		int IsNightTrading;
 	private:
 		/*
 		 * things relating to ctp API
