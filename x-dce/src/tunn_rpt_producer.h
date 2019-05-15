@@ -180,6 +180,8 @@ private:
 	int32_t Push();
 
 	x1ftdcapi::CX1FtdcTraderApi *api_;
+	char appid_[30];
+	char authcode_[40];
 };
 
 #endif

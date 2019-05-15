@@ -1,3 +1,4 @@
+#include "collect.h"
 #include <thread>
 #include <chrono>
 #include <ctime>
@@ -77,6 +78,8 @@ void TunnRptProducer::ParseConfig()
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
+		strcpy(this->appid_, tunn_node->Attribute("appid"));
+		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
 
 		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
 					module_name_, 
@@ -176,11 +179,23 @@ int TunnRptProducer::ReqQuoteAction(CX1FtdcCancelOrderField *p)
 
 void TunnRptProducer::ReqLogin()
 {
+	char sysInfo[2048];
+	int real_size = 0;
+	int error = DfitcGetSysInfo(sysInfo, sizeof(sysInfo), &real_size);
+	clog_warning("[%s] DfitcGetSysInfo eror:%d; real_size:%d", module_name_, error, real_size);
+
     CX1FtdcReqUserLoginField login_data;
     memset(&login_data, 0, sizeof(CX1FtdcReqUserLoginField));
     strncpy(login_data.AccountID, this->config_.userid.c_str(), sizeof(login_data.AccountID));
     strncpy(login_data.Password, this->config_.password.c_str(), sizeof(login_data.Password));
     
+	// TODO: to here
+	// AppID由终端厂商名称、终端软件名称和版本号三部分构成
+	 strcpy(login_data.AppID, this->appid_);		
+	// //授权码由期货公司根据交易终端软件的AppID生成
+	 strcpy(login_data.AuthCode, this->authcode_);
+	 login_data.CompanyID = 0;
+	
 	int rtn = api_->ReqUserLogin(&login_data);
 
     clog_warning("[%s] ReqLogin:  err_no,%d",module_name_, rtn );
