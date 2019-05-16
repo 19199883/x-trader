@@ -1,4 +1,5 @@
-﻿#include <string.h>
+﻿// done
+#include <string.h>
 #include <stdio.h>
 #include "vrt_value_obj.h"
 #include "compliance.h"
@@ -27,7 +28,9 @@ void Compliance::Save()
 		if (strcmp(contracts_[i], "") == 0) break;
 
 		clog_warning("[%s] contract:%s; cancel times:%d",
-			module_name_, contracts_[i], cur_cancel_times_[i]);
+					module_name_, 
+					contracts_[i], 
+					cur_cancel_times_[i]);
 	}
 }
 
@@ -73,7 +76,9 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 
 	if(offset == THOST_FTDC_OF_Open && (GetCancelTimes(contract) >= cancel_upper_limit_)){
 		clog_error("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
-			module_name_, ord_counter, GetCancelTimes(contract));
+					module_name_, 
+					ord_counter, 
+					GetCancelTimes(contract));
 		return false;
 	}
 
@@ -102,7 +107,11 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 	}
 
 	clog_debug("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
-				module_name_, ord_counter, min_counter_, max_counter_, ret);
+				module_name_, 
+				ord_counter, 
+				min_counter_, 
+				max_counter_, 
+				ret);
 
     return ret;
 }

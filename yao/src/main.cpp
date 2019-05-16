@@ -77,6 +77,7 @@ int main(/*int argc, const char **argv*/)
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
 	dcemd_producer = new DceMDProducer(queue);
+	// TODO: yao
 	//l1_md_producer = new TapMDProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
 	while(!tunnRptProducer->IsReady()){
