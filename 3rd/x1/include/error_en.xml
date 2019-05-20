@@ -139,6 +139,26 @@
     <error id="X1_API_RET_CODE_FROBID_EXEC_TIME"                                                            value="133"         prompt="This time period forbid option execution."/>
     <error id="X1_API_RET_CODE_ORDER_RETURN_NOT_RECEIVED"                                                   value="134"         prompt="Return of order not received."/>
     <error id="X1_API_RET_CODE_IS_NOT_MARKET_MAKER_QUOTE_ORDER"                                             value="135"         prompt="The order is not market maker quote order."/>
+    <error id="X1_API_RET_OFFSETFLAG_INVALID"                                                               value="136"         prompt="Invalid offset flag."/>
+    <error id="X1_API_RET_COMSTATUS_INVALID"                                                                value="137"         prompt="Invalid combination status."/>
+    <error id="X1_API_RET_ABANDFALG_INVALID"                                                                value="138"         prompt="Invalid aband flag."/>
+    <error id="X1_API_RET_CODE_API_VERSION_CHECK_TIMEOUT"                                                   value="139"         prompt="Check version timeout."/>
+    <error id="X1_API_RET_CODE_EXCHANGE_CONTRACT_MISMATCH"                                                  value="140"         prompt="Exchange contract does not match."/>
+    <error id="X1_API_RET_APPID_INVALID"                                                                    value="141"         prompt="Invalid appid."/>
+    <error id="X1_API_RET_APPID_COMMUNICATION_MODE_INVALID"                                                 value="142"         prompt="Invalid communicate mode."/>
+    <error id="X1_API_RET_AUTHCODE_INVALID"                                                                 value="143"         prompt="Invalid authcode."/>
+    <error id="X1_API_RET_AUTHCODE_NO_ACCESS"                                                               value="144"         prompt="Authcode is forbidden."/>
+    <error id="X1_API_RET_ENCRYPT_VERSION_MISMATCHED"                                                       value="145"         prompt="Encrypt version does not match."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_ERROR"                                                              value="146"         prompt="the systeminfo is wrong."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_EMPTY"                                                              value="147"         prompt="The systeminfo is empty."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_SIZE_EXCEED"                                                        value="148"         prompt="The systeminfo over the maximum length."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_NO_ACCESS"                                                          value="149"         prompt="User has no access to get systeminfo."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_PARAMETER_INVALID"                                                  value="150"         prompt="The systeminfo has the wrong parameter."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_DECRYPT_FAILED"                                                     value="151"         prompt="The systeminfo decrypt failed."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_FORMAT_ERROR"                                                       value="152"         prompt="The systeminfo has wrong format."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_EXCEPT_FLAG_INVALID"                                                value="153"         prompt="The systeminfo has invalid except flag."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_IP_FORMAT_ERROR"                                                    value="154"         prompt="The ip format is invalid."/>
+    <error id="X1_API_RET_GETSYSTEMINFO_LOGINTIME_FORMAT_ERROR"                                             value="155"         prompt="The logintime format is invalid."/>
     <error id="X1_API_QRYFRONT_UNKNOWN_ERR"                                                                 value="1001"        prompt="Unknown error."/>
     <error id="X1_API_QRYFRONT_LONG_ACCNTID"                                                                value="1002"        prompt="The length of the account ID is longer than 12 please input again"/>
     <error id="X1_API_QRYFRONT_INVAL_FEILD"                                                                 value="1003"        prompt="%s contains invalid character"/>
@@ -247,7 +267,7 @@
     <error id="X1_API_QRYFRONT_INVAL_CONTRACT_ID"                                                           value="2619"        prompt="Invalid contract cannot place orders"/>
     <error id="X1_API_QRYFRONT_CONTEACT_ID_NO_TRADE"                                                        value="2620"        prompt="The contract is not in trading list currently"/>
     <error id="X1_API_QRYFRONT_ZERO_FLOAT_PRICE"                                                            value="2622"        prompt="The float price is 0 of the contract cannot trade"/>
-    <error id="X1_API_QRYFRONT_CHANGE_PRICE"                                                                value="2623"        prompt="The order price mismatches the float-price of the contrac"/>
+    <error id="X1_API_QRYFRONT_CHANGE_PRICE"                                                                value="2623"        prompt="The order price mismatches the float-price of the contract"/>
     <error id="X1_API_QRYFRONT_FORBID_TRADECODE_ON_VARIETY"                                                 value="2626"        prompt="The trade code was forbidden trading this kind of contract"/>
     <error id="X1_API_QRYFRONT_INVAL_CONTEACT_AMOUNT"                                                       value="2267"        prompt="Invalid order amount which should be integer multiples on the unit of open-position   "/>
     <error id="X1_API_QRYFRONT_OUT_OF_LMT_PRICE"                                                            value="2635"        prompt="Invalid order price is out of price cap or floor cannot trade"/>
@@ -279,6 +299,7 @@
     <error id="X1_API_QRYFRONT_ENTEUST_FROZEN_ERR"                                                          value="3408"        prompt="Failed to modify the balance of the account's frozened"/>
     <error id="X1_API_QRYFRONT_UNFROZEN_LESS_THAN_CANCEL"                                                   value="3411"        prompt="Failed cancel the order since the positions to unfroze positions are smaller than canceling amount"/>
     <error id="X1_API_QRYFRONT_RE_CANCEL"                                                                   value="3412"        prompt="Failed to modify the record of placed order please cancel it again"/>
+    <error id="X1_API_QRYFRONT_CANCEL_APPLY_ERR"                                                            value="3415"        prompt="Record cancel request error."/>
     <error id="X1_API_RET_CODE_DCE_TRADE_NO_FENS_SERVER_TO_CONNECT"                                         value="11001"       prompt="No FENS server to connect."/>
     <error id="X1_API_RET_CODE_DCE_TRADE_FENS_SERVER_CONNECT_FAILED"                                        value="11002"       prompt="FENS server connect failed."/>
     <error id="X1_API_RET_CODE_DCE_TRADE_INVALID_PARAMETER"                                                 value="11003"       prompt="Invalid parameter."/>
@@ -510,6 +531,52 @@
     <error id="X1_API_RET_CODE_DCE_TRADE_INITIALIZATION_ERROR"                                              value="11229"       prompt="Initialization error."/>
     <error id="X1_API_RET_CODE_DCE_TRADE_MEMORY_ALLOC_ERROR"                                                value="11230"       prompt="Memory alloc error."/>
     <error id="X1_API_RET_CODE_DCE_TRADE_VALIDITY_OF_THE_CERTIFICATE_ERROR"                                 value="11231"       prompt="Validity of the certificate error."/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_MARKET_STATUS_NOT_ALLOW"                                           value="11232"       prompt="Market status not allow"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_EMPTY_MEMBER_ID"                                                   value="11233"       prompt="Empty member id"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_INSTRUMENT_NOT_EXSIT"                                              value="11234"       prompt="Instrument not exsit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_INVALID_MEMBER_ID"                                                 value="11235"       prompt="Invalid member id"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_INVALID_NUMBER"                                                    value="11236"       prompt="Invalid number"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_RECORD_NOT_EXSIT"                                                  value="11237"       prompt="Record not exsit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_RECORD_HAS_BEEN_CANCELED"                                          value="11238"       prompt="Record has been canceled"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_OFFSET_SET_ERROR"                                                  value="11239"       prompt="Offset set error"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_NOT_IN_LAST_TRADING_DAY"                                           value="11240"       prompt="Not in last trading day"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_DUPLICATE_SET"                                                     value="11241"       prompt="Duplicate set"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_PERFSHTYPE_ERROR"                                                  value="11242"       prompt="Perfshtype error"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_REQ_OPTIONS_EXERCISE_FAILED"                                       value="11243"       prompt="Req options exercise failed"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_REQ_PERFORM_OFFSET_FAILED"                                         value="11244"       prompt="Req perform offset failed"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CANCEL_PERFORM_OFFSET_FAILED"                                      value="11245"       prompt="Cancel perfrom offset failed"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_REQ_OPTIONS_OFFSET_FAILED"                                         value="11246"       prompt="Req options offset failed"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CANCEL_OPTIONS_OFFSET_FAILED"                                      value="11247"       prompt="Cancel options offset failed"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_REQ_AUTO_EXEC_ABAND_FAILED"                                        value="11248"       prompt="Req auto_exec_aband failed"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CANCEL_AUTO_EXEC_ABAND_FAILED"                                     value="11249"       prompt="Cancel auto_exec_aband failed"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CONTRACTTYPE_NOT_OPTIONS"                                          value="11250"       prompt="Contract type not options"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_VARIETY_TRADING_STATUS_NOT_EXSIT"                                  value="11251"       prompt="Variety trading status not exsit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_SEND_DATA_PACKAGE_FAILED"                                          value="11252"       prompt="Send data package failed"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_VARIETY_TRADING_STATUS_NOT_ALLOWED"                                value="11253"       prompt="Variety trading status not allowed"/>
+
+    <error id="X1_API_RET_CODE_DCE_TRADE_COMBACTION_MUST_BE_COMB_OR_UNLOCK"                                 value="11254"       prompt="CombAction must be comb or unlock"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_COMBINATION_POSITION_NOT_ENOUGH"                                   value="11255"       prompt="Combination position not enough"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_TWO_LEG_TRADING_STATUS_IS_NOT_THE_SAME"                            value="11256"       prompt="Two leg trading status is not the same"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_SINGLE_LEG_POSITION_IS_NOT_ENOUGH"                                 value="11257"       prompt="Single leg position is not enough"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_ONLY_ALLOW_ONE_DATA_FIELD"                                         value="11258"       prompt="Only allow one data field"/>
+    
+    <error id="X1_API_RET_CODE_DCE_TRADE_TWO_LEGS_SHFLAG"                                                   value="11259"       prompt="The SHflag of two legs are different"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_NOT_ALLOW_HEDGE_IN_THIS_VARIETY"                                   value="11260"       prompt="The customer didn't have hedge qualification in this variety"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_NOT_ALLOW_SPEC_OPEN_IN_THIS_VARIETY"                               value="11261"       prompt="The customer didn't have speculative qualification in this variety"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CONTRACT_NON_TRADABLE"                                             value="11262"       prompt="This contract is non-tradable"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CONTRACT_ONLY_ALLOW_CLOSE_POSITION"                                value="11263"       prompt="This contract only allowed close position"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70022"                                                             value="11264"       prompt="Can't speculate in delivery month"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70023"                                                             value="11265"       prompt="Speculate volume over control group limit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70024"                                                             value="11266"       prompt="Hedge volume over control group limit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70025"                                                             value="11267"       prompt="Multiple volume over control group limit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70026"                                                             value="11268"       prompt="Control account not exist"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70027"                                                             value="11269"       prompt="Open volume over contract limit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70028"                                                             value="11270"       prompt="Open volume over variety limit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70029"                                                             value="11271"       prompt="Control group open volume over contract limit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70030"                                                             value="11272"       prompt="Control group open volume over variety limit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70031"                                                             value="11273"       prompt="Overseas customer open volume over limit"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70032"                                                             value="11274"       prompt="Overseas customer account not exist"/>
+
     <error id="X1_API_RET_CODE_SHFE_TRADE_NETWORK_CONNECTION_FAILED"                                        value="12001"       prompt="Network connection failed."/>
     <error id="X1_API_RET_CODE_SHFE_TRADE_PROCESSING_REQUEST_EXCEEDS_LIMIT"                                 value="12002"       prompt="Processing request exceeds limit."/>
     <error id="X1_API_RET_CODE_SHFE_TRADE_THE_NUMBER_OF_REQUESTS_PER_SECOND_EXCEEDS_THE_LIMIT"              value="12003"       prompt="The number of requests per second exceeds the limit."/>

@@ -109,7 +109,11 @@ typedef int TX1FtdcOpenCloseTypeType;
 // 期权放弃自动执行   
 #define X1_FTDC_SPD_GIVEUP                  7     
 // 期权履约
-#define X1_FTDC_SPD_PERFORM                 8     
+#define X1_FTDC_SPD_PERFORM                 8
+// 组合
+#define X1_FTDC_SPD_COM                     10
+// 解锁
+#define X1_FTDC_SPD_SPL                     11
 
 /////////////////////////////////////////////////////////////////////////
 // TX1FtdcSpeculationValueType:投机保值数据类型
@@ -142,16 +146,9 @@ typedef char TX1FtdcFrontAddrType[32];
 typedef short TX1FtdcCompanyIDType;
 
 /////////////////////////////////////////////////////////////////////////
-// TX1FtdcPasswdType:用户密码数据类型
-/////////////////////////////////////////////////////////////////////////
-typedef char TX1FtdcPasswdType[41];
-
-/////////////////////////////////////////////////////////////////////////
 // TX1FtdcPasswordType:用户密码数据类型
 /////////////////////////////////////////////////////////////////////////
 typedef char TX1FtdcPasswordType[41];
-// 密码长度
-#define X1FTDC_PASSWORD_LEN 41
 
 /////////////////////////////////////////////////////////////////////////
 // TX1FtdcX1OrderIDType:柜台委托号数据类型
@@ -183,6 +180,8 @@ typedef int TX1FtdcOrderTypeType;
 #define X1_FTDC_LOSS_LIMITORDER             48    
 // 市价止损委托
 #define X1_FTDC_LOSS_MKORDER                50    
+// 期权执行委托(委托查询使用)
+#define X1_FTDC_EXECUTE                     60
 
 /////////////////////////////////////////////////////////////////////////
 // TX1FtdcOrderAnswerStatusType:委托回报类型
@@ -219,7 +218,6 @@ typedef short TX1FtdcOrderAnswerStatusType;
 // 报单失败 -- 预留
 #define X1_FTDC_EXT_FAILED                  17    
 
-
 /////////////////////////////////////////////////////////////////////////
 // TX1FtdcMatchIDType:成交编号数据类型
 /////////////////////////////////////////////////////////////////////////
@@ -253,13 +251,13 @@ typedef int TX1FtdcSpeculatorType;
 /////////////////////////////////////////////////////////////////////////  
 typedef int TX1FtdcComSpeculatorType;
 // 投机-投机
-#define X1_FTDC_COM_SPECULATOR_SPEC         0
+#define X1_FTDC_COM_SPEC_SPEC               1
 // 投机-套保
-#define X1_FTDC_COM_SPECULATOR_HEDGE        1
+#define X1_FTDC_COM_SPEC_HEDGE              2
 // 套保-套保
-#define X1_FTDC_COM_HEDGE_HEDGE             2
+#define X1_FTDC_COM_HEDGE_HEDGE             3
 // 套保-投机
-#define X1_FTDC_COM_HEDGE_SPEC              3
+#define X1_FTDC_COM_HEDGE_SPEC              4
 
 /////////////////////////////////////////////////////////////////////////
 // TX1FtdcFeeType:手续费数据类型
@@ -631,6 +629,7 @@ typedef int TX1FtdcExtOrderType;
 #define X1_FTDC_PROFITLOSS_MODIFY          8
 // 组合触发修改
 #define X1_FTDC_ARBITRAGE_MODIFY           9
+
 // 预埋单
 #define X1_FTDC_YMORDER                    1
 // 条件单
@@ -1005,7 +1004,7 @@ typedef int TX1FtdcExtOrderPriceTypeType;
 //////////////////////////////////////////////
 ///TX1FtdcOffsetFlagType:是否对冲类型
 //////////////////////////////////////////////
-typedef char TX1FtdcOffsetFlagType;
+typedef int TX1FtdcOffsetFlagType;
 ///对冲
 #define X1_FTDC_OFFSET_ON              1
 ///不对冲
@@ -1014,19 +1013,86 @@ typedef char TX1FtdcOffsetFlagType;
 //////////////////////////////////////////////
 ///TX1FtdcComFlagType:组合状态类型
 //////////////////////////////////////////////
-typedef char TX1FtdcComStatusType;
+typedef int TX1FtdcComStatusType;
 ///组合
 #define X1_FTDC_STATUS_COM              1
 ///解锁
 #define X1_FTDC_STATUS_SPL              2
 
 //////////////////////////////////////////////
-///TX1FtdcAbandFlagType:放弃自动行权状态
+///TX1FtdcPriorityType:组合优先级
 //////////////////////////////////////////////
-typedef char TX1FtdcAbandFlagType;
-///放弃
-#define X1_FTDC_ABAND_INSERT            1
-///撤销放弃
-#define X1_FTDC_ABAND_CANCEL            0
+typedef int TX1FtdcPriorityType;
+
+//////////////////////////////////////////////
+///TX1FtdcCombStrategyTypeType:组合策略类型
+//////////////////////////////////////////////
+typedef int TX1FtdcCombStrategyTypeType;
+///跨期
+#define X1_FTDC_FUTURES_CROSS_DATE                 1
+///跨品种
+#define X1_FTDC_FUTURES_CROSS_VARIETY              2
+///对锁1
+#define X1_FTDC_PAIR_LOCK_CALL                    100
+///对锁2
+#define X1_FTDC_PAIR_LOCK_PUT                     101
+///买垂直价差1
+#define X1_FTDC_VS_C_BUY_LOW_SELL_HIGH            102
+///买垂直价差2
+#define X1_FTDC_VS_P_BUY_HIGH_SELL_LOW            103
+///卖垂直价差1
+#define X1_FTDC_VS_C_BUY_HIGH_SELL_LOW            104
+///日历价差1
+#define X1_FTDC_CALENDAR_C_SELL_NEAR_BUY_FAR      105
+///日历价差2
+#define X1_FTDC_CALENDAR_P_SELL_NEAR_BUY_FAR      106
+///跨式
+#define X1_FTDC_STRADDLE                          107
+///宽跨式
+#define X1_FTDC_WIDE_STRADDLE                     108
+///卖看涨期权，买对应期货
+#define X1_FTDC_SELL_CALL_OPT_BUY_FUT             109
+///卖看跌期权，卖对应期货
+#define X1_FTDC_SELL_PUT_OPT_SELL_FUT             110
+///买看涨期权，卖对应期货
+#define X1_FTDC_BUY_CALL_OPT_SELL_FUT             111
+///买看跌期权，买对应期货
+#define X1_FTDC_BUY_PUT_OPT_BUY_FUT               112
+
+
+/////////////////////////////////////////////////////////////////////////
+// TX1FtdcAppIDType:APPID数据类型
+/////////////////////////////////////////////////////////////////////////
+typedef char TX1FtdcAppIDType[31];
+
+/////////////////////////////////////////////////////////////////////////
+// TX1FtdcAuthCodeType:授权码数据类型
+/////////////////////////////////////////////////////////////////////////
+typedef char TX1FtdcAuthCodeType[33];
+
+/////////////////////////////////////////////////////////////////////////
+// TX1FtdcRemoteIPType:客户交易终端公网IP数据类型
+/////////////////////////////////////////////////////////////////////////
+typedef char TX1FtdcRemoteIPType[40];
+
+/////////////////////////////////////////////////////////////////////////
+// TX1FtdcRemotePortType:客户交易终端公网port数据类型
+/////////////////////////////////////////////////////////////////////////
+typedef unsigned short TX1FtdcRemotePortType;
+
+/////////////////////////////////////////////////////////////////////////
+// TX1FtdcRemoteLoginTimeType:客户交易终端登录时间数据类型
+/////////////////////////////////////////////////////////////////////////
+typedef char TX1FtdcRemoteLoginTimeType[20];
+
+/////////////////////////////////////////////////////////////////////////
+// TX1FtdcSystemInfoType:终端采集密文数据类型
+/////////////////////////////////////////////////////////////////////////
+typedef char TX1FtdcSystemInfoType[1024];
+
+/////////////////////////////////////////////////////////////////////////
+// TX1FtdcSystemInfoLenType:终端采集密文数据长度类型
+/////////////////////////////////////////////////////////////////////////
+typedef int TX1FtdcSystemInfoLenType;
 
 #endif//X1FTDCAPIDATATYPE_H

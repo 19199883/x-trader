@@ -16,30 +16,9 @@
 
 ///心跳包
 struct APISTRUCT CX1FtdcTimeOutField {
-    TX1FtdcRequestIDType                  lRequestID;                   // 请求ID
+    TX1FtdcRequestIDType                  RequestID;                   // 请求ID
 };
 
-/**
-* <table border="3">
-*      <tr> <th>名称</th>                        <th>类型</th>                     <th>描述</th>                                      <th>是否必填</th>               <th>取值范围说明</th></tr>
-*      <tr> <td>AccountID</td>                   <td>TX1FtdcAccountIDType</td>     <td>资金账户ID</td>                                <td>M</td>                      <td></td> </tr>
-*      <tr> <td>LocalOrderID</td>                <td>TX1FtdcLocalOrderIDType</td>  <td>本地委托号</td>                                <td>M</td>                      <td>由API使用者维护，在同一个会话中不能重复，并且必须比上一次大</td></tr>
-*      <tr> <td>InstrumentID</td>                <td>TX1FtdcInstrumentIDType</td>  <td>合约代码</td>                                  <td>M</td>                      <td>支持目前国内4个期货交易所的所有合约，包括大商所/郑商所的套利合约</td> </tr>
-*      <tr> <td>InsertPrice</td>                 <td>TX1FtdcPriceType</td>         <td>报单价格</td>                                  <td>M</td>                      <td>当报单类型为市价时，该字段不起作用</td></tr>
-*      <tr> <td>OrderAmount</td>                 <td>TX1FtdcAmountType</td>        <td>报单数量</td>                                  <td>M</td>                      <td>必须大于0的整数</td></tr>
-*      <tr> <td>TX1FtdcBuySellTypeType</td>      <td>BuySellType</td>              <td>买卖标志</td>                                  <td>M</td>                      <td>1买；2卖</td></tr>
-*      <tr> <td>TX1FtdcOpenCloseTypeType</td>    <td>OpenCloseType</td>            <td>开平标志</td>                                  <td>M</td>                      <td>1开仓；2平仓；4平今</td></tr>
-*      <tr> <td>TX1FtdcSpeculatorType</td>       <td>Speculator</td>               <td>投保类型</td>                                  <td>M</td>                      <td>支持投机、套利、套保</td></tr>
-*      <tr> <td>TX1FtdcInsertType</td>           <td>InsertType</td>               <td>自动单类别</td>                                <td>M</td>                      <td>(默认为普通订单)(此版本不用)</td></tr>
-*      <tr> <td>TX1FtdcOrderTypeType</td>        <td>OrderType</td>                <td>报单类型</td>                                  <td>M</td>                      <td>支持限价 、市价；上期所合约不支持市价，均按限价进行处理</td></tr>
-*      <tr> <td>TX1FtdcOrderPropertyType</td>    <td>OrderProperty</td>            <td>报单附加属性</td>                              <td>M</td>                      <td>支持None、FAK、FOK</td></tr>
-*      <tr> <td>TX1FtdcInstrumentTypeType</td>   <td>InstrumentType</td>           <td>合约类型</td>                                  <td>M</td>                      <td>可选值：期货、期权</td></tr>
-*      <tr> <td>TX1FtdcAmountType</td>           <td>MinMatchAmount</td>           <td>最小成交量</td>                                <td>M</td>                      <td></td></tr>
-*      <tr> <td>TX1FtdcReservedType</td>         <td>ReservedType2</td>            <td>预留字段2</td>                                 <td>NM</td>                     <td></td></tr>
-*      <tr> <td>TX1FtdcCustomCategoryType</td>   <td>CustomCategory</td>           <td bgcolor="gray">自定义类别(此版本不用)</td>     <td>BLK</td>                    <td>自定义类别(此版本不用)</td></tr>
-*      <tr> <td>TX1FtdcPriceType</td>            <td>ProfitLossPrice</td>          <td bgcolor="gray">止盈止损价格(此版本不用)</td>   <td>NM</td>                     <td>止盈止损价格(此版本不用)</td></tr>
-* </table>
-*/
 ///请求报单数据类型(基本报单)
 struct APISTRUCT CX1FtdcInsertOrderField {
     TX1FtdcAccountIDType                  AccountID;                    // 资金账户
@@ -47,7 +26,7 @@ struct APISTRUCT CX1FtdcInsertOrderField {
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
     TX1FtdcPriceType                      InsertPrice;                  // 报单价格, 当报单类型为市价时，该字段不起作用
     TX1FtdcAmountType                     OrderAmount;                  // 报单数量
-    TX1FtdcBuySellTypeType                BuySellType;                  // 买卖标志
+    TX1FtdcBuySellTypeType                BuySellType;                  // 买卖标志, 期权执行时：1为不对冲，2为对冲
     TX1FtdcOpenCloseTypeType              OpenCloseType;                // 开平标志
     TX1FtdcSpeculatorType                 Speculator;                   // 投保类型, 支持投机、套利、套保
     TX1FtdcInsertType                     InsertType;                   // 自动单类别(默认为普通订单)
@@ -61,29 +40,16 @@ struct APISTRUCT CX1FtdcInsertOrderField {
     TX1FtdcPriceType                      ProfitLossPrice;              // 止盈止损价格
 };
 
-
-/**
-* <table border="3">
-*      <tr> <th>名称</th>         <th>类型</th>                     <th>描述</th>                                   <th>是否必填</th>   <th>取值范围说明</th></tr>
-*      <tr> <td>AccountID</td>    <td>TX1FtdcAccountIDType</td>     <td bgcolor="gray">资金账户ID (此版本不用)</td> <td>NM</td>         <td></td> </tr>
-*      <tr> <td>X1OrderID</td>    <td>TX1FtdcX1OrderIDType</td>     <td>柜台委托号</td>                             <td>NM</td>         <td>1. X1OrderID和LocalOrderID任意输入其中一个值即可<br>2. 如果X1OrderID和LocalOrderID两个值都输入了，程序将优先使用X1OrderID（两者同时小于等于0时，则无法撤单成功）<br>3. 当柜台重启后，需要使用X1OrderID进行撤单</td> </tr>
-*      <tr> <td>LocalOrderID</td> <td>TX1FtdcLocalOrderIDType</td>  <td>本地委托号</td>                             <td>NM</td>         <td>当客户端使用API登出，再登陆到前置后，此时需要用LocalOrderID 加 SessionID进行撤单</td></tr>
-*      <tr> <td>InstrumentID</td> <td>TX1FtdcInstrumentIDType</td>  <td bgcolor="red">合约代码(此版本不用)</td>     <td>NM</td>         <td></td></tr>
-*      <tr> <td>RequestID</td>    <td>TX1FtdcRequestIDType</td>     <td>请求ID</td>                                 <td>NM</td>         <td></td></tr>
-*      <tr> <td>SessionID</td>    <td>TX1FtdcSessionIDType</td>     <td>会话ID</td>                                 <td>NM</td>         <td></td></tr>
-* </table>
-*/
 ///撤单数据类型
 struct APISTRUCT CX1FtdcCancelOrderField {
     TX1FtdcAccountIDType                  AccountID;                    // 资金账户ID(此版本不用)
     TX1FtdcX1OrderIDType                  X1OrderID;                    // 柜台委托号
     TX1FtdcLocalOrderIDType               LocalOrderID;                 // 本地委托号
-    TX1FtdcOrderSysIDType                 OrderSysID;                   // 订单系统委托号(用于双边报价单边撤单)
+    TX1FtdcOrderSysIDType                 OrderSysID;                   // 订单系统委托号(用于双边报价单边撤单和大商所期权执行单撤单)
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
     TX1FtdcRequestIDType                  RequestID;                    // 请求ID
     TX1FtdcSessionIDType                  SessionID;                    // 会话ID
 };
-
 
 ///委托响应类型
 struct APISTRUCT CX1FtdcRspOperOrderField {
@@ -101,25 +67,22 @@ struct APISTRUCT CX1FtdcRspOperOrderField {
     TX1FtdcBuySellTypeType                BuySellType;                  // 买卖，该字段仅供下单时使用
     TX1FtdcOpenCloseTypeType              OpenCloseType;                // 开平(撤单时此版本不用)
     TX1FtdcInstrumentTypeType             InstrumentType;               // 合约类型
-    TX1FtdcSpeculatorType                 Speculator;                   // 投资类别
+    TX1FtdcSpeculatorType                 Speculator;                   // 投资类别(撤单时此版本不用)
     TX1FtdcPriceType                      InsertPrice;                  // 委托价(撤单时此版本不用)
     TX1FtdcPriceType                      ProfitLossPrice;              // 止盈止损价格
     TX1FtdcAmountType                     MinMatchAmount;               // 最小成交量
-    TX1FtdcAmountType                     OrderAmount;                  // 委托数量
+    TX1FtdcAmountType                     OrderAmount;                  // 委托数量(撤单时此版本不用)
     TX1FtdcInsertType                     InsertType;                   // 自动单类别
     TX1FtdcOrderTypeType                  OrderType;                    // 订单类型(撤单时此版本不用)
     TX1FtdcOrderPropertyType              OrderProperty;                // 订单属性
     TX1FtdcClientIDType                   ClientID;                     // 交易编码(此版本不用)
 };
 
-
-
 ///查询资金数据类型
 struct APISTRUCT CX1FtdcQryCapitalField {
     TX1FtdcRequestIDType                  RequestID;                    // 请求ID
     TX1FtdcAccountIDType                  AccountID;                    // 资金账户ID
 };
-
 
 ///查询持仓数据类型
 struct APISTRUCT CX1FtdcQryPositionField {
@@ -128,7 +91,6 @@ struct APISTRUCT CX1FtdcQryPositionField {
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
     TX1FtdcInstrumentTypeType             InstrumentType;               // 合约类型
 };
-
 
 ///交易所合约
 /**
@@ -149,6 +111,8 @@ struct APISTRUCT CX1FtdcReqUserLoginField {
     TX1FtdcAccountIDType                  AccountID;                    // 资金账户ID [M]
     TX1FtdcPasswordType                   Password;                     // 密码 [M]
     TX1FtdcCompanyIDType                  CompanyID;                    // 厂商ID(此版本不用)[BLK]
+    TX1FtdcAppIDType                      AppID;                        // AppID [M]
+    TX1FtdcAuthCodeType                   AuthCode;                     // 授权码 [M]
 };
 
 /// 用户登录返回信息 
@@ -169,12 +133,10 @@ struct APISTRUCT CX1FtdcRspUserLoginField {
 
 ///用户退出类型
 struct APISTRUCT CX1FtdcReqUserLogoutField {
-
     TX1FtdcRequestIDType                  RequestID;                    // 请求ID
     TX1FtdcAccountIDType                  AccountID;                    // 资金帐号ID [NM] 用户可以传空或传入正确的登录号
     TX1FtdcSessionIDType                  SessionID;                    // 会话ID(此版本不用)[BLK]
 };
-
 
 ///委托回报
 struct APISTRUCT CX1FtdcRspPriOrderField {
@@ -209,7 +171,6 @@ struct APISTRUCT CX1FtdcRspPriOrderField {
     TX1FtdcLocalOrderIDType               PriFlowNo;                    // 私有流编号
 };
 
-
 ///成交回报
 struct APISTRUCT CX1FtdcRspPriMatchInfoField {
     TX1FtdcLocalOrderIDType               LocalOrderID;                 // 本地委托号
@@ -243,7 +204,6 @@ struct APISTRUCT CX1FtdcRspPriMatchInfoField {
     TX1FtdcLocalOrderIDType               PriFlowNo;                    // 私有流编号
 };
 
-
 ///撤单回报
 struct APISTRUCT CX1FtdcRspPriCancelOrderField {
     TX1FtdcLocalOrderIDType               LocalOrderID;                 // 本地委托号
@@ -256,7 +216,7 @@ struct APISTRUCT CX1FtdcRspPriCancelOrderField {
     TX1FtdcX1OrderIDType                  X1OrderID;                    // 柜台委托号
     TX1FtdcSpeculatorType                 Speculator;                   // 投保
     TX1FtdcExchangeIDType                 ExchangeID;                   // 交易所ID
-    TX1FtdcDateType                       CanceledTime;                 // 撤单时间(此版本不用)
+    TX1FtdcDateType                       CanceledTime;                 // 撤单时间
     TX1FtdcSessionIDType                  SessionID;                    // 会话标识
     TX1FtdcOrderAnswerStatusType          OrderStatus;                  // 申报结果
     TX1FtdcInstrumentTypeType             InstrumentType;               // 合约类型
@@ -269,12 +229,11 @@ struct APISTRUCT CX1FtdcRspPriCancelOrderField {
     TX1FtdcAmountType                     MinMatchAmount;               // 最小成交量
     TX1FtdcInsertType                     InsertType;                   // 自动单类别
     TX1FtdcClientIDType                   ClientID;                     // 交易编码(此版本不用)
-    TX1FtdcErrorIDType                    ErrorID;                      // 错误ID  2月底之前完成
+    TX1FtdcErrorIDType                    ErrorID;                      // 错误ID
     TX1FtdcErrorMsgInfoType               StatusMsg;                    // 状态信息
     TX1FtdcOrderPropertyType              OrderProperty;                // 报单附加属性
     TX1FtdcLocalOrderIDType               PriFlowNo;                    // 私有流编号
 };
-
 
 ///错误信息
 struct APISTRUCT CX1FtdcRspErrorField {
@@ -287,7 +246,6 @@ struct APISTRUCT CX1FtdcRspErrorField {
     TX1FtdcErrorMsgInfoType               ErrorMsg;                     // 错误信息
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
 };
-
 
 ///返回资金信息
 struct APISTRUCT CX1FtdcRspCapitalField {
@@ -320,7 +278,6 @@ struct APISTRUCT CX1FtdcRspCapitalField {
     TX1FtdcProfitLossType                 FundMortgageAvailable;        //货币质押余额
     TX1FtdcProfitLossType                 YesterdayMargin;              //昨保证金
 };
-
 
 ///返回持仓信息
 struct APISTRUCT CX1FtdcRspPositionField {
@@ -397,14 +354,13 @@ struct APISTRUCT CX1FtdcRspExchangeInstrumentField {
     TX1FtdcAmountType                     TradeSize;                    // 期权开仓单位
 };
 
-
 ///委托查询数据结构
 /**
 * @brief 委托查询数据结构
 * @details 这里有丰富的查询条件设置，如果想查询所有委托记录，则只需要输入AccountID和InstrumentType即可。
 *          查询处于某状态的报单，则中需要将OrderStatus设置为相应报单状态的值即可，如3表示未成交在队列的单子。(注意OrderStatus和OrderType查询条件该版本暂不支持)
 *          查询指定报单类型的单子，如限价单或市价单等。
-*          该版本不支持按柜台委托号X1OrderID 或本地委托号LocalOrderID查询。
+*          期权执行委托查询时，柜台委托号使用报单编号。
 *          废单仅支持下单的委托查询。
 *          废单的价格均显示为0.
 */
@@ -420,7 +376,6 @@ struct APISTRUCT CX1FtdcQryOrderField {
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
 };
 
-
 ///成交查询数据结构
 /**
 * @brief 成交查询数据结构
@@ -435,7 +390,6 @@ struct APISTRUCT CX1FtdcQryMatchField {
     TX1FtdcX1OrderIDType                  X1OrderID;                    // 柜台委托号
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
 };
-
 
 ///委托查询响应数据结构
 struct APISTRUCT CX1FtdcRspOrderField {
@@ -471,7 +425,6 @@ struct APISTRUCT CX1FtdcRspOrderField {
     TX1FtdcOrderPropertyType              OrderProperty;                // 订单属性
 };
 
-
 ///成交查询数据响应
 struct APISTRUCT CX1FtdcRspMatchField {
     TX1FtdcRequestIDType                  RequestID;                    // 请求ID
@@ -498,7 +451,6 @@ struct APISTRUCT CX1FtdcRspMatchField {
     TX1FtdcOrderTypeType                  OrderType;                    // 报单类型
     TX1FtdcOrderSysIDType                 OrderSysID;                   // 主场单号
 };
-
 
 ///返回合约信息数据结构 
 struct APISTRUCT CX1FtdcRspSpecificInstrumentField {
@@ -540,7 +492,6 @@ struct APISTRUCT CX1FtdcQryPositionDetailField {
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
     TX1FtdcInstrumentTypeType             InstrumentType;               // 合约类型
 };
-
 
 ///查询持仓明细响应
 struct APISTRUCT CX1FtdcRspPositionDetailField {
@@ -587,7 +538,6 @@ struct APISTRUCT CX1FtdcExchangeStatusRtnField {
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
     TX1FtdcExchangeStatusType             ExchangeStatus;               // 交易所状态
 };
-
 
 ///做市商报单请求
 struct APISTRUCT CX1FtdcQuoteInsertField {
@@ -699,7 +649,6 @@ struct APISTRUCT CX1FtdcQuoteCanceledRtnField {
     TX1FtdcLocalOrderIDType               PriFlowNo;                    // 私有流编号
 };
 
-
 ///做市商成交回报
 struct APISTRUCT CX1FtdcQuoteMatchRtnField {
     TX1FtdcExchangeIDType                 ExchangeID;                   // 交易所ID
@@ -737,7 +686,6 @@ struct APISTRUCT CX1FtdcQuoteMatchRtnField {
     TX1FtdcCustomCategoryType             CustomCategory;               // 自定义类别
     TX1FtdcLocalOrderIDType               PriFlowNo;                    // 私有流编号
 };
-
 
 ///批量撤单响应
 struct APISTRUCT CX1FtdcCancelAllOrderRspField {
@@ -777,7 +725,7 @@ struct APISTRUCT CX1FtdcQryForQuoteField {
 struct APISTRUCT CX1FtdcQuoteOrderField {
     TX1FtdcRequestIDType                  RequestID;                    // 请求ID
     TX1FtdcExchangeIDType                 ExchangeID;                   // 交易所
-    TX1FtdcAccountIDType                  AccountID;                    // 资金账户
+    TX1FtdcAccountIDType                  AccountID;                    // 资金账户ID
     TX1FtdcInstrumentIDType               InstrumentID;                 // 合约代码
     TX1FtdcLocalOrderIDType               LocalOrderID;                 // 本地委托号
     TX1FtdcX1OrderIDType                  X1OrderID;                    // 柜台委托号
@@ -889,7 +837,7 @@ struct APISTRUCT CX1FtdcRspResetPasswordField {
     TX1FtdcResetPasswordType              ResetPasswordResult;          // 修改密码结果[M] 
 };
 
-///查询组合持仓明细
+///查询套利持仓明细
 struct APISTRUCT CX1FtdcArbitrageCombineDetailField {
     TX1FtdcRequestIDType                  RequestID;                    // 请求ID
     TX1FtdcAccountIDType                  AccountID;                    // 资金账户ID
@@ -897,7 +845,7 @@ struct APISTRUCT CX1FtdcArbitrageCombineDetailField {
     TX1FtdcInstrumentTypeType             InstrumentType;               // 合约类型
 };
 
-///查询组合持仓响应
+///查询套利持仓响应
 struct APISTRUCT CX1FtdcArbitrageCombineDetailRtnField {
     TX1FtdcRequestIDType                  RequestID;                    // 请求ID
     TX1FtdcAccountIDType                  AccountID;                    // 资金帐号ID
@@ -915,13 +863,13 @@ struct APISTRUCT CX1FtdcArbitrageCombineDetailRtnField {
     TX1FtdcInstrumentTypeType             InstrumentType;               // 合约类型
     TX1FtdcX1OrderIDType                  SpdOrderID;                   // 柜台委托号
     TX1FtdcCustomCategoryType             CustomCategory;               // 自定义类别
-    TX1FtdcClientIDType                   clientID;                     // 交易编码 
-    TX1FtdcAmountType                     yesterdayVolume;              // 昨仓数量
+    TX1FtdcClientIDType                   ClientID;                     // 交易编码 
+    TX1FtdcAmountType                     YesterdayVolume;              // 昨仓数量
 };
 
 ///行情触发请求
 struct APISTRUCT CX1FtdcPricesTriggerField {
-    TX1FtdcAccountIDType              AccountID;          // 资金账户
+    TX1FtdcAccountIDType              AccountID;          // 资金账户ID
     TX1FtdcLocalOrderIDType           LocalOrderID;       // 本地委托号
     TX1FtdcInstrumentIDType           InstrumentID;       // 合约代码
     TX1FtdcPriceType                  InsertPrice;        // 委托价格
@@ -930,7 +878,7 @@ struct APISTRUCT CX1FtdcPricesTriggerField {
     TX1FtdcOrderTypeType              OrderType;          // 条件单报单类型
     TX1FtdcBuySellTypeType            BuySellType;        // 买卖标志
     TX1FtdcOpenCloseTypeType          OpenCloseType;      // 开平标志
-    TX1FtdcRequestIDType              lRequestID;         // 请求ID 
+    TX1FtdcRequestIDType              RequestID;          // 请求ID 
     TX1FtdcCompareFlagType            CompareFlag;        // 比较标志(价格)
     TX1FtdcPriceType                  ComparePrice;       // 触发价格(触发条件为行情价格大于或小于等于触发价格)
     TX1FtdcPriceReferenceType         PriceReference;     // 价格参照
@@ -946,16 +894,16 @@ struct APISTRUCT CX1FtdcPricesTriggerField {
 
 ///条件单查询请求
 struct APISTRUCT CX1FtdcQryExtOrderField {
-    TX1FtdcAccountIDType              AccountID;          // 资金账户
-    TX1FtdcRequestIDType              lRequestID;         // 请求ID
+    TX1FtdcAccountIDType              AccountID;          // 资金账户ID
+    TX1FtdcRequestIDType              RequestID;          // 请求ID
     TX1FtdcX1OrderIDType              ExtSpdOrderID;      // 条件单编号(暂不支持)
     TX1FtdcExtOrderType               ExtOrderType;       // 条件单类型
 };
 
 ///条件单撤单请求
 struct APISTRUCT CX1FtdcCancelExtOrderField {
-    TX1FtdcAccountIDType              AccountID;          // 资金账户
-    TX1FtdcRequestIDType              lRequestID;         // 请求ID 
+    TX1FtdcAccountIDType              AccountID;          // 资金账户ID
+    TX1FtdcRequestIDType              RequestID;          // 请求ID 
     TX1FtdcLocalOrderIDType           LocalOrderID;       // 本地委托号
     TX1FtdcX1OrderIDType              ExtSpdOrderID;      // 条件单编号
     TX1FtdcExtOrderType               ExtOrderType;       // 条件单类型
@@ -967,15 +915,15 @@ struct APISTRUCT CX1FtdcExtOrderRspDataField {
     TX1FtdcX1OrderIDType              SpdOrderID;         // 柜台委托号
     TX1FtdcX1OrderIDType              ExtSpdOrderID;      // 条件单编号
     TX1FtdcOrderAnswerStatusType      OrderStatus;        // 委托状态
-    TX1FtdcRequestIDType              lRequestID;         // 请求ID
+    TX1FtdcRequestIDType              RequestID;          // 请求ID
     TX1FtdcPriceType                  FrozenMargin;       // 冻结资金(仅下单使用)
     TX1FtdcExtOrderType               ExtOrderType;       // 条件单类型
-    TX1FtdcAccountIDType              AccountID;          // 资金账户
+    TX1FtdcAccountIDType              AccountID;          // 资金账户ID
 };
 
 ///条件单委托回报
 struct APISTRUCT CX1FtdcPricesTriggerRtnField {
-    TX1FtdcAccountIDType              AccountID;          // 资金账户
+    TX1FtdcAccountIDType              AccountID;          // 资金账户ID
     TX1FtdcLocalOrderIDType           LocalOrderID;       // 本地委托号
     TX1FtdcInstrumentIDType           InstrumentID;       // 合约代码
     TX1FtdcPriceType                  InsertPrice;        // 委托价格
@@ -1008,7 +956,7 @@ struct APISTRUCT CX1FtdcPricesTriggerRtnField {
 
 ///行情触发查询响应
 struct APISTRUCT CX1FtdcQryPricesTriggerField {
-    TX1FtdcAccountIDType              AccountID;          // 资金账户
+    TX1FtdcAccountIDType              AccountID;          // 资金账户ID
     TX1FtdcLocalOrderIDType           LocalOrderID;       // 本地委托号
     TX1FtdcInstrumentIDType           InstrumentID;       // 合约代码
     TX1FtdcPriceType                  InsertPrice;        // 委托价格
@@ -1017,7 +965,7 @@ struct APISTRUCT CX1FtdcQryPricesTriggerField {
     TX1FtdcOrderTypeType              OrderType;          // 报单类型
     TX1FtdcBuySellTypeType            BuySellType;        // 买卖标志
     TX1FtdcOpenCloseTypeType          OpenCloseType;      // 开平标志
-    TX1FtdcRequestIDType              lRequestID;         // 请求ID 
+    TX1FtdcRequestIDType              RequestID;          // 请求ID 
     TX1FtdcCompareFlagType            CompareFlag;        // 比较标志
     TX1FtdcPriceType                  ComparePrice;       // 触发价格
     TX1FtdcPriceReferenceType         PriceReference;     // 价格参照
@@ -1043,47 +991,47 @@ struct APISTRUCT CX1FtdcQryPricesTriggerField {
 
 ///查询交易日请求
 struct APISTRUCT CX1FtdcTradingDayField {
-    TX1FtdcRequestIDType              lRequestID;         // 请求ID
+    TX1FtdcRequestIDType              RequestID;         // 请求ID
 };
-
 
 ///交易日请求响应
 struct APISTRUCT CX1FtdcTradingDayRtnField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
     TX1FtdcDateType                   date;                // 交易日
 };
 
 ///期权对冲请求
 struct APISTRUCT CX1FtdcOptOffsetField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcSpeculatorType             Speculator;          // 投保类型
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
     TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
-    TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲
+    TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲（撤销时不用）
 };
 
 ///期权对冲查询请求
 struct APISTRUCT CX1FtdcQryOptOffsetField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcSpeculatorType             Speculator;          // 投保类型
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
     TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
 };
 
 ///期权对冲响应
 struct APISTRUCT CX1FtdcRspOptOffsetField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
     TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
-    TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲
+    TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲（撤销时不用）
 };
 
 ///期权对冲回报
 struct APISTRUCT CX1FtdcRtnOptOffsetField {
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
     TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲
     TX1FtdcErrorIDType                ErrorID;             // 错误ID
@@ -1092,32 +1040,33 @@ struct APISTRUCT CX1FtdcRtnOptOffsetField {
 
 ///履约对冲请求
 struct APISTRUCT CX1FtdcPerformOffsetField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcSpeculatorType             Speculator;          // 投保类型
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
-    TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲
+    TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲(撤销时不用)
 };
 
 ///履约对冲查询请求
 struct APISTRUCT CX1FtdcQryPerformOffsetField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcSpeculatorType             Speculator;          // 投保类型
 };
 
 ///履约对冲响应
 struct APISTRUCT CX1FtdcRspPerformOffsetField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲
 };
 
 ///履约对冲回报
 struct APISTRUCT CX1FtdcRtnPerformOffsetField {
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcOffsetFlagType             IfOffset;            // 是否对冲
     TX1FtdcErrorIDType                ErrorID;             // 错误ID
     TX1FtdcErrorMsgInfoType           StatusMsg;           // 状态信息
@@ -1125,10 +1074,11 @@ struct APISTRUCT CX1FtdcRtnPerformOffsetField {
 
 ///组合/解锁申请请求
 struct APISTRUCT CX1FtdcCombPosiField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcLocalOrderIDType           LocalOrderID;        // 本地委托号
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
-    TX1FtdcSpeculatorType             Speculator;          // 投保类型
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcSpeculatorType             Speculator;          // 投保类型(此版本不适用，预留)
     TX1FtdcInstrumentIDType           ComInstrumentID;     // 组合合约代码
     TX1FtdcComSpeculatorType          ComSpeculator;       // 组合投保标志
     TX1FtdcComStatusType              ComStatus;           // 组合状态
@@ -1137,9 +1087,13 @@ struct APISTRUCT CX1FtdcCombPosiField {
 
 ///组合/解锁申请响应
 struct APISTRUCT CX1FtdcRspCombPosiField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcLocalOrderIDType           LocalOrderID;        // 本地委托号
+    TX1FtdcX1OrderIDType              X1OrderID;           // 柜台委托号
+    TX1FtdcSessionIDType              SessionID;           // 会话ID
+    TX1FtdcOrderAnswerStatusType      OrderStatus;         // 委托状态
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcInstrumentIDType           ComInstrumentID;     // 组合合约代码
     TX1FtdcComSpeculatorType          ComSpeculator;       // 组合投保标志
     TX1FtdcComStatusType              ComStatus;           // 组合状态
@@ -1148,8 +1102,12 @@ struct APISTRUCT CX1FtdcRspCombPosiField {
 
 ///组合/解锁申请回报
 struct APISTRUCT CX1FtdcRtnCombPosiField {
+    TX1FtdcLocalOrderIDType           LocalOrderID;        // 本地委托号
+    TX1FtdcX1OrderIDType              X1OrderID;           // 柜台委托号
+    TX1FtdcSessionIDType              SessionID;           // 会话ID
+    TX1FtdcOrderAnswerStatusType      OrderStatus;         // 委托状态
     TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcInstrumentIDType           ComInstrumentID;     // 组合合约代码
     TX1FtdcComSpeculatorType          ComSpeculator;       // 组合投保标志
     TX1FtdcComStatusType              ComStatus;           // 组合状态
@@ -1158,32 +1116,101 @@ struct APISTRUCT CX1FtdcRtnCombPosiField {
     TX1FtdcErrorMsgInfoType           StatusMsg;           // 状态信息
 };
 
-///放弃到期日自动行权设置请求
-struct APISTRUCT CX1FtdcSetAutoExecAbandField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
-    TX1FtdcSpeculatorType             Speculator;          // 投保类型
+///查询组合持仓
+struct APISTRUCT CX1FtdcQryCombPositionField {
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcInstrumentIDType           ComInstrumentID;     // 组合合约代码
+    TX1FtdcComSpeculatorType          ComSpeculator;       // 组合投保标志
     TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
-    TX1FtdcAbandFlagType              ABandOrCancel;       // 放弃或撤销放弃
+};
+
+///查询组合持仓响应
+struct APISTRUCT CX1FtdcRspCombPositionField {
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcAmountType                 ComAmount;           // 组合数量
+    TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
+    TX1FtdcInstrumentIDType           ComInstrumentID;     // 组合合约代码
+    TX1FtdcComSpeculatorType          ComSpeculator;       // 组合投保标志
+    TX1FtdcPriceType                  Margin;              // 组合保证金
+};
+
+///查询组合合约
+struct APISTRUCT CX1FtdcQryCombInstrumentField {
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
+};
+
+///查询组合合约响应
+struct APISTRUCT CX1FtdcRspCombInstrumentField {
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
+    TX1FtdcInstrumentIDType           ComInstrumentID;     // 组合合约代码
+    TX1FtdcCombStrategyTypeType       StrategyType;        // 组合策略类型
+    TX1FtdcPriorityType               Priority;            // 组合优先级
+    TX1FtdcComSpeculatorType          ComSpeculator;       // 组合投保标志
+};
+
+///放弃到期日自动行权请求
+struct APISTRUCT CX1FtdcAutoExecAbandField {
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcSpeculatorType             Speculator;          // 投保类型
+    TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
+    TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
+};
+
+///查询放弃到期日自动行权请求
+struct APISTRUCT CX1FtdcQryAutoExecAbandField {
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
+    TX1FtdcSpeculatorType             Speculator;          // 投保类型
+    TX1FtdcExchangeIDType             ExchangeID;          // 交易所代码
+    TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
 };
 
 ///放弃到期日自动行权设置响应
-struct APISTRUCT CX1FtdcRspSetAutoExecAbandField {
-    TX1FtdcRequestIDType              lRequestID;          // 请求ID
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+struct APISTRUCT CX1FtdcRspAutoExecAbandField {
+    TX1FtdcRequestIDType              RequestID;           // 请求ID
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
-    TX1FtdcAbandFlagType              ABandOrCancel;       // 放弃或撤销放弃
 };
 
 ///放弃到期日自动行权设置回报
-struct APISTRUCT CX1FtdcRtnSetAutoExecAbandField {
-    TX1FtdcAccountIDType              AccountID;           // 资金账户
+struct APISTRUCT CX1FtdcRtnAutoExecAbandField {
+    TX1FtdcAccountIDType              AccountID;           // 资金账户ID
     TX1FtdcInstrumentIDType           InstrumentID;        // 合约代码
-    TX1FtdcAbandFlagType              ABandOrCancel;       // 放弃或撤销放弃
     TX1FtdcErrorIDType                ErrorID;             // 错误ID
     TX1FtdcErrorMsgInfoType           StatusMsg;           // 状态信息
 };
+
 struct APISTRUCT CX1FtdcExchangeConnectionStatusRtnField {
+};
+
+// 中继上报终端系统信息请求
+struct APISTRUCT CX1FtdcReqSubmitUserSystemInfoField {
+    TX1FtdcRequestIDType             RequestID;            // 请求ID [NM]
+    TX1FtdcAccountIDType             AccountID;            // 资金账户ID [M]
+    TX1FtdcAppIDType                 AppID;                // AppID明文 [M]
+    TX1FtdcAppIDType                 RelayAppID;           // RelayAppID明文 [M]
+    TX1FtdcRemoteIPType              RemoteIP;             // 终端公网IP [M]，格式示例：IPv4:192.168.123.123;IPv6:CDCD:910A:2222:5498:8475:1111:0010:2020
+    TX1FtdcRemotePortType            RemotePort;           // 终端公网port [M]
+    TX1FtdcRemoteLoginTimeType       LoginTime;            // 登录时间 [M]，格式示例"2018-05-01 09:00:00"
+    TX1FtdcSystemInfoType            EncryptSystemInfo;    // 终端采集信息密文 [M]
+    TX1FtdcSystemInfoLenType         EncryptSystemInfoLen; // 终端采集信息密文长度 [M]
+};
+
+// 中继上报终端系统信息响应 
+struct APISTRUCT CX1FtdcRspSubmitUserSystemInfoField {
+    TX1FtdcRequestIDType             RequestID;            // 请求ID
+    TX1FtdcAccountIDType             AccountID;            // 资金帐号ID
+    TX1FtdcAppIDType                 AppID;                // AppID明文
+    TX1FtdcAppIDType                 RelayAppID;           // RelayAppID明文
+    TX1FtdcErrorIDType               ErrorID;              // 错误ID
 };
 
 #endif // TX1FtdcAPISTRUCT_H_

@@ -2,9 +2,9 @@
 * Copyright (C) 2015-2017, 大连飞创信息技术有限公司
 * @file <X1FtdcTraderApi.h>
 * @brief <定义X1交易接口>
-* @version <1.5.1.2>
+* @version <1.6.1.2>
 * @author <X1项目组>
-* @date <2017年8月16日>
+* @date <2018年9月5日>
 */
 
 /**
@@ -375,7 +375,7 @@ namespace x1ftdcapi {
         };
 
         /**
-        * 查询组合持仓明细响应:当用户发出查询持仓明细后，前置返回响应时该方法会被调用。
+        * @brief 查询套利持仓明细响应:当用户发出查询持仓明细后，前置返回响应时该方法会被调用。
         * @param pPositionDetailRtn:返回持仓明细结构的地址。
         * @param pErrorInfo:若查询失败，返回错误信息地址，该结构含有错误信息。
         * @param bIsLast:表明是否是最后一条响应信息（0 -否   1 -是）。
@@ -384,11 +384,174 @@ namespace x1ftdcapi {
         };
 
         /**
-        * 交易日确认响应:用于接收交易日信息。
+        * @brief 交易日确认响应:用于接收交易日信息。
         * @param pTradingDayRtnData: 返回交易日请求确认响应结构的地址。
         */
         virtual void OnRspTradingDay(struct CX1FtdcTradingDayRtnField * pTradingDayRtnData) {
         };
+
+        /**
+        * @brief 期权对冲响应:当用户发出期权对冲请求后，前置返回响应时该方法会被调用。
+        * @param pOptOffsetRtn: 返回期权对冲请求确认响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspOptOffset(struct CX1FtdcRspOptOffsetField * pOptOffsetRtn, struct CX1FtdcRspErrorField * pErrorInfo) {
+        };
+
+        /**
+        * @brief 期权对冲请求回报
+        * @details 当交易所收到期权对冲请求并返回回报时，该方法会被调用
+        * @param pRtnOptOffset 指向期权对冲回报地址的指针。
+        */
+        virtual void OnRtnOptOffset(struct CX1FtdcRtnOptOffsetField * pRtnOptOffset) {
+        };
+
+        /**
+        * @brief 撤销期权对冲响应:当用户发出撤销期权对冲请求后，前置返回响应时该方法会被调用。
+        * @param pCancelOptOffsetRtn: 返回撤销期权对冲请求确认响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspCancelOptOffset(struct CX1FtdcRspOptOffsetField* pCancelOptOffsetRtn, struct CX1FtdcRspErrorField*pErrorInfo) {
+        };
+
+        /**
+        * @brief 撤销期权对冲请求回报
+        * @details 当交易所收到撤销期权对冲请求并返回回报时，该方法会被调用
+        * @param pRtnCancelOptOffset 指向期权对冲回报地址的指针。
+        */
+        virtual void OnRtnCancelOptOffset(struct CX1FtdcRtnOptOffsetField * pRtnCancelOptOffset) {
+        };
+
+        /**
+        * @brief 查询期权对冲响应:当用户发出查询期权对冲后，前置返回响应时该方法会被调用。
+        * @param pRtnOptOffset:返回期权对冲结构的地址。
+        * @param pErrorInfo:若查询失败，返回错误信息地址，该结构含有错误信息。
+        * @param bIsLast:表明是否是最后一条响应信息（0 -否   1 -是）。
+        */
+        virtual void OnRspQryOptOffset(struct CX1FtdcRspOptOffsetField * pRtnOptOffset, struct CX1FtdcRspErrorField * pErrorInfo, bool bIsLast) {
+        };
+
+        /**
+        * @brief 履约对冲响应:当用户发出履约对冲请求后，前置返回响应时该方法会被调用。
+        * @param pPerformOffsetRtn: 返回履约对冲请求确认响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspPerformOffset(struct CX1FtdcRspPerformOffsetField * pPerformOffsetRtn, struct CX1FtdcRspErrorField * pErrorInfo) {
+        };
+
+        /**
+        * @brief 履约对冲请求回报
+        * @details 当交易所收到履约对冲请求并返回回报时，该方法会被调用
+        * @param pRtnPerformOffset 指向履约对冲回报地址的指针。
+        */
+        virtual void OnRtnPerformOffset(struct CX1FtdcRtnPerformOffsetField * pRtnPerformOffset) {
+        };
+
+        /**
+        * @brief 撤销履约对冲响应:当用户发出撤销履约对冲请求后，前置返回响应时该方法会被调用。
+        * @param pCancelPerformOffsetRtn: 返回撤销履约对冲请求确认响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspCancelPerformOffset(struct CX1FtdcRspPerformOffsetField * pCancelPerformOffsetRtn, struct CX1FtdcRspErrorField * pErrorInfo) {
+        };
+
+        /**
+        * @brief 撤销履约对冲请求回报
+        * @details 当交易所收到撤销履约对冲请求并返回回报时，该方法会被调用
+        * @param pRtnCancelPerformOffset 指向撤销履约对冲回报地址的指针。
+        */
+        virtual void OnRtnCancelPerformOffset(struct CX1FtdcRtnPerformOffsetField * pRtnCancelPerformOffset) {
+        };
+
+        /**
+        * @brief 查询履约对冲响应:当用户发出查询履约对冲后，前置返回响应时该方法会被调用。
+        * @param pPerformOffsetRtn:返回履约对冲结构的地址。
+        * @param pErrorInfo:若查询失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspQryPerformOffset(struct CX1FtdcRspPerformOffsetField * pPerformOffsetRtn, struct CX1FtdcRspErrorField * pErrorInfo) {
+        };
+
+        /**
+        * @brief 组合/解锁申请响应:当用户发出组合/解锁申请请求后，前置返回响应时该方法会被调用。
+        * @param pCombPosiRtn: 返回组合/解锁申请响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspCombPosi(struct CX1FtdcRspCombPosiField * pCombPosiRtn, struct CX1FtdcRspErrorField * pErrorInfo) {
+        };
+
+        /**
+        * @brief 组合/解锁申请回报
+        * @details 当交易所收到组合/解锁申请并返回回报时，该方法会被调用
+        * @param pRtnCombPosi 指向组合/解锁回报地址的指针。
+        */
+        virtual void OnRtnCombPosi(struct CX1FtdcRtnCombPosiField * pRtnCombPosi) {
+        };
+
+        /**
+        * @brief 查询组合持仓响应:当用户发出查询组合持仓查询请求后，前置返回响应时该方法会被调用。
+        * @param pQryCombPosiRtn: 返回查询组合持仓响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspQryCombPosition(struct CX1FtdcRspCombPositionField * pQryCombPosiRtn, struct CX1FtdcRspErrorField * pErrorInfo, bool bIsLast) {
+        };
+
+        /**
+        * @brief 查询组合合约响应
+        * @param pQryCombInstrumentRtn:查询组合合约响应结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual void OnRspQryCombInstrument(struct CX1FtdcRspCombInstrumentField * pQryCombInstrumentRtn, struct CX1FtdcRspErrorField * pErrorInfo, bool bIsLast) {
+        };
+
+        /**
+        * @brief 放弃到期日自动行权响应:当用户发出放弃到期日自动行权请求后，前置返回响应时该方法会被调用。
+        * @param pAutoExecAbandRtn: 返回放弃到期日自动行权响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspAutoExecAband(struct CX1FtdcRspAutoExecAbandField * pAutoExecAbandRtn, struct CX1FtdcRspErrorField * pErrorInfo) {
+        };
+
+        /**
+        * @brief 放弃到期日自动行权回报
+        * @details 当交易所收到放弃到期日自动行权并返回回报时，该方法会被调用。
+        * @param pRtnAutoExecAband 指放弃到期日自动行权回报地址的指针。
+        */
+        virtual void OnRtnAutoExecAband(struct CX1FtdcRtnAutoExecAbandField * pRtnAutoExecAband) {
+        };
+
+        /**
+        * @brief 撤销放弃到期日自动行权响应:当用户发出撤销放弃到期日自动行权请求后，前置返回响应时该方法会被调用。
+        * @param pCancelAutoExecAbandRtn: 返回撤销放弃到期日自动行权请求确认响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspCancelAutoExecAband(struct CX1FtdcRspAutoExecAbandField * pCancelAutoExecAbandRtn, struct CX1FtdcRspErrorField * pErrorInfo) {
+        };
+
+        /**
+        * @brief 撤销放弃到期日自动行权回报
+        * @details 当交易所收到撤销放弃到期日自动行权请求并返回回报时，该方法会被调用
+        * @param pRtnCancelAutoExecAbandset 指向撤销放弃到期日自动行权回报地址的指针。
+        */
+        virtual void OnRtnCancelAutoExecAband(struct CX1FtdcRtnAutoExecAbandField * pRtnCancelAutoExecAband) {
+        };
+
+        /*
+        * @brief 查询放弃到期日自动行权响应:
+        * @param pQryAutoExecAbandRtn: 返回查询放弃到期日自动行权响应结构的地址。
+        * @param pErrorInfo:若请求失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspQryAutoExecAband(struct CX1FtdcRspAutoExecAbandField * pQryAutoExecAbandRtn, struct CX1FtdcRspErrorField * pErrorInfo, bool bIsLast) {
+        };
+
+
+        /**
+        * 中继用户采集信息上报响应:当中继用户发出提交用户信息请求后，前置机返回响应时此方法会被调用，通知用户上传用户信息是否成功。
+        * @param pUserSystemInfoRsp:用户采集信息返回信息结构地址。
+        * @param pErrorInfo:若上传失败，返回错误信息地址，该结构含有错误信息。
+        */
+        virtual void OnRspSubmitUserSystemInfo(struct CX1FtdcRspSubmitUserSystemInfoField * pUserSystemInfoRsp, struct CX1FtdcRspErrorField * pErrorInfo) {
+        };
+
     };//end of CX1FtdcTraderSpi
 
     /**
@@ -693,24 +856,119 @@ namespace x1ftdcapi {
         virtual int ReqQryQuoteNotice(struct CX1FtdcQryQuoteNoticeField * pQryQuoteNoticeData) = 0;
 
         /**
-        * 组合持仓明细查询请求
-        * @param pQryArbitrageCombineDetailData:查询组合持仓请求结构地址。
+        * @brief 套利持仓明细查询请求
+        * @param pQryArbitrageCombineDetailData:查询套利持仓请求结构地址。
         * @return 0 - 请求发送成功 -1 - 请求发送失败  -其它 -检测异常。
         */
         virtual int ReqQryArbitrageCombineDetail(struct CX1FtdcArbitrageCombineDetailField *pQryArbitrageCombineDetailData) = 0;
 
         /**
-        * 交易日查询请求
+        * @brief 交易日查询请求
         * @param pTradingDay:交易日查询请求结构地址。
         * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
         */
         virtual int ReqTradingDay(struct CX1FtdcTradingDayField * pTradingDay) = 0;
         
         /**
+        * @brief 期权对冲设置请求
+        * @param pOptOffsetData:期权对冲设置结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqOptOffset(struct CX1FtdcOptOffsetField * pOptOffsetData) = 0;
+
+        /**
+        * @brief 撤销期权对冲设置请求
+        * @param pCancelOptOffsetData:撤销期权对冲设置结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqCancelOptOffset(struct CX1FtdcOptOffsetField * pCancelOptOffsetData) = 0;
+
+        /**
+        * @brief 期权对冲查询请求
+        * @param pQryOptOffsetData:期权对冲查询结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqQryOptOffset(struct CX1FtdcQryOptOffsetField * pQryOptOffsetData) = 0;
+
+        /**
+        * @brief 履约对冲请求
+        * @param pPerformOffsetData:履约对冲结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqPerformOffset(struct CX1FtdcPerformOffsetField * pPerformOffsetData) = 0;
+
+        /**
+        * @brief 撤销履约对冲请求
+        * @param pCancelPerformOffsetData:撤销履约对冲结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqCancelPerformOffset(struct CX1FtdcPerformOffsetField * pCancelPerformOffsetData) = 0;
+
+        /**
+        * @brief 履约对冲查询请求
+        * @param pQryPerformOffsetData:履约对冲查询结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqQryPerformOffset(struct CX1FtdcQryPerformOffsetField * pQryPerformOffsetData) = 0;
+
+        /**
+        * @brief 组合/解锁申请请求
+        * @param pCombPosiData:组合/解锁申请结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqCombPosi(struct CX1FtdcCombPosiField * pCombPosiData) = 0;
+
+        /**
+        * @brief 查询组合持仓请求
+        * @param pQryCombPosiData:查询组合持仓结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqQryCombPosition(struct CX1FtdcQryCombPositionField * pQryCombPosiData) = 0;
+
+        /**
+        * @brief 查询组合合约请求
+        * @param pQryCombPosiData:查询组合合约结构地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqQryCombInstrument(struct CX1FtdcQryCombInstrumentField * pQryCombInstrumentData) = 0;
+
+        /**
+        * @brief 放弃到期日自动行权请求
+        * @param pAutoExecAbandData:放弃到期日自动行权请求地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqAutoExecAband(struct CX1FtdcAutoExecAbandField * pAutoExecAbandData) = 0;
+        
+        /**
+        * @brief 撤销放弃到期日自动行权请求
+        * @param pCancelAutoExecAbandData:撤销放弃到期日自动行权请求地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqCancelAutoExecAband(struct CX1FtdcAutoExecAbandField * pCancelAutoExecAbandData) = 0;
+
+        /**
+        * @brief 查询放弃到期日自动行权请求
+        * @param pQryAutoExecAbandData:查询放弃到期日自动行权请求地址。
+        * @return 0 - 请求发送成功 -1 - 请求发送失败 -其它 -检测异常。
+        */
+        virtual int ReqQryAutoExecAband(struct CX1FtdcQryAutoExecAbandField * pQryAutoExecAbandData) = 0;
+        /**
         * @brief 获取版本号
         * @return 版本号字符串
         */
         virtual const char * GetVersion() = 0;
+
+        /**
+        * @brief 用户发出上报信息请求
+        * @param pUserSystemData 指向上报信息请求结构的地址。
+        * @return 返回值
+        *         <ul>
+        *           <li> 0      -  请求发送成功
+        *           <li> 非零   -  错误码
+        *         </ul>
+        */
+        virtual int ReqSubmitUserSystemInfo(struct CX1FtdcReqSubmitUserSystemInfoField * pUserSystemData) = 0;
+
     };//end of CX1FtdcTraderApi
 }
 //end of namespace

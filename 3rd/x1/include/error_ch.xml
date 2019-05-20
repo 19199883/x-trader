@@ -45,7 +45,7 @@
     <error id="X1_API_RET_CODE_TRADE_INVALID_OPEN_CLOSE_FLAG"                                               value="39"          prompt="无效的开平标志"/>
     <error id="X1_API_RET_CODE_TRADE_INVALID_SPECULATE_HEDGE_FLAG"                                          value="40"          prompt="无效的投保标志"/>
     <error id="X1_API_RET_CODE_TRADE_NO_TRADE_CODE"                                                         value="41"          prompt="交易编码不存在"/>
-    <error id="X1_API_RET_CODE_TRADE_TRADE_CODE_FROZEN"                                                     value="42"          prompt="易编码被冻结，不能交易"/>
+    <error id="X1_API_RET_CODE_TRADE_TRADE_CODE_FROZEN"                                                     value="42"          prompt="交易编码被冻结，不能交易"/>
     <error id="X1_API_RET_CODE_TRADE_INVALID_CONTRACT"                                                      value="43"          prompt="无效的合约"/>
     <error id="X1_API_RET_CODE_TRADE_INVALID_PRICE_TICK"                                                    value="44"          prompt="价格最小变动单位不符合"/>
     <error id="X1_API_RET_CODE_TRADE_INVALID_ORDER_AMOUNT"                                                  value="45"          prompt="下单数量不在合理范围内"/>
@@ -101,7 +101,7 @@
     <error id="X1_API_RET_CODE_API_VERSION_MISMATCH"                                                        value="95"          prompt="API版本不匹配"/>
     <error id="X1_API_RET_CODE_TRADE_EXCHANGE_NON_TRADABLE"                                                 value="96"          prompt="交易所不可交易"/>
     <error id="X1_API_RET_CODE_NOT_ALLOW_CANCEL_ALL_ORDER"                                                  value="97"          prompt="本撮合组本交易状态下，不允许撤销定单"/>
-    <error id="X1_API_RET_CODE_HAVE_REASONABLE_QUOTATION"                                                   value="98"          prompt="有合理的报价不能为报价"/>
+    <error id="X1_API_RET_CODE_HAVE_REASONABLE_QUOTATION"                                                   value="98"          prompt="有合理的报价时不能进行报价"/>
     <error id="X1_API_RET_CODE_MARKET_MAKER_NOT_ALLOW_FOR_QUOTE"                                            value="99"          prompt="做市商不允许报价"/>
     <error id="X1_API_RET_CODE_MEMBER_AND_TRADE_NO_NOT_MATCH"                                               value="100"         prompt="服务器配置错误导致的会员和席位不匹配"/>
     <error id="X1_API_RET_CODE_TRADE_VARIETY_STATUS_TRADE_FORBIDDEN"                                        value="101"         prompt="品种不可交易"/>
@@ -142,6 +142,23 @@
     <error id="X1_API_RET_OFFSETFLAG_INVALID"                                                               value="136"         prompt="无效的对冲标志"/>
     <error id="X1_API_RET_COMSTATUS_INVALID"                                                                value="137"         prompt="无效的组合状态"/>
     <error id="X1_API_RET_ABANDFALG_INVALID"                                                                value="138"         prompt="无效的放弃标识"/>
+    <error id="X1_API_RET_CODE_API_VERSION_CHECK_TIMEOUT"                                                   value="139"         prompt="版本校验超时"/>
+    <error id="X1_API_RET_CODE_EXCHANGE_CONTRACT_MISMATCH"                                                  value="140"         prompt="交易所和合约不匹配"/>
+    <error id="X1_API_RET_APPID_INVALID"                                                                    value="141"         prompt="无效的APPID"/>
+    <error id="X1_API_RET_APPID_COMMUNICATION_MODE_INVALID"                                                 value="142"         prompt="无效的APPID通讯模式"/>
+    <error id="X1_API_RET_AUTHCODE_INVALID"                                                                 value="143"         prompt="无效的授权码"/>
+    <error id="X1_API_RET_AUTHCODE_NO_ACCESS"                                                               value="144"         prompt="此授权码禁止准入"/>
+    <error id="X1_API_RET_ENCRYPT_VERSION_MISMATCHED"                                                       value="145"         prompt="密钥版本不匹配"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_ERROR"                                                              value="146"         prompt="采集信息错误"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_EMPTY"                                                              value="147"         prompt="采集信息为空"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_SIZE_EXCEED"                                                        value="148"         prompt="采集信息超过最大长度"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_NO_ACCESS"                                                          value="149"         prompt="信息采集权限不足"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_PARAMETER_INVALID"                                                  value="150"         prompt="信息采集参数错误"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_DECRYPT_FAILED"                                                     value="151"         prompt="信息采集解密失败"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_FORMAT_ERROR"                                                       value="152"         prompt="信息采集格式错误"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_EXCEPT_FLAG_INVALID"                                                value="153"         prompt="采集信息无效的异常标志"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_IP_FORMAT_ERROR"                                                    value="154"         prompt="采集信息IP格式错误"/>
+    <error id="X1_API_RET_GETSYSTEMINFO_LOGINTIME_FORMAT_ERROR"                                             value="155"         prompt="采集信息登录时间格式错误"/>
     <error id="X1_API_QRYFRONT_UNKNOWN_ERR"                                                                 value="1001"        prompt="未知错误"/>
     <error id="X1_API_QRYFRONT_LONG_ACCNTID"                                                                value="1002"        prompt="输入的资金账号超过12位，请重新输入"/>
     <error id="X1_API_QRYFRONT_INVAL_FEILD"                                                                 value="1003"        prompt="包含无效字符"/>
@@ -250,7 +267,7 @@
     <error id="X1_API_QRYFRONT_INVAL_CONTRACT_ID"                                                           value="2619"        prompt="合约代码无效,不能委托"/>
     <error id="X1_API_QRYFRONT_CONTEACT_ID_NO_TRADE"                                                        value="2620"        prompt="该合约代码现在不能交易"/>
     <error id="X1_API_QRYFRONT_ZERO_FLOAT_PRICE"                                                            value="2622"        prompt="该合约代码参数中变动价位为0，不能交易"/>
-    <error id="X1_API_QRYFRONT_CHANGE_PRICE"                                                                value="2623"        prompt="该合约代码的交易变动价格是"/>
+    <error id="X1_API_QRYFRONT_CHANGE_PRICE"                                                                value="2623"        prompt="该合约代码的价格与交易变动价格不符"/>
     <error id="X1_API_QRYFRONT_FORBID_TRADECODE_ON_VARIETY"                                                 value="2626"        prompt="该交易编码禁止交易该品种"/>
     <error id="X1_API_QRYFRONT_INVAL_CONTEACT_AMOUNT"                                                       value="2267"        prompt="委托数量无效，应该是开仓单位的整数倍"/>
     <error id="X1_API_QRYFRONT_OUT_OF_LMT_PRICE"                                                            value="2635"        prompt="委托价格超过涨跌停板价格，不能交易"/>
@@ -302,7 +319,7 @@
     <error id="X1_API_RET_CODE_DCE_CA_CHECK_FAILED"                                                         value="11017"       prompt="CA校验失败"/>
     <error id="X1_API_RET_CODE_DCE_LOGIN_FAILED"                                                            value="11018"       prompt="登录失败"/>
     <error id="X1_API_RET_CODE_DCE_TRADER_HAVE_NO_PERMISSION"                                               value="11019"       prompt="会员无权限"/>
-    <error id="X1_API_RET_CODE_DCE_TRADE_SEND_EXCHANGE_BOARD_FAILED"                                        value="11020"       prompt="发送交换机机失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_SEND_EXCHANGE_BOARD_FAILED"                                        value="11020"       prompt="发送交换机失败"/>
     <error id="X1_API_RET_CODE_DCE_TRADE_CLIENT_NOT_MATCHED"                                                value="11021"       prompt="用户不符"/>
     <error id="X1_API_RET_CODE_DCE_TRADE_PASSWORD_CHANGE_FAILED"                                            value="11022"       prompt="密码修改失败"/>
     <error id="X1_API_RET_CODE_DCE_TRADE_CA_CERTIFICATION_PACKAGE_ERROR"                                    value="11023"       prompt="Ca认证请求包错误"/>
@@ -514,6 +531,52 @@
     <error id="X1_API_RET_CODE_DCE_TRADE_INITIALIZATION_ERROR"                                              value="11229"       prompt="初始化错误"/>
     <error id="X1_API_RET_CODE_DCE_TRADE_MEMORY_ALLOC_ERROR"                                                value="11230"       prompt="内存分配错误"/>
     <error id="X1_API_RET_CODE_DCE_TRADE_VALIDITY_OF_THE_CERTIFICATE_ERROR"                                 value="11231"       prompt="获取证书有效期错误"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_MARKET_STATUS_NOT_ALLOW"                                           value="11232"       prompt="市场状态不允许"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_EMPTY_MEMBER_ID"                                                   value="11233"       prompt="会员号不能为空"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_INSTRUMENT_NOT_EXSIT"                                              value="11234"       prompt="合约不存在"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_INVALID_MEMBER_ID"                                                 value="11235"       prompt="会员客户检查不通过"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_INVALID_NUMBER"                                                    value="11236"       prompt="数量不合理"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_RECORD_NOT_EXSIT"                                                  value="11237"       prompt="记录不存在"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_RECORD_HAS_BEEN_CANCELED"                                          value="11238"       prompt="记录已撤销"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_OFFSET_SET_ERROR"                                                  value="11239"       prompt="对冲设置错误"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_NOT_IN_LAST_TRADING_DAY"                                           value="11240"       prompt="非到期日不能进行设置"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_DUPLICATE_SET"                                                     value="11241"       prompt="重复设置"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_PERFSHTYPE_ERROR"                                                  value="11242"       prompt="投保标志设置错误"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_REQ_OPTIONS_EXERCISE_FAILED"                                       value="11243"       prompt="期权执行申请失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_REQ_PERFORM_OFFSET_FAILED"                                         value="11244"       prompt="履约对冲设置失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CANCEL_PERFORM_OFFSET_FAILED"                                      value="11245"       prompt="履约对冲撤销失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_REQ_OPTIONS_OFFSET_FAILED"                                         value="11246"       prompt="期权对冲设置失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CANCEL_OPTIONS_OFFSET_FAILED"                                      value="11247"       prompt="期权对冲撤销失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_REQ_AUTO_EXEC_ABAND_FAILED"                                        value="11248"       prompt="放弃自动行权设置失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CANCEL_AUTO_EXEC_ABAND_FAILED"                                     value="11249"       prompt="放弃自动行权撤销失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CONTRACTTYPE_NOT_OPTIONS"                                          value="11250"       prompt="合约类型不是期权"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_VARIETY_TRADING_STATUS_NOT_EXSIT"                                  value="11251"       prompt="品种交易状态不存在"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_SEND_DATA_PACKAGE_FAILED"                                          value="11252"       prompt="发送数据包失败"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_VARIETY_TRADING_STATUS_NOT_ALLOWED"                                value="11253"       prompt="品种交易状态不允许"/>
+
+    <error id="X1_API_RET_CODE_DCE_TRADE_COMBACTION_MUST_BE_COMB_OR_UNLOCK"                                 value="11254"       prompt="组合状态必须是组合或解锁"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_COMBINATION_POSITION_NOT_ENOUGH"                                   value="11255"       prompt="优惠组合持仓量不足"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_TWO_LEG_TRADING_STATUS_IS_NOT_THE_SAME"                            value="11256"       prompt="组合合约两腿所属品种的交易状态不一致"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_SINGLE_LEG_POSITION_IS_NOT_ENOUGH"                                 value="11257"       prompt="单腿持仓不足"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_ONLY_ALLOW_ONE_DATA_FIELD"                                         value="11258"       prompt="只允许一个数据域"/>
+    
+    <error id="X1_API_RET_CODE_DCE_TRADE_TWO_LEGS_SHFLAG"                                                   value="11259"       prompt="双边订单两腿投保标志不一致"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_NOT_ALLOW_HEDGE_IN_THIS_VARIETY"                                   value="11260"       prompt="该客户在该品种交易类型上没有套保资格"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_NOT_ALLOW_SPEC_OPEN_IN_THIS_VARIETY"                               value="11261"       prompt="该客户在该品种交易类型上不能投机开仓"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CONTRACT_NON_TRADABLE"                                             value="11262"       prompt="实控组交易权限检查，合约不可以交易"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_CONTRACT_ONLY_ALLOW_CLOSE_POSITION"                                value="11263"       prompt="实控组交易权限检查，合约只可平仓"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70022"                                                             value="11264"       prompt="个人客户不能在交割月的合约上开投机仓"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70023"                                                             value="11265"       prompt="开仓数量超过实控组投机限制"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70024"                                                             value="11266"       prompt="开仓数量超过实控组套保限制"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70025"                                                             value="11267"       prompt="开仓数量超过实控组综合限制"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70026"                                                             value="11268"       prompt="无此实控关系账户"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70027"                                                             value="11269"       prompt="开仓超过当日客户在合约/系列上开仓限额"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70028"                                                             value="11270"       prompt="开仓超过当日客户在品种上开仓限额"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70029"                                                             value="11271"       prompt="开仓超过当日实控组在合约/系列上开仓限额"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70030"                                                             value="11272"       prompt="开仓超过当日实控组在品种上开仓限额"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70031"                                                             value="11273"       prompt="开仓数量超过境外客户组综合限制"/>
+    <error id="X1_API_RET_CODE_DCE_TRADE_70032"                                                             value="11274"       prompt="无此境外客户组账户"/>
+
     <error id="X1_API_RET_CODE_SHFE_TRADE_NETWORK_CONNECTION_FAILED"                                        value="12001"       prompt="网络连接失败"/>
     <error id="X1_API_RET_CODE_SHFE_TRADE_PROCESSING_REQUEST_EXCEEDS_LIMIT"                                 value="12002"       prompt="处理请求超过限制"/>
     <error id="X1_API_RET_CODE_SHFE_TRADE_THE_NUMBER_OF_REQUESTS_PER_SECOND_EXCEEDS_THE_LIMIT"              value="12003"       prompt="每秒请求数超过限制"/>
