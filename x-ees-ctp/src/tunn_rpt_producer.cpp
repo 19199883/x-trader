@@ -119,6 +119,8 @@ void TunnRptProducer::ParseConfig()
 		this->config_.investorid = tunn_node->Attribute("investorid");
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
+		strcpy(this->appid_, tunn_node->Attribute("appid"));
+		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
 
 		clog_warning("[%s] tunn config:brokerid:%s; userid:%s; investor:%s password:%s; mac:%s"
 					"m_remoteTradeIp:%s; "
@@ -191,9 +193,18 @@ int TunnRptProducer::ReqOrderAction(EES_CancelOrder *p)
 
 void TunnRptProducer::ReqLogin()
 {
-	RESULT err = api_->UserLogon(config_.userid.c_str(),config_.password.c_str(),SL_EES_API_VERSION,this->config_.mac.c_str());
-    clog_warning("[%s] ReqLogin-err_no,%d; user:%s; pwd:%s",module_name_,err,
-		config_.userid.c_str(),config_.password.c_str());
+	RESULT err = api_->UserLogon(
+				config_.userid.c_str(), 
+				config_.password.c_str(),
+				this->appid_,
+				this->authcode_);
+    clog_warning("[%s] ReqLogin-err_no,%d; userid:%s; pwd:%s; appid:%s; authcode:%s",
+				module_name_,
+				err,
+				config_.userid.c_str(),
+				config_.password.c_str(),
+				this->appid_,
+				this->authcode_);
 }
 
 void TunnRptProducer::OnUserLogon(EES_LogonResponse* pLogon)
@@ -201,7 +212,7 @@ void TunnRptProducer::OnUserLogon(EES_LogonResponse* pLogon)
 	counter_ = GetCounterByLocalOrderID(pLogon->m_MaxToken);
 	counter_++;
 
-    clog_warning("[%s] OnUserLogon-result:%d;user:%d;counter_:%u;m_MaxToken:%u", 
+    clog_warning("[%s] OnUserLogon-result:%d; user:%d; counter_:%u; m_MaxToken:%u", 
 				module_name_,
 				pLogon->m_Result,
 				pLogon->m_UserId,

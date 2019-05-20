@@ -180,6 +180,8 @@ private:
 	funcDestroyEESTraderApi m_distoryFun;
 	EESTraderApi *api_;
 	EES_TradeSvrInfo api_config_;
+	char appid_[30];
+	char authcode_[40];
 };
 
 #endif
