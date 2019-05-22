@@ -17,7 +17,7 @@
 #ifdef PERSISTENCE_ENABLED 
 	#define L1_DOMINANT_MD_BUFFER_SIZE 600
 #else
-	#define L1_DOMINANT_MD_BUFFER_SIZE 14
+	#define L1_DOMINANT_MD_BUFFER_SIZE 40
 #endif
 
 using namespace std;
@@ -37,7 +37,7 @@ class MdHelper
 		MdHelper(const MdHelper & other);
 		MdHelper operator=(const MdHelper & other);
 	
-		void Convert(const StdQuote5 &other,TapAPIQuoteWhole_MY *tap_data,
+		void Convert(const StdQuote5 &other,TapAPIQuoteWhole *tap_data,
 			ZCEL2QuotSnapshotField_MY &data);
 		ZCEL2QuotSnapshotField_MY target_data_;
 	
@@ -50,8 +50,8 @@ class MdHelper
 		 * 获取指定合约最新的一档行情。
 		 * contract: e.g. SR1801
 		 */
-		TapAPIQuoteWhole_MY* GetData(const char *contract);
-		TapAPIQuoteWhole_MY md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
+		TapAPIQuoteWhole* GetData(const char *contract);
+		TapAPIQuoteWhole md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
 	
 	private:
 		const char *module_name_;  

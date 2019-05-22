@@ -6,7 +6,7 @@
 
 #define DOUBLE_CHECH_PRECISION 0.000001
 
-#define MAX_CONTRACT_NUMBER 16
+#define MAX_CONTRACT_NUMBER 40
 
 struct OrderInfo
 {

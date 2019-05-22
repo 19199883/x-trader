@@ -148,7 +148,7 @@ void TapMDProducer::End()
 	fflush (Log::fp);
 }
 
-int32_t TapMDProducer::Push(const TapAPIQuoteWhole_MY& md){
+int32_t TapMDProducer::Push(const TapAPIQuoteWhole& md){
 	l1data_cursor_++;
 	if (l1data_cursor_ % L1MD_BUFFER_SIZE == 0){
 		l1data_cursor_ = 0;
@@ -158,7 +158,7 @@ int32_t TapMDProducer::Push(const TapAPIQuoteWhole_MY& md){
 	return l1data_cursor_;
 }
 
-TapAPIQuoteWhole_MY* TapMDProducer::GetData(int32_t index)
+TapAPIQuoteWhole* TapMDProducer::GetData(int32_t index)
 {
 	return &md_buffer_[index];
 }
@@ -317,23 +317,25 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
     if (errorCode == 0 && NULL != info){
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
-
-		Convert(*info, target_data_);
-
-		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
-			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
+		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
+					module_name_, 
+					info->Contract.Commodity.CommodityNo, 
+					info->Contract.ContractNo1, 
+					info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-		ivalue->index = Push(target_data_);
+		ivalue->index = Push(*info);
 		ivalue->data = L1_MD;
 		vrt_producer_publish(producer_);
 
         clog_debug("[%s] TAP - OnRspSubscribeQuote Successful, ExchangNo is %s, "
-			"CommodityNo is %s, ContractNo is %s.", module_name_,
-            info->Contract.Commodity.ExchangeNo, info->Contract.Commodity.CommodityNo, 
+			"CommodityNo is %s, ContractNo is %s.", 
+			module_name_,
+            info->Contract.Commodity.ExchangeNo, 
+			info->Contract.Commodity.CommodityNo, 
 			info->Contract.ContractNo1);
     }else{
         clog_error("[%s] TAP - SubscribeQuote failed, the error code is %d.", module_name_,
@@ -348,17 +350,17 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
     if ( NULL != info) {
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
-
-		Convert(*info, target_data_);
-
-		clog_debug("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", module_name_, 
-			info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1, info->DateTimeStamp);
+		clog_debug("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
+					module_name_, 
+					info->Contract.Commodity.CommodityNo, 
+					info->Contract.ContractNo1, 
+					info->DateTimeStamp);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of(vvalue, struct vrt_hybrid_value,parent);
-		ivalue->index = Push(target_data_);
+		ivalue->index = Push(*info);
 		ivalue->data = L1_MD;
 		vrt_producer_publish(producer_);
 		
@@ -369,68 +371,6 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
     } else {
         clog_error("[%s] TAP - RtnQuote failed, the pointer is null.", module_name_);
     }
-}
-
-void TapMDProducer::Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole_MY &data)
-{
-    strcpy(data.ExchangeNo, other.Contract.Commodity.ExchangeNo);
-    data.CommodityType = other.Contract.Commodity.CommodityType;
-    strcpy(data.CommodityNo, other.Contract.Commodity.CommodityNo);
-    strcpy(data.ContractNo1, other.Contract.ContractNo1);
-    strcpy(data.StrikePrice1, other.Contract.StrikePrice1);
-    data.CallOrPutFlag1 = other.Contract.CallOrPutFlag1;
-    strcpy(data.ContractNo2, other.Contract.ContractNo2);
-    strcpy(data.StrikePrice2, other.Contract.StrikePrice2);
-    data.CallOrPutFlag2 = other.Contract.CallOrPutFlag2;
-
-    strcpy(data.CurrencyNo, other.CurrencyNo);
-    data.TradingState = other.TradingState;
-    strcpy(data.DateTimeStamp, other.DateTimeStamp);
-
-    data.QPreClosingPrice = other.QPreClosingPrice;
-    data.QPreSettlePrice = other.QPreSettlePrice;
-    data.QPrePositionQty = other.QPrePositionQty;
-    data.QOpeningPrice = other.QOpeningPrice;
-    data.QLastPrice = other.QLastPrice;
-    data.QHighPrice = other.QHighPrice;
-    data.QLowPrice = other.QLowPrice;
-    data.QHisHighPrice = other.QHisHighPrice;
-    data.QHisLowPrice = other.QHisLowPrice;
-    data.QLimitUpPrice = other.QLimitUpPrice;
-    data.QLimitDownPrice = other.QLimitDownPrice;
-    data.QTotalQty = other.QTotalQty;
-    data.QTotalTurnover = other.QTotalTurnover;
-    data.QPositionQty = other.QPositionQty;
-    data.QAveragePrice = other.QAveragePrice;
-    data.QClosingPrice = other.QClosingPrice;
-    data.QSettlePrice = other.QSettlePrice;
-    data.QLastQty = other.QLastQty;
-    for(int i = 0; i < 20; i++) {
-        data.QBidPrice[i] = other.QBidPrice[i];
-        data.QBidQty[i] = other.QBidQty[i];
-        data.QAskPrice[i] = other.QAskPrice[i];
-        data.QAskQty[i] = other.QAskQty[i];
-    }
-    data.QImpliedBidPrice = other.QImpliedBidPrice;
-    data.QImpliedBidQty = other.QImpliedBidQty;
-    data.QImpliedAskPrice = other.QImpliedAskPrice;
-    data.QImpliedAskQty = other.QImpliedAskQty;
-    data.QPreDelta = other.QPreDelta;
-    data.QCurrDelta = other.QCurrDelta;
-    data.QInsideQty = other.QInsideQty;
-    data.QOutsideQty = other.QOutsideQty;
-    data.QTurnoverRate = other.QTurnoverRate;
-    data.Q5DAvgQty = other.Q5DAvgQty;
-    data.QPERatio = other.QPERatio;
-    data.QTotalValue = other.QTotalValue;
-    data.QNegotiableValue = other.QNegotiableValue;
-    data.QPositionTrend = other.QPositionTrend;
-    data.QChangeSpeed = other.QChangeSpeed;
-    data.QChangeRate = other.QChangeRate;
-    data.QChangeValue = other.QChangeValue;
-    data.QSwing = other.QSwing;
-    data.QTotalBidQty = other.QTotalBidQty;
-    data.QTotalAskQty = other.QTotalAskQty;
 }
 
 void TapMDProducer::OnRspUnSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
@@ -451,13 +391,13 @@ bool TapMDProducer::IsDominant(const char*commciodity_no, const char* contract_n
 }
 
 // lic
-TapAPIQuoteWhole_MY* TapMDProducer::GetLastDataForIllegaluser(const char *CommodityNo, const char*ContractNo1)
+TapAPIQuoteWhole* TapMDProducer::GetLastDataForIllegaluser(const char *CommodityNo, const char*ContractNo1)
 {
-	TapAPIQuoteWhole_MY *data = NULL;
+	TapAPIQuoteWhole *data = NULL;
 	for(int i=0; i<L1MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
-		if(strcmp(CommodityNo, tmp.CommodityNo)==0 &&
-			strcmp(ContractNo1, tmp.ContractNo1)==0){
+		TapAPIQuoteWhole &tmp = md_buffer_[i];
+		if(strcmp(CommodityNo, tmp.Contract.Commodity.CommodityNo)==0 &&
+			strcmp(ContractNo1, tmp.Contract.ContractNo1)==0){
 			data = &tmp; 
 			break;
 		}

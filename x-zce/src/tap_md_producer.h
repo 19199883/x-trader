@@ -51,12 +51,12 @@ class TapMDProducer : public ITapQuoteAPINotify
 		/*
 		 * 与逻辑处理相关
 		 */
-		TapAPIQuoteWhole_MY* GetData(int32_t index);
+		TapAPIQuoteWhole* GetData(int32_t index);
 
 		void End();
 
 		// lic
-		TapAPIQuoteWhole_MY *GetLastDataForIllegaluser(const char *CommodityNo, const char*ContractNo1);
+		TapAPIQuoteWhole *GetLastDataForIllegaluser(const char *CommodityNo, const char*ContractNo1);
 
 	private:
 		/*
@@ -70,9 +70,9 @@ class TapMDProducer : public ITapQuoteAPINotify
 		/*
 		 * 与逻辑处理相关
 		 */
-		int32_t Push(const TapAPIQuoteWhole_MY& md);
+		int32_t Push(const TapAPIQuoteWhole& md);
 		struct vrt_producer  *producer_;
-		TapAPIQuoteWhole_MY md_buffer_[L1MD_BUFFER_SIZE] ;
+		TapAPIQuoteWhole md_buffer_[L1MD_BUFFER_SIZE] ;
 		int32_t l1data_cursor_;
 		bool ended_;
 
@@ -83,7 +83,7 @@ class TapMDProducer : public ITapQuoteAPINotify
 		void subscribe_quote(TapAPIContract contract);
 #endif
 
-		void Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole_MY &data);
+		void Convert(const TapAPIQuoteWhole &other, TapAPIQuoteWhole &data);
 
 		/*
 		 * check whether the given contract is dominant.
@@ -91,9 +91,9 @@ class TapMDProducer : public ITapQuoteAPINotify
 		 */
 		bool IsDominant(const char*commciodity_no, const char* contract_no);
 		int32_t dominant_contract_count_;
-		char dominant_contracts_[20][10];
+		char dominant_contracts_[40][10];
 
-		TapAPIQuoteWhole_MY target_data_;
+		TapAPIQuoteWhole target_data_;
 
 		/*
 		 *日志相关

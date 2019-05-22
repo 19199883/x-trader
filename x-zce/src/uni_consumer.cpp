@@ -579,7 +579,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 		if(!legal_){ // illegal user
-			TapAPIQuoteWhole_MY* data = l1_md_producer_->GetLastDataForIllegaluser(
+			TapAPIQuoteWhole* data = l1_md_producer_->GetLastDataForIllegaluser(
 						ord->CommodityNo, ord->ContractNo);
 			while(true){
 				if(TAPI_SIDE_BUY==ord->OrderSide){

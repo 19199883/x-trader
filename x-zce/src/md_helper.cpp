@@ -12,9 +12,9 @@ MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
 {
 	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",module_name_,L1_DOMINANT_MD_BUFFER_SIZE);
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
-		strcpy(tmp.CommodityNo, "");
-		strcpy(tmp.ContractNo1, "");
+		TapAPIQuoteWhole &tmp = md_buffer_[i];
+		strcpy(tmp.Contract.Commodity.CommodityNo, "");
+		strcpy(tmp.Contract.ContractNo1, "");
 	}
 
 
@@ -35,7 +35,7 @@ MdHelper::~MdHelper()
 
 void MdHelper::ProcL2Data(int32_t index)
 {
-	TapAPIQuoteWhole_MY* l1_md = NULL;
+	TapAPIQuoteWhole* l1_md = NULL;
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
 
@@ -44,7 +44,7 @@ void MdHelper::ProcL2Data(int32_t index)
 	l1_md =  GetData(md->instrument); // md->instrument, e.g. SR1801
 	if(NULL != l1_md){
 		clog_info("[test] [%s] ProcL2Data L1 contract:%s%s, time:%s, turnover:%f", module_name_, 
-			l1_md->CommodityNo, l1_md->ContractNo1, l1_md->DateTimeStamp, l1_md->QTotalTurnover);
+			l1_md->Contract.Commodity.CommodityNo, l1_md->Contract.ContractNo1, l1_md->DateTimeStamp, l1_md->QTotalTurnover);
 
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
@@ -62,7 +62,7 @@ void MdHelper::ProcL2Data(int32_t index)
 	}
 }
 
-void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole_MY *tap_data,
+void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole *tap_data,
 	ZCEL2QuotSnapshotField_MY &data)
 {
 	if(tap_data != NULL){ // contents from level1 
@@ -80,8 +80,8 @@ void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole_MY *tap_data,
 		data.LifeLow = InvalidToZeroD(tap_data->QHisLowPrice);	/*历史最低成交价格*/
 		data.AveragePrice = InvalidToZeroD(tap_data->QAveragePrice);	/*均价*/
 		data.OpenInterest = (int)tap_data->QPositionQty;	/*持仓量*/
-		strcpy(data.ContractID, tap_data->CommodityNo);		/*合约编码*/
-		strcpy(data.ContractID + 2, tap_data->ContractNo1);		/*合约编码*/
+		strcpy(data.ContractID, tap_data->Contract.Commodity.CommodityNo);		/*合约编码*/
+		strcpy(data.ContractID + 2, tap_data->Contract.ContractNo1);		/*合约编码*/
 	}
 	 
 
@@ -134,18 +134,18 @@ void MdHelper::SetQuoteDataHandler(std::function<void(ZCEL2QuotSnapshotField_MY*
 
 void MdHelper::ProcL1MdData(int32_t index)
 {
-	TapAPIQuoteWhole_MY *new_l1_md =  l1_md_producer_->GetData(index);
+	TapAPIQuoteWhole *new_l1_md =  l1_md_producer_->GetData(index);
 
-	TapAPIQuoteWhole_MY *old_l1_md = NULL;
+	TapAPIQuoteWhole *old_l1_md = NULL;
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
-		if(strcmp(tmp.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		TapAPIQuoteWhole &tmp = md_buffer_[i];
+		if(strcmp(tmp.Contract.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			old_l1_md = &tmp; 
 			break;
 		}
 
-		if(strcmp(new_l1_md->CommodityNo, tmp.CommodityNo) == 0 &&
-			strcmp(new_l1_md->ContractNo1, tmp.ContractNo1) == 0){ // contract: e.g. SR1801
+		if(strcmp(new_l1_md->Contract.Commodity.CommodityNo, tmp.Contract.Commodity.CommodityNo) == 0 &&
+			strcmp(new_l1_md->Contract.ContractNo1, tmp.Contract.ContractNo1) == 0){ // contract: e.g. SR1801
 			old_l1_md = &tmp; 
 			break;
 		}
@@ -153,21 +153,23 @@ void MdHelper::ProcL1MdData(int32_t index)
 
 	*old_l1_md = *new_l1_md;
 
-		clog_debug("[%s] ProcL1MdData invoked. contract:%s%s", module_name_, new_l1_md->ContractNo1,
-			new_l1_md->CommodityNo);
+		clog_debug("[%s] ProcL1MdData invoked. contract:%s%s", 
+					module_name_, 
+					new_l1_md->Contract.ContractNo1,
+					new_l1_md->Contract.Commodity.CommodityNo);
 }
 
-TapAPIQuoteWhole_MY* MdHelper::GetData(const char *contract)
+TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 {
-	TapAPIQuoteWhole_MY* data = NULL;
+	TapAPIQuoteWhole* data = NULL;
 
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole_MY &tmp = md_buffer_[i];
-		if(strcmp(tmp.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		TapAPIQuoteWhole &tmp = md_buffer_[i];
+		if(strcmp(tmp.Contract.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}
 
-		if(IsEqualSize4(contract, tmp.CommodityNo, tmp.ContractNo1)){ // contract: e.g. SR1801
+		if(IsEqualSize4(contract, tmp.Contract.Commodity.CommodityNo, tmp.Contract.ContractNo1)){ // contract: e.g. SR1801
 			data = &tmp; 
 			break;
 		}
