@@ -157,6 +157,7 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 	// ev_name
 	const char * name = ele->Attribute("ev_name");
 	strcpy(setting.config.ev_name, ele->Attribute("ev_name"));
+	strcpy(setting.config.k_file, ele->Attribute("k_file"));
 
 	int counter = 0;
 	const TiXmlElement* symbol_ele = ele->FirstChildElement();		
