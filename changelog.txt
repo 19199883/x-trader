@@ -1,3 +1,9 @@
+2019-5-23
+x-ees-ctp加读写k线数据文件功能
+
+2019-5-22
+x-zce:移除TapAPIQuoteWhole_MY的不必要的中间转换
+
 2019-5-20
 x-ees-ctp升级到穿透版
 
