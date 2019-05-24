@@ -62,7 +62,7 @@ int main(/*int argc, const char **argv*/)
 
 
 	// version
-	clog_warning("version:dce_20181002_r"); 
+	clog_warning("version:dce_2019-5-24_r"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
