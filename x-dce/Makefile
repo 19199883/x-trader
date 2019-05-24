@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/x-dce/dist
 INCPATH:=-I$(TOP)/3rd/x1/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include \
@@ -13,8 +13,8 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread  -lssl -lbowsprit \
-	  -lcheck -lclogger -lcork -lvrt \
+LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread -lbowsprit \
+	  -lcheck -lclogger -lcork -lvrt -lssl \
 	  -luuid -lboost_filesystem -lboost_system -lx1_dfitc_collect
 DEPS:=.depends
 OUT:=x-dce
