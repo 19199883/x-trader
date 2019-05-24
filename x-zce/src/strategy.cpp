@@ -164,12 +164,11 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	strcpy(setting_.config.log_name, model_log.c_str());
 	setting_.config.log_id = setting_.config.st_id;
 
-	
-	clog_warning("[%s] strategy id:%d;open log file:%s", 
+	clog_warning("[%s]strategy: %s; open log file:%s; k_file: %s",
 				module_name_,
-				GetId(),
-				setting_.config.log_name);
-
+				setting_.config.st_name,
+				setting_.config.log_name,
+				setting_.config.k_file);	
 	LoadPosition();
 	
 	memset(&(pos_cache_.s_pos[0]), 0, sizeof(symbol_pos_t));

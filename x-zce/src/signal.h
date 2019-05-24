@@ -124,6 +124,9 @@ public:
 	 * is specified by symbols_cnt member.
 	 */
 	symbol_t symbols[5];
+
+	// 存储k线的数据文件
+	char k_file[500];
 } ;
 
 class symbol_pos_t {
