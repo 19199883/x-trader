@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="gb2312"?>
+<!-- edited with XMLSPY v2004 rel. 4 U -->
+<!DOCTYPE errors SYSTEM "error.dtd">
+<errors>
+    <!-- add for begin -->
+    <error id="X1_API_RET_CODE_OK"                                              value="0"		    prompt="success"/>
+    <error id="X1_API_RET_CODE_USER_INVALID"                                    value="1"		    prompt="user name invalid"/>
+    <error id="X1_API_RET_PASSWD_ERROR"                                         value="2"		    prompt="passwd incorrect"/>
+    <error id="X1_API_RET_CODE_INSERT_ORDER_FAIL"                               value="3"		    prompt="insert order failed"/>
+    <error id="X1_API_RET_CODE_INSERT_ORDER_RTN_FAIL"                           value="4"		    prompt="insert order rtn failed"/>
+    <error id="X1_API_RET_CODE_CANCEL_ORDER_FAIL"                               value="5"		    prompt="cancel order failed"/>
+    <error id="X1_API_RET_CODE_INTERNAL_ERROR"                                  value="6"		    prompt="internal error"/>
+    <error id="X1_API_RET_CODE_CLIENT_NULL_ERROR"                               value="7"		    prompt="client ptr is null"/>
+    <error id="X1_API_RET_CODE_CLIENT_ACCOUNT_NULL_ERROR"                       value="8"		    prompt="account in client  ptr is null"/>
+    <error id="X1_API_RET_CODE_CLIENT_OFF_ERROR"                                value="9"		    prompt="client is invalid"/>
+    <error id="X1_API_RET_POC_DISABLED"                                         value="10"		    prompt="x1 is disabled"/>
+    <error id="X1_API_RET_CONTRACT_ID_ERROR"                                    value="11"		    prompt="can not find contract id"/>
+    <error id="X1_API_RET_LOCAL_ORDERNUM_ERROR"                                 value="12"		    prompt="local number is invalid"/>
+    <error id="X1_API_RET_INVESTOR_ID_INVALID"                                  value="13"		    prompt="investor id is invalid"/>
+    <error id="X1_API_RET_INTERNAL_ERROR"                                       value="14"		    prompt="X1 internal error"/>
+    <error id="X1_API_RET_CODE_RC_CHECK_ERR_MONEY"                              value="15"		    prompt="check money error"/>
+    <error id="X1_API_RET_CODE_RC_CHECK_ERR_O_BO_POSI"                          value="16"		    prompt="check open buy error"/>
+    <error id="X1_API_RET_CODE_RC_CHECK_ERR_O_SO_POSI"                          value="17"		    prompt="check open sell error"/>
+    <error id="X1_API_RET_CODE_RC_CHECK_ERR_C_SO_POSI"                          value="18"		    prompt="check close sell error"/>
+    <error id="X1_API_RET_CODE_RC_CHECK_ERR_C_BO_POSI"                          value="19"		    prompt="check close buy  error"/>
+    <error id="X1_API_RET_CODE_RC_CHECK_INPUT_ERR_BS"                           value="20"		    prompt="input bs error"/>
+    <error id="X1_API_RET_CODE_RC_CHECK_INPUT_ERR_OC"                           value="21"		    prompt="input oc error"/>
+    <error id="X1_API_RET_CODE_RC_CHECK_INPUT_ERR_NOT_FOND"                     value="22"		    prompt="can not find contract info or contract is forbidden"/>
+    <error id="X1_API_RET_CODE_RC_LOCAL_ID_INVALID"                             value="23"		    prompt="local order id invalid"/>
+    <error id="X1_API_RET_CODE_RC_LOCAL_INFO_INVALID"                           value="24"		    prompt="local order info invalid"/>
+    <error id="X1_API_RET_CODE_CHECK_X1_STATE_FAILED"                           value="25"		    prompt="check x1 state failed"/>
+    <error id="X1_API_RET_CODE_FLOW_CONTROL_FAILED"                             value="26"		    prompt="flow control failed"/>
+    <error id="X1_API_RET_CODE_SEND_CANCEL_ERROR"                               value="27"		    prompt="cancel order failed"/>
+    <error id="X1_API_RET_CODE_SEND_INSERT_ERROR"                               value="28"		    prompt="insert order failed"/>
+    <error id="X1_API_RET_CODE_STRATEGY_ERROR"                                  value="29"		    prompt="strategy error"/>
+    <error id="X1_API_RET_CODE_RELOGGIN"                                        value="30"		    prompt="login already"/>
+    <error id="X1_API_RET_CODE_MTH_VIO_PUT_DATA_FAILED"                         value="31"		    prompt="vio put data error when order match"/>
+    <error id="X1_API_RET_CODE_MTH_VIO_PUT_NO_FAILED"                           value="32"		    prompt="vio put data number error when order match"/>
+    <error id="X1_API_RET_CODE_NOT_LOGIN"                                       value="33"		    prompt="the user is not login"/>
+    <error id="X1_API_RET_CODE_X1_ORDER_FULL"                                   value="34"		    prompt="exceed x1 max order "/>
+    <error id="X1_API_RET_CODE_QUERY_SERVER_CONNECT_FAILED"                     value="35"		    prompt="query server connect failed"/>
+    <error id="X1_API_RET_CODE_QUERY_SERVER_LOGIN_FAILED"                       value="36"		    prompt="query server login failed"/>
+    <error id="X1_API_RET_CODE_QUERY_SERVER_LOGOUT_FAILED"                      value="37"		    prompt="query server logout failed"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_BUY_SELL_FLAG"                     value="38"		    prompt="Invalid buy sell flag"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_OPEN_CLOSE_FLAG"                   value="39"		    prompt="Invalid open close flag"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_SPECULATE_HEDGE_FLAG"              value="40"		    prompt="Invalid speculate hedge flag"/>
+    <error id="X1_API_RET_CODE_TRADE_NO_TRADE_CODE"                             value="41"		    prompt="No trade code"/>
+    <error id="X1_API_RET_CODE_TRADE_TRADE_CODE_FROZEN"                         value="42"		    prompt="The trade code has been frozencannot trade"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_CONTRACT"                          value="43"		    prompt="Invalid contract"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_PRICE_TICK"                        value="44"		    prompt="The order price mismatches the float-price of the contract"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_ORDER_AMOUNT"                      value="45"		    prompt="Invalid order amount"/>
+    <error id="X1_API_RET_CODE_TRADE_CONTRACT_TRADE_FORBIDDEN"                  value="46"		    prompt="The trade code was forbidden trading this kind of contract"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_ORDER_PRICE"                       value="47"		    prompt="Invalid order price is out of price cap or floorcannot trade"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_CLOSE_ORDER_AMOUNT"                value="48"		    prompt="Placed close-position order failed since no enough positions"/>
+    <error id="X1_API_RET_CODE_TRADE_NOT_SUPPORT_MARKET_PRICE"                  value="49"		    prompt="Not suport market price order in the exchange"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_COMBINATION_CONTRACT"              value="50"		    prompt="Invalid combination contract"/>
+    <error id="X1_API_RET_CODE_TRADE_LOCAL_ORDER_ID_ALREADY_USED"               value="51"		    prompt="The local order ID already used"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_ORDER_TYPE"                        value="52"		    prompt="Invalid order type"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_CONTRACT_TYPE"                     value="53"		    prompt="Invalid contract type"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_ORDER_PROPERTY"                    value="54"		    prompt="Invalid order property"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_PROFITLOSS_BUY_PRICE"              value="55"		    prompt="the profit(loss)price must be less than the principal price"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_PROFITLOSS_SELL_PRICE"             value="56"		    prompt="Sell the surplus(loss) than the entrusted price price"/>
+    <error id="X1_API_RET_CODE_TRADE_ORDER_ALREADY_CANCELED"                    value="57"		    prompt="The order already canceledcannot cancel it again"/>
+    <error id="X1_API_RET_CODE_TRADE_FORCE_ORDER_DOESNOT_CANCEL_IT_AGAIN"       value="58"		    prompt="The force-close order does not allow to cancel"/>
+    <error id="X1_API_RET_CODE_RC_MAX_MARGIN_INVALID"                           value="59"		    prompt="max_margin value is invalid"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_EXCHANGE_TRADE_NO_OR_CLIENT_ID"    value="60"		    prompt="Invalid exchange member_no or trade_no"/>
+    <error id="X1_API_TRADER_ADDR_INVALID"                                      value="61"		    prompt="trader address invalid"/>
+    <error id="X1_API_INPUT_PARAM_ERROR"                                        value="62"		    prompt="param error"/>
+    <error id="X1_API_QUERY_API_FAILED"                                         value="63"		    prompt="query api ret failed"/>
+    <error id="X1_API_RET_CODE_NOT_FIND_CONTRACT_ID"                            value="64"		    prompt="order rtnbut not find contract id"/>
+    <error id="X1_API_RET_CODE_NOT_FIND_EXCHANGE_ID"                            value="65"		    prompt="order rtnbut not find exchange id"/>
+    <error id="X1_API_RET_CODE_TRADE_OPEN_AMOUNT_LIMIT"                         value="66"		    prompt="open position amount reach upper limit"/>
+    <error id="X1_API_RET_CODE_TRADE_OPEN_POS_PROPRIETARY_TRADING_UP_LIMIT"     value="67"		    prompt="open position amount reach proprietary trading upper limit"/>
+    <error id="X1_API_RET_CODE_CANCEL_ORDER_X1_AND_LOACL_ID_INVALID"            value="68"		    prompt="cancel order failedx1_order_id and local_order_id are invalid "/>
+    <error id="X1_API_RET_CODE_TRADE_CHECK_ERROR_TRADE_NO_OR_CLIENT"            value="69"		    prompt="trader client check failed"/>
+    <error id="X1_API_RET_CODE_TRADE_CHECK_CLIENT_WITHOUT_POSITION"             value="70"		    prompt="client without position"/>
+    <error id="X1_API_RET_CODE_TRADER_MONEY_DEFICIENCY"                         value="71"		    prompt="trader money deficiency"/>
+    <error id="X1_API_RET_CODE_TRADE_CHECK_ORDER_STATUS_FAILED"                 value="72"		    prompt="order status checked failed"/>
+    <error id="X1_API_RET_CODE_SERVER_ERROR_ORDER_CNT_LIMIT"                    value="73"		    prompt="sorryx1 no server"/>
+    <error id="X1_API_RET_CODE_TRADE_OPENPOS_EXCEED_MEMBER_AGENT_POS_LIMIT"     value="74"		    prompt="open position exceed member agent position limit"/>
+    <error id="X1_API_RET_CODE_TRADE_SPECULATOR_INVALID"                        value="75"		    prompt="Invalid speculator type"/>
+    <error id="X1_API_RET_CODE_TRADE_OPENCLOSETYPE_INVALID"                     value="76"		    prompt="Invalid openclose type"/>
+    <error id="X1_API_RET_CODE_TRADE_BUYSELLTYPE_INVALID"                       value="77"		    prompt="Invalid buysell type"/>
+    <error id="X1_API_RET_CODE_TRADE_ORDERPROPERTY_INVALID"                     value="78"		    prompt="Invalid order property"/>
+    <error id="X1_API_RET_CODE_TRADE_MINMATCHAMOUNT_INVALID"                    value="79"		    prompt="Invalid min match cnt"/>
+    <error id="X1_API_RET_CODE_TRADE_INSTRUMENTTYPE_INVALID"                    value="80"		    prompt="Invalid instrument type"/>
+    <error id="X1_API_RET_CODE_RC_USER_ACCOUNT_INVALID"                         value="81"		    prompt="user account invalid"/>
+    <error id="X1_API_RET_CODE_RC_ORDER_WAIT_TO_CANCEL"                         value="82"		    prompt="order is wait to be canceled."/>
+    <error id="X1_API_RET_CODE_RC_ORDER_SESSION_ID_INVALID"                     value="83"		    prompt="session id invalid."/>
+    <error id="X1_API_RET_CODE_RC_X1ORDER_INFO_INVALID"                         value="84"		    prompt="x1 order info invalid."/>
+    <error id="X1_API_RET_CODE_TRADE_OPEN_CNT_LESS_MIN"                         value="85"		    prompt="order cnt less min open cnt."/>
+    <error id="X1_API_RET_CODE_TRADE_CLOSE_CNT_LESS_MIN"                        value="86"		    prompt="order cnt less min close cnt."/>
+    <error id="X1_API_RET_CODE_RC_CONTRACT_TYPE_INVALID"                        value="87"		    prompt="contract type invalid."/>
+    <error id="X1_RET_CODE_ORDER_CNT_MAX_LIMIT_ORDER"                           value="88"		    prompt="limit order cnt max limit each"/>
+    <error id="X1_RET_CODE_ORDER_CNT_MAX_MAKKET_ORDER"                          value="89"		    prompt="market order cnt max limit each"/>
+    <error id="X1_API_RET_CODE_FLOWMETER_LIMIT"                                 value="90"		    prompt="api flowmeter limit"/>
+    <error id="X1_SERVER_RET_CODE_FLOWMETER_LIMIT"                              value="91"		    prompt="x1 server flowmeter limit"/>
+    <error id="X1_API_RET_CODE_SEND_CANCEL_ALL_ERROR"                           value="92"		    prompt="send cancel all orders to exchange error"/>
+    <error id="X1_API_RET_CODE_QUOTE_INSERT_PRICE_INVALID"                      value="93"		    prompt="the buy price must be less than the sell price"/>
+    <error id="X1_API_RET_CODE_SEND_FOR_QUOTE"                                  value="94"		    prompt="send for quote to exchange error"/>
+    <error id="X1_API_RET_CODE_API_VERSION_MISMATCH"                            value="95"		    prompt="api version does not match."/>
+    <error id="X1_API_RET_CODE_TRADE_EXCHANGE_NON_TRADABLE"                     value="96"		    prompt="Exchange non tradable"/>
+    <error id="X1_API_RET_CODE_NOT_ALLOW_CANCEL_ALL_ORDER"                      value="97"		    prompt="not allow cancel order in this moment."/>
+    <error id="X1_API_RET_CODE_HAVE_REASONABLE_QUOTATION"                       value="98"		    prompt="have reasonable quotationcannot for quote."/>
+    <error id="X1_API_RET_CODE_MARKET_MAKER_NOT_ALLOW_FOR_QUOTE"                value="99"		    prompt="market maker not allow for quote."/>
+    <error id="X1_API_RET_CODE_MEMBER_AND_TRADE_NO_NOT_MATCH"                   value="100"		    prompt="server config errormember_no and trader_no are not match."/>
+    <error id="X1_API_RET_CODE_TRADE_VARIETY_STATUS_TRADE_FORBIDDEN"            value="101"		    prompt="variety status is not in trading state."/>
+    <error id="X1_API_RET_CODE_RC_X1_ORDER_ID_INVALID"                          value="102"		    prompt="cancel order failedx1_order_id invalid "/>
+    <error id="X1_API_RET_CODE_RC_SPD_ORDER_ID_INVALID"                         value="103"		    prompt="cancel order failedspd_order_id invalid "/>
+    <error id="X1_API_RET_DCE_ERROR_CODE_QUOTE_INVALID_QUOTE_INTERVAL"          value="104"		    prompt="Invalid quote interval."/>
+    <error id="X1_API_RET_CODE_QUOTE_INVALID_QUOTE_CONTRACT_OR_NO_MM"           value="105"		    prompt="Invalid quote contract or no market maker."/>
+    <error id="X1_API_RET_DCE_ERROR_CODE_TRADE_FULL_MATCH"                      value="106"		    prompt="full matchedcan not cancel."/>
+    <error id="X1_API_RET_CODE_EXCHANGE_INVALID"                                value="107"		    prompt="exchange is not supported."/>
+    <error id="X1_API_RET_API_INIT_DUPLICATE"                                   value="108"		    prompt="api duplicate init is forbidden."/>
+    <error id="X1_API_RET_INIT_MMAP_FAILED"                                     value="109"		    prompt="mmap failed"/>
+    <error id="X1_SERVER_CONF_CPU_CORE_ERROR"                                   value="110"		    prompt="conf of cpu core id is invalid"/>
+    <error id="X1_API_RET_CODE_LOGIN_TOO_OFTEN"                                 value="111"		    prompt="login too oftenplease try again later..."/>
+    <error id="X1_API_RET_CODE_X1_AUTO_ORDER_FULL"                              value="112"		    prompt="exceed x1 auto max order."/>
+    <error id="X1_API_RET_CODE_X1_AUTO_ORDER_FULL"                              value="113"		    prompt="access control forbidden."/>
+    <error id="X1_API_RET_CODE_RC_X1ORDER_ID_INVALID"                           value="114"		    prompt="x1 order id invalid."/>
+    <error id="X1_API_RET_CODE_TOO_MANY_SESSION"                                value="115"		    prompt="too many session"/>
+    <error id="X1_API_RET_CODE_TRADING_CHANNEL_NOT_STABLE"                      value="116"		    prompt="The exchange trading channel not stable"/>
+    <error id="X1_API_TRADER_PORT_INVALID"                                      value="117"		    prompt="Init parameter invalidport is empty"/>
+    <error id="X1_API_RET_CODE_IOC_NEED_CONTINUOUS_TRADING_PHASE"               value="118"		    prompt="IOC need to be in continuous trading phase"/>
+    <error id="X1_API_RET_CODE_TRADE_ORDER_ALREADY_MATCHED"                     value="119"		    prompt="The order already matched"/>
+    <error id="X1_API_RET_CODE_TRADE_NO_TRADE_PERMISSION"                       value="120"		    prompt="Member or client have no permission to trade the specified contract."/>
+    <error id="X1_API_RET_CODE_TRADE_ONLY_CLOSE_POSITION"                       value="121"		    prompt="Member or client have only close position permission to trade the specified contract."/>
+    <error id="X1_API_RET_CODE_TRADE_NO_TRADE_ROLE"                             value="122"		    prompt="Member have no trade role."/>
+    <error id="X1_API_RET_CODE_TRADE_HEDGE_VOLUME_NOT_ENOUGH"                   value="123"		    prompt="Hedge volume not enough"/>
+    <error id="X1_API_RET_CODE_TRADE_INVALID_INSERT_TYPE"                       value="124"         prompt="Invalid insert type"/>    
+    <error id="X1_API_QRYFRONT_UNKNOWN_ERR"                                     value="1001"	    prompt="Unknown error"/>
+    <error id="X1_API_QRYFRONT_LONG_ACCNTID"                                    value="1002"	    prompt="The length of the account ID is longer than 12 please input again"/>
+    <error id="X1_API_QRYFRONT_INVAL_FEILD"                                     value="1003"	    prompt="%s contains invalid character"/>
+    <error id="X1_API_QRYFRONT_INVAL_PRICE"                                     value="1004"	    prompt="%s is invalid price value"/>
+    <error id="X1_API_QRYFRONT_INVAL_CMD"                                       value="1009"	    prompt="Invalid command"/>
+    <error id="X1_API_QRYFRONT_FAST_RATE_QRY"                                   value="1011"	    prompt="Query frequency is too fast this query operation is failed"/>
+    <error id="X1_API_QRYFRONT_FAST_RATE_ORD"                                   value="1012"	    prompt="The frequency of placing or canceling order is too fast this order request operation is failed"/>
+    <error id="X1_API_QRYFRONT_ATTACK_ERR"                                      value="1013"	    prompt="Receive multiple invalid command requests front will close this connection"/>
+    <error id="X1_API_QRYFRONT_LOW_API"                                         value="1014"	    prompt="The API version is too low please upgrade"/>
+    <error id="X1_API_QRYFRONT_LOW_FRONT"                                       value="1015"	    prompt="The version of the connected front is too low please use correct API version"/>
+    <error id="X1_API_QRYFRONT_INVAL_TD_FRONT"                                  value="1016"	    prompt="Try to connect to md front using trade api"/>
+    <error id="X1_API_QRYFRONT_INVAL_MD_FRONT"                                  value="1017"	    prompt="Try to connect to trade front using md api"/>
+    <error id="X1_API_QRYFRONT_MD_NO_MULTICAST"                                 value="1018"	    prompt="The md front doesnot configure multicasting market data"/>
+    <error id="X1_API_QRYFRONT_NOT_SUPPORT_CUSTMD"                              value="1019"	    prompt="The connected trader front does not support market maker"/>
+    <error id="X1_API_QRYFRONT_MAX_SESSION_LIMIT"                               value="1030"	    prompt="Max session number limit by this account:%d"/>
+    <error id="X1_API_QRYFRONT_NOT_LOGIN"                                       value="1031"	    prompt="Not login"/>
+    <error id="X1_API_QRYFRONT_DUP_LOGIN"                                       value="1032"	    prompt="This user ID [%s] already login"/>
+    <error id="X1_API_QRYFRONT_LOGIN_LMT"                                       value="1033"	    prompt="This kind user ID [%s] has approached max login limit please use other IDs"/>
+    <error id="X1_API_QRYFRONT_FAIL_EXCHG_TM"                                   value="1034"	    prompt="Query exchange time failed please login again to get exchange time"/>
+    <error id="X1_API_QRYFRONT_DUP_LOGOUT"                                      value="1035"	    prompt="Not login or already logout"/>
+    <error id="X1_API_QRYFRONT_LOGOUT_FAIL"                                     value="1036"	    prompt="Logout failed or already logout please check"/>
+    <error id="X1_API_QRYFRONT_TD_SVR_LMT"                                      value="1037"	    prompt="The trade server performance reaches to upper limit please try again later"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONTRACT"                                  value="1038"	    prompt="Invalid contract"/>
+    <error id="X1_API_QRYFRONT_EMPTY_CONTRACT"                                  value="1039"	    prompt="Empty contract"/>
+    <error id="X1_API_QRYFRONT_NO_SUBED_CONT"                                   value="1040"	    prompt="Not subscribed or already unsubscribed the contract:%s"/>
+    <error id="X1_API_QRYFRONT_INVAL_PRICE2"                                    value="1041"	    prompt="is invalid price value"/>
+    <error id="X1_API_QRYFRONT_NO_KHH_TO_ORDID"                                 value="1050"	    prompt="Cannot find the order ID (%d) corresponding to the account ID"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONT_TO_ORDID"                             value="1051"	    prompt="The contract is incorrect to the order ID"/>
+    <error id="X1_API_QRYFRONT_NO_ORDID_TO_CONT"                                value="1052"	    prompt="Cannot find the order ID for the contract"/>
+    <error id="X1_API_QRYFRONT_NO_ORD_TO_LOCALID"                               value="1053"	    prompt="Cannot find the order info by the local order ID"/>
+    <error id="X1_API_QRYFRONT_INVAL_LOCALID_CONT"                              value="1054"	    prompt="The local order ID is incorrect to the contract"/>
+    <error id="X1_API_QRYFRONT_EMPTY_ORD_ID"                                    value="1055"	    prompt="Both order ID and local ID are empty"/>
+    <error id="X1_API_QRYFRONT_NO_TRADE_CODE"                                   value="1056"	    prompt="Cannot find any valid trade code"/>
+    <error id="X1_API_QRYFRONT_CHK_COND_CONFIG"                                 value="1057"	    prompt="Please check the condition order configure file"/>
+    <error id="X1_API_QRYFRONT_NO_ORD_TO_CONDID"                                value="1058"	    prompt="Cannot find the order info by the algorithm order ID"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONDID_CONT"                               value="1059"	    prompt="The algorithm order ID is incorrect to the contract"/>
+    <error id="X1_API_QRYFRONT_IN_DECLARATION"                                  value="1060"	    prompt="The order is in placing please try to cancel it again later"/>
+    <error id="X1_API_QRYFRONT_NOT_SUP_CANCEL_ALL"                              value="1061"	    prompt="The exchange does not support batch cancellation orders"/>
+    <error id="X1_API_QRYFRONT_INVAL_TIME_CANCEL_ALL"                           value="1062"	    prompt="Invalid transaction time banned mass cancellation"/>
+    <error id="X1_API_QRYFRONT_DUP_LOCAL_ID"                                    value="1080"	    prompt="The local order ID already used"/>
+    <error id="X1_API_QRYFRONT_INVAL_ORD_TYPE"                                  value="1081"	    prompt="Invalid order type"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONT_TYPE"                                 value="1082"	    prompt="Invalid contract type"/>
+    <error id="X1_API_QRYFRONT_INVAL_PROP_TO_ARBI"                              value="1083"	    prompt="Arbitrage or roll over exchange order doesnot support the order within property"/>
+    <error id="X1_API_QRYFRONT_INVAL_INVEST_TYPE"                               value="1084"	    prompt="Invalid investment type"/>
+    <error id="X1_API_QRYFRONT_INVAL_BS_FLAG"                                   value="1085"	    prompt="Invalid buy-sell flag"/>
+    <error id="X1_API_QRYFRONT_INVAL_OC_FLAG"                                   value="1086"	    prompt="Invalid open-close flag"/>
+    <error id="X1_API_QRYFRONT_INVAL_AUTOORD_FLAG"                              value="1087"	    prompt="Invalid auto order flag"/>
+    <error id="X1_API_QRYFRONT_INVAL_ORD_PROPERTY"                              value="1088"	    prompt="Invalid order property"/>
+    <error id="X1_API_QRYFRONT_NEGTIVE_LOCALID"                                 value="1089"	    prompt="The local order ID must be positive number"/>
+    <error id="X1_API_QRYFRONT_INVAL_ORDTYPE_TO_CONT"                           value="1090"	    prompt="The order type does not match the given contract"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONT_TO_TYPE"                              value="1091"	    prompt="The contract type is incorrect to this contract"/>
+    <error id="X1_API_QRYFRONT_OPENING_BANNED_AUTO"                             value="1092"	    prompt="During the continuous trading banned under open automatically"/>
+    <error id="X1_API_QRYFRONT_PROFITLOSSPRICE_BUY"                             value="1093"	    prompt="Buy only the profit (loss) price must be less than the principal price"/>
+    <error id="X1_API_QRYFRONT_PROFITLOSSPRICE_SELL"                            value="1094"	    prompt="Sell the surplus (loss) than the entrusted price price"/>
+    <error id="X1_API_QRYFRONT_NOT_SUPPORT_OPT_PROFITLOSS"                      value="1095"	    prompt="Option not surpport profit (loss) price order"/>
+    <error id="X1_API_QRYFRONT_ORD_PROPERTY_BY_ZJ"                              value="1096"	    prompt="Only the CFFEX market orders to support the order property"/>
+    <error id="X1_API_QRYFRONT_ONLY_OPT_CON"                                    value="1098"	    prompt="Inquiry instruction only support options contract"/>
+    <error id="X1_API_QRYFRONT_SEND_ERR_DATA"                                   value="1102"	    prompt="Send error data to trade front please check"/>
+    <error id="X1_API_QRYFRONT_UNSUPPORT_CMD"                                   value="1110"	    prompt="Not support trading order at this optimized-xspeed system"/>
+    <error id="X1_API_QRYFRONT_FORBID_POSITION"                                 value="1114"	    prompt="This account cannot open a new position"/>
+    <error id="X1_API_QRYFRONT_INVAL_COMPARE_TYPE"                              value="1120"	    prompt="Invalid comparison flag"/>
+    <error id="X1_API_QRYFRONT_INVAL_PRICE_REF"                                 value="1121"	    prompt="Invalid price reference"/>
+    <error id="X1_API_QRYFRONT_INVAL_JOIN_TYPE"                                 value="1122"	    prompt="Invalid correlation property"/>
+    <error id="X1_API_QRYFRONT_INVAL_JOIN_NUM"                                  value="1123"	    prompt="Invalid association number"/>
+    <error id="X1_API_QRYFRONT_INVAL_INSERT_AMOUNT"                             value="1124"	    prompt="Invalid order amount"/>
+    <error id="X1_API_QRYFRONT_INVAL_EFFECT_DATE"                               value="1125"	    prompt="Invalid effective date"/>
+    <error id="X1_API_QRYFRONT_INVAL_FREEZING_TYPE"                             value="1126"	    prompt="Invalid freezing type"/>
+    <error id="X1_API_QRYFRONT_INVAL_BREAKDOWN_TIMES"                           value="1127"	    prompt="The breakdown number is invalid"/>
+    <error id="X1_API_QRYFRONT_INVAL_FLOAT_PRICE"                               value="1128"	    prompt="The order price mismatches the float-price of the contract"/>
+    <error id="X1_API_QRYFRONT_INVAL_BREAKDOWN_TYPE"                            value="1129"	    prompt="The breakdown type is invalid"/>
+    <error id="X1_API_QRYFRONT_INVAL_EXTORDER_TYPE"                             value="1130"	    prompt="The Conditional order type is invalid"/>
+    <error id="X1_API_QRYFRONT_INVAL_LIMIT_NUMBER"                              value="1131"	    prompt="The Conditional order type is invalid"/>
+    <error id="X1_API_QRYFRONT_INVAL_EXCHG"                                     value="1200"	    prompt="Invalid exchange code"/>
+    <error id="X1_API_QRYFRONT_INVAL_EXCHG_TO_CONT"                             value="1201"	    prompt="The contract is not from the specified exchange"/>
+    <error id="X1_API_QRYFRONT_NO_CONT_INFO"                                    value="1202"	    prompt="Cannot find the contract info"/>
+    <error id="X1_API_QRYFRONT_INVAL_TRADE_CODE"                                value="1203"	    prompt="Invalid or empty trade code"/>
+    <error id="X1_API_QRYFRONT_INVAL_ORD_ID"                                    value="1204"	    prompt="Please check the order ID"/>
+    <error id="X1_API_QRYFRONT_INVAL_NEW_PWD"                                   value="1205"	    prompt="The password length is longer than 16 and it must be digits or letters"/>
+    <error id="X1_API_QRYFRONT_EMPTY_DATA"                                      value="1206"	    prompt="Queried empty data"/>
+    <error id="X1_API_QRYFRONT_EMPTY_CONFIRM_DATE"                              value="1207"	    prompt="Empty date when request confirm bill"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONFIRM_DATE"                              value="1208"	    prompt="Please input correct confirm date form:yyyy.mm.dd"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONFIRM_FLAG"                              value="1209"	    prompt="Invalid confirm flag"/>
+    <error id="X1_API_QRYFRONT_INVAL_STATUS_FLAG"                               value="1210"	    prompt="Invalid delegate state"/>
+    <error id="X1_API_QRYFRONT_UNSUPPORT_ARBITRAGE_QRY"                         value="1211"	    prompt="The query command does not support arbitrage contracts"/>
+    <error id="X1_API_QRYFRONT_QRY_NOT_FINISH"                                  value="1212"	    prompt="The query command does not support arbitrage contracts"/>
+    <error id="X1_API_QRYFRONT_ACCOUNT_SPDID_MISMATCH"                          value="1213"	    prompt="The spdOrderID is incorrect to the accountID"/>
+    <error id="X1_API_QRYFRONT_NO_CONT_ORDID_TRADE"                             value="1214"	    prompt="Cannot find the matched order info for the specified contract and order ID"/>
+    <error id="X1_API_QRYFRONT_NO_ORD_TO_SPDID"                                 value="1215"	    prompt="Cannot find the order info by the xspeed order ID"/>
+    <error id="X1_API_QRYFRONT_FRONT_COMM_ERR"                                  value="1401"	    prompt="Front communication exception"/>
+    <error id="X1_API_QRYFRONT_EXCHG_REJECT_PLACE"                              value="1900"	    prompt="Order rejected by exchange"/>
+    <error id="X1_API_QRYFRONT_EXCHG_REJECT_QUOTE_ORD"                          value="1905"	    prompt="Quote order rejected by exchange"/>
+    <error id="X1_API_QRYFRONT_EXCHG_REJECT_CANCEL"                             value="1910"	    prompt="Cancel order rejected by exchange"/>
+    <error id="X1_API_QRYFRONT_EXCHG_REJECT_QUOTE_CANCEL"                       value="1920"	    prompt="Quote cancel order rejected by exchange"/>
+    <error id="X1_API_QRYFRONT_EMPTY_PASSWORD_LOGIN"                            value="2006"	    prompt="The system does not allow empty password to login"/>
+    <error id="X1_API_QRYFRONT_CUSTOMER_ID_UNEXIST"                             value="2102"	    prompt="The user ID [%s] not exist"/>
+    <error id="X1_API_QRYFRONT_INVAL_TRADE_PWD"                                 value="2103"	    prompt="Invalid password or the password is too simple"/>
+    <error id="X1_API_QRYFRONT_INVAL_TRADE_CATEGORY"                            value="2601"	    prompt="Invalid trade type"/>
+    <error id="X1_API_QRYFRONT_INVAL_INVEST_CATEGORY"                           value="2603"	    prompt="Invalid investment type this exchange only allows speculate or hedge"/>
+    <error id="X1_API_QRYFRONT_TRADE_CODE_UNEXIST"                              value="2607"	    prompt="No trade code"/>
+    <error id="X1_API_QRYFRONT_TRADE_CODE_ERR"                                  value="2608"	    prompt="Error for this trade code"/>
+    <error id="X1_API_QRYFRONT_TRADE_CODE_FROZEN"                               value="2609"	    prompt="The trade code has been frozen cannot trade"/>
+    <error id="X1_API_QRYFRONT_FORBID_OPEN_POSITION"                            value="2610"	    prompt="The trade code is forbidden opening new positions"/>
+    <error id="X1_API_QRYFRONT_CUSTOMER_ID_UNEXIST"                             value="2612"	    prompt="The trade code not associated with any account ID"/>
+    <error id="X1_API_QRYFRONT_FORBID_TRADE"                                    value="2613"	    prompt="This account cannot trade since some exception"/>
+    <error id="X1_API_QRYFRONT_FORBID_OC_POSITION"                              value="2614"	    prompt="This account cannot open a position or close-out a position"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONTRACT_ID"                               value="2619"	    prompt="Invalid contract cannot place orders"/>
+    <error id="X1_API_QRYFRONT_CONTEACT_ID_NO_TRADE"                            value="2620"	    prompt="The contract is not in trading list currently"/>
+    <error id="X1_API_QRYFRONT_ZERO_FLOAT_PRICE"                                value="2622"	    prompt="The float price is 0 of the contract cannot trade"/>
+    <error id="X1_API_QRYFRONT_CHANGE_PRICE"                                    value="2623"	    prompt="The order price mismatches the float-price of the contrac"/>
+    <error id="X1_API_QRYFRONT_FORBID_TRADECODE_ON_VARIETY"                     value="2626"	    prompt="The trade code was forbidden trading this kind of contract"/>
+    <error id="X1_API_QRYFRONT_INVAL_CONTEACT_AMOUNT"                           value="2267"	    prompt="Invalid order amount which should be integer multiples on the unit of open-position   "/>
+    <error id="X1_API_QRYFRONT_OUT_OF_LMT_PRICE"                                value="2635"	    prompt="Invalid order price is out of price cap or floor cannot trade"/>
+    <error id="X1_API_QRYFRONT_SYS_NOT_INIT"                                    value="2636"	    prompt="XSpeed trading system not initialized"/>
+    <error id="X1_API_QRYFRONT_ENTRUST_FAILED"                                  value="2641"	    prompt="Place order failed when inserted data into database tables failed"/>
+    <error id="X1_API_QRYFRONT_CAPITAL_SCARCITY"                                value="2642"	    prompt="Place order failed since no enough fund to open a new position"/>
+    <error id="X1_API_QRYFRONT_FORBID_HEDGING"                                  value="2661"	    prompt="The trade code %s cannot invest in hedge"/>
+    <error id="X1_API_QRYFRONT_FORBID_SPECULATE"                                value="2662"	    prompt="The trade code %s cannot invest in speculator"/>
+    <error id="X1_API_QRYFRONT_INVAL_ENTRUST_PRICE"                             value="2709"	    prompt="Invalid order price %.3lf"/>
+    <error id="X1_API_QRYFRONT_NONSUPPORT_MARKET_ORDER"                         value="2710"	    prompt="Not support market price order in the exchange"/>
+    <error id="X1_API_QRYFRONT_NO_PRICE_ON_STOPORD"                             value="2715"	    prompt="Empty stop price when placed stop-profit order or stop-loss order"/>
+    <error id="X1_API_QRYFRONT_INVAL_MKT_ORD_V5"                                value="2720"	    prompt="DaLian V5 doesnot surpport market price order"/>
+    <error id="X1_API_QRYFRONT_INVAL_PROP_ORD_V5"                               value="2721"	    prompt="DaLian V5 doesnot surpport the order with property"/>
+    <error id="X1_API_QRYFRONT_FAIL_GET_TRADETIME"                              value="2722"	    prompt="The futrade cannot obtain trading time info from DaLian V5"/>
+    <error id="X1_API_QRYFRONT_FAIL_ORD_STOPTIME"                               value="2723"	    prompt="Cannot place order when stop-trading time"/>
+    <error id="X1_API_QRYFRONT_NONSUPPORT_ORDER_CMD"                            value="2800"	    prompt="Place order failed since the order command doesnot support currently"/>
+    <error id="X1_API_QRYFRONT_INVAL_COMBINATION_ID"                            value="2801"	    prompt="Invalid combination contract"/>
+    <error id="X1_API_QRYFRONT_OUT_OF_PRICE_DIFF"                               value="2804"	    prompt="The difference in price is out of limit"/>
+    <error id="X1_API_QRYFRONT_OUT_OF_LMT_AMOUNT"                               value="2805"	    prompt="The order amount is out of limit"/>
+    <error id="X1_API_QRYFRONT_ERROR_FOR_TRADECODE"                             value="2807"	    prompt="Error for this trade code"/>
+    <error id="X1_API_QRYFRONT_ENTRUST_MODE_ERR"                                value="2811"	    prompt="This account cannot place order by this way"/>
+    <error id="X1_API_QRYFRONT_FORBID_OPEN_POSITION"                            value="2814"	    prompt="This account cannot open a position or close-out a position"/>
+    <error id="X1_API_QRYFRONT_FORBID_CLOSE_POSITION"                           value="3698"	    prompt="This account cannot open a position or close-out a position"/>
+    <error id="X1_API_QRYFRONT_NO_ORDER_ID"                                     value="3401"	    prompt="Contract ID:%li not find the order"/>
+    <error id="X1_API_QRYFRONT_INFO_NOT_MATCH"                                  value="3402"	    prompt="The original account info of the order mismatches the inputed account info"/>
+    <error id="X1_API_QRYFRONT_NOT_ALLOWED_CANCEL"                              value="3404"	    prompt="The force-close order doesnot allow to cancel"/>
+    <error id="X1_API_QRYFRONT_NO_RESULT"                                       value="3406"	    prompt="The order is not replyed by exchange cannot cancel it please try again later"/>
+    <error id="X1_API_QRYFRONT_LATER_CANCEL_ORDER"                              value="3407"	    prompt="The last order has not been placed to exchange please try to cancel later"/>
+    <error id="X1_API_QRYFRONT_ENTEUST_FROZEN_ERR"                              value="3408"	    prompt="Failed to modify the balance of the account's frozened"/>
+    <error id="X1_API_QRYFRONT_UNFROZEN_LESS_THAN_CANCEL"                       value="3411"	    prompt="Failed cancel the order since the positions to unfroze positions are smaller than canceling amount"/>
+    <error id="X1_API_QRYFRONT_RE_CANCEL"                                       value="3412"	    prompt="Failed to modify the record of placed order please cancel it again"/>
+    <error id="X1_API_QRYFRONT_CANCEL_APPLY_ERR"                                value="3415"	    prompt="Unknown error"/>
+    <!-- add for end -->
+</errors>
