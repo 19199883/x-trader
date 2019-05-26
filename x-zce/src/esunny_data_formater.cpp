@@ -19,13 +19,17 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPITradeLoginAuth* p)
             "Password=%s "
             "NewPassword=%s "
             "ISDDA=%c "
-            "DDASerialNo=%s ",
+            "DDASerialNo=%s "
+			"AppID=%s"
+			"AuthCode=%s",
             p->UserNo,                   //用户名
             p->ISModifyPassword,         //是否修改密码
             p->Password,                 //密码
             p->NewPassword,              //新密码
             p->ISDDA,                    //是否需要动态认证
-            p->DDASerialNo               //动态认证码
+            p->DDASerialNo,               //动态认证码
+			p->AppID,
+			p->AuthCode
             );
     } else {
         snprintf(buf, sizeof(buf), "structName=TapAPITradeLoginAuth <null>");
@@ -176,20 +180,24 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPITradeLoginRspInfo* p)
             "TradeDate=%s "
             "LastSettleTime=%s "
             "StartTime=%s "
-            "InitTime=%s ",
+            "InitTime=%s "
+			"AuthType=%c"
+			"AuthDate=%s",
             p->UserNo,                         ///< 用户编号
             p->UserType,                       ///< 用户类型
             p->UserName,                       ///< 用户名
             p->QuoteTempPassword,              ///< 行情临时密码
             p->ReservedInfo,                   ///< 预留信息
             p->LastLoginIP,                    ///< 上次登录IP
-            p->LastLoginProt,                  ///< 上次登录端口
+            p->LastLoginPort,                  ///< 上次登录端口
             p->LastLoginTime,                  ///< 上次登录时间
             p->LastLogoutTime,                 ///< 上次退出时间
             p->TradeDate,                      ///< 当前交易日期
             p->LastSettleTime,                 ///< 上次结算时间
             p->StartTime,                      ///< 系统启动时间
-            p->InitTime                        ///< 系统初始化时间
+            p->InitTime,                        ///< 系统初始化时间
+			p->AuthType,
+			p->AuthDate
             );
     } else {
         snprintf(buf, sizeof(buf), "structName=TapAPITradeLoginRspInfo <null>");
@@ -544,6 +552,25 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPIExchangeStateInfoNotice
             );
     } else {
         snprintf(buf, sizeof(buf), "structName=TapAPIExchangeStateInfoNotice <null>");
+    }
+
+    return buf;
+}
+
+
+std::string ESUNNYDatatypeFormater::ToString(const TapAPISubmitUserLoginRspInfo *pp)
+{
+    char buf[1024];
+    if (pp) {
+        snprintf(buf, sizeof(buf), "structName=TapAPISubmitUserLoginRspInfo"
+            "UserNo=%s "
+            "ErrorCode=%s "
+            "ErrorText=%s ",
+            pp->UserNo, 
+            pp->ErrorCode,
+            pp->ErrorText);
+    } else {
+        snprintf(buf, sizeof(buf), "structName=TapAPISubmitUserLoginRspInfo<null>");
     }
 
     return buf;

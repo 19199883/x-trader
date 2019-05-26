@@ -11,6 +11,7 @@
 #include "my_protocol_packager.h"
 #include "TapAPIError.h"
 #include "TapTradeAPI.h"
+#include "TapDataCollectAPI.h"
 
 using namespace std::chrono;
 
@@ -73,6 +74,16 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
+	char sysInfo[2048];
+	int real_size = 0;
+	int nver = 0;
+	int error = esunny_getsysteminfo(sysInfo,  &real_size, &nver);
+	clog_warning("[%s] esunny_getsysteminfo eror:%d; real_size: %d; nver: %d", 
+				module_name_, 
+				error, 
+				real_size,
+				nver);
+
 	// create esunny object
     TapAPIApplicationInfo auth_info;
     std::string auth_code = ReadAuthCode();
@@ -98,10 +109,21 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     strcpy(stLoginAuth.Password, config_.password.c_str());
     stLoginAuth.ISModifyPassword = APIYNFLAG_NO;
     stLoginAuth.ISDDA = APIYNFLAG_NO;
-	stLoginAuth.NoticeIgnoreFlag = TAPI_NOTICE_IGNORE_FUND | TAPI_NOTICE_IGNORE_POSITIONPROFIT |
-		TAPI_NOTICE_IGNORE_FILL | TAPI_NOTICE_IGNORE_POSITION | TAPI_NOTICE_IGNORE_CLOSE | 
-		TAPI_NOTICE_IGNORE_POSITIONPROFIT;
+	stLoginAuth.NoticeIgnoreFlag = TAPI_NOTICE_IGNORE_FUND | 
+									TAPI_NOTICE_IGNORE_POSITIONPROFIT |
+									TAPI_NOTICE_IGNORE_FILL | 
+									TAPI_NOTICE_IGNORE_POSITION | 
+									TAPI_NOTICE_IGNORE_CLOSE | 
+									TAPI_NOTICE_IGNORE_POSITIONPROFIT;
+	 strcpy(stLoginAuth.AppID, this->appid_);		
+	strcpy(stLoginAuth.AuthCode, this->authcode_);
     result = api_->Login(&stLoginAuth);
+
+    clog_warning("[%s] Login: errorCode: %d, %s",
+				module_name_,
+				result, 
+				ESUNNYDatatypeFormater::ToString(&stLoginAuth).c_str());
+
     if (TAPIERROR_SUCCEED != result) {
         clog_error("[%s] Login Error, result:%d",module_name_,result);
     }else{
@@ -133,6 +155,9 @@ void TunnRptProducer::ParseConfig()
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
 		this->config_.userid = tunn_node->Attribute("userid");
 		this->config_.password = tunn_node->Attribute("password");
+		strcpy(this->appid_, tunn_node->Attribute("appid"));
+		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
+
 
 		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
 					module_name_, 
@@ -411,6 +436,17 @@ void TunnRptProducer::OnRspQryExchangeStateInfo(TAPIUINT32 sessionID, TAPIINT32 
 
 void TunnRptProducer::OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotice* info)
 {
+}
+
+void TunnRptProducer::OnRspSubmitUserLoginInfo(TAPIUINT32 sessionID, 
+			TAPIINT32 errorCode, 
+			TAPIYNFLAG isLast, 
+			const TapAPISubmitUserLoginRspInfo * info)
+{
+    clog_warning("[%s] OnRspSubmitUserLoginInfo: errorCode: %d, %s",
+				module_name_,
+				errorCode, 
+				ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)

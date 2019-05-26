@@ -32,7 +32,7 @@ void ESUNNYPacker::InitNewOrder(const char *account)
     new_order_.AddOneIsValid = APIYNFLAG_NO;
     new_order_.HedgeFlag2 = TAPI_HEDGEFLAG_NONE;
     new_order_.MarketLevel= TAPI_MARKET_LEVEL_0;
-    new_order_.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
+    //new_order_.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
 }
 
 // done

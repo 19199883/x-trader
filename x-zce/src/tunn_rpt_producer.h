@@ -345,6 +345,9 @@ class TunnRptProducer: public ITapTradeAPINotify
 					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIUpperChannelInfo * info) {}
 		virtual void TAP_CDECL OnRspAccountRentInfo(TAPIUINT32 sessionID,
 					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIAccountRentInfo * info) {};
+		virtual void TAP_CDECL OnRspSubmitUserLoginInfo(TAPIUINT32 sessionID, 
+					TAPIINT32 errorCode, TAPIYNFLAG isLast, 
+					const TapAPISubmitUserLoginRspInfo * info);
 
 
 		/*
@@ -391,6 +394,8 @@ private:
 	 * things relating to counter API
 	 */
     ITapTradeAPI *api_;
+	char appid_[30];
+	char authcode_[40];
 
 	IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg);
 	IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);

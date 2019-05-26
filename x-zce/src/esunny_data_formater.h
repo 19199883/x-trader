@@ -33,6 +33,7 @@ public:
 	static std::string ToString(const TapAPIPositionInfo *pdata);
 	static std::string ToString(const TapAPIExchangeStateInfo *pdata);
 	static std::string ToString(const TapAPIExchangeStateInfoNotice *pdata);
+	static std::string ToString(const TapAPISubmitUserLoginRspInfo *pp);
 
 private:
 	ESUNNYDatatypeFormater() { }
