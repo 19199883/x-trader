@@ -8,8 +8,8 @@ DIST_DIR:=$(TOP)/x-dce/dist
 # kanchuan
 #INCPATH:=-I$(TOP)/3rd/x1_kc/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include \
 #		 -I$(TOP)/3rd/dce_md/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/x1_kc/lib -L$(TOP)/3rd/tinyxml/lib \
-		 -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/dce_md/lib
+#LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/x1_kc/lib -L$(TOP)/3rd/tinyxml/lib \
+#		 -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/dce_md/lib
 
 # V1.6.1.08
 INCPATH:=-I$(TOP)/3rd/x1-1.6.1.08/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include \
@@ -24,9 +24,9 @@ OBJPATH:=./obj
 BINPATH:=./bin
 
 # kanchuan
-LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread -lbowsprit \
-	  -lcheck -lclogger -lcork -lvrt -lssl \
-	  -luuid -lboost_filesystem -lboost_system -lx1_dfitc_collect
+#LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread -lbowsprit \
+#	  -lcheck -lclogger -lcork -lvrt -lssl \
+#	  -luuid -lboost_filesystem -lboost_system -lx1_dfitc_collect
 
 # V1.6.1.08
 LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread -lbowsprit \
