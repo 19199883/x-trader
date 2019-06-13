@@ -218,6 +218,7 @@ void TunnRptProducer::OnUserLogon(EES_LogonResponse* pLogon)
 				pLogon->m_UserId,
 				this->counter_,
 				pLogon->m_MaxToken);
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnOrderAccept(EES_OrderAcceptField* pAccept )
