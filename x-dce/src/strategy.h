@@ -160,6 +160,9 @@ private:
 	// key: signal id; value: 号所存数组的位置
 	long sigid_sigidx_map_table_[SIGANDRPT_TABLE_SIZE];
 
+	/*
+	 * 用于推送给策略仓位信息
+	 */
 	position_t pos_cache_;
 	
 	// log	
@@ -176,6 +179,9 @@ private:
 	CLoadLibraryProxy *pproxy_;
 	StrategySetting setting_;
 	const char *module_name_;  
+	/*
+	 * 储策略的最新仓位
+	 */
 	StrategyPosition position_;
 	void LoadPosition();
 	void SavePosition();

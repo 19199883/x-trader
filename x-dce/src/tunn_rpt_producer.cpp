@@ -9,7 +9,7 @@
 #include "x1_data_formater.h"
 
 // kanchuan
-//#include "collect.h"
+#include "collect.h"
 
 using namespace std::chrono;
 
@@ -182,10 +182,10 @@ int TunnRptProducer::ReqQuoteAction(CX1FtdcCancelOrderField *p)
 void TunnRptProducer::ReqLogin()
 {
 	//	kanchuan
-//	char sysInfo[2048];
-//	int real_size = 0;
-//	int error = DfitcGetSysInfo(sysInfo, sizeof(sysInfo), &real_size);
-//	clog_warning("[%s] DfitcGetSysInfo eror:%d; real_size:%d", module_name_, error, real_size);
+	char sysInfo[2048];
+	int real_size = 0;
+	int error = DfitcGetSysInfo(sysInfo, sizeof(sysInfo), &real_size);
+	clog_warning("[%s] DfitcGetSysInfo eror:%d; real_size:%d", module_name_, error, real_size);
 
     CX1FtdcReqUserLoginField login_data;
     memset(&login_data, 0, sizeof(CX1FtdcReqUserLoginField));
@@ -194,10 +194,10 @@ void TunnRptProducer::ReqLogin()
     
 	// kanchuan
 	// AppID由终端厂商名称、终端软件名称和版本号三部分构成
-	 //strcpy(login_data.AppID, this->appid_);		
+	 strcpy(login_data.AppID, this->appid_);		
 	// //授权码由期货公司根据交易终端软件的AppID生成
-	 //strcpy(login_data.AuthCode, this->authcode_);
-	 //login_data.CompanyID = 0;
+	 strcpy(login_data.AuthCode, this->authcode_);
+	 login_data.CompanyID = 0;
 	
 	int rtn = api_->ReqUserLogin(&login_data);
 
@@ -230,6 +230,7 @@ void TunnRptProducer::OnRspUserLogin(struct CX1FtdcRspUserLoginField* pfield, st
     else {
 		clog_error("[%s] OnRspUserLogin, error: %d", module_name_, perror->ErrorID);
     }
+	fflush (Log::fp);
 }
 
 void TunnRptProducer::OnRspUserLogout(struct CX1FtdcRspUserLogoutInfoField* pf, struct CX1FtdcRspErrorField * pe)
