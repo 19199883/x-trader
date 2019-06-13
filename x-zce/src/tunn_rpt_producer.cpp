@@ -250,6 +250,7 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
     clog_warning("[%s] OnRspLogin: errorCode:%d,%s",
         module_name_,
 		errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
+	fflush (Log::fp);
 }
 
 // done
@@ -443,10 +444,16 @@ void TunnRptProducer::OnRspSubmitUserLoginInfo(TAPIUINT32 sessionID,
 			TAPIYNFLAG isLast, 
 			const TapAPISubmitUserLoginRspInfo * info)
 {
+    clog_warning("[%s] OnRspSubmitUserLoginInfo before.", module_name_);
+	fflush (Log::fp);
+
+
     clog_warning("[%s] OnRspSubmitUserLoginInfo: errorCode: %d, %s",
 				module_name_,
 				errorCode, 
 				ESUNNYDatatypeFormater::ToString(info).c_str());
+    clog_warning("[%s] OnRspSubmitUserLoginInfo end.", module_name_);
+	fflush (Log::fp);
 }
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)

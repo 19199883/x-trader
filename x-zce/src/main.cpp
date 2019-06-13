@@ -65,7 +65,7 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 	// version
-	clog_warning("ver:x-zce_2019-05-24"); 
+	clog_warning("ver:x-zce_2019-06-13"); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;

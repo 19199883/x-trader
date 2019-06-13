@@ -5,6 +5,7 @@
  *      Author: oliver
  */
 
+#include "vrt_value_obj.h"
 #include "esunny_data_formater.h"
 
 using namespace std;
@@ -560,11 +561,14 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPIExchangeStateInfoNotice
 
 std::string ESUNNYDatatypeFormater::ToString(const TapAPISubmitUserLoginRspInfo *pp)
 {
+    clog_warning("[%s] OnRspSubmitUserLoginInfo tostring.", "dd");
+	fflush (Log::fp);
+
     char buf[1024];
     if (pp) {
         snprintf(buf, sizeof(buf), "structName=TapAPISubmitUserLoginRspInfo"
             "UserNo=%s "
-            "ErrorCode=%s "
+            "ErrorCode=%d "
             "ErrorText=%s ",
             pp->UserNo, 
             pp->ErrorCode,
@@ -573,5 +577,7 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPISubmitUserLoginRspInfo 
         snprintf(buf, sizeof(buf), "structName=TapAPISubmitUserLoginRspInfo<null>");
     }
 
+    clog_warning("[%s] OnRspSubmitUserLoginInfo tostring end.", "dd");
+	fflush (Log::fp);
     return buf;
 }

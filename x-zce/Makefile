@@ -4,11 +4,6 @@ CC:=g++
 DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/x-zce/dist
-### 非穿透版
-#INCPATH:=-I$(TOP)/3rd/esunny/include -I$(TOP)/3rd/tinyxml/include \
-#		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/zce_md/include 
-#LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/esunny/lib \
-#		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/zce_md/lib
 
 ### 穿透版
 INCPATH:=-I$(TOP)/3rd/esunny-se/include -I$(TOP)/3rd/tinyxml/include \
@@ -21,9 +16,6 @@ CFLAGS:=
 LDFLAGS:= 
 OBJPATH:=./obj
 BINPATH:=./bin
-### 非穿透版
-#LIBS:=-lpthread -lTapQuoteAPI -lTapTradeAPI  -ltinyxml -lutils -ldl \
-#	  -lbowsprit -lcheck -lclogger -lcork -lvrt -luuid -lboost_filesystem -lboost_system
 #
 ### 穿透版
 LIBS:=-lpthread -lTapQuoteAPI -lTapTradeAPI  -ltinyxml -lutils -ldl \

@@ -30,6 +30,7 @@ void ESUNNYPacker::InitNewOrder(const char *account)
     new_order_.TriggerCondition = TAPI_TRIGGER_CONDITION_NONE;
     new_order_.TriggerPriceType = TAPI_TRIGGER_PRICE_NONE;
     new_order_.AddOneIsValid = APIYNFLAG_NO;
+    new_order_.FutureAutoCloseFlag = APIYNFLAG_NO;
     new_order_.HedgeFlag2 = TAPI_HEDGEFLAG_NONE;
     new_order_.MarketLevel= TAPI_MARKET_LEVEL_0;
     //new_order_.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
