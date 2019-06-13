@@ -14,7 +14,7 @@
 #include <string.h>
 
 
-#define SL_EES_API_VERSION    "3.1.3.47"				///<  api版本号
+#define SL_EES_API_VERSION    "3.1.3.49"				///<  api版本号
 
 typedef int RESULT;										///< 定义返回值 
 typedef int ERR_NO;										///< 定义错误值 
@@ -469,10 +469,11 @@ struct EES_CxlOrderRej
 {
 	EES_Account			m_account;						///< 客户帐号. 
 	EES_MarketToken		m_MarketOrderToken;				///< 盛立内部用的orderID
-	unsigned int		m_ReasonCode;					///< 错误码，每个字符映射一种检查错误原因，见文件末尾的附录，这是用二进制位表示的一个原因组合
-	EES_ReasonText		m_ReasonText;					///< 错误字符串，未使用
+	unsigned int		m_ReasonCode;					///< 错误码，需要配合m_ExchangeID，获取真实原因。参见本文件最后一段
+	EES_ReasonText		m_ReasonText;					///< 错误字符串，由API填写
 	EES_UserID			m_UserID;						///< 要撤订单的 user id，如果是因为找不到原订单，则为0
 	EES_ClientToken		m_ClientOrderToken;				///< 要撤订单的ClientToken，如果是因为找不到原订单，则为0
+	EES_ExchangeID		m_ExchangeID;					///< 撤单拒绝的源，0=柜台直接拒绝。102/103/104等值，表示交易所的撤单拒绝错误码
 };
 
 /// 被动订单
@@ -584,7 +585,6 @@ struct EES_TradeSvrInfo
 //  23	当前账户没有期权交易权限
 //	24	登录用户与连接session不符
 	
-
 // 50- 116由风控拒绝造成，
 // 
 //	50	订单手数限制
@@ -657,16 +657,32 @@ struct EES_TradeSvrInfo
 
 
 
-//	撤销指令的拒绝原因对照表,这是用二进制位表示的一个原因组合,一个位为1，表示该位对应的原因为真
-//	0	整体校验结果 
-//	1	委托尚未被交易所接受
-//	2	要撤销的委托找不到
-//	3	撤销的用户名和委托的用户名不一致
-//	4	撤销的账户和委托的账户不一致
-//	5	委托已经关闭，如已经撤销/成交等
-//	6	重复撤单
-//	7	被动单不能被撤单
-//
+//	撤销拒绝原因对照表，对于交易所的撤单拒绝，不同的交易所给出的ReasonCode有各自的含义，需要独立处理
+//  以下下整理的是目前已知的错误码
+//  REM直接拒绝的错误码： m_ExchangeID = 0
+//	5			-  找不到报单
+//	33			-  报单已撤单或已成交
+//	3			-  报单尚未被市场接受
+//	129			-  外部报单不能从本系统撤单
+//	513			-  无可用于撤单的席位
+//	257			-  客户号或者登录号错误
+//	17			-  客户号或者登录号错误
+//	1025		-  席位流控
+//	2049		-  席位已断开
+//	4097		-  内部错误1
+//	8193		-  内部错误2
+//	16385		-  内部错误3
+//	32769		-  内部错误4
+//	65537		-  内部错误5
+//	131073		-  内部错误6
 
+//上期所已知的错误码： m_ExchangeID = 103
+//	26 - 相关合约非交易时间
+//	28 - 报单已经全部成交
+//	29 - 报单已经撤销
 
+//大商所已知的错误码： m_ExchangeID = 104
+//	40039 - 已经撤单
+//	40040 - 完全成交,不能撤单!
+//	72003 - 无此撤销定单
 #endif
