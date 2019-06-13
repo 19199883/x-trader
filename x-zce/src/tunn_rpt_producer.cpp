@@ -187,6 +187,9 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 					module_name_,latency); 
 #endif
 	if (ret != 0){
+		//因为穿透版，权限问题采集信息不全，临时方案 
+		if(TAPIERROR_API_NotReady == ret) ret = 0;
+
 		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
 	}else {
