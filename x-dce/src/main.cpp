@@ -29,7 +29,7 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	Log::fp = fp;
@@ -54,6 +54,12 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 
+#ifdef LOCK_POSITION_DISNABLE
+	clog_warning("LOCK_POSITION_DISNABLE"); 
+#elif  LOCK_POSITION_ENABLE	
+	clog_warning("LOCK_POSITION_ENABLE"); 
+#endif
+
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;
 	sigemptyset(&SIGINT_act.sa_mask);
@@ -62,7 +68,7 @@ int main(/*int argc, const char **argv*/)
 
 
 	// version
-	clog_warning("version:dce_2019-6-12_r"); 
+	clog_warning("version:dce_2019-6-13_d"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;

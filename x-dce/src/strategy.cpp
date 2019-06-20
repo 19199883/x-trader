@@ -385,6 +385,7 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 {
 	int updated_vol = 0;
 
+#ifdef LOCK_POSITION_DISNABLE	
 	if (sig_openclose==alloc_position_effect_t::open_&& sig_act==signal_act_t::buy){
 		if (position_.frozen_open_long==0){
 			updated_vol = GetMaxPosition() - position_.cur_long + position_.cur_short;
@@ -412,8 +413,11 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 	}
 
 	if (updated_vol > vol) updated_vol = vol; 
+#elif  LOCK_POSITION_ENABLE	
+	updated_vol = vol;
+#endif
 
-	clog_debug("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
+	clog_info("[%s] GetAvailableVol: strategy id:%d; signal id:%d; current long:%d; current short:%d; "
 			"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; "
 			"frozen_open_short:%d; updated vol:%d",
 			module_name_, setting_.config.st_id, sig_id, position_.cur_long, position_.cur_short,
