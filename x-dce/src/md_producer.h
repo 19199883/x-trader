@@ -27,6 +27,8 @@ struct Mdconfig
 	int port;
 	char contracts_file[500];
 	char yield[20]; // disruptor yield strategy
+	char user[20];
+	char pwd[20];
 };
 
 enum EDataType
@@ -40,6 +42,9 @@ enum EDataType
 };
 
 class MDProducer
+#ifdef DCE_DATA_FEED
+: public DFITC_L2::DFITCL2Spi
+#endif
 {
 	public:
 		MDProducer(struct vrt_queue  *queue);
@@ -57,12 +62,35 @@ class MDProducer
 		// lic
 		MDBestAndDeep_MY* GetLastDataForIllegaluser(const char *contract);
 
+#ifdef DCE_DATA_FEED
+	void OnConnected();
+	void OnDisconnected(int pReason);
+	void OnRspUserLogin(struct ErrorRtnField * pErrorField);
+	void OnRspUserLogout(struct ErrorRtnField * pErrorField);
+	void OnRspSubscribeMarketData(struct ErrorRtnField * pErrorField);
+	void OnRspUnSubscribeMarketData(ErrorRtnField * pErrorField);
+	void OnRspSubscribeAll(struct ErrorRtnField * pErrorField);
+	void OnRspUnSubscribeAll(struct ErrorRtnField * pErrorField);
+	void OnRspModifyPassword(struct ErrorRtnField * pErrorField);
+	void OnHeartBeatLost();
+
+	void OnBestAndDeep(MDBestAndDeep * const pQuote, UINT4 SequenceNo);
+	void OnArbi(MDBestAndDeep * const pQuote, UINT4 SequenceNo);
+	void OnTenEntrust(MDTenEntrust * const pQuote, UINT4 SequenceNo);
+	void OnRealtime(MDRealTimePrice * const pQuote, UINT4 SequenceNo);
+	void OnOrderStatistic(MDOrderStatistic * const pQuote, UINT4 SequenceNo);
+	void OnMarchPrice(MDMarchPriceQty * const pQuote, UINT4 SequenceNo);
+#endif
+
 	private:
 		int32_t Push(const MDBestAndDeep_MY& md);
 		int32_t Push(const MDOrderStatistic_MY& md);
 
 		const char *module_name_;  
 		int udp_fd_;
+#ifdef DCE_DATA_FEED
+		DFITCL2Api * api_;
+#endif
 
 		bool ended_;
 		Mdconfig config_;
@@ -76,7 +104,7 @@ class MDProducer
 		void RevData();
 		std::thread *thread_rev_;
 		int32_t dominant_contract_count_;
-		char dominant_contracts_[20][10];
+		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
 
 		struct vrt_producer  *producer_;
 		std::array<MDOrderStatistic_MY, MD_BUFFER_SIZE> orderstatistic_buffer_;

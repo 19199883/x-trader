@@ -413,7 +413,9 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 	}
 
 	if (updated_vol > vol) updated_vol = vol; 
-#elif  LOCK_POSITION_ENABLE	
+#endif
+
+#ifdef  LOCK_POSITION_ENABLE	
 	updated_vol = vol;
 #endif
 

@@ -56,7 +56,8 @@ int main(/*int argc, const char **argv*/)
 
 #ifdef LOCK_POSITION_DISNABLE
 	clog_warning("LOCK_POSITION_DISNABLE"); 
-#elif  LOCK_POSITION_ENABLE	
+#endif
+#ifdef  LOCK_POSITION_ENABLE	
 	clog_warning("LOCK_POSITION_ENABLE"); 
 #endif
 

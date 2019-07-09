@@ -129,7 +129,9 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
+#ifdef DCE_OLD
     thread_rev_ = new std::thread(&MDProducer::RevData, this);
+#endif
 }
 
 void MDProducer::ParseConfig()
@@ -148,7 +150,11 @@ void MDProducer::ParseConfig()
     TiXmlElement *fdmd_node = RootElement->FirstChildElement("Md");
 	if (fdmd_node != NULL){
 		config_.addr = fdmd_node->Attribute("addr");
-	} else { clog_error("[%s] x-shmd.config error: FulldepthMd node missing.", module_name_); }
+		strcpy(config_.user, fdmd_node->Attribute("user"));
+		strcpy(config_.pwd, fdmd_node->Attribute("pwd"));
+	} else { 
+		clog_error("[%s] x-shmd.config error: FulldepthMd node missing.", module_name_); 
+	}
 
 	// contracts file
     TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
@@ -168,12 +174,18 @@ MDProducer::~MDProducer()
     if (p_save_best_and_deep_) delete p_save_best_and_deep_;
     if (p_save_order_statistic_) delete p_save_order_statistic_;
 #endif
+
+#ifdef DCE_DATA_FEED
+	DELETE_CONNECTOR(api_);
+#endif
 }
 
 int MDProducer::InitMDApi()
 {
+	int udp_client_fd = 0;
+#ifdef DCE_OLD
     // init udp socket
-    int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
     /* set reuse and non block for this socket */
     int son = 1;
     setsockopt(udp_client_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &son, sizeof(son));
@@ -212,10 +224,131 @@ int MDProducer::InitMDApi()
     if (ret != 0){
         clog_error("UDP - set SO_BROADCAST failed.");
     }
+#endif
+
+#ifdef DCE_DATA_FEED
+	api_ = NEW_CONNECTOR();
+	if(NULL==api_){
+		clog_error("[%s] CreateUdpFD failed.",module_name_);
+	}
+	int err = api_->Connect(config_.addr, this, 0);
+	clog_error("[%s] addr:%s.Connect: %d",module_name_, config_.addr, err);
+#endif
 
     return udp_client_fd;
 }
 
+#ifdef DCE_DATA_FEED
+void  MDProducer::OnConnected()
+{
+	clog_warning("OnConnected.");
+
+	struct DFITCUserLoginField data;
+	strcpy(data.accountID, config_.user);
+	strcpy(data.passwd, config_.pwd);
+	int err = api_->ReqUserLogin(&data);
+	clog_warning("[%s]user:%s; pwd:%s. ReqUserLogin: %d", 
+				module_name_,
+				conifg_.user,
+				config_.pwd,
+				err);
+}
+
+void  MDProducer::OnDisconnected(int pReason)
+{
+	clog_warning("[%s] OnDisconnected: %d", module_name_, pReason);
+}
+
+void  MDProducer::OnRspUserLogin(struct ErrorRtnField * pErrorField)
+{
+	clog_warning("[%s]  OnRspUserLogin ErrorID: %d; ErrorMsg: %s", 
+				module_name_,
+			 	pErrorField->ErrorID,
+				pErrorField->ErrorMsg);
+
+#ifndef PERSISTENCE_ENABLED 
+	api_->SubscribeMarketData(dominant_contracts_, dominant_contract_count_);
+#endif 
+
+#ifdef PERSISTENCE_ENABLED 
+	api_->SubscribeAll();
+#endif
+}
+
+void  MDProducer::OnRspUserLogout(struct ErrorRtnField * pErrorField)
+{
+	clog_warning("[%s]  OnRspUserLogout ErrorID: %d; ErrorMsg: %s", 
+				module_name_,
+			 	pErrorField->ErrorID,
+				pErrorField->ErrorMsg);
+}
+
+void  MDProducer::OnRspSubscribeMarketData(struct ErrorRtnField * pErrorField)
+{
+	clog_warning("[%s]  OnRspSubscribeMarketData ErrorID: %d; ErrorMsg: %s", 
+				module_name_,
+			 	pErrorField->ErrorID,
+				pErrorField->ErrorMsg);
+}
+
+void  MDProducer::OnRspUnSubscribeMarketData(ErrorRtnField * pErrorField)
+{
+	clog_warning("[%s]  OnRspUnSubscribeMarketData ErrorID: %d; ErrorMsg: %s", 
+				module_name_,
+			 	pErrorField->ErrorID,
+				pErrorField->ErrorMsg);
+}
+
+void  MDProducer::OnRspSubscribeAll(struct ErrorRtnField * pErrorField)
+{
+	clog_warning("[%s]  OnRspSubscribeAll ErrorID: %d; ErrorMsg: %s", 
+				module_name_,
+			 	pErrorField->ErrorID,
+				pErrorField->ErrorMsg);
+}
+
+void  MDProducer::OnRspUnSubscribeAll(struct ErrorRtnField * pErrorField)
+{
+	clog_warning("[%s]  OnRspUnSubscribeAll ErrorID: %d; ErrorMsg: %s", 
+				module_name_,
+			 	pErrorField->ErrorID,
+				pErrorField->ErrorMsg);
+}
+
+void  MDProducer::OnRspModifyPassword(struct ErrorRtnField * pErrorField)
+{
+}
+
+void  MDProducer::OnHeartBeatLost()
+{
+	clog_warning("[%s]  OnHeartBeatLost", module_name_);
+}
+
+void  MDProducer::OnBestAndDeep(MDBestAndDeep * const pQuote, UINT4 SequenceNo)
+{
+}
+void  MDProducer::OnArbi(MDBestAndDeep * const pQuote, UINT4 SequenceNo)
+{
+}
+
+void  MDProducer::OnTenEntrust(MDTenEntrust * const pQuote, UINT4 SequenceNo)
+{
+}
+
+void  MDProducer::OnRealtime(MDRealTimePrice * const pQuote, UINT4 SequenceNo)
+{
+}
+
+void  MDProducer::OnOrderStatistic(MDOrderStatistic * const pQuote, UINT4 SequenceNo)
+{
+}
+
+void  MDProducer::OnMarchPrice(MDMarchPriceQty * const pQuote, UINT4 SequenceNo)
+{
+}
+#endif
+
+#ifdef DCE_OLD
 void MDProducer::RevData()
 {
 	int udp_fd = InitMDApi();
@@ -282,7 +415,7 @@ void MDProducer::RevData()
 
 	clog_warning("[%s] RevData exit.",module_name_);
 }
-
+#endif
 
 void MDProducer::End()
 {

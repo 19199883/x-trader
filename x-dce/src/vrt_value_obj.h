@@ -4,6 +4,18 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#ifdef PERSISTENCE_ENABLED 
+	#define MAX_CONTRACT_COUNT 1000
+#else
+	#define MAX_CONTRACT_COUNT 20
+#endif
+
+/*
+* DCE_DATA_FEED: 大连data feed组播行情
+* DCE_OLD: 大连李杨时的旧行情
+ */
+#define QUOTE_OPTION DCE_OLD
+
 /*
  * 锁仓，非锁仓开关.
  *  
@@ -14,7 +26,7 @@
 // 延迟度量
 //#define LATENCY_MEASURE
 // 行情持久化开关
-//#define PERSISTENCE_ENABLED
+#define PERSISTENCE_ENABLED
 
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
