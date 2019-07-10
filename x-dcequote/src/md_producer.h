@@ -21,7 +21,8 @@
 
 using namespace std;
 using namespace DFITC_L2;
-using boost::asio::ip::tcp;
+using boost::asio::ip::udp;
+//using boost::asio::ip;
 
 struct Mdconfig
 {
@@ -82,9 +83,13 @@ class MDProducer : public DFITC_L2::DFITCL2Spi
 
 	
 		void Server();
+		//boost::asio::io_context io_context_;
 		boost::asio::io_service io_service_;
-		int port_;
-		std::vector<tcp::socket> socks_;
+		int broadcast_port_;
+		char broadcast_ip_[20];
+		//std::vector<tcp::socket> socks_;
+		udp::socket *sock_;
+		udp::endpoint *broadcast_endpoint_;
 		// 记录连接是否有效。
 		// 位置与socks一一对应，1-有效；0-无效：
 		int valid_conn_[MAX_CONN_COUNT];
