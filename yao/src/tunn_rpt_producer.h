@@ -195,7 +195,7 @@ class TunnRptProducer: public CThostFtdcTraderSpi
 		 * true:夜盘交易
 		 * false：日盘交易
 		 */
-		int IsNightTrading;
+		//int IsNightTrading;
 	private:
 		/*
 		 * things relating to ctp API

@@ -10,7 +10,7 @@
 #include <signal.h>     /* signal */
 #include "vrt_value_obj.h"
 #include "l2md_producer.h"
-#include "tap_md_producer.h"
+//#include "tap_md_producer.h"
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
 #include "pos_calcu.h"
@@ -20,7 +20,7 @@
 #define  QUEUE_SIZE  4096
 UniConsumer *uniConsumer = NULL;
 DceMDProducer *dcemd_producer = NULL;
-TapMDProducer *l1_md_producer = NULL; 
+//TapMDProducer *l1_md_producer = NULL; 
 TunnRptProducer *tunnRptProducer = NULL;
 
 static void
@@ -95,11 +95,11 @@ int main(/*int argc, const char **argv*/)
 
   delete tunnRptProducer; 
 	delete dcemd_producer; 
-	delete l1_md_producer;
+	//delete l1_md_producer;
   delete uniConsumer;
 
 // clog: free resources
-	pos_calc::destroy_instance();
+	//pos_calc::destroy_instance();
 	clog_handler_free(clog_handler);
 
 	return 0;

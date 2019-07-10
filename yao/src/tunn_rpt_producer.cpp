@@ -219,13 +219,13 @@ void TunnRptProducer::OnHeartBeatWarning(int nTimeLapse)
 
 int TunnRptProducer::GetTradingDay()
 {
-	return this->TradingDay_;
+	return 0; //this->TradingDay_;
 }
 
-bool TunnRptProducer::IsNightTrading()
-{
-	return this->IsNightTrading;
-}
+//bool TunnRptProducer::IsNightTrading()
+//{
+//	return this->IsNightTrading;
+//}
 
 void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, 
 	CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -235,20 +235,20 @@ void TunnRptProducer::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 		CtpDatatypeFormater::ToString(pRspUserLogin).c_str(),
         CtpDatatypeFormater::ToString(pRspInfo).c_str());
 
-	this->TradingDay_ = stoi(pRspUserLogin->TradingDay);
+	//this->TradingDay_ = stoi(pRspUserLogin->TradingDay);
 
 	char login_hour[3] = {0};
-	strncpy(login_hour, pRspUserLogin->loginTime, 2);
-	int hours = stoi(login_hour);
-	if(hours>=8 && hours<16){
-		this->IsNightTrading = 0;
-	}else{
-		this->IsNightTrading = 1;
-	}
-    clog_warning("[%s] TradingDay:%d; IsNightTrading:%d",
-				module_name_,
-				this->config_.TradingDay,
-				this->config_.IsNightTrading);
+//	strncpy(login_hour, pRspUserLogin->loginTime, 2);
+//	int hours = stoi(login_hour);
+//	if(hours>=8 && hours<16){
+//		this->IsNightTrading = 0;
+//	}else{
+//		this->IsNightTrading = 1;
+//	}
+//    clog_warning("[%s] TradingDay:%d; IsNightTrading:%d",
+//				module_name_,
+//				this->config_.TradingDay,
+//				this->config_.IsNightTrading);
 
 	this->frontid_ = pRspUserLogin->FrontID;	
 	this->sessionid_ = pRspUserLogin->SessionID;	
@@ -350,7 +350,7 @@ void TunnRptProducer::End()
 {
 	if(!ended_){
 		CThostFtdcUserLogoutField logoutinfo;
-		memest(&logoutinfo, 0, sizeof(logoutinfo));		 
+		memset(&logoutinfo, 0, sizeof(logoutinfo));		 
 		strncpy(logoutinfo.BrokerID, this->config_.brokerid.c_str(), 
 				sizeof(logoutinfo.BrokerID));
 		strncpy(logoutinfo.UserID, this->config_.userid.c_str(), 
@@ -572,71 +572,71 @@ void TunnRptProducer::FillInitPosition(CThostFtdcInvestorPositionField *posiFiel
 	int index = 0;
 
 	// 同一合约，保证存储在_cur_pos，_yesterday_pos中存储在同一个索引位置，方便查找
-	if (posField != NULL) {		
-		int i=0;
-		for(; i<init_positions._cur_pos.symbol_cnt_; i++){
-			if(strcmp(init_positions._cur_pos[i].symbol,posField->InstrumentID)==0){
-				break;
-			}
-		}
-		index = i;
-		strncpy(init_positions._cur_pos[i].symbol, posField->InstrumentID,
-				sizeof(init_positions._cur_pos[i].symbol);
-		strncpy(init_positions._yesterday_pos[i].symbol, posField->InstrumentID,
-				sizeof(init_positions._yesterday_pos[i].symbol);
-
-		if(posField->PosiDirection==THOST_FTDC_PD_Long){
-			init_positions._cur_pos[i].long_volume = posField->TodayPosition;
-			init_positions._yesterday_pos[i].long_volume = 
-				posField->Position - posField->TodayPosition;
-		}
-		else if(posField->PosiDirection==THOST_FTDC_PD_Short){
-			init_positions._cur_pos[i].short_volume = posField->TodayPosition;
-			init_positions._yesterday_pos[i].short_volume = 
-				posField->Position - posField->TodayPosition;
-		}
-		else{
-			clog_warning("[%s] CThostFtdcInvestorPositionField.PosiDirection is net position!", 
-				module_name_);
-		}
-	}
+//	if (posiField != NULL) {		
+//		int i=0;
+//		for(; i<init_positions._cur_pos.symbol_cnt_; i++){
+//			if(strcmp(init_positions._cur_pos[i].symbol,posField->InstrumentID)==0){
+//				break;
+//			}
+//		}
+//		index = i;
+//		strncpy(init_positions._cur_pos[i].symbol, posField->InstrumentID,
+//				sizeof(init_positions._cur_pos[i].symbol);
+//		strncpy(init_positions._yesterday_pos[i].symbol, posField->InstrumentID,
+//				sizeof(init_positions._yesterday_pos[i].symbol);
+//
+//		if(posField->PosiDirection==THOST_FTDC_PD_Long){
+//			init_positions._cur_pos[i].long_volume = posField->TodayPosition;
+//			init_positions._yesterday_pos[i].long_volume = 
+//				posField->Position - posField->TodayPosition;
+//		}
+//		else if(posField->PosiDirection==THOST_FTDC_PD_Short){
+//			init_positions._cur_pos[i].short_volume = posField->TodayPosition;
+//			init_positions._yesterday_pos[i].short_volume = 
+//				posField->Position - posField->TodayPosition;
+//		}
+//		else{
+//			clog_warning("[%s] CThostFtdcInvestorPositionField.PosiDirection is net position!", 
+//				module_name_);
+//		}
+	//}
 }
 
 void TunnRptProducer::SavePosition()
 {
-	std::ofstream of;
-	of.open("pos_sum.pos",std::ofstream::trunc);
-	if (of.good()) {
-		for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
-			char buffer[10];
-			const char *contract = init_positions._cur_pos[i].symbol;
-			// contract
-			of.write(contract, strlen(contract));	
-			of.write(";", 1);	
-			// yesterday long position
-			snprintf (buffer, sizeof(buffer), "%d", init_positions._yesterday_pos[i].long_volume);
-			of.write(buffer, strlen(buffer));
-			of.write(";", 1);	
-			// yesterday short position
-			snprintf (buffer, sizeof(buffer), "%d", init_positions._yesterday_pos[i].short_volume);
-			of.write(buffer, strlen(buffer));
-			of.write(";", 1);	
-			// today long position
-			snprintf (buffer, sizeof(buffer), "%d", init_positions._cur_pos[i].long_volume);
-			of.write(buffer, strlen(buffer));
-			of.write(";", 1);	
-			// today short position
-			snprintf (buffer, sizeof(buffer), "%d", init_positions._cur_pos[i].short_volume);
-			of.write(buffer, strlen(buffer));
-			of.write(";", 1);	
-			of.write("\n", 1);	
-		} // end for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
-	}
-	else{
-		clog_error("[%s] SavePosition failed due to failure to open file.", module_name_);
-	}
-
-	of.close();
+//	std::ofstream of;
+//	of.open("pos_sum.pos",std::ofstream::trunc);
+//	if (of.good()) {
+//		for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
+//			char buffer[10];
+//			const char *contract = init_positions._cur_pos[i].symbol;
+//			// contract
+//			of.write(contract, strlen(contract));	
+//			of.write(";", 1);	
+//			// yesterday long position
+//			snprintf (buffer, sizeof(buffer), "%d", init_positions._yesterday_pos[i].long_volume);
+//			of.write(buffer, strlen(buffer));
+//			of.write(";", 1);	
+//			// yesterday short position
+//			snprintf (buffer, sizeof(buffer), "%d", init_positions._yesterday_pos[i].short_volume);
+//			of.write(buffer, strlen(buffer));
+//			of.write(";", 1);	
+//			// today long position
+//			snprintf (buffer, sizeof(buffer), "%d", init_positions._cur_pos[i].long_volume);
+//			of.write(buffer, strlen(buffer));
+//			of.write(";", 1);	
+//			// today short position
+//			snprintf (buffer, sizeof(buffer), "%d", init_positions._cur_pos[i].short_volume);
+//			of.write(buffer, strlen(buffer));
+//			of.write(";", 1);	
+//			of.write("\n", 1);	
+//		} // end for(int i=0; i<init_positions._cur_pos.symbol_cnt_; i++){
+//	}
+//	else{
+//		clog_error("[%s] SavePosition failed due to failure to open file.", module_name_);
+//	}
+//
+//	of.close();
 }
 
 bool TunnRptProducer::IsReady()

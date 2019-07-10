@@ -135,8 +135,8 @@ void UniConsumer::CreateStrategies()
 		Strategy &strategy = stra_table_[strategy_counter_];
 
 		// TODO: yao
-		seting.config.TradingDay = this->tunn_rpt_producer_->TradingDay;
-		seting.config.IsNightTrading = this->tunn_rpt_producer_->IsNightTrading;
+		//seting.config.TradingDay = this->tunn_rpt_producer_->TradingDay;
+		//seting.config.IsNightTrading = this->tunn_rpt_producer_->IsNightTrading;
 
 		strategy.Init(setting, this->pproxy_);
 		// mapping table
@@ -184,13 +184,13 @@ void UniConsumer::Start()
 
 	////
 	
-	signal_t orig_sig;
-	CThostFtdcInputOrderActionField* ordAct = CtpFieldConverter::Convert(
-				exchange_names::SHFE, 
-				"rb1910", 
-				tunn_rpt_producer_->NewLocalOrderID(34),
-				localorderid,
-				"");
+//	signal_t orig_sig;
+//	CThostFtdcInputOrderActionField* ordAct = CtpFieldConverter::Convert(
+//				exchange_names::SHFE, 
+//				"rb1910", 
+//				tunn_rpt_producer_->NewLocalOrderID(34),
+//				localorderid,
+//				"");
 	//this->tunn_rpt_producer_->ReqOrderAction(ordAct);
 
 	sig.sig_id = 35;
@@ -268,41 +268,42 @@ void UniConsumer::Stop()
 }
 
 // TODO: 需要支持Yao的行情
-void UniConsumer::ProcYaoQuote(int32_t index)
-{
-#ifdef LATENCY_MEASURE
-		 static int cnt = 0;
-		 perf_ctx::insert_t0(cnt);
-		 cnt++;
-#endif
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-
-	YaoQuote* md = md_producer_->Data(index);
-
-	clog_debug("[%s] [YaoQuote] index: %d; contract: %s", module_name_, index, md->Contract);
-
-	for(int i = 0; i < strategy_counter_; i++){ 
-		int sig_cnt = 0;
-		Strategy &strategy = stra_table_[i];
-		// TODO: 需要支持多个合约
-		if (strategy.Subscribed(md->Contract)){
-			 strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-			WriteStrategyLog(strategy);
-			ProcSigs(strategy, sig_cnt, sig_buffer_);
-		}
-	}
-
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-		clog_warning("[%s] ProcBestAndDeep latency:%d us", module_name_, latency); 
-#endif
-}
+//void UniConsumer::ProcYaoQuote(int32_t index)
+//{
+//#ifdef LATENCY_MEASURE
+//		 static int cnt = 0;
+//		 perf_ctx::insert_t0(cnt);
+//		 cnt++;
+//#endif
+//#ifdef LATENCY_MEASURE
+//		high_resolution_clock::time_point t0 = high_resolution_clock::now();
+//#endif
+//
+//	YaoQuote* md = md_producer_->Data(index);
+//
+//	clog_debug("[%s] [YaoQuote] index: %d; contract: %s", module_name_, index, md->Contract);
+//
+//	for(int i = 0; i < strategy_counter_; i++){ 
+//		int sig_cnt = 0;
+//		Strategy &strategy = stra_table_[i];
+//		// TODO: 需要支持多个合约
+//		if (strategy.Subscribed(md->Contract)){
+//			 strategy.FeedMd(md, &sig_cnt, sig_buffer_);
+//			WriteStrategyLog(strategy);
+//			ProcSigs(strategy, sig_cnt, sig_buffer_);
+//		}
+//	}
+//
+//#ifdef LATENCY_MEASURE
+//		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+//		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
+//		clog_warning("[%s] ProcBestAndDeep latency:%d us", module_name_, latency); 
+//#endif
+//}
 
 void UniConsumer::ProcTunnRpt(int32_t index)
 {
+	Strategy strategy;
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
@@ -341,11 +342,11 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	// TODO: debug end
 	// //////////////////
 
-	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
-	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
-	const char* contract = strategy.GetContractBySigIdx(sig_idx);
-	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
-	WriteStrategyLog(strategy);
+//	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
+//	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
+//	const char* contract = strategy.GetContractBySigIdx(sig_idx);
+//	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
+//	WriteStrategyLog(strategy);
 
 	// TODO: to here
 #ifdef COMPLIANCE_CHECK
@@ -353,12 +354,12 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	if (rpt->OrderStatus == THOST_FTDC_OST_PartTradedNotQueueing ||
 			rpt->OrderStatus == THOST_FTDC_OST_NoTradeNotQueueing ||
 			rpt->OrderStatus == THOST_FTDC_OST_Canceled){
-		compliance_.AccumulateCancelTimes(contract);
+		//compliance_.AccumulateCancelTimes(contract);
 	}
 
 	if (tunn_rpt_producer_->IsFinal(rpt->OrderStatus)){
-		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
-		compliance_.End(counter);
+//		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
+//		compliance_.End(counter);
 	}
 #endif
 

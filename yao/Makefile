@@ -4,10 +4,14 @@ CC:=g++
 DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/yao/dist
-INCPATH:=-I$(TOP)/3rd/ctp/include_se -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include \
+
+#######
+# zhongxin test
+##
+INCPATH:=-I$(TOP)/3rd/ctp_zx_test/include -I$(TOP)/3rd/tinyxml/include -I$(TOP)/3rd/utils/include \
 		 -I$(TOP)/3rd/zce_md/include -I$(TOP)/3rd/dce_md/include -I$(TOP)/3rd/shfe_md/include
 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ctp/lib -L$(TOP)/3rd/tinyxml/lib \
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ctp_zx_test/lib -L$(TOP)/3rd/tinyxml/lib \
 		-L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/zce_md/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
