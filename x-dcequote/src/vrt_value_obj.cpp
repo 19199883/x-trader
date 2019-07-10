@@ -1,1 +1,2 @@
-/home/wangying/github/yao/common/vrt_value_obj.cpp
+#include "vrt_value_obj.h"
+FILE *Log::fp = NULL;/*文件指针*/

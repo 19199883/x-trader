@@ -1,1 +1,2 @@
-/home/wangying/github/yao/common/quote_cmn_save.cpp
+﻿#include "quote_cmn_save.h"
+

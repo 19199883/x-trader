@@ -1,1 +1,0 @@
-/home/wangying/github/yao/common/YaoQuote.h
