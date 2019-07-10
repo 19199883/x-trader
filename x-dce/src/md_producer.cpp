@@ -129,9 +129,13 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
+	// TODO: debug
+	clog_info("[test] before rev ", module_name_);
 #ifdef DCE_OLD
+	clog_info("[test]  rev ", module_name_);
     thread_rev_ = new std::thread(&MDProducer::RevData, this);
 #endif
+	fflush (Log::fp);
 }
 
 void MDProducer::ParseConfig()
@@ -224,6 +228,8 @@ int MDProducer::InitMDApi()
     if (ret != 0){
         clog_error("UDP - set SO_BROADCAST failed.");
     }
+
+	fflush (Log::fp);
 #endif
 
 #ifdef DCE_DATA_FEED
@@ -231,8 +237,9 @@ int MDProducer::InitMDApi()
 	if(NULL==api_){
 		clog_error("[%s] CreateUdpFD failed.",module_name_);
 	}
-	int err = api_->Connect(config_.addr, this, 0);
-	clog_error("[%s] addr:%s.Connect: %d",module_name_, config_.addr, err);
+	// 0为udp接收行情，1为tcp接收行情，2为多播接收行情
+	int err = api_->Connect((char*)config_.addr.c_str(), this, 2); 
+	clog_error("[%s] addr:%s.Connect: %d",module_name_, config_.addr.c_str(), err);
 #endif
 
     return udp_client_fd;
@@ -241,16 +248,16 @@ int MDProducer::InitMDApi()
 #ifdef DCE_DATA_FEED
 void  MDProducer::OnConnected()
 {
-	clog_warning("OnConnected.");
+	clog_warning("[%s] OnConnected.",module_name_);
 
 	struct DFITCUserLoginField data;
 	strcpy(data.accountID, config_.user);
 	strcpy(data.passwd, config_.pwd);
 	int err = api_->ReqUserLogin(&data);
-	clog_warning("[%s]user:%s; pwd:%s. ReqUserLogin: %d", 
+	clog_warning("[%s] user:%s; pwd:%s. ReqUserLogin: %d", 
 				module_name_,
-				conifg_.user,
-				config_.pwd,
+				this->config_.user,
+				this->config_.pwd,
 				err);
 }
 
@@ -324,27 +331,67 @@ void  MDProducer::OnHeartBeatLost()
 	clog_warning("[%s]  OnHeartBeatLost", module_name_);
 }
 
-void  MDProducer::OnBestAndDeep(MDBestAndDeep * const pQuote, UINT4 SequenceNo)
+void  MDProducer::OnBestAndDeep(MDBestAndDeep * const p, UINT4 SequenceNo)
 {
+	clog_warning("[%s] OnBestAndDeep sn:%d", module_name_, SequenceNo);
+
+	if(!(IsDominant(p->Contract))) return; // 抛弃非主力合约
+
+	Convert(*p, bestanddeep_);
+
+#ifdef PERSISTENCE_ENABLED 
+	timeval t;
+	gettimeofday(&t, NULL);
+	p_save_best_and_deep_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &bestanddeep_);
+#endif
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	vrt_producer_claim(producer_, &vvalue);
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = Push(bestanddeep_);
+	ivalue->data = BESTANDDEEP;
+	vrt_producer_publish(producer_);
 }
 void  MDProducer::OnArbi(MDBestAndDeep * const pQuote, UINT4 SequenceNo)
 {
+	clog_warning("[%s] OnArbi  sn:%d", module_name_, SequenceNo);
 }
 
 void  MDProducer::OnTenEntrust(MDTenEntrust * const pQuote, UINT4 SequenceNo)
 {
+	clog_warning("[%s] OnTenEntrust sn:%d", module_name_, SequenceNo);
 }
 
 void  MDProducer::OnRealtime(MDRealTimePrice * const pQuote, UINT4 SequenceNo)
 {
+	clog_warning("[%s] OnRealtime  sn:%d", module_name_, SequenceNo);
 }
 
-void  MDProducer::OnOrderStatistic(MDOrderStatistic * const pQuote, UINT4 SequenceNo)
+void  MDProducer::OnOrderStatistic(MDOrderStatistic * const p, UINT4 SequenceNo)
 {
+	clog_warning("[%s] OnOrderStatistic sn:%d", module_name_, SequenceNo);
+
+	if(!(IsDominant(p->ContractID))) return; // 抛弃非主力合约
+
+	Convert(*p, orderstatistic_);
+
+#ifdef PERSISTENCE_ENABLED 
+	timeval t;
+	gettimeofday(&t, NULL);
+	p_save_order_statistic_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &orderstatistic_);
+#endif
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	vrt_producer_claim(producer_, &vvalue);
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = Push(orderstatistic_);
+	ivalue->data = ORDERSTATISTIC_DATA;
+	vrt_producer_publish(producer_);
 }
 
 void  MDProducer::OnMarchPrice(MDMarchPriceQty * const pQuote, UINT4 SequenceNo)
 {
+	clog_warning("[%s] OnMarchPrice sn:%d", module_name_, SequenceNo);
 }
 #endif
 
@@ -362,6 +409,7 @@ void MDProducer::RevData()
 
     clog_debug("[%s] DCE_UDP-sizeof(MDBestAndDeep):%u", module_name_, sizeof(MDBestAndDeep));
     clog_debug("[%s] DCE_UDP-sizeof(MDOrderStatistic):%u", module_name_, sizeof(MDOrderStatistic));
+	fflush (Log::fp);
 
     char buf[2048];
     int data_len = 0;
@@ -369,6 +417,7 @@ void MDProducer::RevData()
     unsigned int addr_len = sizeof(sockaddr_in);
     while (!ended_){
         data_len = recvfrom(udp_fd, buf, 2048, 0, (sockaddr *) &src_addr, &addr_len);
+
         if (data_len > 0){
             int type = (int) buf[0];
             if (type == EDataType::eMDBestAndDeep){

@@ -14,7 +14,7 @@
 * DCE_DATA_FEED: 大连data feed组播行情
 * DCE_OLD: 大连李杨时的旧行情
  */
-#define QUOTE_OPTION DCE_OLD
+#define  DCE_DATA_FEED
 
 /*
  * 锁仓，非锁仓开关.

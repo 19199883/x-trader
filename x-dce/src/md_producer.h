@@ -13,12 +13,17 @@
 #include "quote_cmn_save.h"
 #include "quote_cmn_utility.h"
 
+#ifdef DCE_DATA_FEED
+	#include "DFITCL2Api.h"
+#endif
+
 /*
  * 10 power of 2
  */
 #define MD_BUFFER_SIZE 1000 
 
 using namespace std;
+using namespace DFITC_L2;
 
 struct Mdconfig
 {
