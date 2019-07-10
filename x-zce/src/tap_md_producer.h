@@ -91,7 +91,7 @@ class TapMDProducer : public ITapQuoteAPINotify
 		 */
 		bool IsDominant(const char*commciodity_no, const char* contract_no);
 		int32_t dominant_contract_count_;
-		char dominant_contracts_[40][10];
+		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
 
 		TapAPIQuoteWhole target_data_;
 

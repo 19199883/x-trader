@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#ifdef PERSISTENCE_ENABLED 
+	#define MAX_CONTRACT_COUNT 1000
+#else
+	#define MAX_CONTRACT_COUNT 20
+#endif
+
 //#define LATENCY_MEASURE
 // 行情持久化开关
 // #define PERSISTENCE_ENABLED
