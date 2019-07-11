@@ -8,7 +8,6 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include "md_producer.h"
-#include "quote_cmn_utility.h"
 
 using namespace std;
 using namespace std::placeholders;
@@ -19,11 +18,6 @@ using boost::asio::ip::udp;
 MDProducer::MDProducer()
 :module_name_("MDProducer"), io_service_()
 {
-//	memset(valid_conn_, 0, sizeof(valid_conn_));
-//	for(int i=0; i<MAX_CONN_COUNT; i++){
-//		socks_.push_back(tcp::socket(io_service_));
-//	}
-	
 	ended_ = false;
 	clog_warning("[%s] MD_BUFFER_SIZE: %d;", module_name_, MD_BUFFER_SIZE);
 
@@ -78,7 +72,6 @@ MDProducer::~MDProducer()
 
 int MDProducer::InitMDApi()
 {
-	//std::thread(&MDProducer::Server, this).detach();
 	Server();
 	
 	api_ = NEW_CONNECTOR();
@@ -175,34 +168,13 @@ void  MDProducer::OnBestAndDeep(MDBestAndDeep * const p, UINT4 SequenceNo)
 {
 	char buffer[8192];
 	int total = 1 + sizeof(MDBestAndDeep);
-	//sock_->send_to(boost::asio::buffer(buffer, total), *broadcast_endpoint_);
+	buffer[0] = EDataType::eMDBestAndDeep;
+	memcpy(buffer+1, p, sizeof(MDBestAndDeep));
+	sock_->send_to(boost::asio::buffer(buffer, total), *broadcast_endpoint_);
 	
 	clog_warning("[%s] OnBestAndDeep sn:%d", module_name_, SequenceNo);
-
-	// TODO:
-	//for(int i=0; i< MAX_CONN_COUNT; i++){		
-	//	{
-	//		//std::lock_guard<std::mutex> lck (mtx_);
-	//		if(0 == valid_conn_[i]) continue;
-	//	}
-	//	
-	//	try{			
-	//		 boost::system::error_code error;	
-	//		 buffer[0] = EDataType::eMDBestAndDeep;
-	//		 memcpy(buffer+1, p, sizeof(MDBestAndDeep));
-	//		 boost::asio::write(socks_[i], boost::asio::buffer(buffer, total), error);			  
-	//		 if (error){
-	//			 valid_conn_[i] = 0;
-	//			clog_warning("[%s] write error: %d", module_name_, error); 			
-	//		 }
-	//	}
-	//	catch (std::exception& e){
-	//		valid_conn_[i] = 0;
-	//		clog_warning("[%s] send error:%s", module_name_, e.what()); 			
-	//	}
-	//}
-	
 }
+
 void  MDProducer::OnArbi(MDBestAndDeep * const pQuote, UINT4 SequenceNo)
 {
 	clog_warning("[%s] OnArbi  sn:%d", module_name_, SequenceNo);
@@ -223,33 +195,10 @@ void  MDProducer::OnOrderStatistic(MDOrderStatistic * const p, UINT4 SequenceNo)
 	char buffer[8192];
 	int total = 1 + sizeof(MDOrderStatistic);
 	buffer[0] = EDataType::eMDOrderStatistic;
-	 memcpy(buffer+1, p, sizeof(MDOrderStatistic));
-	//sock_->send_to(boost::asio::buffer(buffer, total), *broadcast_endpoint_);
+	memcpy(buffer+1, p, sizeof(MDOrderStatistic));
+	sock_->send_to(boost::asio::buffer(buffer, total), *broadcast_endpoint_);
 	
 	clog_warning("[%s] OnOrderStatistic sn:%d", module_name_, SequenceNo);
-
-	// TODO:
-//	for(int i=0; i< MAX_CONN_COUNT; i++){		
-//		{
-//			// std::lock_guard<std::mutex> lck (mtx_);
-//			if(0 == valid_conn_[i]) continue;
-//		}
-//		
-//		try{			
-//			 boost::system::error_code error;	
-//			buffer[0] = EDataType::eMDOrderStatistic;
-//			 memcpy(buffer+1, p, sizeof(MDOrderStatistic));
-//			 boost::asio::write(socks_[i], boost::asio::buffer(buffer, total), error);			  
-//			 if (error){
-//				 valid_conn_[i] = 0;
-//				clog_warning("[%s] write error: %d", module_name_, error); 			
-//			 }
-//		}
-//		catch (std::exception& e){
-//			valid_conn_[i] = 0;
-//			clog_warning("[%s] send error:%s", module_name_, e.what()); 			
-//		}
-//	}	
 }
 
 void  MDProducer::OnMarchPrice(MDMarchPriceQty * const pQuote, UINT4 SequenceNo)
@@ -270,29 +219,7 @@ void MDProducer::Server()
 	// Server binds to any address and any port.
 	sock_ = new udp::socket(io_service_, udp::endpoint(udp::v4(), 0));
 	sock_->set_option(boost::asio::socket_base::broadcast(true));
-	 broadcast_endpoint_ = new udp::endpoint(boost::asio::ip::address_v4::from_string(broadcast_ip_), broadcast_port_);
-
-	//boost::asio::io_context io_context;
-//	boost::asio::ip::address addr;
-//	addr = addr.from_string("172.18.80.4"); 
-//	udp::endpoint local_endpoint(udp::v4(), port_);
-//	local_endpoint.address(addr);
-//  udp::acceptor a(io_service_, (udp::v4(), port_));
-//  while(!ended_)
-//  {	
-//	int i = 0;
-//	for(; i<MAX_CONN_COUNT; i++){
-//		if(0 == valid_conn_[i]) break;
-//	}
-//	if(i < MAX_CONN_COUNT){
-//		a.accept(socks_[i]);
-//		{
-//			// std::lock_guard<std::mutex> lck (mtx_);
-//			valid_conn_[i] = 1;
-//		}
-//	}
-//	else{
-//		clog_warning("[%s] socks_ is full.", module_name_);
-//	}
-//  }
+	broadcast_endpoint_ = new udp::endpoint(
+				boost::asio::ip::address_v4::from_string(broadcast_ip_), 
+				broadcast_port_);
 }

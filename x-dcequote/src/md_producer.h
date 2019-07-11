@@ -9,8 +9,6 @@
 #include "vrt_value_obj.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include "quote_cmn_save.h"
-#include "quote_cmn_utility.h"
 #include "DFITCL2Api.h"
 #include <boost/asio.hpp>
 
@@ -22,7 +20,6 @@
 using namespace std;
 using namespace DFITC_L2;
 using boost::asio::ip::udp;
-//using boost::asio::ip;
 
 struct Mdconfig
 {
@@ -83,17 +80,11 @@ class MDProducer : public DFITC_L2::DFITCL2Spi
 
 	
 		void Server();
-		//boost::asio::io_context io_context_;
 		boost::asio::io_service io_service_;
 		int broadcast_port_;
 		char broadcast_ip_[20];
-		//std::vector<tcp::socket> socks_;
 		udp::socket *sock_;
 		udp::endpoint *broadcast_endpoint_;
-		// 记录连接是否有效。
-		// 位置与socks一一对应，1-有效；0-无效：
-		int valid_conn_[MAX_CONN_COUNT];
-		//std::mutex mtx_;
 };
 
 #endif

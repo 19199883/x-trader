@@ -30,7 +30,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR1, &SIGINT_act, NULL);
 
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_INFO);
+	clog_set_minimum_level(CLOG_LEVEL_WARNING);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	Log::fp = fp;
@@ -39,7 +39,7 @@ int main(/*int argc, const char **argv*/)
 	clog_handler_push_process(clog_handler);
 
 	// version
-	clog_warning("version:x-dcequote_2019-07-10_d"); 
+	clog_warning("version: x-dcequote_2019-07-11_r"); 
 		
 	mdProducer = new MDProducer();
 	mdProducer->InitMDApi();
