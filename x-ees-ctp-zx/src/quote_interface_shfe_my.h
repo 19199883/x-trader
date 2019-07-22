@@ -20,6 +20,8 @@
 
 using namespace std;
 
+#define INVALID_CURSOR -1; // 无效的索引
+
 class DLL_PUBLIC MYQuoteData
 {
 	public:
