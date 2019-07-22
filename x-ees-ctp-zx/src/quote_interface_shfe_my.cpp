@@ -51,7 +51,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 {
 	CShfeFtdcMBLMarketDataField* md = fulldepth_md_producer_->GetData(index);
 	if(!ready_) {
-		if(strlen(md->InstrumentID) == 4) { // instrumentID=last
+		if(strlen(md->InstrumentID) != 4) { // instrumentID="last"
 			clog_info("[%s] ready_=%d. return", module_name_, ready_);
 			return; 
 		}
@@ -64,7 +64,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 	
 	// 结束一个数据帧，开始新的数据帧接收
 	if(strlen(md->InstrumentID) == 4) { // instrumentID="last"
-		PopLeftData();
+		PopData(cur_contract_);
 		Reset();
 		return;
 	}
@@ -81,11 +81,11 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 		}
 		if(!IsSameContract(new_contract_, cur_contract_)){ // 抽取当前合约的完整数据
 			PopData(cur_contract_);
+			strcpy(cur_contract_, new_contract);
 		}
 
 		sell_data_buffer_[sell_write_cursor_] = *md;
 		sell_write_cursor_++;
-		strcpy(cur_contract_, new_contract);
 	}
 	// TODO: to here
 
@@ -277,36 +277,50 @@ void MYQuoteData::Reset()
  * 
  * 处理指定的卖方向合约以及当前合约之前的所有数据，分为普通场景、涨停场景、跌停3种场景
  */
-void MYQuoteData::PopData(const char* cur_sell_contract)
+void MYQuoteData::PopData( const char* pop_sell_contract /* 要抽取的在卖队列合约*/)
 {
-	char* buy_contract = buy_data_buffer_[buy_read_cursor_].InstrumentID;
-	if(IsSameContract(cur_sell_contract, buy_contract)){ // 普通场景
-		// TODO:
-		PopOneContractData(cur_sell_contract);
+	char* buy_contract = "";
+	if(buy_read_cursor_ == buy_write_cursor_){ // 买队列已经没有数据
+		strcpy(buy_contract, "zzzzzz"); // 方便后边的逻辑
 	}
-	else if(strcmp(cur_sell_contract,buy_contract)>0){ // 涨停场景
-		// TODO:
-		while(strcmp(cur_sell_contract,buy_contract)>0){
-			PopUpperLimitData(buy_contract);
-			buy_contract = buy_data_buffer_[buy_read_cursor_].InstrumentID;
-		}
+	else{
+		buy_contract = buy_data_buffer_[buy_read_cursor_].InstrumentID;
+	}
 
-		PopOneContractData(cur_sell_contract);
+	if(IsSameContract(pop_sell_contract, buy_contract)){ // 普通场景
+		PopOneContractData(
+					pop_sell_contract,
+					buy_read_cursor_,
+					buy_write_cursor_ - 1,
+					sell_read_cursor_,
+					sell_write_cursor_ - 1);
+	}
+	else if(strcmp(pop_sell_contract,buy_contract)>0){ // 涨停场景
+		do{
+			PopOneContractData(
+					buy_contract,
+					buy_read_cursor_,
+					buy_write_cursor_ - 1,
+					-1,
+					-1);
+			buy_contract = buy_data_buffer_[buy_read_cursor_].InstrumentID;
+		}while(strcmp(pop_sell_contract,buy_contract)>0)
+
+		PopOneContractData(
+					pop_sell_contract,
+					buy_read_cursor_,
+					buy_write_cursor_ - 1,
+					sell_read_cursor_,
+					sell_write_cursor_ - 1);
 	}
 	else{	// 跌停场景
-		// TODO:
-		PopOneContractData(cur_sell_contract);
+		PopOneContractData(
+					pop_sell_contract,
+					-1,
+					-1,
+					sell_read_cursor_,
+					sell_write_cursor_ - 1);
 	}
-
-}
-
-void MYQuoteData::PopUpperLimitData(
-			const char* contract, // 要抽取数据的合约
-			int &buy_read_cursor, //指定当前买队列的读位置，函数返回时，使其指向最新读位置 
-			int buy_write_cursor, 
-			int sell_start,
-			int sell_count)
-{
 }
 
 /*
@@ -314,11 +328,11 @@ void MYQuoteData::PopUpperLimitData(
  *
  */
 void MYQuoteData::PopOneContractData(
-			const char* contract, // 要抽取数据的合约
-			int buy_start, 
-			int buy_count, 
-			int sell_start,
-			int sell_count)
+			const char* contract,			// 要抽取数据的合约
+			int &buy_queue_contract_start,	// 买队列要抽取的合约的开始位置，函数返回时，使其指向最新读位置. -1表示无效位置，不需要对该队列进行操作
+			int buy_queue_end,				// 买队列当前可以读的最末位置	 
+			int &sell_queue_contract_start,	// 卖队列要抽取的合约开始位置，函数返回时，使其指向最新读位置.-1表示无效位置，不需要对该队列进行操作
+			int sell_queue_contract_end)	// 卖队列要抽取的合约结束位置
 {
 	memset(target_data_.buy_price, 0, sizeof(target_data_.buy_price));
 	memset(target_data_.buy_volume, 0, sizeof(target_data_.buy_volume));
@@ -326,6 +340,7 @@ void MYQuoteData::PopOneContractData(
 	memset(target_data_.sell_volume, 0, sizeof(target_data_.sell_volume));
 	// TODO:
 }
+
 
 bool MYQuoteData::IsSameContract(const char *contract1, const char* contract2)
 {
