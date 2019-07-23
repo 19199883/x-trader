@@ -59,7 +59,7 @@ class FullDepthMDProducer
 		/*
 		 *disruptor相关
 		 */
-		int32_t Push(const MDPackEx& md);
+		int32_t Push(const CShfeFtdcMBLMarketDataField& md);
 		struct vrt_producer  *producer_;
 		std::array<CShfeFtdcMBLMarketDataField, FULL_DEPTH_MD_BUFFER_SIZE> shfemarketdata_buffer_;
 		bool ended_;

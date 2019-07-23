@@ -149,7 +149,7 @@ void FullDepthMDProducer::RevData()
             }
         }
 
-        CMBLMarketDataField* md = (CMBLMarketDataField*)recv_buf;
+        CShfeFtdcMBLMarketDataField* md = (CShfeFtdcMBLMarketDataField*)recv_buf;
 		clog_info("[%s] FullDepthMDProducer::RevData InstrumentID=%s; dir=%c; price=%f; vol=%d",
 			module_name_,
 			md->InstrumentID,
@@ -158,13 +158,13 @@ void FullDepthMDProducer::RevData()
 			md->Volume);
 		
 		// 掉期权行情
-		if(strlen(md->IntrumentID)>6){
-			clog_info("[%s] discard contract: %s ", module_name_, md->InstrumenID);
+		if(strlen(md->InstrumentID)>6){
+			clog_info("[%s] discard contract: %s ", module_name_, md->InstrumentID);
 			continue;
 		}
 
 		if(!IsDominant(md->InstrumentID)){
-			clog_info("[%s] discard NOT dominant contract: %s ", module_name_, md->InstrumenID);
+			clog_info("[%s] discard NOT dominant contract: %s ", module_name_, md->InstrumentID);
 			continue;
 		}
 
@@ -172,7 +172,7 @@ void FullDepthMDProducer::RevData()
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
 		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = Push(*md1);
+		ivalue->index = Push(*md);
 		ivalue->data = FULL_DEPTH_MD;
 		vrt_producer_publish(producer_);
 		 
@@ -220,13 +220,13 @@ bool FullDepthMDProducer::IsDominant(const char *contract)
 	return IsDominantImp(contract, dominant_contracts_, dominant_contract_count_);
 }
 
-std::string FullDepthMDProducer::ToString(const CShfeFtdcMBLMarketDataField &d) {
+std::string FullDepthMDProducer::ToString(const CShfeFtdcMBLMarketDataField &md) {
 	clog_info("[%s] FullDepthMDProducer::RevData InstrumentID=%s; dir=%c; price=%f; vol=%d",
 		module_name_,
-		md->InstrumentID,
-		md->Direction,
-		md->Price,
-		md->Volume);
+		md.InstrumentID,
+		md.Direction,
+		md.Price,
+		md.Volume);
   
   return "";
 }

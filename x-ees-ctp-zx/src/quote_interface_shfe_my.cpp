@@ -71,7 +71,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 		Reset();
 	}
 	else{
-		if(data->content.direction == SHFE_FTDC_D_Buy){
+		if(md->Direction == SHFE_FTDC_D_Buy){
 			buy_data_buffer_[buy_write_cursor_] = *md;
 			buy_write_cursor_++;
 		}
@@ -82,7 +82,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 			}
 			if(!IsSameContract(new_contract_, cur_contract_)){ // 抽取当前合约的完整数据
 				PopData(cur_contract_);
-				strcpy(cur_contract_, new_contract);
+				strcpy(cur_contract_, new_contract_);
 			}
 
 			sell_data_buffer_[sell_write_cursor_] = *md;
@@ -109,7 +109,7 @@ void MYQuoteData::FillBuyData(
 	if(INVALID_CURSOR != buy_queue_contract_start){
 		int buy_queue_contract_end = buy_queue_contract_start;
 		for(; buy_queue_contract_end<=buy_queue_end; buy_queue_contract_end++){
-			if(!IsSameContract(contract,buy_data_buffer_[buy_queue_contract_end])){
+			if(!IsSameContract(contract,buy_data_buffer_[buy_queue_contract_end].InstrumentID)){
 				break;
 			}
 		}
@@ -123,14 +123,14 @@ void MYQuoteData::FillBuyData(
 			CShfeFtdcMBLMarketDataField &data = buy_data_buffer_[i];
 			// 处理30档买方向数据
 			if(price30_count >= 0){
-				price30[price30_count] = data.price;  
-				vol30[price30_count] = data.volume;  
+				price30[price30_count] = data.Price;  
+				vol30[price30_count] = data.Volume;  
 				price30_count = price30_count - 1;
 			}
 
 			// 计算总委买量
-			target_data_.buy_total_volume += data.volume;
-			amount += src_pvpaire.price * data.volume;
+			target_data_.buy_total_volume += data.Volume;
+			amount += data.Price * data.Volume;
 		} // for(int i=buy_data_cursor_; i>=0; i--) // 从尾部向前遍历MDPackEx数据 
 		
 		if (target_data_.buy_total_volume > 0){
@@ -159,18 +159,18 @@ void MYQuoteData::FillSellData(
 		int price30_count = MY_SHFE_QUOTE_PRICE_POS_COUNT - 1; 
 		double *price30 = target_data_.sell_price;
 		int *vol30 = target_data_.sell_volume;
-		for(int i=sell_queue_contract_end_; i>=sell_queue_contract_start; i--){ // 从尾部向前遍历数据 
-			CShfeFtdcMBLMarketDataField *data = sell_data_buffer_[i];
+		for(int i=sell_queue_contract_end; i>=sell_queue_contract_start; i--){ // 从尾部向前遍历数据 
+			CShfeFtdcMBLMarketDataField &data = sell_data_buffer_[i];
 			// 处理30档卖方向数据
 			if(price30_count >= 0){
-				price30[price30_count] = data.price;  
-				vol30[price30_count] = data.volume;  
+				price30[price30_count] = data.Price;  
+				vol30[price30_count] = data.Volume;  
 				price30_count = price30_count - 1;
 			}
 
 			// 计算总委卖量
-			target_data_.sell_total_volume += data.volume;
-			amount += src_pvpaire.price * data.volume;
+			target_data_.sell_total_volume += data.Volume;
+			amount += data.Price * data.Volume;
 		} // for(int i=sell_data_cursor_; i>=0; i--) // 从尾部向前遍历数据 
 		
 		// 计算均价
@@ -237,10 +237,10 @@ void MYQuoteData::ProcL1MdData(int32_t index)
 void MYQuoteData::Reset()
 {
 		buy_write_cursor_ = 0; 
-		buy_buy_read_cursor_ = 0;  
-		buy_sell_write_cursor_ = 0;
-		buy_sell_read_cursor_ = 0; 
-		buy_cur_contract_[0] = 0;
+		buy_read_cursor_ = 0;  
+		sell_write_cursor_ = 0;
+		sell_read_cursor_ = 0; 
+		cur_contract_[0] = 0;
 		new_contract_[0] = 0;
 
 }
@@ -272,11 +272,12 @@ void MYQuoteData::PopData( const char* pop_sell_contract)
 	}
 	else if(strcmp(pop_sell_contract,buy_contract)>0){ // 涨停场景
 		do{
+			int sell_start = INVALID_CURSOR;
 			PopOneContractData(
 					buy_contract,
 					buy_read_cursor_,
 					buy_write_cursor_ - 1,
-					INVALID_CURSOR,
+					sell_start,
 					INVALID_CURSOR);
 			if(buy_read_cursor_ >= buy_write_cursor_){
 				return; // no data to be processed
@@ -284,19 +285,20 @@ void MYQuoteData::PopData( const char* pop_sell_contract)
 			else{
 				buy_contract = buy_data_buffer_[buy_read_cursor_].InstrumentID;
 			}
-		}while(strcmp(pop_sell_contract,buy_contract)>0)
+		}while(strcmp(pop_sell_contract,buy_contract)>0);
 
 		PopOneContractData(
-					pop_sell_contract,
+					(char*)pop_sell_contract,
 					buy_read_cursor_,
 					buy_write_cursor_ - 1,
 					sell_read_cursor_,
 					sell_write_cursor_ - 1);
 	}
 	else{	// 跌停场景
+		int buy_start = INVALID_CURSOR;
 		PopOneContractData(
-					pop_sell_contract,
-					INVALID_CURSOR,
+					(char*)pop_sell_contract,
+					buy_start,
 					INVALID_CURSOR,
 					sell_read_cursor_,
 					sell_write_cursor_ - 1);

@@ -20,7 +20,7 @@
 
 using namespace std;
 
-#define INVALID_CURSOR -1; // 无效的索引
+#define INVALID_CURSOR -1 // 无效的索引
 
 class DLL_PUBLIC MYQuoteData
 {
@@ -68,6 +68,29 @@ class DLL_PUBLIC MYQuoteData
 		 * 将用于生成MYShfeMarketData过程中使用的成员数据重置成初始状态
 		 */
 		void Reset();
+
+		void FillBuyData(
+			const char* contract,
+			int &buy_queue_contract_start, 
+			int buy_queue_end);
+
+		void FillSellData(
+			const char* contract,
+			int &sell_queue_contract_start, 
+			int sell_queue_contract_end);
+
+		void PopData( const char* pop_sell_contract);
+
+		void PopOneContractData(
+			const char* contract,			
+			int &buy_queue_contract_start,	
+			int buy_queue_end,				
+			int &sell_queue_contract_start,	 
+			int sell_queue_contract_end)	 ;
+
+		bool IsSameContract(const char *contract1, const char* contract2);
+
+
 		/*
 		 * 存储买方向MDPackEx数据在FullDepthProcuder缓冲区的索引。
 		 */	
