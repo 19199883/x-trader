@@ -68,37 +68,36 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 		while(buy_read_cursor_ < buy_write_cursor_){ // 最后的数据是涨停数据
 			PopData("zzzzzz"); // 方便后边的逻辑
 		}
-
 		Reset();
-		return;
-	}
-
-	if(data->content.direction == SHFE_FTDC_D_Buy){
-		buy_data_buffer_[buy_write_cursor_] = *md;
-		buy_write_cursor_++;
-		return;
 	}
 	else{
-		strcpy(new_contract_, md->InstrumentID);
-		if(0==cur_contract_[0]){ // 在当前数据帧内首次接收卖方向数据
-			strcpy(cur_contract_, md->InstrumentID);
+		if(data->content.direction == SHFE_FTDC_D_Buy){
+			buy_data_buffer_[buy_write_cursor_] = *md;
+			buy_write_cursor_++;
 		}
-		if(!IsSameContract(new_contract_, cur_contract_)){ // 抽取当前合约的完整数据
-			PopData(cur_contract_);
-			strcpy(cur_contract_, new_contract);
-		}
+		else{
+			strcpy(new_contract_, md->InstrumentID);
+			if(0==cur_contract_[0]){ // 在当前数据帧内首次接收卖方向数据
+				strcpy(cur_contract_, md->InstrumentID);
+			}
+			if(!IsSameContract(new_contract_, cur_contract_)){ // 抽取当前合约的完整数据
+				PopData(cur_contract_);
+				strcpy(cur_contract_, new_contract);
+			}
 
-		sell_data_buffer_[sell_write_cursor_] = *md;
-		sell_write_cursor_++;
+			sell_data_buffer_[sell_write_cursor_] = *md;
+			sell_write_cursor_++;
+		}
 	}
 }
 
 /*
  *	buy_queue_contract_start:
- *			-1表示无效位置，不需要对该队列进行操作，函数返回时，使其指向最新读位置
+ *			-1表示无效位置，不需要对该队列进行操作，
+ *			函数返回时，使其指向最新读位置
  *
  */
-void MYQuoteData::FillBuyFullDepthInfo(
+void MYQuoteData::FillBuyData(
 			const char* contract,
 			int &buy_queue_contract_start, 
 			int buy_queue_end)
@@ -108,21 +107,19 @@ void MYQuoteData::FillBuyFullDepthInfo(
     double amount = 0;
 
 	if(INVALID_CURSOR != buy_queue_contract_start){
-		int buy_contract_end = buy_queue_contract_start;
-		for(; buy_contract_end<buy_queue_end; buy_contract_end++){
-			if(!IsSameContract(contract,buy_data_buffer_[buy_contract_end])){
+		int buy_queue_contract_end = buy_queue_contract_start;
+		for(; buy_queue_contract_end<=buy_queue_end; buy_queue_contract_end++){
+			if(!IsSameContract(contract,buy_data_buffer_[buy_queue_contract_end])){
 				break;
 			}
 		}
-		// TODO:update buy_queue_contract_start
-		buy_queue_contract_start = buy_contract_end;
-		buy_contract_end--;
+		buy_queue_contract_end--;
 		
 		// 计数器，用于计数从尾部开始最多30笔数
 		int price30_count = MY_SHFE_QUOTE_PRICE_POS_COUNT - 1;  
 		double *price30 = target_data_.buy_price;
 		int *vol30 = target_data_.buy_volume;
-		for(int i=buy_contract_end; i>=buy_contract_start; i--){ // 从尾部向前遍历数据 
+		for(int i=buy_queue_contract_end; i>=buy_queue_contract_start; i--){ // 从尾部向前遍历数据 
 			CShfeFtdcMBLMarketDataField &data = buy_data_buffer_[i];
 			// 处理30档买方向数据
 			if(price30_count >= 0){
@@ -139,6 +136,7 @@ void MYQuoteData::FillBuyFullDepthInfo(
 		if (target_data_.buy_total_volume > 0){
 			target_data_.buy_weighted_avg_price = amount / target_data_.buy_total_volume;
 		}
+		buy_queue_contract_start = buy_queue_contract_end + 1;
 	}
 }
 
@@ -161,7 +159,7 @@ void MYQuoteData::FillSellData(
 		int price30_count = MY_SHFE_QUOTE_PRICE_POS_COUNT - 1; 
 		double *price30 = target_data_.sell_price;
 		int *vol30 = target_data_.sell_volume;
-		for(int i=sell_queue_end_; i>=sell_queue_contract_start; i--){ // 从尾部向前遍历数据 
+		for(int i=sell_queue_contract_end_; i>=sell_queue_contract_start; i--){ // 从尾部向前遍历数据 
 			CShfeFtdcMBLMarketDataField *data = sell_data_buffer_[i];
 			// 处理30档卖方向数据
 			if(price30_count >= 0){
@@ -180,7 +178,6 @@ void MYQuoteData::FillSellData(
 			target_data_.sell_weighted_avg_price = amount / target_data_.sell_total_volume;
 		}
 
-		// TODO: update sell_queue_contract_start
 		sell_queue_contract_start = sell_queue_contract_end + 1;
 	}
 }
@@ -250,9 +247,12 @@ void MYQuoteData::Reset()
 
 /***
  * 
- * 处理指定的卖方向合约以及当前合约之前的所有数据，分为普通场景、涨停场景、跌停3种场景
+ * 处理指定的卖方向合约以及当前合约之前的所有数据，
+ * 分为普通场景、涨停场景、跌停3种场景.
+ *	pop_sell_contract:
+ *			 要抽取的在卖队列合约
  */
-void MYQuoteData::PopData( const char* pop_sell_contract /* 要抽取的在卖队列合约*/)
+void MYQuoteData::PopData( const char* pop_sell_contract)
 {
 	char* buy_contract = "";
 	if(buy_read_cursor_ == buy_write_cursor_){ // 买队列已经没有数据
@@ -278,7 +278,12 @@ void MYQuoteData::PopData( const char* pop_sell_contract /* 要抽取的在卖�
 					buy_write_cursor_ - 1,
 					INVALID_CURSOR,
 					INVALID_CURSOR);
-			buy_contract = buy_data_buffer_[buy_read_cursor_].InstrumentID;
+			if(buy_read_cursor_ >= buy_write_cursor_){
+				return; // no data to be processed
+			}
+			else{
+				buy_contract = buy_data_buffer_[buy_read_cursor_].InstrumentID;
+			}
 		}while(strcmp(pop_sell_contract,buy_contract)>0)
 
 		PopOneContractData(
