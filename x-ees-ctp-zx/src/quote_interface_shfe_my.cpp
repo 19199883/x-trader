@@ -93,9 +93,14 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 	}
 }
 
+/*
+ *	buy_queue_contract_start:
+ *			-1表示无效位置，不需要对该队列进行操作，函数返回时，使其指向最新读位置
+ *
+ */
 void MYQuoteData::FillBuyFullDepthInfo(
 			const char* contract,
-			int buy_queue_contract_start, //-1表示无效位置，不需要对该队列进行操作
+			int &buy_queue_contract_start, 
 			int buy_queue_end)
 {
     target_data_.buy_total_volume = 0;
@@ -109,6 +114,8 @@ void MYQuoteData::FillBuyFullDepthInfo(
 				break;
 			}
 		}
+		// TODO:update buy_queue_contract_start
+		buy_queue_contract_start = buy_contract_end;
 		buy_contract_end--;
 		
 		// 计数器，用于计数从尾部开始最多30笔数
@@ -135,9 +142,14 @@ void MYQuoteData::FillBuyFullDepthInfo(
 	}
 }
 
+/*
+ *	int sell_queue_contract_start:
+ *			-1表示无效位置，不需要对该队列进行操作，函数返回时，使其指向最新读位置
+ *
+ */
 void MYQuoteData::FillSellData(
 			const char* contract,
-			int sell_queue_contract_start, //-1表示无效位置，不需要对该队列进行操作
+			int &sell_queue_contract_start, 
 			int sell_queue_contract_end)
 {
     target_data_.sell_total_volume = 0;
@@ -167,17 +179,12 @@ void MYQuoteData::FillSellData(
 		if (target_data_.sell_total_volume > 0){
 			target_data_.sell_weighted_avg_price = amount / target_data_.sell_total_volume;
 		}
+
+		// TODO: update sell_queue_contract_start
+		sell_queue_contract_start = sell_queue_contract_end + 1;
 	}
 }
 
-// done
-void MYQuoteData::FillFullDepthInfo()
-{
-	FillBuyFullDepthInfo();
-	FillSellFullDepthInfo();
-}
-
-// done
 void MYQuoteData::Send(const char* contract)
 {
 	CDepthMarketDataField* l1_md = NULL;
@@ -232,10 +239,10 @@ void MYQuoteData::ProcL1MdData(int32_t index)
 
 void MYQuoteData::Reset()
 {
-		buy_write_cursor_ = 1; 
-		buy_buy_read_cursor_ = 1;  
-		buy_sell_write_cursor_ = 1;
-		buy_sell_read_cursor_ = 1; 
+		buy_write_cursor_ = 0; 
+		buy_buy_read_cursor_ = 0;  
+		buy_sell_write_cursor_ = 0;
+		buy_sell_read_cursor_ = 0; 
 		buy_cur_contract_[0] = 0;
 		new_contract_[0] = 0;
 
@@ -292,21 +299,33 @@ void MYQuoteData::PopData( const char* pop_sell_contract /* 要抽取的在卖�
 }
 
 /*
- * 从买、卖队列抽取指定合约的数据.
- *
+ * :
+ *		从买、卖队列抽取指定合约的数据.
+ *	contract:
+ *			 要抽取数据的合约
+ *	buy_queue_contract_start: 
+ *			买队列要抽取的合约的开始位置，函数返回时，使其指向最新读位置. 
+ *			-1表示无效位置，不需要对该队列进行操作
+ *  buy_queue_end:  
+ *			买队列当前可以读的最末位置	 
+ *  sell_queue_contract_start:
+ *			卖队列要抽取的合约开始位置，函数返回时，使其指向最新读位置.
+ *			-1表示无效位置，不需要对该队列进行操作
+ *  sell_queue_contract_end:
+ *			卖队列要抽取的合约结束位置
  */
 void MYQuoteData::PopOneContractData(
-			const char* contract,			// 要抽取数据的合约
-			int &buy_queue_contract_start,	// 买队列要抽取的合约的开始位置，函数返回时，使其指向最新读位置. -1表示无效位置，不需要对该队列进行操作
-			int buy_queue_end,				// 买队列当前可以读的最末位置	 
-			int &sell_queue_contract_start,	// 卖队列要抽取的合约开始位置，函数返回时，使其指向最新读位置.-1表示无效位置，不需要对该队列进行操作
-			int sell_queue_contract_end)	// 卖队列要抽取的合约结束位置
+			const char* contract,			
+			int &buy_queue_contract_start,	
+			int buy_queue_end,				
+			int &sell_queue_contract_start,	 
+			int sell_queue_contract_end)	 
 {
 	memset(target_data_.buy_price, 0, sizeof(target_data_.buy_price));
 	memset(target_data_.buy_volume, 0, sizeof(target_data_.buy_volume));
 	memset(target_data_.sell_price, 0, sizeof(target_data_.sell_price));
 	memset(target_data_.sell_volume, 0, sizeof(target_data_.sell_volume));
-	// TODO:
+
 	FillBuyData(contract,buy_queue_contract_start,buy_queue_end);
 	FillSellData(contract,sell_queue_contract_start,sell_queue_contract_end);
 	Send(contract);
