@@ -91,37 +91,6 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 		sell_data_buffer_[sell_write_cursor_] = *md;
 		sell_write_cursor_++;
 	}
-	// TODO: to here
-
-	while (!empty) { 
-		if(strcmp(cur_contract, "") == 0){ // 为空，表示第一次进入循环
-			strcpy(cur_contract,data->content.instrument);
-		}
-		strcpy(new_contract,data->content.instrument);
-
-		if(strcmp(cur_contract,new_contract) != 0){
-			FillFullDepthInfo();
-			Send(cur_contract);
-			Reset();
-		}
-		
-		// 别放到买卖对用缓冲，待该合约的数据都接受完后，统一处理
-		if(data->content.direction == SHFE_FTDC_D_Buy){
-			buy_data_cursor_ = buy_data_cursor_ + 1;
-			buy_data_buffer_[buy_data_cursor_] = data;
-		}else if(data->content.direction == SHFE_FTDC_D_Sell){
-			sell_data_cursor_ = sell_data_cursor_ + 1;
-			sell_data_buffer_[sell_data_cursor_] = data;
-		}
-		strcpy(cur_contract,data->content.instrument);
-
-		data = repairers_[new_svr]->next(empty);
-		if(empty){ 
-			FillFullDepthInfo();
-			Send(cur_contract); 
-			Reset();
-		}
-	}
 }
 
 void MYQuoteData::FillBuyFullDepthInfo(
@@ -340,6 +309,7 @@ void MYQuoteData::PopOneContractData(
 	// TODO:
 	FillBuyData(contract,buy_queue_contract_start,buy_queue_end);
 	FillSellData(contract,sell_queue_contract_start,sell_queue_contract_end);
+	Send(contract);
 }
 
 
@@ -353,9 +323,4 @@ bool MYQuoteData::IsSameContract(const char *contract1, const char* contract2)
 	else{
 		return false;
 	}
-}
-
-void MYQuoteData::PopLeftData()
-{
-	// TODO:
 }
