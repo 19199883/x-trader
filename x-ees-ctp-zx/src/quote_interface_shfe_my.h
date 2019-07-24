@@ -94,10 +94,10 @@ class DLL_PUBLIC MYQuoteData
 		/*
 		 * 存储买方向MDPackEx数据在FullDepthProcuder缓冲区的索引。
 		 */	
-		CShfeFtdcMBLMarketDataField buy_data_buffer_[300000];
+		CShfeFtdcMBLMarketDataField buy_data_buffer_[20000];
 		int buy_write_cursor_; // 记录买队列下一个可写的位置,初始指向数组首位置
 		int buy_read_cursor_;  // 记录买队列下一个可读的位置,初始指向数组首位置
-		CShfeFtdcMBLMarketDataField sell_data_buffer_[300000];
+		CShfeFtdcMBLMarketDataField sell_data_buffer_[20000];
 		int sell_write_cursor_; // 记录买队列下一个可写的位置,初始指向数组首位置
 		int sell_read_cursor_;  // 记录买队列下一个可读的位置,初始指向数组首位置
 		char cur_contract_[10]; // 记录卖方向正在接收的合约

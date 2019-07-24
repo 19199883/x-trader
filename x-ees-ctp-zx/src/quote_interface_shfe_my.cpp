@@ -50,6 +50,9 @@ MYQuoteData::~MYQuoteData()
 void MYQuoteData::ProcFullDepthData(int32_t index)
 {
 	CShfeFtdcMBLMarketDataField* md = fulldepth_md_producer_->GetData(index);
+
+	clog_info("[%s] proc queue contract:%s", module_name_, md->InstrumentID);
+
 	if(!ready_) {
 		if(strlen(md->InstrumentID) != 4) { // instrumentID="last"
 			clog_info("[%s] ready_=%d. return", module_name_, ready_);
@@ -256,7 +259,7 @@ void MYQuoteData::PopData( const char* pop_sell_contract)
 {
 	char* buy_contract = "";
 	if(buy_read_cursor_ == buy_write_cursor_){ // 买队列已经没有数据
-		strcpy(buy_contract, "zzzzzz"); // 方便后边的逻辑
+		buy_contract = "zzzzzz"; // 方便后边的逻辑
 	}
 	else{
 		buy_contract = buy_data_buffer_[buy_read_cursor_].InstrumentID;

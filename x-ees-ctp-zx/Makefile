@@ -2,15 +2,15 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/x-ees-ctp-zx/dist
 INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/tinyxml/include \
-		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include \
+		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md_zx/include \
 		 -I$(TOP)/3rd/ctp/include
 LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ees/lib -L$(TOP)/3rd/ctp/lib \
 		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib \
-		 -L$(TOP)/3rd/shfe_md/lib
+		 -L$(TOP)/3rd/shfe_md_zx/lib
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
 LDFLAGS:= 

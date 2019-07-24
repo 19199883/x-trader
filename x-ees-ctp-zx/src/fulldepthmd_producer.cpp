@@ -163,10 +163,12 @@ void FullDepthMDProducer::RevData()
 			continue;
 		}
 
-		if(!IsDominant(md->InstrumentID)){
+		if(strlen(md->InstrumentID)!=4 && !IsDominant(md->InstrumentID)){
 			clog_info("[%s] discard NOT dominant contract: %s ", module_name_, md->InstrumentID);
 			continue;
 		}
+
+		clog_info("[%s] queue rev contract: %s ", module_name_, md->InstrumentID);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;

