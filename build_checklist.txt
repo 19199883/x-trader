@@ -11,6 +11,8 @@
 	8. 许可是绑定到服务器名，所以需要根据服务器名做相应的编译修改:SERVER_NAME
 	9. 编译行情程序：需定义PERSISTENCE_ENABLED
 	10. LOCK_POSITION_ENABLE(开启锁仓),	LOCK_POSITION_DISNABL(关闭锁仓)	
+	11. x-dce: DCE_DATA_FEED: 大连data feed组播行情;  DCE_OLD: 大连李杨时的旧行情
+
 
 
 
