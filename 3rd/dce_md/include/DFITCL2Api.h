@@ -2,9 +2,9 @@
  * 版权所有(C)2012-2016, 大连飞创信息技术有限公司
  * 文件名称：DFITCL2Api.h
  * 文件说明：定义level 2行情API接口
- * 当前版本：1.1.2
+ * 当前版本：1.1.6.2
  * 作者：Datafeed项目组
- * 发布日期：2017年2月28日
+ * 发布日期：2018年07月23日
  */
 #ifndef _DFITC_L2_API_H_
 #define _DFITC_L2_API_H_
@@ -42,6 +42,7 @@ namespace DFITC_L2 {
         *        3 收到错误报文
         *        4 多播行情模式下，销毁实例时通知客户
         *        5 发送报文过长
+        *        6 内部错误
         */
         virtual void OnDisconnected(int pReason) { }
 
@@ -90,38 +91,44 @@ namespace DFITC_L2 {
         /**
         * 最优与五档深度行情消息应答:如果订阅行情成功且有行情返回时，该方法会被调用。
         * @param pQuote:指向最优与五档深度行情信息结构的指针，结构体中包含具体的行情信息。
+		* @param SequenceNo:最优与五档深度行情序列号。
         */
-        virtual void OnBestAndDeep(struct MDBestAndDeep * const pQuote) { }
+        virtual void OnBestAndDeep(struct MDBestAndDeep * const pQuote , UINT4 SequenceNo) { }
 
         /**
         * 套利行情消息应答:如果订阅行情成功且有行情返回时，该方法会被调用。
         * @param pQuote:套利行情信息结构的指针，结构体中包含具体的行情信息。
+		* @param SequenceNo:套利行情序列号。
         */
-        virtual void OnArbi(struct MDBestAndDeep * const pQuote) { }
+        virtual void OnArbi(struct MDBestAndDeep * const pQuote, UINT4 SequenceNo) { }
 
         /**
         * 最优价位上十笔委托行情消息应答:如果订阅行情成功且有行情返回时，该方法会被调用。
         * @param pQuote:最优价位上十笔委托行情信息结构的指针，结构体中包含具体的行情信息。
+		* @param SequenceNo:最优价位上十笔委托行情序列号。
         */
-        virtual void OnTenEntrust(struct MDTenEntrust * const pQuote) { }
+        virtual void OnTenEntrust(struct MDTenEntrust * const pQuote, UINT4 SequenceNo) { }
 
         /**
         * 实时结算价行情消息应答:如果订阅行情成功且有行情返回时，该方法会被调用。
         * @param pQuote:实时结算价行情信息结构的指针，结构体中包含具体的行情信息。
+		* @param SequenceNo:实时结算价行情序列号。
         */
-        virtual void OnRealtime(struct MDRealTimePrice * const pQuote) { }
+        virtual void OnRealtime(struct MDRealTimePrice * const pQuote, UINT4 SequenceNo) { }
 
         /**
         * 加权平均及委托行情消息应答:如果订阅行情成功且有行情返回时，该方法会被调用。
         * @param pQuote:加权平均及委托行情信息结构的指针，结构体中包含具体的行情信息。
+		* @param SequenceNo:加权平均及委托行情序列号。
         */
-        virtual void OnOrderStatistic(struct MDOrderStatistic * const pQuote) { }
+        virtual void OnOrderStatistic(struct MDOrderStatistic * const pQuote, UINT4 SequenceNo) { }
 
         /**
         * 分价位成交行情消息应答:如果订阅行情成功且有行情返回时，该方法会被调用。
         * @param pQuote:分价位成交行情信息结构的指针，结构体中包含具体的行情信息。
+		* @param SequenceNo:分价位成交行情序列号。
         */
-        virtual void OnMarchPrice(struct MDMarchPriceQty * const pQuote) { }
+        virtual void OnMarchPrice(struct MDMarchPriceQty * const pQuote, UINT4 SequenceNo) { }
 
         /**
         * 心跳丢失消息应答:如果与level 2 server心跳丢失或网络出现问题，该方法会被调用。
@@ -208,6 +215,7 @@ namespace DFITC_L2 {
         virtual int ReqChangePassword(struct DFITCPasswdChangeField * pReqUserPasswdChangeField);
 
         virtual ~DFITCL2Api();
+
     protected:
         DFITCL2Api();
     };

@@ -2,9 +2,9 @@
  * 版权所有(C)2012-2016, 大连飞创信息技术有限公司
  * 文件名称：DFITCL2ApiDataType.h
  * 文件说明：定义接口所需的数据类型的头文件
- * 当前版本：1.1.2
+ * 当前版本：1.1.6.2
  * 作者：Datafeed项目组
- * 发布日期：2017年2月28日
+ * 发布日期：2018年07月23日
  */             
 #if !defined(AFX_HYQUOTE_H__INCLUDED_)
 #define AFX_HYQUOTE_H__INCLUDED_
