@@ -266,8 +266,6 @@ void UniConsumer::Start()
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, 
 					parent);
 			
-			clog_info("[%s] consumer index: %d; data:%d", module_name_, ivalue->index, ivalue->data);
-
 			switch (ivalue->data){
 				case L1_MD:
 					myquotedata.ProcL1MdData(ivalue->index);

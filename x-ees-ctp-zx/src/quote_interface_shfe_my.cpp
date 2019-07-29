@@ -51,16 +51,14 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 {
 	CShfeFtdcMBLMarketDataField* md = fulldepth_md_producer_->GetData(index);
 
-	clog_info("[%s] proc queue contract:%s", module_name_, md->InstrumentID);
-
 	if(!ready_) {
 		if(strlen(md->InstrumentID) != 4) { // instrumentID="last"
-			clog_info("[%s] ready_=%d. return", module_name_, ready_);
+			//clog_info("[%s] ready_=%d. return", module_name_, ready_);
 			return; 
 		}
 		else{
 			ready_ = true;
-			clog_info("[%s] ready_=%d. ", module_name_, ready_);
+			//clog_info("[%s] ready_=%d. ", module_name_, ready_);
 			return;
 		}
 	}

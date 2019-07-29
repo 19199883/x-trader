@@ -150,25 +150,23 @@ void FullDepthMDProducer::RevData()
         }
 
         CShfeFtdcMBLMarketDataField* md = (CShfeFtdcMBLMarketDataField*)recv_buf;
-		clog_info("[%s] FullDepthMDProducer::RevData InstrumentID=%s; dir=%c; price=%f; vol=%d",
-			module_name_,
-			md->InstrumentID,
-			md->Direction,
-			md->Price,
-			md->Volume);
+	//	clog_info("[%s] FullDepthMDProducer::RevData InstrumentID=%s; dir=%c; price=%f; vol=%d",
+	//		module_name_,
+	//		md->InstrumentID,
+	//		md->Direction,
+	//		md->Price,
+	//		md->Volume);
 		
 		// 掉期权行情
 		if(strlen(md->InstrumentID)>6){
-			clog_info("[%s] discard contract: %s ", module_name_, md->InstrumentID);
+			// clog_info("[%s] discard contract: %s ", module_name_, md->InstrumentID);
 			continue;
 		}
 
 		if(strlen(md->InstrumentID)!=4 && !IsDominant(md->InstrumentID)){
-			clog_info("[%s] discard NOT dominant contract: %s ", module_name_, md->InstrumentID);
+			// clog_info("[%s] discard NOT dominant contract: %s ", module_name_, md->InstrumentID);
 			continue;
 		}
-
-		clog_info("[%s] queue rev contract: %s ", module_name_, md->InstrumentID);
 
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
