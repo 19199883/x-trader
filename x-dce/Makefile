@@ -21,8 +21,7 @@ BINPATH:=./bin
 # kanchuan
 LIBS:=-lpthread -lx1_dfitc_api -ltinyxml -lutils -ldl -lpthread -lbowsprit \
 	  -lcheck -lclogger -lcork -lvrt -lssl \
-	  -luuid -lboost_filesystem -lboost_system -lx1_dfitc_collect \
-	  -llevel2Api
+	  -luuid -lboost_filesystem -lboost_system -lx1_dfitc_collect
 
 DEPS:=.depends
 OUT:=x-dce

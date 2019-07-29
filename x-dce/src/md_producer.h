@@ -15,6 +15,7 @@
 
 #ifdef DCE_DATA_FEED
 	#include "DFITCL2Api.h"
+	using namespace DFITC_L2;
 #endif
 
 /*
@@ -23,7 +24,6 @@
 #define MD_BUFFER_SIZE 1000 
 
 using namespace std;
-using namespace DFITC_L2;
 
 struct Mdconfig
 {
