@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pkill --signal SIGUSR1 tdce100
+pkill --signal SIGUSR1 x-dcequote

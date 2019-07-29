@@ -1,5 +1,5 @@
 #!/bin/bash
-program_name=tdce100
+program_name=x-dcequote
 
 # the directory where this script file is
 function enter_cur_dir(){
