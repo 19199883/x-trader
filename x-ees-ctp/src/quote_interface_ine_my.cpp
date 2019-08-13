@@ -188,6 +188,8 @@ void MYIneQuoteData::Send(const char* contract)
 {
 	CDepthMarketDataField* l1_md = NULL;
 
+	clog_info("[%s] INE send %s.", module_name_,contract);
+
 	// 合并一档行情
 	if(l1_md_last_index_ != L1MD_NPOS){
 		 l1_md =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);

@@ -208,10 +208,10 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
-//	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
-//		md->InstrumentID, md->GetQuoteTime().c_str());
-//	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
-//				module_name_, md->data_flag, GetId());				
+	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
+		md->InstrumentID, md->GetQuoteTime().c_str());
+	 clog_info("[%s] FeedMd MDBestAndDeep(data_flag=%d) signal: strategy id:%d;  ",
+				module_name_, md->data_flag, GetId());				
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
