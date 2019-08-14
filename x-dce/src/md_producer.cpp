@@ -423,9 +423,16 @@ void MDProducer::RevData()
             if (type == EDataType::eMDBestAndDeep){
                 MDBestAndDeep * p = (MDBestAndDeep *) (buf + 1);
 
+
+				// TODO: debug
+				clog_info("[%s] rev eMDBestAndDeep contract: %s",module_name_, p->Contract);
+
 				if(!(IsDominant(p->Contract))) continue; // 抛弃非主力合约
 
                 Convert(*p, bestanddeep_);
+
+				// TODO: debug
+				clog_info("[%s] rev dominant  eMDBestAndDeep contract: %s",module_name_, p->Contract);
 
 #ifdef PERSISTENCE_ENABLED 
     timeval t;
@@ -442,9 +449,16 @@ void MDProducer::RevData()
             }else if (type == EDataType::eMDOrderStatistic){
                 MDOrderStatistic * p = (MDOrderStatistic *) (buf + 1);
 
+
+				// TODO: debug
+				clog_info("[%s] rev eMDOrderStatistic contract: %s",module_name_, p->ContractID);
+
 				if(!(IsDominant(p->ContractID))) continue; // 抛弃非主力合约
 
                 Convert(*p, orderstatistic_);
+
+				// TODO:debug
+				clog_info("[%s] rev dominant eMDOrderStatistic contract: %s",module_name_, p->ContractID);
 
 #ifdef PERSISTENCE_ENABLED 
     timeval t;
