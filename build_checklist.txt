@@ -12,6 +12,8 @@
 	9. 编译行情程序：需定义PERSISTENCE_ENABLED
 	10. x-dce: LOCK_POSITION_ENABLE(开启锁仓),	LOCK_POSITION_DISNABL(关闭锁仓)	
 	11. x-dce: DCE_DATA_FEED: 大连data feed组播行情;  DCE_OLD: 大连李杨时的旧行情
+	11. x-ees-ctp: 如果要支持INE的行情，需要定义INE_ENABLE宏
+	12. x-ees-ctp: 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,以提高速度
 
 
 

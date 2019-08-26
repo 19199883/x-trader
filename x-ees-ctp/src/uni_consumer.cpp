@@ -387,9 +387,17 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-		if (strcmp(strategy.GetContract(), md->InstrumentID) == 0){
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		char *contract = strategy.GetContract();
+		if ((contract[0]== md->InstrumentID[0] &&
+			 contract[1]== md->InstrumentID[1])){
+#else
+		if (IsEqualContract(strategy.GetContract(), md->InstrumentID)){
+#endif
+
+			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			// strategy log
 			WriteStrategyLog(strategy);
 

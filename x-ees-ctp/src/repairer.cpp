@@ -55,7 +55,7 @@ bool repairer::find_start_point(MDPackEx* data)
 		if (SHFE_FTDC_D_Buy==data->content.direction){ victim_ = data->content.instrument; }
 		found = false;
 	}else{
-		if (strcmp(data->content.instrument,victim_.c_str()) == 0){ found = false; }
+		if (IsEqualContract(data->content.instrument,victim_.c_str())){ found = false; }
 		else{
 			working_ = true;
 			victim_ = "";
@@ -80,7 +80,7 @@ void repairer::pull_ready_data()
 			MDPackEx* buy = full_depth_md_producer_->GetData(buy_index);
 			if (strcmp(sell->content.instrument,buy->content.instrument)>0){
 				buy_queue_.PopFront();
-			}else if (strcmp(sell->content.instrument,buy->content.instrument)==0){
+			}else if (IsEqualContract(sell->content.instrument,buy->content.instrument)){
 				MDPackEx *new_data = buy;
 				if (new_data->damaged) damaged = true;
 				if(full_depth_md_producer_->IsDominant(buy->content.instrument)){
@@ -111,7 +111,7 @@ void repairer::pull_ready_data()
 				while (idx >= 0){
 					int ready_index = ready_queue_.At(idx);
 					MDPackEx *redy_data = full_depth_md_producer_->GetData(ready_index);
-					if(strcmp(redy_data->content.instrument,instrument)==0){
+					if(IsEqualContract(redy_data->content.instrument,instrument)){
 						redy_data->damaged = true;
 					}
 					idx--;
@@ -158,7 +158,7 @@ void repairer::normal_proc_buy_data(int index)
 void repairer::repair_buy_data(int index)
 {
 	MDPackEx* data = full_depth_md_producer_->GetData(index);
-	if (strcmp(victim_.c_str(),data->content.instrument) != 0){
+	if (!IsEqualContract(victim_.c_str(),data->content.instrument)){
 		normal_proc_buy_data(index);
 		this->victim_ = "";
 	}
@@ -180,7 +180,7 @@ void repairer::repair_sell_data(int index)
 {
 	MDPackEx* data = full_depth_md_producer_->GetData(index);
 
-	if (strcmp(victim_.c_str(),data->content.instrument) != 0){
+	if (!IsEqualContract(victim_.c_str(),data->content.instrument)){
 		if (!sell_queue_.Empty()) {
 			clog_error("[%s] (server:%d)repair_sell_data,error, sell queue should"
 				"be emptyr,sn:%d,victim:%s",module_name_, this->server_, data->content.seqno,victim_.c_str());

@@ -30,7 +30,8 @@ void Compliance::Save()
 {
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
-		if (strcmp(contracts_[i], "") == 0) break;
+		// empty contract
+		if (IsEmptyString(contracts_[i])) break;
 
 		clog_warning("[%s] contract:%s; cancel times:%d",
 			module_name_, contracts_[i], cur_cancel_times_[i]);
@@ -62,9 +63,16 @@ int Compliance::GetCancelTimes(const char* contract)
 {
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
-		if (strcmp(contracts_[i], "") == 0) break;
+		// empty contract
+		if (IsEmptyString(contracts_[i])) break;
 
-		if(strcmp(contract, contracts_[i]) == 0){
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		if ((contract[0]== contracts_[i][0] &&
+			 contract[1]== contracts_[i][1])){
+#else
+		if(IsEqualContract(contract, contracts_[i])){
+#endif
 			clog_debug("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
 			return cur_cancel_times_[i];
 		}
@@ -99,7 +107,14 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		OrderInfo& ord = ord_buffer_[i];
 		if (!ord.valid) continue;
 
-		if (strcmp(ord.contract, contract)==0 && 
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		char *ord_contract = ord.contract;
+		if ((ord_contract[0]== contract[0] &&
+			 ord_contract[1]==contract[1]) &&
+#else
+		if (IsEqualContract(ord.contract, contract) && 
+#endif
 				(
 					 (side==EES_SideType_open_long||side==EES_SideType_close_today_short)&&(ord.side==EES_SideType_open_short||ord.side==EES_SideType_close_today_long) ||
 					 (ord.side==EES_SideType_open_long||ord.side==EES_SideType_close_today_short)&&(side==EES_SideType_open_short||side==EES_SideType_close_today_long)
@@ -144,9 +159,16 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 #endif
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
-		if (strcmp(contracts_[i], "") == 0) break;
+		// empty contract
+		if (IsEmptyString(contracts_[i])) break;
 
-		if(strcmp(contract, contracts_[i]) == 0){
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		if((contract[0]==contracts_[i][0] &&
+			contract[1]==contracts_[i][1])){
+#else
+		if(IsEqualContract(contract, contracts_[i])){
+#endif
 			cur_cancel_times_[i]++;
 
 			clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 

@@ -161,6 +161,7 @@ void FullDepthMDProducer::RevData()
 			clog_info("[%s] INE::RevData InstrumentID:%s; sn:%d",
 				module_name_,md->instrument,md->seqno);
 
+#ifdef INE_ENABLE
 			struct vrt_value  *vvalue;
 			struct vrt_hybrid_value  *ivalue;
 			vrt_producer_claim(producer_, &vvalue);
@@ -168,6 +169,8 @@ void FullDepthMDProducer::RevData()
 			ivalue->index = Push(*md);
 			ivalue->data = INE_FULL_DEPTH_MD;
 			vrt_producer_publish(producer_);
+#endif
+
 		}else{
 			// TODO: debug
 			clog_info("[%s] SHFE::RevData InstrumentID:%s; sn:%d",

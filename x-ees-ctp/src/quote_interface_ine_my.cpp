@@ -63,12 +63,13 @@ void MYIneQuoteData::ProcFullDepthData(int32_t index)
 	Reset();
 	MDPackEx* data = repairers_[new_svr]->next(empty);
 	while (!empty) { 
-		if(strcmp(cur_contract, "") == 0){ // 为空，表示第一次进入循环
+		// empty contract
+		if(IsEmptyString(cur_contract)){ // 为空，表示第一次进入循环
 			strcpy(cur_contract,data->content.instrument);
 		}
 		strcpy(new_contract,data->content.instrument);
 
-		if(strcmp(cur_contract,new_contract) != 0){
+		if(!IsEqualContract(cur_contract,new_contract)){
 			FillFullDepthInfo();
 			Send(cur_contract);
 			Reset();

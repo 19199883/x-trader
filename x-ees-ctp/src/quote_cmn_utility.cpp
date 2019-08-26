@@ -83,7 +83,7 @@ bool IsDominantImp(const char *contract, char buffer[][10], int32_t buffer_size)
 	for(int i=0; i<buffer_size; i++){
 		if(buffer[i][0]==0) break; // hit bottom
 
-		if(strcmp(buffer[i], contract) == 0){
+		if(IsEqualContract(buffer[i], contract)){
 			is_dominant = true;
 			break;
 		}

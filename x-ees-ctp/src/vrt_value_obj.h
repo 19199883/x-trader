@@ -9,6 +9,12 @@
 
 #define gettid() syscall(__NR_gettid)
 
+// 如果要支持INE的行情，需要定义INE_ENABLE宏
+//#define INE_ENABLE
+
+// 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,	以提高速度
+// #define ONE_PRODUCT_ONE_CONTRACT
+
 /*
  * 如下宏根据情况进行定义
 */
@@ -41,7 +47,7 @@
 #ifdef PERSISTENCE_ENABLED 
 	#define MAX_CONTRACT_COUNT 1000
 #else
-	#define MAX_CONTRACT_COUNT 20
+	#define MAX_CONTRACT_COUNT 25
 #endif
 
 #ifdef __cplusplus
@@ -125,5 +131,29 @@ extern "C" {
 		return &_vrt_hybrid_value_type;
 	}
 
+/*
+ * 合约只需要比较品种部分和日期部分的后3位，如：rb1910,只需要比较rb和910
+ */
+bool IsEqualContract(char *contract1, char* contract2)
+{
+	if ( contract1[0]==contract2[0] &&
+		 contract1[1]==contract2[1] &&
+		 contract1[3]==contract2[3] &&
+		 contract1[4]==contract2[4] &&
+		 contract1[5]==contract2[5]){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+bool IsEmptyString(char *str)
+{
+	if(0 == str[0]){
+		return true;
+	}else{
+		return false;
+	}
+}
 
 #endif
