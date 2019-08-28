@@ -23,6 +23,7 @@ CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, 
 		}
 
 		CDepthMarketDataField &tmp = buffer[data_index];
+#ifdef ONE_PRODUCT_ONE_CONTRACT
 		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
 		if ((contract[0]==tmp.InstrumentID[0] &&
 			 contract[1]==tmp.InstrumentID[1])){
@@ -162,7 +163,7 @@ bool L1MDProducer::IsDominant(const char *contract)
 	//clog_warning("[%s] return TRUE in IsDominant.",module_name_);
 	return true;
 #else
-	return IsDominantImp(contract, dominant_contracts_, contract_count_);
+	return IsDominantImp((char*)contract, dominant_contracts_, contract_count_);
 #endif
 }
 

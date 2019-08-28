@@ -390,7 +390,7 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 
 #ifdef ONE_PRODUCT_ONE_CONTRACT
 		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
-		char *contract = strategy.GetContract();
+		const char *contract = strategy.GetContract();
 		if ((contract[0]== md->InstrumentID[0] &&
 			 contract[1]== md->InstrumentID[1])){
 #else

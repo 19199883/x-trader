@@ -84,6 +84,6 @@ int32_t LoadDominantContracts(string file, char buffer[20][10]);
 /*
 * check whether the given contract is dominant.
 */
-bool IsDominantImp(const char *contract, char buffer[20][10], int32_t buffer_size);
+bool IsDominantImp(char *contract, char buffer[20][10], int32_t buffer_size);
 
 #endif  //

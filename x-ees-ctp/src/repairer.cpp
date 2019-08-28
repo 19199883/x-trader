@@ -55,7 +55,7 @@ bool repairer::find_start_point(MDPackEx* data)
 		if (SHFE_FTDC_D_Buy==data->content.direction){ victim_ = data->content.instrument; }
 		found = false;
 	}else{
-		if (IsEqualContract(data->content.instrument,victim_.c_str())){ found = false; }
+		if (IsEqualContract((char*)data->content.instrument,(char*)victim_.c_str())){ found = false; }
 		else{
 			working_ = true;
 			victim_ = "";
@@ -158,7 +158,7 @@ void repairer::normal_proc_buy_data(int index)
 void repairer::repair_buy_data(int index)
 {
 	MDPackEx* data = full_depth_md_producer_->GetData(index);
-	if (!IsEqualContract(victim_.c_str(),data->content.instrument)){
+	if (!IsEqualContract((char*)victim_.c_str(),data->content.instrument)){
 		normal_proc_buy_data(index);
 		this->victim_ = "";
 	}
@@ -180,7 +180,7 @@ void repairer::repair_sell_data(int index)
 {
 	MDPackEx* data = full_depth_md_producer_->GetData(index);
 
-	if (!IsEqualContract(victim_.c_str(),data->content.instrument)){
+	if (!IsEqualContract((char*)victim_.c_str(),data->content.instrument)){
 		if (!sell_queue_.Empty()) {
 			clog_error("[%s] (server:%d)repair_sell_data,error, sell queue should"
 				"be emptyr,sn:%d,victim:%s",module_name_, this->server_, data->content.seqno,victim_.c_str());
