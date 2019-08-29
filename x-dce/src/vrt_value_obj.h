@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <pthread.h>
 
+// 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,	以提高速度
+#define ONE_PRODUCT_ONE_CONTRACT
+
 /*
 * DCE_DATA_FEED: 大连data feed组播行情
 * DCE_OLD: 大连李杨时的旧行情(DCE_L2 if.txt)
@@ -23,7 +26,7 @@
 //#define PERSISTENCE_ENABLED
 
 // software license
-#define SERVER_NAME  "JRdl-test3"
+#define SERVER_NAME  "JRdl-test2"
 
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
@@ -114,5 +117,9 @@ extern "C" {
 		return &_vrt_hybrid_value_type;
 	}
 
+
+bool IsEmptyString(char *str);
+bool IsEqualContract(char *contract1, char* contract2);
+bool IsEqualProduct(char *contract1, char* contract2);
 
 #endif

@@ -24,7 +24,7 @@ void Compliance::Save()
 {
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
-		if (strcmp(contracts_[i], "") == 0) break;
+		if (IsEmptyString(contracts_[i])) break;
 
 		clog_warning("[%s] contract:%s; cancel times:%d",
 			module_name_, contracts_[i], cur_cancel_times_[i]);
@@ -51,9 +51,14 @@ int Compliance::GetCancelTimes(const char* contract)
 {
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
-		if (strcmp(contracts_[i], "") == 0) break;
+		if (IsEmptyString(contracts_[i])) break;
 
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		if(IsEqualProduct((char*)contract, contracts_[i])){
+#else
 		if(strcmp(contract, contracts_[i]) == 0){
+#endif
 			return cur_cancel_times_[i];
 		}
 	}
@@ -81,7 +86,12 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		OrderInfo& ord = ord_buffer_[i];
 		if (!ord.valid) continue;
 
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		if (IsEqualProduct((char*)ord.contract, (char*)contract) && side != ord.side){
+#else
 		if (strcmp(ord.contract, contract)==0 && side != ord.side){
+#endif
 			if ((side == X1_FTDC_SPD_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
 				(side != X1_FTDC_SPD_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
 				ret = false;
@@ -112,9 +122,14 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 {
 	int i = 0;
 	for(; i < MAX_CONTRACT_NUMBER; i++){
-		if (strcmp(contracts_[i], "") == 0) break;
+		if (IsEmptyString(contracts_[i])) break;
 
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		if(IsEqualProduct((char*)contract, contracts_[i])){
+#else
 		if(strcmp(contract, contracts_[i]) == 0){
+#endif
 			cur_cancel_times_[i]++;
 			return;
 		}

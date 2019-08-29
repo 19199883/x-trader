@@ -60,6 +60,14 @@ int main(/*int argc, const char **argv*/)
 #ifdef  LOCK_POSITION_ENABLE	
 	clog_warning("LOCK_POSITION_ENABLE"); 
 #endif
+  
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+	clog_warning("ONE_PRODUCT_ONE_CONTRACT"); 
+#else
+	clog_warning("ONE_PRODUCT_MULTI_CONTRACT"); 
+#endif
+
+	clog_warning("server name:%s", SERVER_NAME); 
 
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;
@@ -69,7 +77,7 @@ int main(/*int argc, const char **argv*/)
 
 
 	// version
-	clog_warning("version:dce_2019-08-14_d"); 
+	clog_warning("version:dce_2019-08-28"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;

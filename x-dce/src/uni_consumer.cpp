@@ -35,7 +35,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	sprintf(cmd, "ifconfig >> ~/$(whoami)_dce.log");
 	system(cmd);
 	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami)_dce.log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
-	//system(cmd);
+	// system(cmd);
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
@@ -79,6 +79,8 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	this->pproxy_->setModuleLoadLibrary(new CModuleLoadLibraryLinux());
 	this->pproxy_->setBasePathLibrary(this->pproxy_->getexedir());
 	
+	fflush (Log::fp);
+
 	// pos_calc, check offline strategies
 	pos_calc *calc = pos_calc::instance();
 	list<string> stras;
@@ -362,7 +364,12 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		if (IsEqualProduct((char*)strategy.GetContract(), (char*)md->Contract)){
+#else
 		if (strcmp(strategy.GetContract(), md->Contract) == 0){
+#endif
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			// strategy log
 			WriteStrategyLog(strategy);
@@ -435,7 +442,12 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		if (IsEqualProduct((char*)strategy.GetContract(), md->ContractID)){
+#else
 		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
+#endif
 			clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", 
 				module_name_, index, md->ContractID);
 
