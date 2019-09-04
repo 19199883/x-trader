@@ -53,7 +53,7 @@ int main(/*int argc, const char **argv*/)
 #ifdef PERSISTENCE_ENABLED
 	clog_warning("PERSISTENCE_ENABLED on"); 
 #else
-	clog_warning("PERSISTENCE_ENABLEDon off"); 
+	clog_warning("PERSISTENCE_ENABLED off"); 
 #endif
 
 
@@ -74,7 +74,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// version
-	clog_warning("version:x-ees_2019-08-26_r"); 
+	clog_warning("version:x-ees_2019-09-04"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;

@@ -10,7 +10,7 @@
 #define gettid() syscall(__NR_gettid)
 
 // 如果要支持INE的行情，需要定义INE_ENABLE宏
-//#define INE_ENABLE
+// #define INE_ENABLE
 
 // 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,	以提高速度
 #define ONE_PRODUCT_ONE_CONTRACT
@@ -141,5 +141,7 @@ bool IsEqualContract(char *contract1, char* contract2);
 
 bool IsEmptyString(char *str);
 
+
+void get_curtime(char buffer[],int size);
 
 #endif
