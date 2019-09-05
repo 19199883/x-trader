@@ -134,9 +134,10 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 				ret = false;
 				char time[80];
 				get_curtime(time,sizeof(time));
-				clog_error("[%s][%s] matched with myself. ord counter:%d; queue counter:%d ",
+				clog_error("[%s][%s] contract:%s; matched with myself. ord counter:%d; queue counter:%d ",
 					module_name_, 
 					time,
+					contract,
 					ord_counter, 
 					i);
 				break;
