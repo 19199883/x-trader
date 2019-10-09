@@ -310,7 +310,6 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 				ShfeLev2Formater::Format(*data,buffer));
 
 	Convert(quote_level1_, *data);
-	RalaceInvalidValue_Femas(quote_level1_);
 	
 	clog_info("[%s] rev CDepthMarketDataField:%s",
 				ShfeLev2Formater::Format(quote_level1_,buffer));
@@ -328,39 +327,6 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
     gettimeofday(&t, NULL);
     p_level1_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &quote_level1_);
 #endif
-}
-
-void L1MDProducer::RalaceInvalidValue_Femas(CDepthMarketDataField &d)
-{
-    d.Turnover = InvalidToZeroD(d.Turnover);
-    d.LastPrice = InvalidToZeroD(d.LastPrice);
-    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
-    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
-    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
-    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
-    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
-    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
-    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
-    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
-    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
-
-    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
-//    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
-//    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
-//    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
-//    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
-
-	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
-//    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
-//    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
-//    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
-//    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
-
-	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
-	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
-
-    d.PreDelta = InvalidToZeroD(d.PreDelta);
-    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
 }
 
 void L1MDProducer::End()

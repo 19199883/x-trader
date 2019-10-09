@@ -41,21 +41,28 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 {
 	efh3_lev2* data = efhLev2Producer_->GetData(index);
 
-	CDepthMarketDataField* l1_md = NULL;
+	CDepthMarketDataField* lev1_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS){
-		 l1_md =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);
-	}
-	if(NULL != l1_md){
-		// TODO: here
-		memcpy(&target_data_, l1_md, sizeof(CDepthMarketDataField));
+		 lev1_data =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);
+		if(NULL != lev1_data){
+			// TODO: here
 
-		if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
+			lev1_data-> = data->
+
+			RalaceInvalidValue(lev1_data);
+
+			if (fulldepthmd_handler_ != NULL) { fulldepthmd_handler_(&target_data_); }
 
 #ifdef PERSISTENCE_ENABLED 
-		timeval t;
-		gettimeofday(&t, NULL);
-		p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
+			timeval t;
+			gettimeofday(&t, NULL);
+			p_my_shfe_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
 #endif
+		}
+		else
+		{
+			clog_warning("[%s] can not find lev1 for:%s",data->m_symbol);
+		}
 	}
 }
 
@@ -67,8 +74,38 @@ void MYQuoteData::SetQuoteDataHandler(std::function<void(MYShfeMarketData*)> quo
 
 void MYQuoteData::ProcL1MdData(int32_t index)
 {
-	// TODO: here
 	l1_md_last_index_ = index;
-	CDepthMarketDataField* md = l1_md_producer_->GetData(index);
 }
 
+void MYQuoteData::RalaceInvalidValue(CDepthMarketDataField &d)
+{
+    d.Turnover = InvalidToZeroD(d.Turnover);
+    d.LastPrice = InvalidToZeroD(d.LastPrice);
+    d.UpperLimitPrice = InvalidToZeroD(d.UpperLimitPrice);
+    d.LowerLimitPrice = InvalidToZeroD(d.LowerLimitPrice);
+    d.HighestPrice = InvalidToZeroD(d.HighestPrice);
+    d.LowestPrice = InvalidToZeroD(d.LowestPrice);
+    d.OpenPrice = InvalidToZeroD(d.OpenPrice);
+    d.ClosePrice = InvalidToZeroD(d.ClosePrice);
+    d.PreClosePrice = InvalidToZeroD(d.PreClosePrice);
+    d.OpenInterest = InvalidToZeroD(d.OpenInterest);
+    d.PreOpenInterest = InvalidToZeroD(d.PreOpenInterest);
+
+    d.BidPrice1 = InvalidToZeroD(d.BidPrice1);
+    d.BidPrice2 = InvalidToZeroD(d.BidPrice2);
+    d.BidPrice3 = InvalidToZeroD(d.BidPrice3);
+    d.BidPrice4 = InvalidToZeroD(d.BidPrice4);
+    d.BidPrice5 = InvalidToZeroD(d.BidPrice5);
+
+	d.AskPrice1 = InvalidToZeroD(d.AskPrice1);
+    d.AskPrice2 = InvalidToZeroD(d.AskPrice2);
+    d.AskPrice3 = InvalidToZeroD(d.AskPrice3);
+    d.AskPrice4 = InvalidToZeroD(d.AskPrice4);
+    d.AskPrice5 = InvalidToZeroD(d.AskPrice5);
+
+	d.SettlementPrice = InvalidToZeroD(d.SettlementPrice);
+	d.PreSettlementPrice = InvalidToZeroD(d.PreSettlementPrice);
+
+    d.PreDelta = InvalidToZeroD(d.PreDelta);
+    d.CurrDelta = InvalidToZeroD(d.CurrDelta);
+}
