@@ -15,6 +15,8 @@
 	11. x-ees-ctp: 如果要支持INE的行情，需要定义INE_ENABLE宏
 	12. x-ees-ctp: 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,以提高速度
 	12. x-dce: 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,以提高速度
+	12. x-zce: 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,以提高速度
+	15. 如发布release版，则注释掉所有clog_info, 并确认是否存在不必要的字符段格式化语句
 
 
 

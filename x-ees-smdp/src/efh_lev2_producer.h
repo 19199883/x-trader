@@ -50,7 +50,7 @@ class EfhLev2Producer : public guava_quote_event
 		{
 			
 			sprintf (dest,
-				"[%s] efh3_lev2 "				
+				"efh3_lev2 "				
 				"LastPrice:%f; "												
 				"Volume:%d; "
 				"Turnover:%f; "								
@@ -79,35 +79,34 @@ class EfhLev2Producer : public guava_quote_event
 				"AskPrice5:%f; "
 				"AskVolume5:%d; "
 				"m_open_interest:%f;",
-				module_name_,				
-				data.m_last_px,															
-				data.m_last_share,
-				data.m_turnover,				
-				data.m_update_time,
-				data.m_millisecond,
-				data.m_symbol,
-				data.m_symbol_code,
-				data.m_bid_1_px,
-				data.m_bid_1_share,
-				data.m_ask_1_px,
-				data.m_ask_1_share,
-				data.m_bid_2_px,
-				data.m_bid_2_share,
-				data.m_ask_2_px,
-				data.m_ask_2_share,
-				data.m_bid_3_px,
-				data.m_bid_3_share,
-				data.m_ask_3_px,
-				data.m_ask_3_share,
-				data.m_bid_4_px,
-				data.m_bid_4_share,
-				data.m_ask_4_px,
-				data.m_ask_4_share,
-				data.m_bid_5_px,
-				data.m_bid_5_share,
-				data.m_ask_5_px,
-				data.m_ask_5_share,
-				data.m_open_interest);
+				source.m_last_px,															
+				source.m_last_share,
+				source.m_turnover,				
+				source.m_update_time,
+				source.m_millisecond,
+				source.m_symbol,
+				source.m_symbol_code,
+				source.m_bid_1_px,
+				source.m_bid_1_share,
+				source.m_ask_1_px,
+				source.m_ask_1_share,
+				source.m_bid_2_px,
+				source.m_bid_2_share,
+				source.m_ask_2_px,
+				source.m_ask_2_share,
+				source.m_bid_3_px,
+				source.m_bid_3_share,
+				source.m_ask_3_px,
+				source.m_ask_3_share,
+				source.m_bid_4_px,
+				source.m_bid_4_share,
+				source.m_ask_4_px,
+				source.m_ask_4_share,
+				source.m_bid_5_px,
+				source.m_bid_5_share,
+				source.m_ask_5_px,
+				source.m_ask_5_share,
+				source.m_open_interest);
 
 			return dest;
 		}

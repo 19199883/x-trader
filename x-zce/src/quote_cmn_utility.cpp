@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdio.h>
 #include "quote_cmn_utility.h"
-#include "vrt_value_obj.h"
 
 using namespace std;
 
@@ -43,7 +42,7 @@ IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg)
     return std::make_pair(addr_ip, addr_port);
 }
 
-int32_t LoadDominantContracts(string file, char buffer[20][10])
+int32_t LoadDominantContracts(string file, char buffer[][10])
 {
 	int32_t count = 0;
 
@@ -70,7 +69,7 @@ int32_t LoadDominantContracts(string file, char buffer[20][10])
 	return count;
 }
 
-bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buffer[40][10], 
+bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buffer[][10], 
 	int32_t buffer_size)
 {
 	bool is_dominant = false;
@@ -85,7 +84,7 @@ bool IsDominantImp(const char*commciodity_no, const char* contract_no, char buff
 	return is_dominant;
 }
 
-bool IsDominantImp(const char* contract, char buffer[40][10], 
+bool IsDominantImp(const char* contract, char buffer[][10], 
 	int32_t buffer_size)
 {
 	bool is_dominant = false;

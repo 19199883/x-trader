@@ -55,7 +55,7 @@ void EfhLev2Producer::ParseConfig()
 	int remote_port = 0;
 	efhLev2->QueryIntAttribute("remote_port", &remote_port);
 	this->m_conf_info.m_remote_port = remote_port;
-	strcpy(config_.local_ip, efhLev2->Attribute("local_ip"));
+	strcpy(m_conf_info.m_local_ip, efhLev2->Attribute("local_ip"));
 	int local_port = 0;
 	 efhLev2->QueryIntAttribute("local_port", &local_port);
 	this->m_conf_info.m_local_port = local_port;
@@ -75,8 +75,7 @@ void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
 	if(!IsDominant(data->m_symbol)) return;
 
 	char buffer[2048];
-	clog_info("[%s] rev efh3_lev2:%s",
-				ShfeLev2Formater::Format(*data,buffer));
+	clog_info("[%s] rev efh3_lev2:%s", EfhLev2Producer::Format(*data,buffer));
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;

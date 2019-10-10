@@ -117,7 +117,7 @@ class ShfeLev2Formater
 	{
 		
 		sprintf (dest,
-			"[%s] CThostFtdcDepthMarketDataField  "
+			"CThostFtdcDepthMarketDataField  "
 			"TradingDay:%s; "
 			"SettlementGroupID:%s; "
 			"SettlementID:%d; "
@@ -161,7 +161,6 @@ class ShfeLev2Formater
 			"AskPrice5:%f; "
 			"AskVolume5:%d; "
 			"ActionDay:%s;",
-			module_name_,
 			data.TradingDay,
 			data.SettlementGroupID,
 			data.SettlementID,
@@ -215,7 +214,7 @@ class ShfeLev2Formater
 	{
 		
 		sprintf (dest,
-			"[%s] CDepthMarketDataField "
+			"CDepthMarketDataField "
 			"TradingDay:%s; "
 			"SettlementGroupID:%s; "
 			"SettlementID:%d; "
@@ -259,7 +258,6 @@ class ShfeLev2Formater
 			"AskPrice5:%f; "
 			"AskVolume5:%d; "
 			"ActionDay:%s;",
-			module_name_,
 			data.TradingDay,
 			data.SettlementGroupID,
 			data.SettlementID,

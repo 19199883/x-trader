@@ -4,15 +4,15 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#ifdef PERSISTENCE_ENABLED 
-	#define MAX_CONTRACT_COUNT 1000
-#else
-	#define MAX_CONTRACT_COUNT 20
-#endif
+// 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,	以提高速度
+#define ONE_PRODUCT_ONE_CONTRACT
 
 //#define LATENCY_MEASURE
 // 行情持久化开关
 // #define PERSISTENCE_ENABLED
+
+// software license
+#define SERVER_NAME  "zz16f-hq"
 
 /*
  * 行情UDP通讯设置成非阻塞模式
@@ -29,6 +29,12 @@
 
 // 一个trader支持最多信号数 
 #define COUNTER_UPPER_LIMIT 15000
+
+#ifdef PERSISTENCE_ENABLED 
+	#define MAX_CONTRACT_COUNT 1000
+#else
+	#define MAX_CONTRACT_COUNT 25
+#endif
 
 
 /*
@@ -103,6 +109,10 @@ class Log
 	{
 		return &_vrt_hybrid_value_type;
 	}
+
+bool IsEmptyString(char *str);
+bool IsEqualContract(char *contract1, char* contract2);
+bool IsEqualProduct(char *contract1, char* contract2);
 
 
 #endif

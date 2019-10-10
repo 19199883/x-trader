@@ -139,7 +139,7 @@ void MdHelper::ProcL1MdData(int32_t index)
 	TapAPIQuoteWhole *old_l1_md = NULL;
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(tmp.Contract.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		if(IsEmptyString(tmp.Contract.ContractNo1)){ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			old_l1_md = &tmp; 
 			break;
 		}
@@ -165,7 +165,7 @@ TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(strcmp(tmp.Contract.ContractNo1, "") == 0){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		if(IsEmptyString(tmp.Contract.ContractNo1)){ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}
 

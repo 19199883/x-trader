@@ -17,8 +17,7 @@
 #include "loadlibraryproxy.h"
 #include "compliance.h"
 #include "quote_interface_shfe_my.h"
-#include "quote_interface_ine_my.h"
-#include "fulldepthmd_producer.h"
+#include "efh_lev2_producer.h"
 #include "l1md_producer.h"
 
 /*
@@ -124,7 +123,7 @@ class UniConsumer
 		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		FullDepthMDProducer *fulldepth_md_producer_;
+		EfhLev2Producer *efhLev2_producer_;
 		L1MDProducer *l1_md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
@@ -170,7 +169,7 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcShfeMarketData(MYShfeMarketData* md);
+		void ProcShfeMarketData(CDepthMarketDataField* md);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);

@@ -93,8 +93,7 @@ extern "C" {
 
 	enum HybridData {
 		L1_MD = 0, 
-		FULL_DEPTH_MD,
-		INE_FULL_DEPTH_MD,
+		EFH_LEV2,
 		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 
