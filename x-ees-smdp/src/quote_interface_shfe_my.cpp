@@ -80,8 +80,10 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->AskVolume5 = efh_data->m_ask_5_share;			
 
 			// TODO: log
-			char buffer[2048];
-			clog_info("[%s] send data:%s", ShfeLev2Formater::Format(*my_data,buffer));
+			char buffer[5120];
+			clog_info("[%s] send data:%s", 
+						module_name_,
+						ShfeLev2Formater::Format(*my_data,buffer));
 
 			if (lev2_data_handler_ != NULL) { lev2_data_handler_(my_data); }
 

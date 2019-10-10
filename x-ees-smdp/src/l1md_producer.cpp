@@ -295,9 +295,10 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	// 抛弃非主力合约
 	if(!(IsDominant(data->InstrumentID))) return;
 
-	char buffer[2048];
+	char buffer[5120];
 	clog_info("[%s] rev lev1 data:%s",
-				ShfeLev2Formater::Format(*data,buffer));
+				module_name_,
+				ShfeLev2Formater::Format(*data,buffer) );
 
 	// TODO: 考虑直接使用CTP行情定义，这样可以减少一次拷贝
 	Convert(quote_level1_, *data);

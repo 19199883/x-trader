@@ -30,6 +30,16 @@ EfhLev2Producer::EfhLev2Producer(struct vrt_queue  *queue)
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
+
+	int err = InitMDApi();
+	if(!err)
+	{
+		clog_warning("[%s] efh lev2 init failed.", module_name_);
+	}
+	else
+	{
+		clog_warning("[%s] efh lev2 init is successful.", module_name_);
+	}
 }
 
 void EfhLev2Producer::ParseConfig()
@@ -75,7 +85,9 @@ void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
 	if(!IsDominant(data->m_symbol)) return;
 
 	char buffer[2048];
-	clog_info("[%s] rev efh3_lev2:%s", EfhLev2Producer::Format(*data,buffer));
+	clog_info("[%s] rev efh3_lev2:%s", 
+				module_name_,
+				EfhLev2Producer::Format(*data,buffer));
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
