@@ -112,7 +112,7 @@ class EESFieldConverter
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
+		UniConsumer(struct vrt_queue  *queue, EfhLev2Producer *efhLev2_producer, 
 			L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 

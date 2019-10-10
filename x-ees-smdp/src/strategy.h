@@ -11,6 +11,7 @@
 #include "loadlibraryproxy.h"
 #include "tunn_rpt_producer.h"
 #include "quote_datatype_shfe_my.h"
+#include "quote_datatype_level1.h"
 
 using namespace std;
 
@@ -93,6 +94,7 @@ public:
 	void Init(StrategySetting &setting, CLoadLibraryProxy *pproxy);
 	void FeedInitPosition();
 	void FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* signals);
+	void FeedMd(CDepthMarketDataField* md, int *sig_cnt, signal_t* signals);
 	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos,
 				int *sig_cnt, signal_t* sigs);
 

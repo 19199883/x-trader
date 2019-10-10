@@ -14,12 +14,16 @@ using namespace std::placeholders;
 EES_EnterOrderField EESFieldConverter::new_order_;
 EES_CancelOrder EESFieldConverter::cancel_order_;
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldepth_md_producer, 
-	L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer)
-: module_name_("uni_consumer"),running_(true), 
-  efhLev2_producer_(fulldepth_md_producer),
-  l1_md_producer_(l1_md_producer),
-  tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)
+UniConsumer::UniConsumer(struct vrt_queue  *queue, 
+			EfhLev2Producer *efhLev2_producer, 
+	L1MDProducer *l1_md_producer,  
+	TunnRptProducer *tunn_rpt_producer)
+:   module_name_("uni_consumer"),
+	running_(true), 
+    efhLev2_producer_(efhLev2_producer),
+    l1_md_producer_(l1_md_producer),
+    tunn_rpt_producer_(tunn_rpt_producer),
+	lock_log_(ATOMIC_FLAG_INIT)
 {
 	// lic
 	legal_ = check_lic();

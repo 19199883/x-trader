@@ -206,6 +206,11 @@ void Strategy::FeedInitPosition()
 				second.long_volume, second.short_volume);
 }
 
+void Strategy::FeedMd(CDepthMarketDataField* md, int *sig_cnt, signal_t* signals)
+{
+	// TODO: code
+}
+
 void Strategy::FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* sigs)
 {
 	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 

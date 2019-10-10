@@ -17,7 +17,7 @@
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  32768
 UniConsumer *uniConsumer = NULL;
-FullDepthMDProducer *fulldepth_md_producer = NULL;
+EfhLev2Producer *efhLev2_producer = NULL;
 L1MDProducer *l1_md_producer = NULL; 
 TunnRptProducer *tunnRptProducer = NULL;
 
@@ -82,9 +82,9 @@ int main(/*int argc, const char **argv*/)
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
 	tunnRptProducer = new TunnRptProducer(queue);
-	fulldepth_md_producer = new FullDepthMDProducer(queue);
+	efhLev2_producer = new EfhLev2Producer(queue);
 	l1_md_producer = new L1MDProducer(queue);
-	uniConsumer = new UniConsumer (queue, fulldepth_md_producer, l1_md_producer, tunnRptProducer);
+	uniConsumer = new UniConsumer (queue, efhLev2_producer, l1_md_producer, tunnRptProducer);
 	uniConsumer->Start();
 	fflush (fp);
 
@@ -94,7 +94,7 @@ int main(/*int argc, const char **argv*/)
 	delete uniConsumer;
 	delete tunnRptProducer; 
 	delete l1_md_producer;
-	 delete fulldepth_md_producer; 
+	 delete efhLev2_producer; 
 
 // clog: free resources
 	pos_calc::destroy_instance();

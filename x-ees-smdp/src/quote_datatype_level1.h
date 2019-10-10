@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "ThostFtdcMdApi.h"
+
 #ifndef DLL_PUBLIC
 #define DLL_PUBLIC  __attribute__ ((visibility("default")))
 #endif
@@ -108,19 +110,22 @@ struct DLL_PUBLIC CDepthMarketDataField
     }
 };
 
+
+#pragma pack(pop)
+
 class ShfeLev2Formater
 {
+public:
+
 	/*
 	 * 对source指定的行情数据进行格式化后存储到dest
 	 */
-	static char* Format(CThostFtdcDepthMarketDataField &source, char *dest)
+	static char* Format(CThostFtdcDepthMarketDataField&source,char *dest)
 	{
 		
 		sprintf (dest,
 			"CThostFtdcDepthMarketDataField  "
 			"TradingDay:%s; "
-			"SettlementGroupID:%s; "
-			"SettlementID:%d; "
 			"LastPrice:%f; "
 			"PreSettlementPrice:%f; "
 			"PreClosePrice:%f; "
@@ -161,49 +166,47 @@ class ShfeLev2Formater
 			"AskPrice5:%f; "
 			"AskVolume5:%d; "
 			"ActionDay:%s;",
-			data.TradingDay,
-			data.SettlementGroupID,
-			data.SettlementID,
-			data.LastPrice,
-			data.PreSettlementPrice,
-			data. PreClosePrice,
-			data.PreOpenInterest,
-			data.OpenPrice,
-			data. HighestPrice,
-			data. LowestPrice,
-			data.Volume,
-			data.Turnover,
-			data.OpenInterest,
-			data.ClosePrice,
-			data.SettlementPrice,
-			data.UpperLimitPrice,
-			data.LowerLimitPrice,
-			data.PreDelta,
-			data.CurrDelta,
-			data.UpdateTime,
-			data.UpdateMillisec,
-			data.InstrumentID,
-			data.BidPrice1,
-			data.BidVolume1,
-			data.AskPrice1,
-			data.AskVolume1,
-			data.BidPrice2,
-			data.BidVolume2,
-			data.AskPrice2,
-			data.AskVolume2,
-			data.BidPrice3,
-			data.BidVolume3,
-			data.AskPrice3,
-			data.AskVolume3,
-			data.BidPrice4,
-			data.BidVolume4,
-			data.AskPrice4,
-			data.AskVolume4,
-			data.BidPrice5,
-			data.BidVolume5,
-			data.AskPrice5,
-			data.AskVolume5,
-			data.ActionDay);
+			source.TradingDay,
+			source.LastPrice,
+			source.PreSettlementPrice,
+			source. PreClosePrice,
+			source.PreOpenInterest,
+			source.OpenPrice,
+			source. HighestPrice,
+			source. LowestPrice,
+			source.Volume,
+			source.Turnover,
+			source.OpenInterest,
+			source.ClosePrice,
+			source.SettlementPrice,
+			source.UpperLimitPrice,
+			source.LowerLimitPrice,
+			source.PreDelta,
+			source.CurrDelta,
+			source.UpdateTime,
+			source.UpdateMillisec,
+			source.InstrumentID,
+			source.BidPrice1,
+			source.BidVolume1,
+			source.AskPrice1,
+			source.AskVolume1,
+			source.BidPrice2,
+			source.BidVolume2,
+			source.AskPrice2,
+			source.AskVolume2,
+			source.BidPrice3,
+			source.BidVolume3,
+			source.AskPrice3,
+			source.AskVolume3,
+			source.BidPrice4,
+			source.BidVolume4,
+			source.AskPrice4,
+			source.AskVolume4,
+			source.BidPrice5,
+			source.BidVolume5,
+			source.AskPrice5,
+			source.AskVolume5,
+			source.ActionDay);
 
 		return dest;
 	}
@@ -258,52 +261,50 @@ class ShfeLev2Formater
 			"AskPrice5:%f; "
 			"AskVolume5:%d; "
 			"ActionDay:%s;",
-			data.TradingDay,
-			data.SettlementGroupID,
-			data.SettlementID,
-			data.LastPrice,
-			data.PreSettlementPrice,
-			data. PreClosePrice,
-			data.PreOpenInterest,
-			data.OpenPrice,
-			data. HighestPrice,
-			data. LowestPrice,
-			data.Volume,
-			data.Turnover,
-			data.OpenInterest,
-			data.ClosePrice,
-			data.SettlementPrice,
-			data.UpperLimitPrice,
-			data.LowerLimitPrice,
-			data.PreDelta,
-			data.CurrDelta,
-			data.UpdateTime,
-			data.UpdateMillisec,
-			data.InstrumentID,
-			data.BidPrice1,
-			data.BidVolume1,
-			data.AskPrice1,
-			data.AskVolume1,
-			data.BidPrice2,
-			data.BidVolume2,
-			data.AskPrice2,
-			data.AskVolume2,
-			data.BidPrice3,
-			data.BidVolume3,
-			data.AskPrice3,
-			data.AskVolume3,
-			data.BidPrice4,
-			data.BidVolume4,
-			data.AskPrice4,
-			data.AskVolume4,
-			data.BidPrice5,
-			data.BidVolume5,
-			data.AskPrice5,
-			data.AskVolume5,
-			data.ActionDay);
+			source.TradingDay,
+			source.SettlementGroupID,
+			source.SettlementID,
+			source.LastPrice,
+			source.PreSettlementPrice,
+			source. PreClosePrice,
+			source.PreOpenInterest,
+			source.OpenPrice,
+			source. HighestPrice,
+			source. LowestPrice,
+			source.Volume,
+			source.Turnover,
+			source.OpenInterest,
+			source.ClosePrice,
+			source.SettlementPrice,
+			source.UpperLimitPrice,
+			source.LowerLimitPrice,
+			source.PreDelta,
+			source.CurrDelta,
+			source.UpdateTime,
+			source.UpdateMillisec,
+			source.InstrumentID,
+			source.BidPrice1,
+			source.BidVolume1,
+			source.AskPrice1,
+			source.AskVolume1,
+			source.BidPrice2,
+			source.BidVolume2,
+			source.AskPrice2,
+			source.AskVolume2,
+			source.BidPrice3,
+			source.BidVolume3,
+			source.AskPrice3,
+			source.AskVolume3,
+			source.BidPrice4,
+			source.BidVolume4,
+			source.AskPrice4,
+			source.AskVolume4,
+			source.BidPrice5,
+			source.BidVolume5,
+			source.AskPrice5,
+			source.AskVolume5,
+			source.ActionDay);
 
 		return dest;
 	}
-}
-
-#pragma pack(pop)
+};

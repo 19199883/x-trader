@@ -29,24 +29,24 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
 	CDepthMarketDataField* my_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS){
-		 my_data =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);
+		 my_data =  l1_md_producer_->GetLastData(efh_data->m_symbol, l1_md_last_index_);
 		if(NULL != my_data){			
 			// from level1
-			my_data->UpperLimitPrice = InvalidToZeroD(my_data->UpperLimitPrice);
-			my_data->LowerLimitPrice = InvalidToZeroD(my_data.LowerLimitPrice);
-			my_data->HighestPrice = InvalidToZeroD(my_data.HighestPrice);
-			my_data->LowestPrice = InvalidToZeroD(my_data.LowestPrice);
-			my_data->OpenPrice = InvalidToZeroD(my_data.OpenPrice);
-			my_data->ClosePrice = InvalidToZeroD(my_data.ClosePrice);
-			my_data->PreClosePrice = InvalidToZeroD(my_data.PreClosePrice);			
-			my_data->PreOpenInterest = InvalidToZeroD(my_data.PreOpenInterest);
-			my_data->SettlementPrice = InvalidToZeroD(my_data.SettlementPrice);
-			my_data->PreSettlementPrice = InvalidToZeroD(my_data.PreSettlementPrice);			
-			my_data->PreDelta = InvalidToZeroD(my_data.PreDelta);
-			my_data->CurrDelta = InvalidToZeroD(my_datad.CurrDelta);
+			my_data->UpperLimitPrice =	  InvalidToZeroD(my_data->UpperLimitPrice);
+			my_data->LowerLimitPrice =	  InvalidToZeroD(my_data->LowerLimitPrice);
+			my_data->HighestPrice =		  InvalidToZeroD(my_data->HighestPrice);
+			my_data->LowestPrice =		  InvalidToZeroD(my_data->LowestPrice);
+			my_data->OpenPrice =		  InvalidToZeroD(my_data->OpenPrice);
+			my_data->ClosePrice =		  InvalidToZeroD(my_data->ClosePrice);
+			my_data->PreClosePrice =	  InvalidToZeroD(my_data->PreClosePrice);			
+			my_data->PreOpenInterest =	  InvalidToZeroD(my_data->PreOpenInterest);
+			my_data->SettlementPrice =	  InvalidToZeroD(my_data->SettlementPrice);
+			my_data->PreSettlementPrice = InvalidToZeroD(my_data->PreSettlementPrice);			
+			my_data->PreDelta =		InvalidToZeroD(my_data->PreDelta);
+			my_data->CurrDelta =	InvalidToZeroD(my_data->CurrDelta);
 			
 			// the below is from sfh_lev2
-			my_data->LastPrice = InvalidToZeroD(efh_data->m_last_px);															
+			my_data->LastPrice =	InvalidToZeroD(efh_data->m_last_px);															
 			my_data->Volume = efh_data->m_last_share;
 			my_data->Turnover = InvalidToZeroD(efh_data->m_turnover);				
 			strcpy(my_data->UpdateTime,efh_data->m_update_time);
@@ -80,9 +80,10 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->AskVolume5 = efh_data->m_ask_5_share;			
 
 			// TODO: log
+			char buffer[2048];
 			clog_info("[%s] send data:%s", ShfeLev2Formater::Format(*my_data,buffer));
 
-			if (lev2_data_handler_ != NULL) { lev2_data_handler_(&my_data); }
+			if (lev2_data_handler_ != NULL) { lev2_data_handler_(my_data); }
 
 #ifdef PERSISTENCE_ENABLED 
 			timeval t;
@@ -92,7 +93,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 		}
 		else
 		{
-			clog_warning("[%s] can not find lev1 for:%s",data->m_symbol);
+			clog_warning("[%s] can not find lev1 for:%s",efh_data->m_symbol);
 		}
 	}
 }
@@ -100,7 +101,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 void MYQuoteData::SetQuoteDataHandler(std::function<void(CDepthMarketDataField*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
-	lev2-data_handler_ = quote_handler;
+	lev2_data_handler_ = quote_handler;
 }
 
 void MYQuoteData::ProcL1MdData(int32_t index)
