@@ -31,15 +31,16 @@ EfhLev2Producer::EfhLev2Producer(struct vrt_queue  *queue)
 		producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
+	// TODO:
 	int err = InitMDApi();
-	if(!err)
-	{
-		clog_warning("[%s] efh lev2 init failed.", module_name_);
-	}
-	else
-	{
-		clog_warning("[%s] efh lev2 init is successful.", module_name_);
-	}
+	//if(!err)
+	//{
+	//	clog_warning("[%s] efh lev2 init failed.", module_name_);
+	//}
+	//else
+	//{
+	//	clog_warning("[%s] efh lev2 init is successful.", module_name_);
+	//}
 }
 
 void EfhLev2Producer::ParseConfig()
@@ -95,6 +96,7 @@ void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
 	ivalue->index = Push(*data);
 	ivalue->data = EFH_LEV2;
+	vrt_producer_publish(producer_);
 }
 
 void EfhLev2Producer::End()

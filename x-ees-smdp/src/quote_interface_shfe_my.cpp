@@ -26,6 +26,9 @@ MYQuoteData::~MYQuoteData()
 
 void MYQuoteData::ProcEfhLev2Data(int32_t index)
 {
+	// TODO: code
+	return;
+
 	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
 	CDepthMarketDataField* my_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS){

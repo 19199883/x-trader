@@ -290,6 +290,11 @@ void L1MDProducer::InitMDApi()
 
 void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 {
+	// TODO:
+	clog_info("[%s] rev lev1 data:%s",
+				module_name_,
+				data->InstrumentID);
+
 	if (ended_) return;
 
 	// 抛弃非主力合约
