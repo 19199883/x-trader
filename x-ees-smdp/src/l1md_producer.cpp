@@ -246,33 +246,25 @@ void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpec
 
 void L1MDProducer::Convert(CDepthMarketDataField &quote_level1,const CThostFtdcDepthMarketDataField &ctp_data)
 {
-    memcpy(quote_level1.TradingDay, ctp_data.TradingDay, 9); /// char       TradingDay[9];
-    //SettlementGroupID[9];       /// char       SettlementGroupID[9];
-    //SettlementID ;        /// int            SettlementID;
-    quote_level1.LastPrice = ctp_data.LastPrice;           /// double LastPrice;
-    quote_level1.PreSettlementPrice = ctp_data.PreSettlementPrice;  /// double PreSettlementPrice;
-    quote_level1.PreClosePrice = ctp_data.PreClosePrice;       /// double PreClosePrice;
-    quote_level1.PreOpenInterest = ctp_data.PreOpenInterest;     /// double PreOpenInterest;
-    quote_level1.OpenPrice = ctp_data.OpenPrice;           /// double OpenPrice;
-    quote_level1.HighestPrice = ctp_data.HighestPrice;        /// double HighestPrice;
-    quote_level1.LowestPrice = ctp_data.LowestPrice;         /// double LowestPrice;
-    quote_level1.Volume = ctp_data.Volume;              /// int            Volume;
-    quote_level1.Turnover = ctp_data.Turnover;            /// double Turnover;
-    quote_level1.OpenInterest = ctp_data.OpenInterest;        /// double OpenInterest;
-    quote_level1.ClosePrice = ctp_data.ClosePrice;          /// double ClosePrice;
-    quote_level1.SettlementPrice = ctp_data.SettlementPrice;     /// double SettlementPrice;
-    quote_level1.UpperLimitPrice = ctp_data.UpperLimitPrice;     /// double UpperLimitPrice;
-    quote_level1.LowerLimitPrice = ctp_data.LowerLimitPrice;     /// double LowerLimitPrice;
-    quote_level1.PreDelta = ctp_data.PreDelta;            /// double PreDelta;
-    quote_level1.CurrDelta = ctp_data.CurrDelta;           /// double CurrDelta;
-    memcpy(quote_level1.UpdateTime, ctp_data.UpdateTime, 9);       /// char       UpdateTime[9]; typedef char TThostFtdcTimeType[9];
-    quote_level1.UpdateMillisec = ctp_data.UpdateMillisec;      /// int            UpdateMillisec;
-    memcpy(quote_level1.InstrumentID, ctp_data.InstrumentID, 31); /// char       InstrumentID[31]; typedef char TThostFtdcInstrumentIDType[31];
-    quote_level1.BidPrice1 = ctp_data.BidPrice1;           /// double BidPrice1;
-    quote_level1.BidVolume1 = ctp_data.BidVolume1;          /// int            BidVolume1;
-    quote_level1.AskPrice1 = ctp_data.AskPrice1;           /// double AskPrice1;
-    quote_level1.AskVolume1 = ctp_data.AskVolume1;          /// int            AskVolume1;
-        //ActionDay[9];        /// char       ActionDay[9];
+    quote_level1.LastPrice = ctp_data.LastPrice;           
+    quote_level1.PreSettlementPrice = ctp_data.PreSettlementPrice; 
+    quote_level1.PreClosePrice = ctp_data.PreClosePrice;      
+    quote_level1.PreOpenInterest = ctp_data.PreOpenInterest;  
+    quote_level1.OpenPrice = ctp_data.OpenPrice;       
+    quote_level1.HighestPrice = ctp_data.HighestPrice; 
+    quote_level1.LowestPrice = ctp_data.LowestPrice;   
+    quote_level1.Volume = ctp_data.Volume;              
+    quote_level1.Turnover = ctp_data.Turnover;          
+    quote_level1.OpenInterest = ctp_data.OpenInterest;  
+    quote_level1.ClosePrice = ctp_data.ClosePrice;          
+    quote_level1.SettlementPrice = ctp_data.SettlementPrice; 
+    quote_level1.UpperLimitPrice = ctp_data.UpperLimitPrice; 
+    quote_level1.LowerLimitPrice = ctp_data.LowerLimitPrice; 
+    quote_level1.PreDelta = ctp_data.PreDelta;            
+    quote_level1.CurrDelta = ctp_data.CurrDelta;           
+    memcpy(quote_level1.UpdateTime, ctp_data.UpdateTime, 9);       
+    quote_level1.UpdateMillisec = ctp_data.UpdateMillisec;      
+    memcpy(quote_level1.InstrumentID, ctp_data.InstrumentID, 31); 
 }
 
 void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -306,13 +298,10 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	if(!(IsDominant(data->InstrumentID))) return;
 
 	char buffer[2048];
-	clog_info("[%s] rev CThostFtdcDepthMarketDataField:%s",
+	clog_info("[%s] rev data:%s",
 				ShfeLev2Formater::Format(*data,buffer));
 
 	Convert(quote_level1_, *data);
-	
-	clog_info("[%s] rev CDepthMarketDataField:%s",
-				ShfeLev2Formater::Format(quote_level1_,buffer));
 	
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;

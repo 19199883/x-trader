@@ -28,28 +28,20 @@ class DLL_PUBLIC MYQuoteData
 		~MYQuoteData();
 
 		void SetQuoteDataHandler(std::function<void(CDepthMarketDataField *)> quote_handler);
-		// business logic
 		void ProcL1MdData(int32_t index);
 		void ProcEfhLev2Data(int32_t index);
 
-		QuoteDataSave<CDepthMarketDataField> *p_my_shfe_md_save_;
+		QuoteDataSave<CDepthMarketDataField> *p_shfe_lev2_data_save_;
 	private:
 		// 禁止拷贝和赋值
 		MYQuoteData(const MYQuoteData & other);
 		MYQuoteData operator=(const MYQuoteData & other);
 
-		void Send(MYShfeMarketData *data);
-	
-		MYShfeMarketData target_data_;
-	
 	    EfhLev2Producer* efhLev2Producer_;
 		L1MDProducer* l1_md_producer_;
 		int32_t l1_md_last_index_;
 	
 	private:
-		std::string ToString(const CDepthMarketDataField &d);
-
-		void Send(const char* contract);
 		const char *module_name_;  
 
 	    // 数据处理函数对象

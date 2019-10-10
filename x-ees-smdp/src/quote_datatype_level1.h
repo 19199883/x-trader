@@ -117,7 +117,7 @@ class ShfeLev2Formater
 	{
 		
 		sprintf (dest,
-			"[%s] CDepthMarketDataField "
+			"[%s] CThostFtdcDepthMarketDataField  "
 			"TradingDay:%s; "
 			"SettlementGroupID:%s; "
 			"SettlementID:%d; "

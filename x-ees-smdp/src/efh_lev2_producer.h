@@ -50,7 +50,7 @@ class EfhLev2Producer : public guava_quote_event
 		{
 			
 			sprintf (dest,
-				"[%s] CDepthMarketDataField "				
+				"[%s] efh3_lev2 "				
 				"LastPrice:%f; "												
 				"Volume:%d; "
 				"Turnover:%f; "								
