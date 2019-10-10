@@ -31,6 +31,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 	if(l1_md_last_index_ != L1MD_NPOS){
 		 my_data =  l1_md_producer_->GetLastData(contract, l1_md_last_index_);
 		if(NULL != my_data){			
+			// from level1
 			my_data->UpperLimitPrice = InvalidToZeroD(my_data->UpperLimitPrice);
 			my_data->LowerLimitPrice = InvalidToZeroD(my_data.LowerLimitPrice);
 			my_data->HighestPrice = InvalidToZeroD(my_data.HighestPrice);
@@ -44,6 +45,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->PreDelta = InvalidToZeroD(my_data.PreDelta);
 			my_data->CurrDelta = InvalidToZeroD(my_datad.CurrDelta);
 			
+			// the below is from sfh_lev2
 			my_data->LastPrice = InvalidToZeroD(efh_data->m_last_px);															
 			my_data->Volume = efh_data->m_last_share;
 			my_data->Turnover = InvalidToZeroD(efh_data->m_turnover);				
@@ -78,7 +80,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->AskVolume5 = efh_data->m_ask_5_share;			
 
 			// TODO: log
-			clog_info("[%s] send data:%s", ShfeLev2Formater::Format(*data,buffer));
+			clog_info("[%s] send data:%s", ShfeLev2Formater::Format(*my_data,buffer));
 
 			if (lev2_data_handler_ != NULL) { lev2_data_handler_(&my_data); }
 

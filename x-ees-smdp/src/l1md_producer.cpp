@@ -246,25 +246,23 @@ void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpec
 
 void L1MDProducer::Convert(CDepthMarketDataField &quote_level1,const CThostFtdcDepthMarketDataField &ctp_data)
 {
-    quote_level1.LastPrice = ctp_data.LastPrice;           
     quote_level1.PreSettlementPrice = ctp_data.PreSettlementPrice; 
     quote_level1.PreClosePrice = ctp_data.PreClosePrice;      
     quote_level1.PreOpenInterest = ctp_data.PreOpenInterest;  
     quote_level1.OpenPrice = ctp_data.OpenPrice;       
     quote_level1.HighestPrice = ctp_data.HighestPrice; 
     quote_level1.LowestPrice = ctp_data.LowestPrice;   
-    quote_level1.Volume = ctp_data.Volume;              
-    quote_level1.Turnover = ctp_data.Turnover;          
-    quote_level1.OpenInterest = ctp_data.OpenInterest;  
     quote_level1.ClosePrice = ctp_data.ClosePrice;          
     quote_level1.SettlementPrice = ctp_data.SettlementPrice; 
     quote_level1.UpperLimitPrice = ctp_data.UpperLimitPrice; 
     quote_level1.LowerLimitPrice = ctp_data.LowerLimitPrice; 
     quote_level1.PreDelta = ctp_data.PreDelta;            
     quote_level1.CurrDelta = ctp_data.CurrDelta;           
-    memcpy(quote_level1.UpdateTime, ctp_data.UpdateTime, 9);       
-    quote_level1.UpdateMillisec = ctp_data.UpdateMillisec;      
-    memcpy(quote_level1.InstrumentID, ctp_data.InstrumentID, 31); 
+
+    // memcpy(quote_level1.UpdateTime, ctp_data.UpdateTime, 9);       
+    // quote_level1.UpdateMillisec = ctp_data.UpdateMillisec;      
+	
+    strcpy(quote_level1.InstrumentID, ctp_data.InstrumentID); 
 }
 
 void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -298,9 +296,10 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	if(!(IsDominant(data->InstrumentID))) return;
 
 	char buffer[2048];
-	clog_info("[%s] rev data:%s",
+	clog_info("[%s] rev lev1 data:%s",
 				ShfeLev2Formater::Format(*data,buffer));
 
+	// TODO: 考虑直接使用CTP行情定义，这样可以减少一次拷贝
 	Convert(quote_level1_, *data);
 	
 	struct vrt_value  *vvalue;
