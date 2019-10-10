@@ -219,8 +219,6 @@ public:
 		sprintf (dest,
 			"CDepthMarketDataField "
 			"TradingDay:%s; "
-			"SettlementGroupID:%s; "
-			"SettlementID:%d; "
 			"LastPrice:%f; "
 			"PreSettlementPrice:%f; "
 			"PreClosePrice:%f; "
@@ -262,8 +260,6 @@ public:
 			"AskVolume5:%d; "
 			"ActionDay:%s;",
 			source.TradingDay,
-			source.SettlementGroupID,
-			source.SettlementID,
 			source.LastPrice,
 			source.PreSettlementPrice,
 			source. PreClosePrice,

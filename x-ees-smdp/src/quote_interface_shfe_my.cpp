@@ -26,10 +26,10 @@ MYQuoteData::~MYQuoteData()
 
 void MYQuoteData::ProcEfhLev2Data(int32_t index)
 {
+	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
 	// TODO: code
 	return;
 
-	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
 	CDepthMarketDataField* my_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS){
 		 my_data =  l1_md_producer_->GetLastData(efh_data->m_symbol, l1_md_last_index_);
@@ -45,42 +45,42 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->PreOpenInterest =	  InvalidToZeroD(my_data->PreOpenInterest);
 			my_data->SettlementPrice =	  InvalidToZeroD(my_data->SettlementPrice);
 			my_data->PreSettlementPrice = InvalidToZeroD(my_data->PreSettlementPrice);			
-			my_data->PreDelta =		InvalidToZeroD(my_data->PreDelta);
-			my_data->CurrDelta =	InvalidToZeroD(my_data->CurrDelta);
+			my_data->PreDelta =			  InvalidToZeroD(my_data->PreDelta);
+			my_data->CurrDelta =		  InvalidToZeroD(my_data->CurrDelta);
 			
 			// the below is from sfh_lev2
 			my_data->LastPrice =	InvalidToZeroD(efh_data->m_last_px);															
-			my_data->Volume = efh_data->m_last_share;
-			my_data->Turnover = InvalidToZeroD(efh_data->m_turnover);				
+			my_data->Volume =					   efh_data->m_last_share;
+			my_data->Turnover =     InvalidToZeroD(efh_data->m_turnover);				
 			strcpy(my_data->UpdateTime,efh_data->m_update_time);
 			my_data->UpdateMillisec = efh_data->m_millisecond;
 			my_data->OpenInterest = InvalidToZeroD(efh_data->m_open_interest);	
 			
 			// my_data-> = efh_data->m_symbol_code;
 			
-			my_data->BidPrice1 =  InvalidToZeroD(efh_data->m_bid_1_px);
-			my_data->BidPrice2 =  InvalidToZeroD(efh_data->m_bid_2_px);
-			my_data->BidPrice3 =  InvalidToZeroD(efh_data->m_bid_3_px);
-			my_data->BidPrice4 =  InvalidToZeroD(efh_data->m_bid_4_px);
-			my_data->BidPrice5 =  InvalidToZeroD(efh_data->m_bid_5_px);
+			my_data->BidPrice1 =    InvalidToZeroD(efh_data->m_bid_1_px);
+			my_data->BidPrice2 =    InvalidToZeroD(efh_data->m_bid_2_px);
+			my_data->BidPrice3 =    InvalidToZeroD(efh_data->m_bid_3_px);
+			my_data->BidPrice4 =    InvalidToZeroD(efh_data->m_bid_4_px);
+			my_data->BidPrice5 =    InvalidToZeroD(efh_data->m_bid_5_px);
 			
-			my_data->BidVolume1 = efh_data->m_bid_1_share;
-			my_data->BidVolume2 = efh_data->m_bid_2_share;
-			my_data->BidVolume3 = efh_data->m_bid_3_share;
-			my_data->BidVolume4 = efh_data->m_bid_4_share;
-			my_data->BidVolume5 = efh_data->m_bid_5_share;
+			my_data->BidVolume1 =				   efh_data->m_bid_1_share;
+			my_data->BidVolume2 =				   efh_data->m_bid_2_share;
+			my_data->BidVolume3 =				   efh_data->m_bid_3_share;
+			my_data->BidVolume4 =				   efh_data->m_bid_4_share;
+			my_data->BidVolume5 =				   efh_data->m_bid_5_share;
 				
-			my_data->AskPrice1 =  InvalidToZeroD(efh_data->m_ask_1_px);
-			my_data->AskPrice2 =  InvalidToZeroD(efh_data->m_ask_2_px);
-			my_data->AskPrice3 =  InvalidToZeroD(efh_data->m_ask_3_px);
-			my_data->AskPrice4 =  InvalidToZeroD(efh_data->m_ask_4_px);
-			my_data->AskPrice5 =  InvalidToZeroD(efh_data->m_ask_5_px);
+			my_data->AskPrice1 =    InvalidToZeroD(efh_data->m_ask_1_px);
+			my_data->AskPrice2 =    InvalidToZeroD(efh_data->m_ask_2_px);
+			my_data->AskPrice3 =    InvalidToZeroD(efh_data->m_ask_3_px);
+			my_data->AskPrice4 =    InvalidToZeroD(efh_data->m_ask_4_px);
+			my_data->AskPrice5 =    InvalidToZeroD(efh_data->m_ask_5_px);
 			
-			my_data->AskVolume1 = efh_data->m_ask_1_share;		
-			my_data->AskVolume2 = efh_data->m_ask_2_share;
-			my_data->AskVolume3 = efh_data->m_ask_3_share;		
-			my_data->AskVolume4 = efh_data->m_ask_4_share;
-			my_data->AskVolume5 = efh_data->m_ask_5_share;			
+			my_data->AskVolume1 =                  efh_data->m_ask_1_share;		
+			my_data->AskVolume2 =                  efh_data->m_ask_2_share;
+			my_data->AskVolume3 =                  efh_data->m_ask_3_share;		
+			my_data->AskVolume4 =                  efh_data->m_ask_4_share;
+			my_data->AskVolume5 =                  efh_data->m_ask_5_share;			
 
 			// TODO: log
 			char buffer[5120];
