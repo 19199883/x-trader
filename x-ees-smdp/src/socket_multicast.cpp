@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
-#include <asm/errno.h>
+//#include <asm/errno.h>
 
 #endif
 
