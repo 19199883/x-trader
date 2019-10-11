@@ -52,12 +52,12 @@ class EfhLev2Producer : public guava_quote_event
 			sprintf (dest,
 				"efh3_lev2 "				
 				"InstrumentID:%s; "
+				"UpdateTime[9]:%s; "
+				"UpdateMillisec:%d; "
 				"m_symbol_code:%d; "
 				"LastPrice:%f; "												
 				"Volume:%d; "
 				"Turnover:%f; "								
-				"UpdateTime[9]:%s; "
-				"UpdateMillisec:%d; "
 				"BidPrice1:%f; "
 				"BidVolume1:%d; "
 				"AskPrice1:%f; "
@@ -80,12 +80,12 @@ class EfhLev2Producer : public guava_quote_event
 				"AskVolume5:%d; "
 				"m_open_interest:%f;",
 				source.m_symbol,
+				source.m_update_time,
+				source.m_millisecond,
 				source.m_symbol_code,
 				source.m_last_px,															
 				source.m_last_share,
 				source.m_turnover,				
-				source.m_update_time,
-				source.m_millisecond,
 				source.m_bid_1_px,
 				source.m_bid_1_share,
 				source.m_ask_1_px,

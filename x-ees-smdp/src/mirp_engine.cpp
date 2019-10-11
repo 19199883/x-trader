@@ -1,4 +1,6 @@
-﻿#include "guava_quote.h"
+﻿#include "mirp_header.h"
+#include "guava_quote.h"
+#include "vrt_value_obj.h"
 
 
 guava_quote::guava_quote(void)
@@ -24,6 +26,8 @@ void guava_quote::on_receive_message(int id, const char* buff, unsigned int len)
 	}
 
 	// TODO: coding here
+	// mirp header
+	mirp_header_t *header = (mirp_header_t*)buff;
 	
 	//efh3_lev2* ptr_data = (efh3_lev2*)buff;
 	//m_ptr_event->on_receive_quote(ptr_data);

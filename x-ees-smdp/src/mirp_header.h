@@ -10,19 +10,25 @@
 ******************************************************************************/
 #pragma once
 
+#include "stdint.h"
 
-class mirp_header
+#pragma pack(push, 1)
+
+/**
+ * MIRP¿¿¿¿¿¿24¿¿¿¿
+ * ¿¿MIRP¿¿¿¿¿¿¿¿¿¿MIRP¿¿¿¿¿¿¿¿¿¿¿¿¿¿MIRP¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿
+ * ¿¿
+ *
+ */
+class mirp_header_t
 {
-public:
-	virtual ~mirp_header() {}
-
 	/*
 	* ¿¿¿¿¿¿¿¿¿¿¿¿¿4¿¿4¿¿¿¿¿¿4¿(Flag&0x0F)¿¿¿¿¿¿¿
 	* ¿¿¿¿¿¿1¿¿4¿¿¿¿¿¿(¿¿4¿,Flag&0x10)¿¿¿¿¿¿¿¿¿
 	* ¿¿¿¿¿¿0¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿
 	* ¿1¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿3¿¿¿¿¿¿¿¿¿
 	*/
-	uint8_t Flag uInt8; 
+	uint8_t Flag; 
 
 	/*
 	 * ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿
@@ -60,12 +66,12 @@ public:
 	/*
 	 * ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿
 	 */
-	uInt32 SnapTime;  
+	uint32_t SnapTime;  
 
 	/*
 	 * ¿1980¿01¿01¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿
 	 */
-	uInt16 CommPhaseNo;  
+	uint16_t CommPhaseNo;  
 
 	/*
 	 * * ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿
@@ -78,3 +84,5 @@ public:
 	 */
 	int8_t Reserved;  
 };
+
+#pragma pack(pop)

@@ -254,8 +254,8 @@ void L1MDProducer::Convert(CDepthMarketDataField &quote_level1,const CThostFtdcD
     quote_level1.OpenPrice =			ctp_data.OpenPrice;       
     quote_level1.HighestPrice =			ctp_data.HighestPrice; 
     quote_level1.LowestPrice =			ctp_data.LowestPrice;   
-    quote_level1.ClosePrice =			ctp_data.ClosePrice;          
-    quote_level1.SettlementPrice =		ctp_data.SettlementPrice; 
+    //quote_level1.ClosePrice =			ctp_data.ClosePrice;          
+    //quote_level1.SettlementPrice =		ctp_data.SettlementPrice; 
     quote_level1.UpperLimitPrice =		ctp_data.UpperLimitPrice; 
     quote_level1.LowerLimitPrice =		ctp_data.LowerLimitPrice; 
     quote_level1.PreDelta =				ctp_data.PreDelta;            

@@ -126,6 +126,8 @@ public:
 		sprintf (dest,
 			"CThostFtdcDepthMarketDataField  "
 			"InstrumentID:%s; "
+			"UpdateTime[9]:%s; "
+			"UpdateMillisec:%d; "
 			"TradingDay:%s; "
 			"LastPrice:%f; "
 			"PreSettlementPrice:%f; "
@@ -143,8 +145,6 @@ public:
 			"LowerLimitPrice:%f; "
 			"PreDelta:%f; "
 			"CurrDelta:%f; "
-			"UpdateTime[9]:%s; "
-			"UpdateMillisec:%d; "
 			"BidPrice1:%f; "
 			"BidVolume1:%d; "
 			"AskPrice1:%f; "
@@ -167,6 +167,8 @@ public:
 			"AskVolume5:%d; "
 			"ActionDay:%s;",
 			source.InstrumentID,
+			source.UpdateTime,
+			source.UpdateMillisec,
 			source.TradingDay,
 			source.LastPrice,
 			source.PreSettlementPrice,
@@ -184,8 +186,6 @@ public:
 			source.LowerLimitPrice,
 			source.PreDelta,
 			source.CurrDelta,
-			source.UpdateTime,
-			source.UpdateMillisec,
 			source.BidPrice1,
 			source.BidVolume1,
 			source.AskPrice1,
@@ -218,6 +218,9 @@ public:
 		
 		sprintf (dest,
 			"CDepthMarketDataField "
+			"InstrumentID:%s; "
+			"UpdateTime[9]:%s; "
+			"UpdateMillisec:%d; "
 			"TradingDay:%s; "
 			"LastPrice:%f; "
 			"PreSettlementPrice:%f; "
@@ -235,9 +238,6 @@ public:
 			"LowerLimitPrice:%f; "
 			"PreDelta:%f; "
 			"CurrDelta:%f; "
-			"UpdateTime[9]:%s; "
-			"UpdateMillisec:%d; "
-			"InstrumentID:%s; "
 			"BidPrice1:%f; "
 			"BidVolume1:%d; "
 			"AskPrice1:%f; "
@@ -259,6 +259,9 @@ public:
 			"AskPrice5:%f; "
 			"AskVolume5:%d; "
 			"ActionDay:%s;",
+			source.InstrumentID,
+			source.UpdateTime,
+			source.UpdateMillisec,
 			source.TradingDay,
 			source.LastPrice,
 			source.PreSettlementPrice,
@@ -276,9 +279,6 @@ public:
 			source.LowerLimitPrice,
 			source.PreDelta,
 			source.CurrDelta,
-			source.UpdateTime,
-			source.UpdateMillisec,
-			source.InstrumentID,
 			source.BidPrice1,
 			source.BidVolume1,
 			source.AskPrice1,
