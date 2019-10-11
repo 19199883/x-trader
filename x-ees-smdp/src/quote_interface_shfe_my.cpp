@@ -27,11 +27,10 @@ MYQuoteData::~MYQuoteData()
 void MYQuoteData::ProcEfhLev2Data(int32_t index)
 {
 	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
-	// TODO: code
-	return;
-
+	
 	CDepthMarketDataField* my_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS){
+
 		 my_data =  l1_md_producer_->GetLastData(efh_data->m_symbol, l1_md_last_index_);
 		if(NULL != my_data){			
 			// from level1
@@ -48,6 +47,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->PreDelta =			  InvalidToZeroD(my_data->PreDelta);
 			my_data->CurrDelta =		  InvalidToZeroD(my_data->CurrDelta);
 			
+
 			// the below is from sfh_lev2
 			my_data->LastPrice =	InvalidToZeroD(efh_data->m_last_px);															
 			my_data->Volume =					   efh_data->m_last_share;
@@ -56,7 +56,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->UpdateMillisec = efh_data->m_millisecond;
 			my_data->OpenInterest = InvalidToZeroD(efh_data->m_open_interest);	
 			
-			// my_data-> = efh_data->m_symbol_code;
+			// my_datalev2_data_ = efh_data->m_symbol_code;
 			
 			my_data->BidPrice1 =    InvalidToZeroD(efh_data->m_bid_1_px);
 			my_data->BidPrice2 =    InvalidToZeroD(efh_data->m_bid_2_px);
@@ -69,7 +69,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->BidVolume3 =				   efh_data->m_bid_3_share;
 			my_data->BidVolume4 =				   efh_data->m_bid_4_share;
 			my_data->BidVolume5 =				   efh_data->m_bid_5_share;
-				
+			
 			my_data->AskPrice1 =    InvalidToZeroD(efh_data->m_ask_1_px);
 			my_data->AskPrice2 =    InvalidToZeroD(efh_data->m_ask_2_px);
 			my_data->AskPrice3 =    InvalidToZeroD(efh_data->m_ask_3_px);
@@ -93,12 +93,12 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 #ifdef PERSISTENCE_ENABLED 
 			timeval t;
 			gettimeofday(&t, NULL);
-			p_my_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &my_data);
+			p_my_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, my_data);
 #endif
 		}
 		else
 		{
-			clog_warning("[%s] can not find lev1 for:%s",efh_data->m_symbol);
+			clog_warning("[%s] can not find lev1 for:%s",module_name_, efh_data->m_symbol);
 		}
 	}
 }

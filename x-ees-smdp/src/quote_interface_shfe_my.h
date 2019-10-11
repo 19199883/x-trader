@@ -43,7 +43,6 @@ class DLL_PUBLIC MYQuoteData
 	
 	private:
 		const char *module_name_;  
-
 	    // 数据处理函数对象
 	    std::function<void(CDepthMarketDataField *)> lev2_data_handler_;
 };
