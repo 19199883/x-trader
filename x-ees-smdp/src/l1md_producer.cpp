@@ -52,6 +52,7 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 
 	ParseConfig();
 
+	memset(&quote_level1_,0,sizeof(quote_level1_));
 	// init dominant contracts
 	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
 	contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);

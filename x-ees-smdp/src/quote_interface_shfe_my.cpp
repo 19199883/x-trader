@@ -32,7 +32,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 	if(l1_md_last_index_ != L1MD_NPOS){
 
 		 my_data =  l1_md_producer_->GetLastData(efh_data->m_symbol, l1_md_last_index_);
-		if(NULL != my_data){			
+		if(NULL != my_data){	
 			// from level1
 			my_data->UpperLimitPrice =	  InvalidToZeroD(my_data->UpperLimitPrice);
 			my_data->LowerLimitPrice =	  InvalidToZeroD(my_data->LowerLimitPrice);
