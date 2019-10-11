@@ -125,6 +125,7 @@ public:
 		
 		sprintf (dest,
 			"CThostFtdcDepthMarketDataField  "
+			"InstrumentID:%s; "
 			"TradingDay:%s; "
 			"LastPrice:%f; "
 			"PreSettlementPrice:%f; "
@@ -144,7 +145,6 @@ public:
 			"CurrDelta:%f; "
 			"UpdateTime[9]:%s; "
 			"UpdateMillisec:%d; "
-			"InstrumentID:%s; "
 			"BidPrice1:%f; "
 			"BidVolume1:%d; "
 			"AskPrice1:%f; "
@@ -166,6 +166,7 @@ public:
 			"AskPrice5:%f; "
 			"AskVolume5:%d; "
 			"ActionDay:%s;",
+			source.InstrumentID,
 			source.TradingDay,
 			source.LastPrice,
 			source.PreSettlementPrice,
@@ -185,7 +186,6 @@ public:
 			source.CurrDelta,
 			source.UpdateTime,
 			source.UpdateMillisec,
-			source.InstrumentID,
 			source.BidPrice1,
 			source.BidVolume1,
 			source.AskPrice1,

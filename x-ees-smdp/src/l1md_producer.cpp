@@ -247,6 +247,7 @@ void L1MDProducer::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpec
 
 void L1MDProducer::Convert(CDepthMarketDataField &quote_level1,const CThostFtdcDepthMarketDataField &ctp_data)
 {
+    strcpy(quote_level1.InstrumentID, ctp_data.InstrumentID); 
     quote_level1.PreSettlementPrice =	ctp_data.PreSettlementPrice; 
     quote_level1.PreClosePrice =		ctp_data.PreClosePrice;      
     quote_level1.PreOpenInterest =		ctp_data.PreOpenInterest;  
@@ -263,7 +264,6 @@ void L1MDProducer::Convert(CDepthMarketDataField &quote_level1,const CThostFtdcD
     // memcpy(quote_level1.UpdateTime, ctp_data.UpdateTime, 9);       
     // quote_level1.UpdateMillisec = ctp_data.UpdateMillisec;      
 	
-    strcpy(quote_level1.InstrumentID, ctp_data.InstrumentID); 
 }
 
 void L1MDProducer::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
