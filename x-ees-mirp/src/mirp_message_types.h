@@ -12,6 +12,8 @@
 
 #include "stdint.h"
 
+#define MIRP_HEADER_LENGTH 24
+
 namespace mirp
 {
 #pragma pack(push, 1)
@@ -23,7 +25,7 @@ namespace mirp
 	 * ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ID¿¿¿¿¿¿¿¿¿¿¿¿¿
 	 *
 	 */
-	class mirp_header_t
+	struct mirp_header_t
 	{
 		/*
 		 * ¿¿¿¿¿¿¿¿¿¿¿¿¿4¿¿4¿
@@ -164,10 +166,10 @@ namespace mirp
 	struct field_header_t
 	{
 		// ¿ID¿¿¿¿¿¿¿¿¿¿¿¿
-		int16_t FieldID Int16; 
+		int16_t FieldID; 
 
 		// ¿¿¿¿¿
-		int16 FieldSize; 
+		int16_t FieldSize; 
 	};
 
 	/*
@@ -225,6 +227,39 @@ namespace mirp
 		
 		// ¿¿¿
 		// VInt Volume; ¿
+	};
+
+	class mirp_formatter
+	{
+		public:
+			static void format(mirp_header *header, char*buff)
+			{
+				sprintf (buff,
+					"mirp_header "
+					"Flag:%u; " 
+					"TypeID:%d; "
+					"Length:%u; "
+					"PacketNo:%d; "
+					"TopicID:%d; "
+					"SnapMillisec:%u; "
+					"SnapNo:%d; "
+					"SnapTime:%u; "
+					"CommPhaseNo:%u; "
+					"CenterChangeNo:%d; "
+					"Reserved:%d; ",
+					header-> Flag, 
+					header-> TypeID,	
+					header-> Length,  
+					header-> PacketNo, 
+					header-> TopicID, 
+					header-> SnapMillisec,
+					header-> SnapNo,
+					header-> SnapTime,  
+					header-> CommPhaseNo,
+					header-> CenterChangeNo,
+					header-> Reserved);
+
+			}
 	};
 
 #pragma pack(pop)
