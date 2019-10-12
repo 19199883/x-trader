@@ -33,11 +33,11 @@ public:
 	 * you've got the varint data in a buffer pointed to by data. This example function
 	 * returns the number of bytes decoded in the reference argument int decoded_bytes.
 	 */
-	static uint64_t decode_unsigned_varint(const uint8_t *const data, int &decoded_bytes )
+	static uint64_t decode_unsigned_varint(const uint8_t *const data, uint8_t &decoded_bytes )
 	{
-		int i = 0;
+		uint8_t i = 0;
 		uint64_t decoded_value = 0;
-		int shift_amount = 0;
+		uint8_t shift_amount = 0;
 
 		do 
 		{
@@ -53,7 +53,7 @@ public:
 	 * To decode a signed varint, you can use this second function that calls the 
 	 * first: 
 	 */
-	static int64_t decode_signed_varint(const uint8_t *const data, int &decoded_bytes)
+	static int64_t decode_signed_varint(const uint8_t *const data, uint8_t &decoded_bytes)
 	{
 		uint64_t unsigned_value = decode_unsigned_varint(data, decoded_bytes);
 		return ZigZagDecode64(unsigned_value );
@@ -63,9 +63,9 @@ public:
 	 * Encode an unsigned 64-bit varint.  Returns number of encoded bytes.
 	* buffer' must have room for up to 10 bytes.
 	*/
-	int encode_unsigned_varint(uint8_t *const buffer, uint64_t value)
+	uint8_t encode_unsigned_varint(uint8_t *const buffer, uint64_t value)
 	{
-		int encoded = 0;
+		uint8_t encoded = 0;
 
 		do
 		{
@@ -88,7 +88,7 @@ public:
 	 * signed value into an unsigned value, and then reusing the unsigned
 	 * encoder.  'buffer' must have room for up to 10 bytes.
 	 */
-	int encode_signed_varint(uint8_t *const buffer, int64_t value)
+	uint8_t encode_signed_varint(uint8_t *const buffer, int64_t value)
 	{
 		uint64_t uvalue;
 
