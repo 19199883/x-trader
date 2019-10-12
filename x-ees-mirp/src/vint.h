@@ -9,23 +9,27 @@ public:
 	inline uint32_t ZigZagEncode32(int32_t n) 
 	{
 	  // Note:  the right-shift must be arithmetic
-	  return (n << 1) ^ (n >> 31);
+	  // Note:  left shift must be unsigned because of overflow
+	  return (static_cast<uint32_t>(n) << 1) ^ static_cast<uint32_t>(n >> 31);
 	}
 
 	inline int32_t ZigZagDecode32(uint32_t n) 
 	{
-	  return (n >> 1) ^ -static_cast<int32_t>(n & 1);
+	  // Note:  Using unsigned types prevent undefined behavior
+	  return static_cast<int32_t>((n >> 1) ^ (~(n & 1) + 1));
 	}
 
 	inline uint64_t ZigZagEncode64(int64_t n) 
 	{
 	  // Note:  the right-shift must be arithmetic
-	  return (n << 1) ^ (n >> 63);
+	  // Note:  left shift must be unsigned because of overflow
+	  return (static_cast<uint64_t>(n) << 1) ^ static_cast<uint64_t>(n >> 63);
 	}
 
 	inline int64_t ZigZagDecode64(uint64_t n) 
 	{
-	  return (n >> 1) ^ -static_cast<int64_t>(n & 1);
+	  // Note:  Using unsigned types prevent undefined behavior
+	  return static_cast<int64_t>((n >> 1) ^ (~(n & 1) + 1));
 	}
 
 	/*
