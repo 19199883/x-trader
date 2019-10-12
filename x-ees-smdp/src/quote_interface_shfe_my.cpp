@@ -27,7 +27,6 @@ MYQuoteData::~MYQuoteData()
 void MYQuoteData::ProcEfhLev2Data(int32_t index)
 {
 	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
-	
 	CDepthMarketDataField* my_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS){
 
@@ -44,8 +43,8 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->PreOpenInterest =	  InvalidToZeroD(my_data->PreOpenInterest);
 			my_data->SettlementPrice =	  InvalidToZeroD(my_data->SettlementPrice);
 			my_data->PreSettlementPrice = InvalidToZeroD(my_data->PreSettlementPrice);			
-			my_data->PreDelta =			  InvalidToZeroD(my_data->PreDelta);
-			my_data->CurrDelta =		  InvalidToZeroD(my_data->CurrDelta);
+			//my_data->PreDelta =			  InvalidToZeroD(my_data->PreDelta);
+			//my_data->CurrDelta =		  InvalidToZeroD(my_data->CurrDelta);
 			
 
 			// the below is from sfh_lev2

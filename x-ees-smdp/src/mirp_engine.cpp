@@ -1,40 +1,45 @@
 ﻿#include "mirp_header.h"
 #include "guava_quote.h"
 #include "vrt_value_obj.h"
+#include "mirp_engine.h"
 
+using namespace mirp;
 
-guava_quote::guava_quote(void)
+mirp_message_engine::mirp_message_engine(void)
 {
 	m_ptr_event = NULL;
 }
 
 
-guava_quote::~guava_quote(void)
+mirp_message_engine::~mirp_message_engine(void)
 {
 }
 
-void guava_quote::on_receive_message(int id, const char* buff, unsigned int len)
+void mirp_message_engine::on_receive_message(int id, const char* buff, unsigned int len)
 {
 	if (!m_ptr_event)
 	{
 		return;
 	}
 
-	if (len < sizeof(efh3_lev2) )
-	{
-		return;
-	}
+	//if (len < sizeof(efh3_lev2) )
+	//{
+	//	return;
+	//}
 
 	// TODO: coding here
 	// mirp header
 	mirp_header_t *header = (mirp_header_t*)buff;
+	clog_info("[%s] send data:%s", 
+				module_name_,
+				ShfeLev2Formater::Format(*my_data,buffer));
 	
 	//efh3_lev2* ptr_data = (efh3_lev2*)buff;
 	//m_ptr_event->on_receive_quote(ptr_data);
 }
 
 
-bool guava_quote::init(multicast_info cffex, guava_quote_event* p_event)
+bool mirp_message_engine::init(multicast_info cffex, mirp_message_engine_event* p_event)
 {
 	m_udp_conf = cffex;
 	m_ptr_event = p_event;
@@ -48,7 +53,7 @@ bool guava_quote::init(multicast_info cffex, guava_quote_event* p_event)
 	return true;
 }
 
-void guava_quote::close()
+void mirp_message_engine::close()
 {
 	m_udp.sock_close();
 }

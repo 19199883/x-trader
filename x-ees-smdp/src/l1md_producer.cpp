@@ -258,8 +258,8 @@ void L1MDProducer::Convert(CDepthMarketDataField &quote_level1,const CThostFtdcD
     //quote_level1.SettlementPrice =		ctp_data.SettlementPrice; 
     quote_level1.UpperLimitPrice =		ctp_data.UpperLimitPrice; 
     quote_level1.LowerLimitPrice =		ctp_data.LowerLimitPrice; 
-    quote_level1.PreDelta =				ctp_data.PreDelta;            
-    quote_level1.CurrDelta =			ctp_data.CurrDelta;           
+    //quote_level1.PreDelta =				ctp_data.PreDelta;            
+    //quote_level1.CurrDelta =			ctp_data.CurrDelta;           
 
     // memcpy(quote_level1.UpdateTime, ctp_data.UpdateTime, 9);       
     // quote_level1.UpdateMillisec = ctp_data.UpdateMillisec;      
