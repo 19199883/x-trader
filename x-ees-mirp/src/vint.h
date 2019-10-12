@@ -6,6 +6,28 @@
 class vint
 {
 public:
+	inline uint32_t ZigZagEncode32(int32_t n) 
+	{
+	  // Note:  the right-shift must be arithmetic
+	  return (n << 1) ^ (n >> 31);
+	}
+
+	inline int32_t ZigZagDecode32(uint32_t n) 
+	{
+	  return (n >> 1) ^ -static_cast<int32_t>(n & 1);
+	}
+
+	inline uint64_t ZigZagEncode64(int64_t n) 
+	{
+	  // Note:  the right-shift must be arithmetic
+	  return (n << 1) ^ (n >> 63);
+	}
+
+	inline int64_t ZigZagDecode64(uint64_t n) 
+	{
+	  return (n >> 1) ^ -static_cast<int64_t>(n & 1);
+	}
+
 	/*
 	 * For an unsigned varint, I believe the following will decode it for you, assuming 
 	 * you've got the varint data in a buffer pointed to by data. This example function
@@ -34,8 +56,7 @@ public:
 	static int64_t decode_signed_varint(const uint8_t *const data, int &decoded_bytes)
 	{
 		uint64_t unsigned_value = decode_unsigned_varint(data, decoded_bytes);
-		return (int64_t)( unsigned_value & 1 ? ~(unsigned_value >> 1) 
-											 :  (unsigned_value >> 1) );
+		return ZigZagDecode64(unsigned_value );
 	}
 	
 	/*
@@ -71,8 +92,7 @@ public:
 	{
 		uint64_t uvalue;
 
-		uvalue = uint64_t( value < 0 ? ~(value << 1) : (value << 1) );
-
+		uvale = ZigZagEncode64(value);
 		return encode_unsigned_varint( buffer, uvalue );
 	}
 };
