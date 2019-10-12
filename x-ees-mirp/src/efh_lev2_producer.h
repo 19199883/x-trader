@@ -1,5 +1,4 @@
-#ifndef __FULLDEPTHMD_PRODUCER_H__
-#define __FULLDEPTHMD_PRODUCER_H__
+#pragma once
 
 #include <functional>
 #include <array>
@@ -147,4 +146,3 @@ class EfhLev2Producer : public guava_quote_event
 		multicast_info	m_conf_info;		///< UDP信息
 };
 
-#endif
