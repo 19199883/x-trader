@@ -13,6 +13,7 @@
 #include "stdint.h"
 
 #define MIRP_HEADER_LENGTH 24
+#define MIRP_FIELD_HEADER_LENGTH 4
 
 namespace mirp
 {
@@ -117,6 +118,9 @@ namespace mirp
 
 	enum mirp_message_fieldid_t
 	{
+		// ¿¿¿¿¿¿¿
+		center_switch	=	0x0032,
+
 		// ¿¿¿¿¿¿¿¿
 		contract_header =	0x0003,
 
