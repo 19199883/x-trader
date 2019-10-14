@@ -14,14 +14,13 @@ using namespace std::placeholders;
 EES_EnterOrderField EESFieldConverter::new_order_;
 EES_CancelOrder EESFieldConverter::cancel_order_;
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, 
-			EfhLev2Producer *efhLev2_producer, 
-	L1MDProducer *l1_md_producer,  
-	TunnRptProducer *tunn_rpt_producer)
+UniConsumer::UniConsumer(
+			struct vrt_queue  *queue, 
+			Lev2Producer *lev2_producer, 
+			TunnRptProducer *tunn_rpt_producer)
 :   module_name_("uni_consumer"),
 	running_(true), 
-    efhLev2_producer_(efhLev2_producer),
-    l1_md_producer_(l1_md_producer),
+    lev2_producer_(lev2_producer),
     tunn_rpt_producer_(tunn_rpt_producer),
 	lock_log_(ATOMIC_FLAG_INIT)
 {
@@ -258,11 +257,6 @@ void UniConsumer::Start()
 
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
-
-	MYQuoteData myquotedata(efhLev2_producer_, l1_md_producer_);
-	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
-	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
-
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
@@ -271,11 +265,8 @@ void UniConsumer::Start()
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, 
 					parent);
 			switch (ivalue->data){
-				case L1_MD:
-					myquotedata.ProcL1MdData(ivalue->index);
-					break;
-				case EFH_LEV2:
-					myquotedata.ProcEfhLev2Data(ivalue->index);
+				case LEV2_MD:
+					ProcShfeMarketData(lev2_producer_->GetData(ivalue->index));
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -296,8 +287,7 @@ void UniConsumer::Start()
 void UniConsumer::Stop()
 {
 	if(running_){		
-		l1_md_producer_->End();
-		efhLev2_producer_->End();
+		lev2_producer_->End();
 		tunn_rpt_producer_->End();
 #ifdef COMPLIANCE_CHECK
 		compliance_.Save();
@@ -632,19 +622,20 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 	if(!legal_){ // illegal user
-		CDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
-		while(true){
-			if(EES_SideType_open_long==ord->m_Side ||
-				EES_SideType_close_today_short==ord->m_Side){
-				ord->m_Price = data->UpperLimitPrice;// uppet limit
-			}
-			else if(EES_SideType_open_short==ord->m_Side ||
-					EES_SideType_close_today_long==ord->m_Side){
-				ord->m_Price = data->LowerLimitPrice;// lowerest limit
-			}
-			tunn_rpt_producer_->ReqOrderInsert(ord);
-			std::this_thread::sleep_for (std::chrono::milliseconds(500));
-		}
+		// TODO: commented temporarily
+		//CDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
+		//while(true){
+		//	if(EES_SideType_open_long==ord->m_Side ||
+		//		EES_SideType_close_today_short==ord->m_Side){
+		//		ord->m_Price = data->UpperLimitPrice;// uppet limit
+		//	}
+		//	else if(EES_SideType_open_short==ord->m_Side ||
+		//			EES_SideType_close_today_long==ord->m_Side){
+		//		ord->m_Price = data->LowerLimitPrice;// lowerest limit
+		//	}
+		//	tunn_rpt_producer_->ReqOrderInsert(ord);
+		//	std::this_thread::sleep_for (std::chrono::milliseconds(500));
+		//}
 	}else{
 		clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
 	}

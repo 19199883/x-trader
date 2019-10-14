@@ -7,8 +7,7 @@
 
 #include <signal.h>     /* signal */
 #include "vrt_value_obj.h"
-#include "l1md_producer.h"
-#include "efh_lev2_producer.h"
+#include "lev2_producer.h"
 #include "tunn_rpt_producer.h"
 #include "uni_consumer.h"
 #include "pos_calcu.h"
@@ -17,8 +16,7 @@
 /* Note that the parameter for queue size is a power of 2. */
 #define  QUEUE_SIZE  32768
 UniConsumer *uniConsumer = NULL;
-EfhLev2Producer *efhLev2_producer = NULL;
-L1MDProducer *l1_md_producer = NULL; 
+Lev2Producer *lev2_producer = NULL;
 TunnRptProducer *tunnRptProducer = NULL;
 
 static void
@@ -82,9 +80,8 @@ int main(/*int argc, const char **argv*/)
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
 	tunnRptProducer = new TunnRptProducer(queue);
-	efhLev2_producer = new EfhLev2Producer(queue);
-	l1_md_producer = new L1MDProducer(queue);
-	uniConsumer = new UniConsumer (queue, efhLev2_producer, l1_md_producer, tunnRptProducer);
+	lev2_producer = new Lev2Producer(queue);
+	uniConsumer = new UniConsumer (queue, lev2_producer, tunnRptProducer);
 	uniConsumer->Start();
 	fflush (fp);
 
@@ -93,8 +90,7 @@ int main(/*int argc, const char **argv*/)
 
 	delete uniConsumer;
 	delete tunnRptProducer; 
-	delete l1_md_producer;
-	 delete efhLev2_producer; 
+	 delete lev2_producer; 
 
 // clog: free resources
 	pos_calc::destroy_instance();

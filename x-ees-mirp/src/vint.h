@@ -6,27 +6,27 @@
 class vint
 {
 public:
-	inline uint32_t ZigZagEncode32(int32_t n) 
+	static inline uint32_t ZigZagEncode32(int32_t n) 
 	{
 	  // Note:  the right-shift must be arithmetic
 	  // Note:  left shift must be unsigned because of overflow
 	  return (static_cast<uint32_t>(n) << 1) ^ static_cast<uint32_t>(n >> 31);
 	}
 
-	inline int32_t ZigZagDecode32(uint32_t n) 
+	static inline int32_t ZigZagDecode32(uint32_t n) 
 	{
 	  // Note:  Using unsigned types prevent undefined behavior
 	  return static_cast<int32_t>((n >> 1) ^ (~(n & 1) + 1));
 	}
 
-	inline uint64_t ZigZagEncode64(int64_t n) 
+	static inline uint64_t ZigZagEncode64(int64_t n) 
 	{
 	  // Note:  the right-shift must be arithmetic
 	  // Note:  left shift must be unsigned because of overflow
 	  return (static_cast<uint64_t>(n) << 1) ^ static_cast<uint64_t>(n >> 63);
 	}
 
-	inline int64_t ZigZagDecode64(uint64_t n) 
+	static inline int64_t ZigZagDecode64(uint64_t n) 
 	{
 	  // Note:  Using unsigned types prevent undefined behavior
 	  return static_cast<int64_t>((n >> 1) ^ (~(n & 1) + 1));
@@ -67,7 +67,7 @@ public:
 	 * Encode an unsigned 64-bit varint.  Returns number of encoded bytes.
 	* buffer' must have room for up to 10 bytes.
 	*/
-	uint8_t encode_unsigned_varint(uint8_t *const buffer, uint64_t value)
+	static uint8_t encode_unsigned_varint(uint8_t *const buffer, uint64_t value)
 	{
 		uint8_t encoded = 0;
 
@@ -92,11 +92,9 @@ public:
 	 * signed value into an unsigned value, and then reusing the unsigned
 	 * encoder.  'buffer' must have room for up to 10 bytes.
 	 */
-	uint8_t encode_signed_varint(uint8_t *const buffer, int64_t value)
+	static uint8_t encode_signed_varint(uint8_t *const buffer, int64_t value)
 	{
-		uint64_t uvalue;
-
-		uvale = ZigZagEncode64(value);
+		uint64_t uvalue = ZigZagEncode64(value);
 		return encode_unsigned_varint( buffer, uvalue );
 	}
 };

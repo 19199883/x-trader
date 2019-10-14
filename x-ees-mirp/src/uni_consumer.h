@@ -16,9 +16,7 @@
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "compliance.h"
-#include "quote_interface_shfe_my.h"
-#include "efh_lev2_producer.h"
-#include "l1md_producer.h"
+#include "lev2_producer.h"
 
 /*
  * 最多支持策略数量
@@ -112,8 +110,9 @@ class EESFieldConverter
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, EfhLev2Producer *efhLev2_producer, 
-			L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer);
+		UniConsumer(struct vrt_queue  *queue,
+					Lev2Producer *lev2_producer, 
+					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();
@@ -123,8 +122,7 @@ class UniConsumer
 		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		EfhLev2Producer *efhLev2_producer_;
-		L1MDProducer *l1_md_producer_;
+		Lev2Producer *lev2_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
 		int32_t strategy_counter_;

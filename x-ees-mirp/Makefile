@@ -3,9 +3,9 @@
 CC:=g++
 DEBUG:=y
 TOP:=..
-DIST_DIR:=$(TOP)/x-ees-smdp/dist
+DIST_DIR:=$(TOP)/x-ees-mirp/dist
 INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/tinyxml/include \
-		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include \
+		 -I$(TOP)/3rd/utils/include \
 		 -I$(TOP)/3rd/ctp/include
 LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ees/lib -L$(TOP)/3rd/ctp/lib \
 		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib \
@@ -19,10 +19,10 @@ LIBS:=-lEESTraderApi -lEESQuoteApi -ltinyxml -lutils -ldl -lpthread  \
 	  -lbowsprit -lclogger -lcork -lvrt \
 	  -lboost_filesystem  -lboost_system -lthostmduserapi_se
 DEPS:=.depends
-OUT:=x-ees-smdp
+OUT:=x-ees-mirp
 PACKAGE_NAME:=$(OUT)
 
-SUBDIR:=$(TOP)/x-ees-smdp/src 
+SUBDIR:=$(TOP)/x-ees-mirp/src 
 
 vpath %.cpp $(SUBDIR)
 
@@ -61,9 +61,9 @@ $(DEPS):$(SRCS)
 dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
-	-cp -arf $(TOP)/x-ees-smdp/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-ees-smdp/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/x-ees-smdp/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-ees-mirp/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-ees-mirp/config/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/x-ees-mirp/scripts/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/ees/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/ctp/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/

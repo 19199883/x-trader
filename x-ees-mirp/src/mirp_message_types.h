@@ -10,6 +10,7 @@
 ******************************************************************************/
 #pragma once
 
+#include <stdio.h>
 #include "stdint.h"
 
 #define MIRP_HEADER_LENGTH 24
@@ -184,10 +185,10 @@ namespace mirp
 	struct contract_header_field_t
 	{
 		// ¿¿¿¿¿
-		VInt InstrumentNo; 
+	//	VInt InstrumentNo; 
 
-		// ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿
-		VInt ChangeNo; 
+	//	// ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿
+	//	VInt ChangeNo; 
 	};
 
 	/*
@@ -236,7 +237,7 @@ namespace mirp
 	class mirp_formatter
 	{
 		public:
-			static void format(mirp_header *header, char*buff)
+			static void format(mirp_header_t *header, char*buff)
 			{
 				sprintf (buff,
 					"mirp_header "

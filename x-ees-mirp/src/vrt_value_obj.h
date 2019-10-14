@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include "quote_datatype_shfe_deep.h"
 
 #define gettid() syscall(__NR_gettid)
 
@@ -67,20 +66,6 @@ extern "C" {
 	};
 #endif /* __cplusplus */
 
-	class MDPackEx
-	{
-		public:
-			MDPackEx(): damaged(false) { }
-
-			MDPackEx(MDPack &cur_content): damaged(false)
-			{
-				this->content = cur_content;
-			}
-
-			MDPack content;
-			bool damaged;
-	};
-
 	class Log
 	{
 		public:
@@ -92,8 +77,7 @@ extern "C" {
 	 */
 
 	enum HybridData {
-		L1_MD = 0, 
-		EFH_LEV2,
+		LEV2_MD = 0, 
 		HybridData, 
 		PENDING_SIGNAL, 
 		TUNN_RPT, 
