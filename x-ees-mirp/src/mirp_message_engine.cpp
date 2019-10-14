@@ -118,5 +118,9 @@ void mirp_message_engine::process_contract_header_field(const char* field_body_a
 	uint8_t decoded_bytes = 0;
 	int64_t intrument_no = vint::decode_signed_varint(data, decoded_bytes);
 	int64_t change_no = vint::decode_signed_varint(data + decoded_bytes, decoded_bytes);
+	clog_info("[%s] instrument no:%d; change no:%d", 
+				module_name_, 
+				instrumen_no,
+				change_no);
 
 }
