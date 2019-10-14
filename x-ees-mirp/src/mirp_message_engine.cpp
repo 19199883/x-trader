@@ -72,7 +72,7 @@ void mirp_message_engine::close()
 	m_udp.sock_close();
 }
 
-void mirp_message_engine::process_heartbreat_meesage()
+void mirp_message_engine::process_heartbeat_message()
 {
 	clog_info("[%s] heartbeat.", module_name_);
 }
@@ -109,11 +109,13 @@ void mirp_message_engine::process_incremental_message(
 void mirp_message_engine::process_contract_header_field(const char* field_body_addr)
 {
 	uint8_t decoded_bytes = 0;
-	int64_t intrument_no = vint::decode_signed_varint((const uint8_t*)field_body_addr, decoded_bytes);
-	int64_t change_no = vint::decode_signed_varint((const uint8_t*)data + decoded_bytes, decoded_bytes);
+	int64_t instrument_no = vint::decode_signed_varint((const uint8_t*)field_body_addr, decoded_bytes);
+	int64_t change_no = vint::decode_signed_varint(
+				(const uint8_t*)(field_body_addr + decoded_bytes), 
+				decoded_bytes);
 	clog_info("[%s] instrument no:%d; change no:%d", 
 				module_name_, 
-				instrumen_no,
+				instrument_no,
 				change_no);
 
 }
