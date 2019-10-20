@@ -1,5 +1,4 @@
-﻿#include "mirp_header.h"
-#include "guava_quote.h"
+﻿#include "guava_quote.h"
 #include "vrt_value_obj.h"
 #include "mirp_engine.h"
 
