@@ -17,7 +17,7 @@ OBJPATH:=./obj
 BINPATH:=./bin
 LIBS:=-lEESTraderApi -lEESQuoteApi -ltinyxml -lutils -ldl -lpthread  \
 	  -lbowsprit -lclogger -lcork -lvrt \
-	  -lboost_filesystem  -lboost_system -lthostmduserapi_se
+	  -lboost_filesystem  -lboost_system -lthostmduserapi_se -lonload_zf 
 DEPS:=.depends
 OUT:=x-ees-ctp
 PACKAGE_NAME:=$(OUT)

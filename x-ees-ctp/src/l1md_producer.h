@@ -12,7 +12,7 @@
 #include "quote_datatype_level1.h"
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
-#include "efh_sf_api.h"
+//#include "efh_sf_api.h"
 
 #include "ThostFtdcMdApi.h"
 
