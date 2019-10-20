@@ -11,6 +11,14 @@
 #include <tinyxml.h>
 #include <tinystr.h>
 #include "guava_quote.h"
+#include <chrono>
+#include <ctime>
+#include <ratio>
+#include <ctime>
+
+
+using namespace std::chrono;
+
 
 /*
  * 缓存的最大的行情数量
@@ -48,7 +56,6 @@ class EfhLev2Producer : public guava_quote_event
 		 */
 		static char* Format(efh3_lev2 &source, char *dest)
 		{
-			
 			sprintf (dest,
 				"efh3_lev2 "				
 				"InstrumentID:%s; "
@@ -78,7 +85,8 @@ class EfhLev2Producer : public guava_quote_event
 				"BidVolume5:%d; "
 				"AskPrice5:%f; "
 				"AskVolume5:%d; "
-				"m_open_interest:%f;",
+				"m_open_interest:%f;"
+				"timestmp:%ld\n ",
 				source.m_symbol,
 				source.m_update_time,
 				source.m_millisecond,
@@ -106,7 +114,8 @@ class EfhLev2Producer : public guava_quote_event
 				source.m_bid_5_share,
 				source.m_ask_5_px,
 				source.m_ask_5_share,
-				source.m_open_interest);
+				source.m_open_interest,
+				(long)high_resolution_clock::now().time_since_epoch().count());
 
 			return dest;
 		}
