@@ -56,44 +56,49 @@ class EfhLev2Producer : public guava_quote_event
 		 */
 		static char* Format(efh3_lev2 &source, char *dest)
 		{
+				long timestamp = (long)high_resolution_clock::now().time_since_epoch().count();
+			
 			sprintf (dest,
 				"efh3_lev2 "				
 				"InstrumentID:%s; "
 				"UpdateTime[9]:%s; "
 				"UpdateMillisec:%d; "
+				"timestmp:%ld"
 				"m_symbol_code:%d; "
-				"LastPrice:%f; "												
+				"LastPrice:%.4f; "												
 				"Volume:%d; "
-				"Turnover:%f; "								
-				"BidPrice1:%f; "
+				"Turnover:%.4f; "								
+				"m_open_interest:%.4f; "
+				"BidPrice1:%.4f; "
 				"BidVolume1:%d; "
-				"AskPrice1:%f; "
+				"AskPrice1:%.4f; "
 				"AskVolume1:%d; "
-				"BidPrice2:%f; "
+				"BidPrice2:%.4f; "
 				"BidVolume2:%d; "
-				"AskPrice2:%f; "
+				"AskPrice2:%.4f; "
 				"AskVolume2:%d; "
-				"BidPrice3:%f; "
+				"BidPrice3:%.4f; "
 				"BidVolume3:%d; "
-				"AskPrice3:%f; "
+				"AskPrice3:%.4f; "
 				"AskVolume3:%d; "
-				"BidPrice4:%f; "
+				"BidPrice4:%.4f; "
 				"BidVolume4:%d; "
-				"AskPrice4:%f; "
+				"AskPrice4:%.4f; "
 				"AskVolume4:%d; "
-				"BidPrice5:%f; "
+				"BidPrice5:%.4f; "
 				"BidVolume5:%d; "
-				"AskPrice5:%f; "
+				"AskPrice5:%.4f; "
 				"AskVolume5:%d; "
-				"m_open_interest:%f;"
-				"timestmp:%ld\n ",
+				"\n",
 				source.m_symbol,
 				source.m_update_time,
 				source.m_millisecond,
+				timestamp,
 				source.m_symbol_code,
 				source.m_last_px,															
 				source.m_last_share,
 				source.m_turnover,				
+				source.m_open_interest,
 				source.m_bid_1_px,
 				source.m_bid_1_share,
 				source.m_ask_1_px,
@@ -113,9 +118,8 @@ class EfhLev2Producer : public guava_quote_event
 				source.m_bid_5_px,
 				source.m_bid_5_share,
 				source.m_ask_5_px,
-				source.m_ask_5_share,
-				source.m_open_interest,
-				(long)high_resolution_clock::now().time_since_epoch().count());
+				source.m_ask_5_share
+					);
 
 			return dest;
 		}
