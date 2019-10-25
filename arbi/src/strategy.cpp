@@ -476,6 +476,7 @@ unsigned int Strategy::GetSysOrderIdBySigID(int32_t sig_id)
 	int32_t cursor = sigid_sigidx_map_table_[sig_id];
 	return sys_order_id_[cursor];
 }
+
 void Strategy::Push(const signal_t &sig)
 {
 	sig_table_[cursor_] = sig;
@@ -487,16 +488,22 @@ void Strategy::Push(const signal_t &sig)
 	sigrpt_table_[cursor_].sig_id = sig.sig_id;
 	sigrpt_table_[cursor_].sig_act = sig.sig_act;
 	strcpy(sigrpt_table_[cursor_].symbol, sig.symbol);
-	if (sig.sig_act==signal_act_t::buy){
+	if (sig.sig_act==signal_act_t::buy)
+	{
 		sigrpt_table_[cursor_].order_price = sig.buy_price;
-	} else if (sig.sig_act==signal_act_t::sell){
+	}
+	else if (sig.sig_act==signal_act_t::sell)
+	{
 		sigrpt_table_[cursor_].order_price = sig.sell_price;
 	}
 
 	// 从pending队列中撤单 done
-	if (sig.sig_openclose == alloc_position_effect_t::open_){
+	if (sig.sig_openclose == alloc_position_effect_t::open_)
+	{
 		sigrpt_table_[cursor_].order_volume = sig.open_volume;
-	}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+	}
+	else if (sig.sig_openclose == alloc_position_effect_t::close_)
+	{
 		sigrpt_table_[cursor_].order_volume = sig.close_volume;
 	}
 
