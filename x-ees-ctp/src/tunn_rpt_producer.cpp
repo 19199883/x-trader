@@ -167,8 +167,8 @@ int TunnRptProducer::ReqOrderInsert(EES_EnterOrderField *p)
 		clog_error("[%s][%s] EnterOrder- ret=%d - %s", 
 			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p));
 	}else {
-		clog_info("[%s] EnterOrder-ret=%d-%s", 
-			module_name_, ret, EESDatatypeFormater::ToString(p));
+		//clog_info("[%s] EnterOrder-ret=%d-%s", 
+		//	module_name_, ret, EESDatatypeFormater::ToString(p));
 	}
 
 	return ret;
@@ -184,8 +184,8 @@ int TunnRptProducer::ReqOrderAction(EES_CancelOrder *p)
 		clog_error("[%s][%s] ReqOrderAction- ret=%d - %s", 
 			module_name_,ctime(&rawtime),ret, EESDatatypeFormater::ToString(p));
 	} else {
-		clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
-			module_name_, ret, EESDatatypeFormater::ToString(p));
+		//clog_info("[%s] ReqCancelOrder - ret=%d - %s", 
+		//	module_name_, ret, EESDatatypeFormater::ToString(p));
 	}
 
 	return ret;
@@ -230,8 +230,8 @@ void TunnRptProducer::OnOrderAccept(EES_OrderAcceptField* pAccept )
 	rpt.LocalOrderID = pAccept->m_ClientOrderToken;
 	rpt.SysOrderID = pAccept->m_MarketOrderToken;
 
-    clog_info("[%s] OnOrderAccept:%s", module_name_,
-		EESDatatypeFormater::ToString(pAccept));
+    //clog_info("[%s] OnOrderAccept:%s", module_name_,
+	//	EESDatatypeFormater::ToString(pAccept));
 
 	if (pAccept->m_OrderState==EES_OrderState_order_dead){
 		time_t rawtime;
@@ -287,8 +287,8 @@ void TunnRptProducer::OnOrderMarketAccept(EES_OrderMarketAcceptField* pAccept)
 	rpt.SysOrderID = pAccept->m_MarketOrderToken;
 	rpt.OrderStatus = SIG_STATUS_ENTRUSTED;
 
-    clog_info("[%s] OnOrderMarketAccept:%s", module_name_,
-		EESDatatypeFormater::ToString(pAccept));
+    //clog_info("[%s] OnOrderMarketAccept:%s", module_name_,
+	//	EESDatatypeFormater::ToString(pAccept));
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -328,8 +328,8 @@ void TunnRptProducer::OnOrderExecution(EES_OrderExecutionField* pExec )
 {
 	if (ended_) return;
 
-    clog_info("[%s] OnOrderExecution:%s", 
-		module_name_, EESDatatypeFormater::ToString(pExec));
+    //clog_info("[%s] OnOrderExecution:%s", 
+	//	module_name_, EESDatatypeFormater::ToString(pExec));
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];
@@ -352,7 +352,7 @@ void TunnRptProducer::OnOrderCxled(EES_OrderCxled* pCxled)
 {
 	if (ended_) return;
 
-	clog_info("[%s] OnOrderCxled:%s", module_name_,EESDatatypeFormater::ToString(pCxled));
+	//clog_info("[%s] OnOrderCxled:%s", module_name_,EESDatatypeFormater::ToString(pCxled));
 
 	int32_t cursor = Push();
 	struct TunnRpt &rpt = rpt_buffer_[cursor];

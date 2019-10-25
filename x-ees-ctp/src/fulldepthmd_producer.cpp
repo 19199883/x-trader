@@ -4,6 +4,14 @@
 #include <sys/socket.h>
 #include "fulldepthmd_producer.h"
 #include "quote_cmn_utility.h"
+#include <chrono>
+#include <ctime>
+#include <ratio>
+#include <ctime>
+
+
+ using namespace std::chrono;
+
 
 using namespace std::placeholders;
 using namespace std;
@@ -69,7 +77,206 @@ FullDepthMDProducer::~FullDepthMDProducer()
 {
 }
 
-int FullDepthMDProducer::InitMDApi()
+void FullDepthMDProducer::Process(MDPack *md) 
+{
+	// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
+	// 解决方法：将sc与其它品种行情分成2种独立行情
+	if((md->instrument[0]=='s' && md->instrument[1]=='c') ||
+		md->instrument[0]=='n' && md->instrument[1]=='r'){
+		//clog_info("[%s] sc, sn=%d.",module_name_,md->seqno);
+		// TODO: debug
+//		clog_info("[%s] INE::RevData InstrumentID:%s; sn:%d; timestamp:%lld",
+//			module_name_,md->instrument,md->seqno,
+//			(long long)high_resolution_clock::now().time_since_epoch().count());
+
+#ifdef INE_ENABLE
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+		ivalue->index = Push(*md);
+		ivalue->data = INE_FULL_DEPTH_MD;
+		vrt_producer_publish(producer_);
+#endif
+
+	}else{
+		// TODO: debug
+//		clog_info("[%s] SHFE::RevData InstrumentID:%s; sn:%d; timestamp:%lld",
+//			module_name_,md->instrument,md->seqno,
+//			(long long)high_resolution_clock::now().time_since_epoch().count());
+		//clog_info("[%s] no sc, sn=%d.",module_name_,md->seqno);
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+		ivalue->index = Push(*md);
+		ivalue->data = FULL_DEPTH_MD;
+		vrt_producer_publish(producer_);
+	}
+	// 
+	//ToString(*md);
+}
+
+void FullDepthMDProducer::End()
+{
+	if(!ended_){
+		ended_ = true;
+
+		shutdown(udp_fd_, SHUT_RDWR);
+		int err = close(udp_fd_);
+		clog_warning("close udp:%d.", err); 
+		thread_rev_->join();
+
+		vrt_producer_eof(producer_);
+		clog_warning("[%s] End exit", module_name_);
+	}
+	fflush (Log::fp);
+}
+
+int32_t FullDepthMDProducer::Push(const MDPackEx& md){
+	static int32_t shfemarketdata_cursor = FULL_DEPTH_MD_BUFFER_SIZE - 1;
+	shfemarketdata_cursor++;
+	if (shfemarketdata_cursor%FULL_DEPTH_MD_BUFFER_SIZE == 0){
+		shfemarketdata_cursor = 0;
+	}
+	shfemarketdata_buffer_[shfemarketdata_cursor] = md;
+
+	return shfemarketdata_cursor;
+}
+
+MDPackEx* FullDepthMDProducer::GetData(int32_t index)
+{
+	return &shfemarketdata_buffer_[index];
+}
+
+bool FullDepthMDProducer::IsDominant(const char *contract)
+{
+#ifdef PERSISTENCE_ENABLED 
+	// 持久化行情时，需要记录所有合约
+	//clog_warning("[%s] return TRUE in IsDominant.",module_name_);
+	return true;
+#else
+	return IsDominantImp((char*)contract, dominant_contracts_, dominant_contract_count_);
+#endif
+}
+
+std::string FullDepthMDProducer::ToString(const MDPack &d) {
+//	clog_info("MDPack Data:instrument:%s;"
+//		"islast:%d seqno:%d direction:%c count:%d",
+//		d.instrument, (int)d.islast, d.seqno,
+//		d.direction, d.count);
+	for(int i = 0; i < d.count; i++) {
+//		 clog_info("price%d: %lf, volume%d: %d",
+//			 i, d.data[i].price, i, d.data[i].volume);
+	}
+  
+  return "";
+}
+
+std::string FullDepthMDProducer::ToString(const MDPackEx &d) 
+{
+	//clog_debug("MDPackEx Data: instrument:%s; damaged:%d;"
+	//			"islast:%d seqno:%d direction:%c count:%d",
+	//			d.content.instrument, 
+	//			d.damaged, 
+	//			(int)d.content.islast, 
+	//			d.content.seqno,
+	//			d.content.direction, 
+	//			d.content.count);
+	for(int i = 0; i < d.content.count; i++) {
+	//	 clog_debug("price%d: %lf, volume%d: %d",
+	//		 i, d.content.data[i].price, i, d.content.data[i].volume);
+	}
+  
+  return "";
+}
+
+#ifdef TCPDIRECT
+
+int FullDepthMDProducer::poll_udp_rx(struct client_state* cs)
+{
+   struct {
+	   struct zfur_msg msg;
+	   struct iovec iov[1];
+	 } msg;
+
+  zf_reactor_perform(cs->stack);
+  msg.msg.iovcnt = 1;
+  zfur_zc_recv(cs->udp_sock, &(msg.msg), 0);
+  if( msg.msg.iovcnt == 0 )
+    return -1;
+
+   // TODO:code here
+   if(msg.msg.iov[0].iov_len > 0) 
+   {
+	//   fprintf(stdout, 
+	//			  "\nmsg.iovcnt:%d; msg.iov.iov_len:%zd;",
+	//				msg.msg.iovcnt ,
+	//			  msg.msg.iov[0].iov_len);
+
+		MDPack *md = (MDPack *)(msg.msg.iov[0].iov_base);
+		Process(md);
+   }
+	
+	zfur_zc_recv_done(cs->udp_sock, &(msg.msg));
+
+	return 1;
+}
+
+void FullDepthMDProducer::RevData()
+{
+  const char* interface = "ens3f0";
+
+  struct client_state* cs = (struct client_state*)calloc(1, sizeof(*cs));
+  Init(cs, interface, cfg_port);
+
+  while(!ended_) {
+    /* Spend most of our time polling the UDP socket, since that is the
+     * latency sensitive path.
+     */
+      poll_udp_rx(cs);
+  }
+
+	clog_warning("[%s] RevData exit.",module_name_);
+	fflush (Log::fp);
+}
+
+
+void FullDepthMDProducer::Init(
+			struct client_state* cs, 
+			const char* interface,
+			const char* port)
+{
+  cs->msg_len = cfg_tx_size;
+  cs->msg_buf = cs->pkt_buf + MAX_ETH_HEADERS + MAX_IP_TCP_HEADERS;
+
+  TRY( zf_init() );
+  struct zf_attr* attr;
+  TRY( zf_attr_alloc(&attr) );
+  TRY( zf_attr_set_str(attr, "interface", interface) );
+  TRY( zf_stack_alloc(attr, &(cs->stack)) );
+
+  struct addrinfo hints, *ai;
+  memset(&hints, 0, sizeof(hints));
+
+  /* Create UDP socket, bind, join multicast group. */
+  int rc = getaddrinfo(cfg_mcast_addr, port, &hints, &ai);
+  if( rc != 0 ) {
+    fprintf(stderr, "ERROR: failed to lookup address '%s:%s': %s\n",
+            cfg_mcast_addr, cfg_port, gai_strerror(rc));
+    exit(2);
+  }
+  TRY( zfur_alloc(&cs->udp_sock, cs->stack, attr) );
+  TRY( zfur_addr_bind(cs->udp_sock, ai->ai_addr, ai->ai_addrlen,
+                         NULL, 0, 0) );
+  freeaddrinfo(ai);
+
+}
+
+
+#else
+
+int FullDepthMDProducer::Init()
 {
     // init udp socket
     int udp_client_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -120,7 +327,7 @@ int FullDepthMDProducer::InitMDApi()
 
 void FullDepthMDProducer::RevData()
 {
-	int udp_fd = InitMDApi();
+	int udp_fd = Init();
 	udp_fd_ = udp_fd; 
     if (udp_fd < 0) {
         clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
@@ -150,114 +357,13 @@ void FullDepthMDProducer::RevData()
         }
 
         MDPack *md = (MDPack *)recv_buf;
+		Process(md);
 
 
-		// 解决原油(SC)因序号与上期其它品种的序号是独立的，从而造成数据问题。
-		// 解决方法：将sc与其它品种行情分成2种独立行情
-		if((md->instrument[0]=='s' && md->instrument[1]=='c') ||
-			md->instrument[0]=='n' && md->instrument[1]=='r'){
-			//clog_info("[%s] sc, sn=%d.",module_name_,md->seqno);
-			// TODO: debug
-			clog_info("[%s] INE::RevData InstrumentID:%s; sn:%d",
-				module_name_,md->instrument,md->seqno);
-
-#ifdef INE_ENABLE
-			struct vrt_value  *vvalue;
-			struct vrt_hybrid_value  *ivalue;
-			vrt_producer_claim(producer_, &vvalue);
-			ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-			ivalue->index = Push(*md);
-			ivalue->data = INE_FULL_DEPTH_MD;
-			vrt_producer_publish(producer_);
-#endif
-
-		}else{
-			// TODO: debug
-			clog_info("[%s] SHFE::RevData InstrumentID:%s; sn:%d",
-				module_name_,md->instrument,md->seqno);
-			//clog_info("[%s] no sc, sn=%d.",module_name_,md->seqno);
-			struct vrt_value  *vvalue;
-			struct vrt_hybrid_value  *ivalue;
-			vrt_producer_claim(producer_, &vvalue);
-			ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-			ivalue->index = Push(*md);
-			ivalue->data = FULL_DEPTH_MD;
-			vrt_producer_publish(producer_);
-		}
-		// 
-		//ToString(*md);
     } // while (!ended_)
 
 	clog_warning("[%s] RevData exit.",module_name_);
 	fflush (Log::fp);
 }
 
-void FullDepthMDProducer::End()
-{
-	if(!ended_){
-		ended_ = true;
-
-		shutdown(udp_fd_, SHUT_RDWR);
-		int err = close(udp_fd_);
-		clog_warning("close udp:%d.", err); 
-		thread_rev_->join();
-
-		vrt_producer_eof(producer_);
-		clog_warning("[%s] End exit", module_name_);
-	}
-	fflush (Log::fp);
-}
-
-int32_t FullDepthMDProducer::Push(const MDPackEx& md){
-	static int32_t shfemarketdata_cursor = FULL_DEPTH_MD_BUFFER_SIZE - 1;
-	shfemarketdata_cursor++;
-	if (shfemarketdata_cursor%FULL_DEPTH_MD_BUFFER_SIZE == 0){
-		shfemarketdata_cursor = 0;
-	}
-	shfemarketdata_buffer_[shfemarketdata_cursor] = md;
-
-	return shfemarketdata_cursor;
-}
-
-MDPackEx* FullDepthMDProducer::GetData(int32_t index)
-{
-	return &shfemarketdata_buffer_[index];
-}
-
-bool FullDepthMDProducer::IsDominant(const char *contract)
-{
-#ifdef PERSISTENCE_ENABLED 
-	// 持久化行情时，需要记录所有合约
-	//clog_warning("[%s] return TRUE in IsDominant.",module_name_);
-	return true;
-#else
-	return IsDominantImp((char*)contract, dominant_contracts_, dominant_contract_count_);
 #endif
-}
-
-std::string FullDepthMDProducer::ToString(const MDPack &d) {
-	clog_info("MDPack Data:instrument:%s;"
-		"islast:%d seqno:%d direction:%c count:%d",
-		d.instrument, (int)d.islast, d.seqno,
-		d.direction, d.count);
-	for(int i = 0; i < d.count; i++) {
-		 clog_info("price%d: %lf, volume%d: %d",
-			 i, d.data[i].price, i, d.data[i].volume);
-	}
-  
-  return "";
-}
-
-std::string FullDepthMDProducer::ToString(const MDPackEx &d) 
-{
-	clog_debug("MDPackEx Data: instrument:%s; damaged:%d;"
-		"islast:%d seqno:%d direction:%c count:%d",
-		d.content.instrument, d.damaged, (int)d.content.islast, d.content.seqno,
-		d.content.direction, d.content.count);
-	for(int i = 0; i < d.content.count; i++) {
-		 clog_debug("price%d: %lf, volume%d: %d",
-			 i, d.content.data[i].price, i, d.content.data[i].volume);
-	}
-  
-  return "";
-}

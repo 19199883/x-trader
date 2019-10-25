@@ -38,6 +38,12 @@ int main(/*int argc, const char **argv*/)
 	struct clog_handler *clog_handler = clog_stream_handler_new_fp(fp, true, "%l %m");
 	clog_handler_push_process(clog_handler);
 
+#ifdef TCPDIRECT
+	clog_warning("TCPDIRECT on"); 
+#else
+	clog_warning("TCPDIRECT off"); 
+#endif
+
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
 #else
@@ -74,7 +80,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// version
-	clog_warning("version:x-ees_2019-10-17"); 
+	clog_warning("version:x-ees_2019-10-23"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;

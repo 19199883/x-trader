@@ -2,17 +2,17 @@
 #include "quote_interface_shfe_my.h"
 
 std::string MYQuoteData::ToString(const MYShfeMarketData &d) {
-	clog_info("MYShfeMarketData: instrument:%s, data_flag:%d,buy_total_volume:%d; sell_total_volume:%d; buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
-				d.InstrumentID, d.data_flag, d.buy_total_volume,d.sell_total_volume,d.buy_weighted_avg_price,d.sell_weighted_avg_price);
+	//clog_info("MYShfeMarketData: instrument:%s, data_flag:%d,buy_total_volume:%d; sell_total_volume:%d; buy_weighted_avg_price:%lf; sell_weighted_avg_price:%lf",
+	//			d.InstrumentID, d.data_flag, d.buy_total_volume,d.sell_total_volume,d.buy_weighted_avg_price,d.sell_weighted_avg_price);
 
-	clog_info("dir:buy; price, volume");
+	//clog_info("dir:buy; price, volume");
 	for(int i = 0; i < 30; i++) {
-		 clog_info("price%d: %lf, volume%d: %d\n", i, d.buy_price[i], i, d.buy_volume[i]);
+		 //clog_info("price%d: %lf, volume%d: %d\n", i, d.buy_price[i], i, d.buy_volume[i]);
 	}
 
-	clog_info("dir:sell; price, volume");
+	//clog_info("dir:sell; price, volume");
 	for(int i = 0; i < 30; i++) {
-		 clog_debug("price%d: %lf, volume%d: %d\n", i, d.sell_price[i], i, d.sell_volume[i]);
+		 //clog_debug("price%d: %lf, volume%d: %d\n", i, d.sell_price[i], i, d.sell_volume[i]);
 	}
   
   return "";
@@ -52,7 +52,7 @@ void MYQuoteData::ProcFullDepthData(int32_t index)
 	MDPackEx* md = fulldepth_md_producer_->GetData(index);
 	int new_svr = md->content.seqno % 10;
 	if (new_svr != server_) { 
-		clog_info("[%s] server from %d to %d",module_name_, server_, new_svr); 
+		//clog_info("[%s] server from %d to %d",module_name_, server_, new_svr); 
 	}
 
 	//clog_info("[%s] proc sn:%d",module_name_, md->content.seqno); 
@@ -194,7 +194,7 @@ void MYQuoteData::Send(const char* contract)
 {
 	CDepthMarketDataField* l1_md = NULL;
 
-	clog_info("[%s] SHFE send %s.", module_name_,contract);
+	//clog_info("[%s] SHFE send %s.", module_name_,contract);
 
 	// 合并一档行情
 	if(l1_md_last_index_ != L1MD_NPOS){

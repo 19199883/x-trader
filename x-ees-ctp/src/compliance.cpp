@@ -71,9 +71,9 @@ int Compliance::GetCancelTimes(const char* contract)
 		if ((contract[0]== contracts_[i][0] &&
 			 contract[1]== contracts_[i][1])){
 #else
-		if(IsEqualContract(contract, contracts_[i])){
+		if(IsEqualContract((char*)contract, contracts_[i])){
 #endif
-			clog_debug("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
+			//clog_debug("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
 			return cur_cancel_times_[i];
 		}
 	}
@@ -82,7 +82,7 @@ int Compliance::GetCancelTimes(const char* contract)
 		strcpy(contracts_[i], contract);
 	}
 
-	clog_debug("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
+	//clog_debug("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
 	return cur_cancel_times_[i];
 
 }
@@ -120,7 +120,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		if ((ord_contract[0]== contract[0] &&
 			 ord_contract[1]==contract[1]) &&
 #else
-		if (IsEqualContract(ord.contract, contract) && 
+		if (IsEqualContract(ord.contract, (char*)contract) && 
 #endif
 				(
 					 (side==EES_SideType_open_long||side==EES_SideType_close_today_short)&&(ord.side==EES_SideType_open_short||ord.side==EES_SideType_close_today_long) ||
@@ -156,8 +156,8 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		ord.price = price;
 	}
 
-	clog_debug("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
-				module_name_, ord_counter, min_counter_, max_counter_, ret);
+	//clog_debug("[%s] TryReqOrderInsert ord counter:%d; min counter:%d; max counter:%d; ret:%d",
+	//			module_name_, ord_counter, min_counter_, max_counter_, ret);
 
     return ret;
 }
@@ -178,16 +178,16 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 		if((contract[0]==contracts_[i][0] &&
 			contract[1]==contracts_[i][1])){
 #else
-		if(IsEqualContract(contract, contracts_[i])){
+		if(IsEqualContract((char*)contract, contracts_[i])){
 #endif
 			cur_cancel_times_[i]++;
 
-			clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
+			//clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
 
 #ifdef LATENCY_MEASURE
 			high_resolution_clock::time_point t1 = high_resolution_clock::now();
 			int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-			clog_debug("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
+			//clog_debug("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
 #endif
 				return;
 			}
@@ -197,12 +197,12 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 			strcpy(contracts_[i], contract);
 			cur_cancel_times_[i]++;
 
-			clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
+			//clog_debug("[%s] AccumulateCancelTimes contract:%s; times:%d", module_name_, contracts_[i], cur_cancel_times_[i]); 
 		}
 #ifdef LATENCY_MEASURE
 			high_resolution_clock::time_point t1 = high_resolution_clock::now();
 			int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;
-			clog_debug("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
+			//clog_debug("[%s] AccumulateCancelTimes latency:%d us", module_name_, latency); 
 #endif
 }
 
@@ -225,7 +225,7 @@ void Compliance::End(int ord_counter)
 		}
 	} // if (ord_counter == min_counter_)
 
-	clog_debug("[%s] End min counter:%d; max counter:%d; ord counter:%d",
-				module_name_, min_counter_, max_counter_, ord_counter);
+	//clog_debug("[%s] End min counter:%d; max counter:%d; ord counter:%d",
+	//			module_name_, min_counter_, max_counter_, ord_counter);
 }
 

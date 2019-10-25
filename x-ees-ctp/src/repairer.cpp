@@ -4,12 +4,16 @@
 #include "quote_cmn_utility.h"
 
  std::string repairer::ToString(const MDPack &d) {
-	  clog_debug("[%s] (server:%d) MDPack Data: instrument:%s islast:%d"
-		  "seqno:%d direction:%c count: %d",module_name_,
-		  this->server_,d.instrument, (int)d.islast, d.seqno, d.direction, d.count);
+	//  clog_debug("[%s] (server:%d) MDPack Data: instrument:%s islast:%d"
+	//			  "seqno:%d direction:%c count: %d",module_name_,
+	//			  this->server_,
+	//			  d.instrument, 
+	//			  (int)d.islast, 
+	//			  d.seqno, 
+	//			  d.direction, d.count);
 	  for(int i = 0; i < d.count; i++) {
-	      clog_debug("[%s] (server:%d) price%d: %lf, volume%d: %d",module_name_,
-			  this->server_, i, d.data[i].price, i, d.data[i].volume);
+//	      clog_debug("[%s] (server:%d) price%d: %lf, volume%d: %d",module_name_,
+//			  this->server_, i, d.data[i].price, i, d.data[i].volume);
 	  }
 	 return "";
 }
@@ -32,8 +36,8 @@ bool repairer::lose_pkg(MDPackEx* data)
 		int new_sn = data->content.seqno / 10;
 
 		if ((seq_no_+1) != new_sn){
-			clog_debug("[%s] (server:%d)package loss:sn from %d to %d", 
-				module_name_,server_,seq_no_, new_sn);
+//			clog_debug("[%s] (server:%d)package loss:sn from %d to %d", 
+//				module_name_,server_,seq_no_, new_sn);
 		}
 	
 		return (seq_no_+1) != new_sn;
@@ -129,9 +133,9 @@ void repairer::normal_proc_buy_data(int index)
 	MDPackEx* data = full_depth_md_producer_->GetData(index);
 	if (buy_queue_.Empty()){
 		if (!sell_queue_.Empty()){
-			clog_debug("[%s] (server:%d)normal_proc_buy_data,"
-				"error(sell queue in NOT empty),sn:%d",
-				module_name_,server_, data->content.seqno);
+//			clog_debug("[%s] (server:%d)normal_proc_buy_data,"
+//				"error(sell queue in NOT empty),sn:%d",
+//				module_name_,server_, data->content.seqno);
 		}
 	}else{
 		int32_t back_index = buy_queue_.Back();
@@ -298,7 +302,7 @@ void repairer::rev(int index)
 
 	int new_sn = data->content.seqno / 10;
 	if ((seq_no_!=-1) && new_sn != seq_no_+1) {
-		clog_debug("[%s] seq no from %d to %d, packet loss",module_name_, seq_no_,new_sn);
+		//clog_debug("[%s] seq no from %d to %d, packet loss",module_name_, seq_no_,new_sn);
 	}
 
 	if (!working_){ // find normal data start point

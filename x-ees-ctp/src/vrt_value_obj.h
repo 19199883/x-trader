@@ -10,10 +10,10 @@
 #define gettid() syscall(__NR_gettid)
 
 // 如果要支持INE的行情，需要定义INE_ENABLE宏
-// #define INE_ENABLE
+#define INE_ENABLE
 
 // 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,	以提高速度
-#define ONE_PRODUCT_ONE_CONTRACT
+//#define ONE_PRODUCT_ONE_CONTRACT
 
 /*
  * 如下宏根据情况进行定义
@@ -22,10 +22,14 @@
 //#define PERSISTENCE_ENABLED
 //#define LATENCY_MEASURE
 
+// 一档行情的选择
 // 飞马极速行情
 #define FEMAS_TOPSPEED_QUOTE
 // 盛立极速行情 API multicast
 //#define EES_UDP_TOPSPEED_QUOTE
+
+// 深度行情是采用TCPDirect方式还是socket方式
+//#define TCPDIRECT
 
 // software license
 #define SERVER_NAME  "zjtest1"
