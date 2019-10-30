@@ -5,7 +5,7 @@ DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/x-ees-smdp/dist
 INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/tinyxml/include \
-		 -I$(TOP)/3rd/utils/include -I$(TOP)/3rd/shfe_md/include \
+		 -I$(TOP)/3rd/utils/include \
 		 -I$(TOP)/3rd/ctp/include
 LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/ees/lib -L$(TOP)/3rd/ctp/lib \
 		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib \

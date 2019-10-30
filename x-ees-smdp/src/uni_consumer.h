@@ -169,7 +169,7 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcShfeMarketData(CDepthMarketDataField* md);
+		void ProcShfeMarketData(CThostFtdcDepthMarketDataField* md);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);

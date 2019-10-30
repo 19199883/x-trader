@@ -27,11 +27,11 @@ class DLL_PUBLIC MYQuoteData
 		MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_producer);
 		~MYQuoteData();
 
-		void SetQuoteDataHandler(std::function<void(CDepthMarketDataField *)> quote_handler);
+		void SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField *)> quote_handler);
 		void ProcL1MdData(int32_t index);
 		void ProcEfhLev2Data(int32_t index);
 
-		QuoteDataSave<CDepthMarketDataField> *p_shfe_lev2_data_save_;
+		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_shfe_lev2_data_save_;
 	private:
 		// 禁止拷贝和赋值
 		MYQuoteData(const MYQuoteData & other);
@@ -44,7 +44,7 @@ class DLL_PUBLIC MYQuoteData
 	private:
 		const char *module_name_;  
 	    // 数据处理函数对象
-	    std::function<void(CDepthMarketDataField *)> lev2_data_handler_;
+	    std::function<void(CThostFtdcDepthMarketDataField *)> lev2_data_handler_;
 };
 
 #endif  //MY_QUOTE_INTERFACE_SHFE_MY_H_

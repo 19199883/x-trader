@@ -206,7 +206,7 @@ void Strategy::FeedInitPosition()
 				second.long_volume, second.short_volume);
 }
 
-void Strategy::FeedMd(CDepthMarketDataField* md, int *sig_cnt, signal_t* signals)
+void Strategy::FeedMd(CThostFtdcDepthMarketDataField* md, int *sig_cnt, signal_t* signals)
 {
 	// TODO: code
 }

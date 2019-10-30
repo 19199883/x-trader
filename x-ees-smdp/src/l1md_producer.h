@@ -50,8 +50,11 @@ class L1MDProducerHelper
 		 * 获取指定合约的最新行情。
 		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
 		 */
-		static CDepthMarketDataField* GetLastDataImp(const char *contract, int32_t last_index,
-			CDepthMarketDataField *buffer, int32_t buffer_size,int32_t traverse_count);
+		static CThostFtdcDepthMarketDataField* GetLastDataImp(const char *contract, 
+					int32_t last_index,
+					CThostFtdcDepthMarketDataField *buffer, 
+					int32_t buffer_size,
+					int32_t traverse_count);
 };
 
 #ifdef FEMAS_TOPSPEED_QUOTE
@@ -64,7 +67,7 @@ class L1MDProducer : public CThostFtdcMdSpi
 		/*
 		 * 与逻辑处理相关
 		 */
-		CDepthMarketDataField* GetData(int32_t index);
+		CThostFtdcDepthMarketDataField* GetData(int32_t index);
 
 		/*
 		 * contract: 要获取行情的合约
@@ -72,7 +75,7 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 * 获取指定合约最新的一档行情。
 		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
 		 */
-		CDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
+		CThostFtdcDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
 		void End();
 
 		/*
@@ -97,10 +100,10 @@ class L1MDProducer : public CThostFtdcMdSpi
 		// 针对用户请求的出错通知
 		virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
-		void ToString(CDepthMarketDataField &data);
+		void ToString(CThostFtdcDepthMarketDataField &data);
 
 		// lic
-		CDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
+		CThostFtdcDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
 
 	private:
 		/*
@@ -114,14 +117,12 @@ class L1MDProducer : public CThostFtdcMdSpi
 		/*
 		 * 与逻辑处理相关
 		 */
-		void RalaceInvalidValue_Femas(CDepthMarketDataField &d);
-		int32_t Push(const CDepthMarketDataField& md);
+		void RalaceInvalidValue_Femas(CThostFtdcDepthMarketDataField &d);
+		int32_t Push(const CThostFtdcDepthMarketDataField& md);
 		struct vrt_producer  *producer_;
-		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
+		CThostFtdcDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
 		int32_t l1data_cursor_;
 		bool ended_;
-		void Convert(CDepthMarketDataField &quote_level1, const CThostFtdcDepthMarketDataField &ctp_data);
-		CDepthMarketDataField quote_level1_;
 
 		/*
 		 * check whether the given contract is dominant.
@@ -130,8 +131,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
 		int max_traverse_count_;
 		int  contract_count_;
-
-		QuoteDataSave<CDepthMarketDataField> *p_level1_save_;
 
 		/*
 		 *日志相关
@@ -163,7 +162,7 @@ class L1MDProducer : public EESQuoteEvent
 		/*
 		 * 与逻辑处理相关
 		 */
-		CDepthMarketDataField* GetData(int32_t index);
+		CThostFtdcDepthMarketDataField* GetData(int32_t index);
 
 		/*
 		 * contract: 要获取行情的合约
@@ -171,7 +170,7 @@ class L1MDProducer : public EESQuoteEvent
 		 * 获取指定合约最新的一档行情。
 		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
 		 */
-		CDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
+		CThostFtdcDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
 		void End();
 
 		/*
@@ -184,10 +183,10 @@ class L1MDProducer : public EESQuoteEvent
 		virtual void OnQuoteUpdated(EesEqsIntrumentType chInstrumentType, 
 					EESMarketDepthQuoteData* pDepthQuoteData);
 
-		void ToString(CDepthMarketDataField &data);
+		void ToString(CThostFtdcDepthMarketDataField &data);
 		//
 		// lic
-		CDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
+		CThostFtdcDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
 
 	private:
 		/*
@@ -203,10 +202,10 @@ class L1MDProducer : public EESQuoteEvent
 		/*
 		 * 与逻辑处理相关
 		 */
-		void RalaceInvalidValue_EES(EESMarketDepthQuoteData &d, CDepthMarketDataField &data_dest);
-		int32_t Push(const CDepthMarketDataField& md);
+		void RalaceInvalidValue_EES(EESMarketDepthQuoteData &d, CThostFtdcDepthMarketDataField &data_dest);
+		int32_t Push(const CThostFtdcDepthMarketDataField& md);
 		struct vrt_producer  *producer_;
-		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
+		CThostFtdcDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
 		int32_t l1data_cursor_;
 		bool ended_;
 
@@ -218,7 +217,7 @@ class L1MDProducer : public EESQuoteEvent
 		int max_traverse_count_;
 		int  contract_count_;
 
-		QuoteDataSave<CDepthMarketDataField> *p_level1_save_;
+		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_level1_save_;
 
 		/*
 		 *日志相关
@@ -245,7 +244,7 @@ class L1MDProducer : public EESQuoteEvent
 		/*
 		 * 与逻辑处理相关
 		 */
-		CDepthMarketDataField* GetData(int32_t index);
+		CThostFtdcDepthMarketDataField* GetData(int32_t index);
 
 		/*
 		 * contract: 要获取行情的合约
@@ -253,7 +252,7 @@ class L1MDProducer : public EESQuoteEvent
 		 * 获取指定合约最新的一档行情。
 		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
 		 */
-		CDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
+		CThostFtdcDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
 		void End();
 
 		/*
@@ -261,7 +260,7 @@ class L1MDProducer : public EESQuoteEvent
 		 */
 		void Rev(const struct guava_udp_normal* p_quote);
 
-		void ToString(CDepthMarketDataField &data);
+		void ToString(CThostFtdcDepthMarketDataField &data);
 
 		static L1MDProducer *This;
 
@@ -276,9 +275,9 @@ class L1MDProducer : public EESQuoteEvent
 		 * 与逻辑处理相关
 		 */
 		void RalaceInvalidValue_EES(guava_udp_normal&d);
-		int32_t Push(const CDepthMarketDataField& md);
+		int32_t Push(const CThostFtdcDepthMarketDataField& md);
 		struct vrt_producer  *producer_;
-		CDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
+		CThostFtdcDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
 		int32_t l1data_cursor_;
 		bool ended_;
 
@@ -290,7 +289,7 @@ class L1MDProducer : public EESQuoteEvent
 		int max_traverse_count_;
 		int  contract_count_;
 
-		QuoteDataSave<CDepthMarketDataField> *p_level1_save_;
+		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_level1_save_;
 
 		/*
 		 *日志相关

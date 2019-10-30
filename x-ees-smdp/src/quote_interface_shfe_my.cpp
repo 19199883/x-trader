@@ -9,7 +9,7 @@ MYQuoteData::MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_
 	l1_md_last_index_ = L1MD_NPOS;
 
 #ifdef PERSISTENCE_ENABLED 
-    p_shfe_lev2_data_save_ = new QuoteDataSave<CDepthMarketDataField>("shfe_lev2_data", MY_SHFE_LEV2_DATA_QUOTE_TYPE);
+    p_shfe_lev2_data_save_ = new QuoteDataSave<CThostFtdcDepthMarketDataField>("shfe_lev2_data", SHFE_LEV2_DATA_QUOTE_TYPE);
 #endif
 
 }
@@ -27,7 +27,7 @@ MYQuoteData::~MYQuoteData()
 void MYQuoteData::ProcEfhLev2Data(int32_t index)
 {
 	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
-	CDepthMarketDataField* my_data = NULL;
+	CThostFtdcDepthMarketDataField* my_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS){
 
 		 my_data =  l1_md_producer_->GetLastData(efh_data->m_symbol, l1_md_last_index_);
@@ -92,7 +92,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 #ifdef PERSISTENCE_ENABLED 
 			timeval t;
 			gettimeofday(&t, NULL);
-			p_my_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, my_data);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, my_data);
 #endif
 		}
 		else
@@ -102,7 +102,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 	}
 }
 
-void MYQuoteData::SetQuoteDataHandler(std::function<void(CDepthMarketDataField*)> quote_handler)
+void MYQuoteData::SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField*)> quote_handler)
 {
 	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
 	lev2_data_handler_ = quote_handler;

@@ -64,6 +64,8 @@
 //飞鼠
 #define SGIT_QUOTE_TYPE             24
 
+#define SHFE_LEV2_DATA_QUOTE_TYPE 70
+
 // data identities of kmds {"stockcode", "stockquote", "indexquote", "optionquote", "ordqueue", "perentrust", "perbargain"};
 #define KMDS_CODETABLE_TYPE         0xc0
 #define KMDS_STOCK_SNAPSHOT_TYPE    0xc1

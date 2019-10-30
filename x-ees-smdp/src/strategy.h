@@ -94,7 +94,7 @@ public:
 	void Init(StrategySetting &setting, CLoadLibraryProxy *pproxy);
 	void FeedInitPosition();
 	void FeedMd(MYShfeMarketData* md, int *sig_cnt, signal_t* signals);
-	void FeedMd(CDepthMarketDataField* md, int *sig_cnt, signal_t* signals);
+	void FeedMd(CThostFtdcDepthMarketDataField* md, int *sig_cnt, signal_t* signals);
 	void feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos,
 				int *sig_cnt, signal_t* sigs);
 

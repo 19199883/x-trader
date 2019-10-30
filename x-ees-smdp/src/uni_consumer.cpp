@@ -324,7 +324,7 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
-void UniConsumer::ProcShfeMarketData(CDepthMarketDataField* md)
+void UniConsumer::ProcShfeMarketData(CThostFtdcDepthMarketDataField* md)
 {
 	// TODO:add code
 	
@@ -632,7 +632,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 	if(!legal_){ // illegal user
-		CDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
+		CThostFtdcDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
 		while(true){
 			if(EES_SideType_open_long==ord->m_Side ||
 				EES_SideType_close_today_short==ord->m_Side){
