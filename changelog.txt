@@ -1,3 +1,9 @@
+2019-10-31
+x-zce修改合约匹配方法，目前必须按字符串进行完全比较，这样可以避免期权合约大的干扰
+
+2019-10-31
+x-ees-ctp移除ONE_PRODUCT_ONE_CONTRACT。因为全档行情必须接收所有合约才能进行逻辑处理，所以不能简单的比较品种部分
+
 2019-10-2
 x-ees-ctp: add tcodirect for full depth marker data
 
