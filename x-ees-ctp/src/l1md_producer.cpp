@@ -23,13 +23,7 @@ CDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(const char *contract, 
 		}
 
 		CDepthMarketDataField &tmp = buffer[data_index];
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
-		if ((contract[0]==tmp.InstrumentID[0] &&
-			 contract[1]==tmp.InstrumentID[1])){
-#else
 		if(IsEqualContract((char*)contract, tmp.InstrumentID)){
-#endif
 			data = &tmp; 
 			break;
 		}

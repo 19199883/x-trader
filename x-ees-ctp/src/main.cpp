@@ -69,9 +69,6 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("INE_DISABLE"); 
 #endif
 
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-	clog_warning("ONE_PRODUCT_ONE_CONTRACT"); 
-#endif
 
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;
@@ -80,7 +77,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// version
-	clog_warning("version:x-ees_2019-10-23"); 
+	clog_warning("version:x-ees_2019-10-31"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;
