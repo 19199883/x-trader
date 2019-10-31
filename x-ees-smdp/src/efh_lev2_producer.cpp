@@ -82,6 +82,12 @@ int EfhLev2Producer::InitMDApi()
 
 void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
 {
+	// discard option
+	if(strlen(data->m_symbol) > 6)
+	{
+		return;
+	}
+
 	if(!IsDominant(data->m_symbol)) return;
 
 	// TODO: commented for debug

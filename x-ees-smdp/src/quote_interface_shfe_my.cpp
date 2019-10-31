@@ -28,10 +28,11 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 {
 	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
 	CThostFtdcDepthMarketDataField* my_data = NULL;
-	if(l1_md_last_index_ != L1MD_NPOS){
-
+	if(l1_md_last_index_ != L1MD_NPOS)
+	{
 		 my_data =  l1_md_producer_->GetLastData(efh_data->m_symbol, l1_md_last_index_);
-		if(NULL != my_data){	
+		if(NULL != my_data)
+		{	
 			// from level1
 			my_data->UpperLimitPrice =	  InvalidToZeroD(my_data->UpperLimitPrice);
 			my_data->LowerLimitPrice =	  InvalidToZeroD(my_data->LowerLimitPrice);
@@ -45,8 +46,6 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			my_data->PreSettlementPrice = InvalidToZeroD(my_data->PreSettlementPrice);			
 			//my_data->PreDelta =			  InvalidToZeroD(my_data->PreDelta);
 			//my_data->CurrDelta =		  InvalidToZeroD(my_data->CurrDelta);
-			
-
 			// the below is from sfh_lev2
 			my_data->LastPrice =	InvalidToZeroD(efh_data->m_last_px);															
 			my_data->Volume =					   efh_data->m_last_share;
@@ -54,9 +53,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 			strcpy(my_data->UpdateTime,efh_data->m_update_time);
 			my_data->UpdateMillisec = efh_data->m_millisecond;
 			my_data->OpenInterest = InvalidToZeroD(efh_data->m_open_interest);	
-			
 			// my_datalev2_data_ = efh_data->m_symbol_code;
-			
 			my_data->BidPrice1 =    InvalidToZeroD(efh_data->m_bid_1_px);
 			my_data->BidPrice2 =    InvalidToZeroD(efh_data->m_bid_2_px);
 			my_data->BidPrice3 =    InvalidToZeroD(efh_data->m_bid_3_px);

@@ -389,7 +389,7 @@ void UniConsumer::ProcShfeMarketData(CThostFtdcDepthMarketDataField* md)
 		if ((contract[0]== md->InstrumentID[0] &&
 			 contract[1]== md->InstrumentID[1])){
 #else
-		if (IsEqualContract(strategy.GetContract(), md->InstrumentID)){
+		if (IsEqualContract((char*)strategy.GetContract(), (char*)md->InstrumentID)){
 #endif
 
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);

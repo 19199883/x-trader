@@ -32,7 +32,7 @@ CThostFtdcDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(
 		if ((contract[0]==tmp.InstrumentID[0] &&
 			 contract[1]==tmp.InstrumentID[1])){
 #else
-		if(IsEqualContract(contract, tmp.InstrumentID)){
+		if(IsEqualContract((char*)contract, (char*)tmp.InstrumentID)){
 #endif
 			data = &tmp; 
 			break;
@@ -267,6 +267,12 @@ void L1MDProducer::InitMDApi()
 void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 {
 	if (ended_) return;
+
+	// discard option
+	if(strlen(data->InstrumentID) > 6)
+	{
+		return;
+	}
 
 	// 抛弃非主力合约
 	if(!(IsDominant(data->InstrumentID))) return;

@@ -71,7 +71,7 @@ int Compliance::GetCancelTimes(const char* contract)
 		if ((contract[0]== contracts_[i][0] &&
 			 contract[1]== contracts_[i][1])){
 #else
-		if(IsEqualContract(contract, contracts_[i])){
+		if(IsEqualContract((char*)contract, (char*)contracts_[i])){
 #endif
 			clog_debug("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
 			return cur_cancel_times_[i];
@@ -120,7 +120,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		if ((ord_contract[0]== contract[0] &&
 			 ord_contract[1]==contract[1]) &&
 #else
-		if (IsEqualContract(ord.contract, contract) && 
+		if (IsEqualContract((char*)ord.contract, (char*)contract) && 
 #endif
 				(
 					 (side==EES_SideType_open_long||side==EES_SideType_close_today_short)&&(ord.side==EES_SideType_open_short||ord.side==EES_SideType_close_today_long) ||
@@ -178,7 +178,7 @@ void Compliance::AccumulateCancelTimes(const char* contract)
 		if((contract[0]==contracts_[i][0] &&
 			contract[1]==contracts_[i][1])){
 #else
-		if(IsEqualContract(contract, contracts_[i])){
+		if(IsEqualContract((char*)contract, (char*)contracts_[i])){
 #endif
 			cur_cancel_times_[i]++;
 
