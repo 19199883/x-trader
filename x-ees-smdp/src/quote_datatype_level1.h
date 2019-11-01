@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "ThostFtdcMdApi.h"
+#include "quote_cmn_utility.h"
 
 #ifndef DLL_PUBLIC
 #define DLL_PUBLIC  __attribute__ ((visibility("default")))
@@ -34,12 +35,12 @@ public:
 			"Volume:%d; "
 			"Turnover:%.4f; "
 			"OpenInterest:%.4f; "
-			"ClosePrice:%.4f; "
-			"SettlementPrice:%.4f; "
+			//"ClosePrice:%.4f; "
+			//"SettlementPrice:%.4f; "
 			"UpperLimitPrice:%.4f; "
 			"LowerLimitPrice:%.4f; "
-			"PreDelta:%.4f; "
-			"CurrDelta:%.4f; "
+			//"PreDelta:%.4f; "
+			//"CurrDelta:%.4f; "
 			"BidPrice1:%.4f; "
 			"BidVolume1:%d; "
 			"AskPrice1:%.4f; "
@@ -65,41 +66,41 @@ public:
 			source.UpdateTime,
 			source.UpdateMillisec,
 			source.TradingDay,
-			source.LastPrice,
-			source.PreSettlementPrice,
-			source. PreClosePrice,
-			source.PreOpenInterest,
-			source.OpenPrice,
-			source. HighestPrice,
-			source. LowestPrice,
+			InvalidToZeroD(source.LastPrice),
+			InvalidToZeroD(source.PreSettlementPrice),
+			InvalidToZeroD(source. PreClosePrice),
+			InvalidToZeroD(source.PreOpenInterest),
+			InvalidToZeroD(source.OpenPrice),
+			InvalidToZeroD(source. HighestPrice),
+			InvalidToZeroD(source. LowestPrice),
 			source.Volume,
-			source.Turnover,
-			source.OpenInterest,
-			source.ClosePrice,
-			source.SettlementPrice,
-			source.UpperLimitPrice,
-			source.LowerLimitPrice,
-			source.PreDelta,
-			source.CurrDelta,
-			source.BidPrice1,
+			InvalidToZeroD(source.Turnover),
+			InvalidToZeroD(source.OpenInterest),
+			//source.ClosePrice,
+			//source.SettlementPrice,
+			InvalidToZeroD(source.UpperLimitPrice),
+			InvalidToZeroD(source.LowerLimitPrice),
+			//InvalidToZeroD(source.PreDelta),
+			//InvalidToZeroD(source.CurrDelta),
+			InvalidToZeroD(source.BidPrice1),
 			source.BidVolume1,
-			source.AskPrice1,
+			InvalidToZeroD(source.AskPrice1),
 			source.AskVolume1,
-			source.BidPrice2,
+			InvalidToZeroD(source.BidPrice2),
 			source.BidVolume2,
-			source.AskPrice2,
+			InvalidToZeroD(source.AskPrice2),
 			source.AskVolume2,
-			source.BidPrice3,
+			InvalidToZeroD(source.BidPrice3),
 			source.BidVolume3,
-			source.AskPrice3,
+			InvalidToZeroD(source.AskPrice3),
 			source.AskVolume3,
-			source.BidPrice4,
+			InvalidToZeroD(source.BidPrice4),
 			source.BidVolume4,
-			source.AskPrice4,
+			InvalidToZeroD(source.AskPrice4),
 			source.AskVolume4,
-			source.BidPrice5,
+			InvalidToZeroD(source.BidPrice5),
 			source.BidVolume5,
-			source.AskPrice5,
+			InvalidToZeroD(source.AskPrice5),
 			source.AskVolume5,
 			source.ActionDay);
 

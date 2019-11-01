@@ -130,9 +130,9 @@ MDProducer::MDProducer(struct vrt_queue  *queue)
 	}
 
 	// TODO: debug
-	clog_info("[test] before rev ", module_name_);
+	//clog_info("[test] before rev ", module_name_);
 #ifdef DCE_OLD
-	clog_info("[test]  rev ", module_name_);
+	//clog_info("[test]  rev ", module_name_);
     thread_rev_ = new std::thread(&MDProducer::RevData, this);
 #endif
 	fflush (Log::fp);
@@ -425,14 +425,14 @@ void MDProducer::RevData()
 
 
 				// TODO: debug
-				clog_info("[%s] rev eMDBestAndDeep contract: %s",module_name_, p->Contract);
+				//clog_info("[%s] rev eMDBestAndDeep contract: %s",module_name_, p->Contract);
 
 				if(!(IsDominant(p->Contract))) continue; // 抛弃非主力合约
 
                 Convert(*p, bestanddeep_);
 
 				// TODO: debug
-				clog_info("[%s] rev dominant  eMDBestAndDeep contract: %s",module_name_, p->Contract);
+				//clog_info("[%s] rev dominant  eMDBestAndDeep contract: %s",module_name_, p->Contract);
 
 #ifdef PERSISTENCE_ENABLED 
     timeval t;
@@ -451,14 +451,14 @@ void MDProducer::RevData()
 
 
 				// TODO: debug
-				clog_info("[%s] rev eMDOrderStatistic contract: %s",module_name_, p->ContractID);
+				//clog_info("[%s] rev eMDOrderStatistic contract: %s",module_name_, p->ContractID);
 
 				if(!(IsDominant(p->ContractID))) continue; // 抛弃非主力合约
 
                 Convert(*p, orderstatistic_);
 
 				// TODO:debug
-				clog_info("[%s] rev dominant eMDOrderStatistic contract: %s",module_name_, p->ContractID);
+				// clog_info("[%s] rev dominant eMDOrderStatistic contract: %s",module_name_, p->ContractID);
 
 #ifdef PERSISTENCE_ENABLED 
     timeval t;

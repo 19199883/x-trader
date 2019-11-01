@@ -14,7 +14,7 @@
 #include <string.h>
 
 
-#define SL_EES_API_VERSION    "3.1.3.49"				///<  api版本号
+#define SL_EES_API_VERSION    "3.1.3.54"				///<  api版本号
 
 typedef int RESULT;										///< 定义返回值 
 typedef int ERR_NO;										///< 定义错误值 
@@ -153,6 +153,14 @@ typedef int EES_ChangePasswordResult;
 #define	EES_ChangePasswordResult_NotLogIn		3		///< 尚未登录
 #define	EES_ChangePasswordResult_InternalError	99		///< 系统后台其他问题
 
+typedef unsigned char EES_OrderType;
+#define EES_Order_Type_Limt						1		///< 限价
+#define EES_Order_Type_Market					2		///< 市价，尚未支持
+#define EES_Order_Type_Stop_Profit_Limit		3		///< 限价止盈
+#define EES_Order_Type_Stop_Loss_Limit			4		///< 限价止损
+#define EES_Order_Type_Stop_Profit_Market		5		///< 市价止盈，尚未支持
+#define EES_Order_Type_Stop_Loss_Market			6		///< 市价止损，尚未支持
+
 #pragma pack(push, 1)
 
 
@@ -193,6 +201,8 @@ struct EES_EnterOrderField
 	EES_HedgeFlag		m_HedgeFlag;					///< 投机套利标志
 	unsigned char		m_ForceMarketSessionId;			///< 如果为true，当客户指定席位代码，但是该席位不可用或者非法时，指示服务器不要自行决定送单席位，而是拒绝下单
 	unsigned char		m_DoNotAdjustCoverSide;			///< 默认情况下，如果是中金/大连交易所的“平今/平昨”订单，API会自动将之转换为“平仓”订单，该值如果为true，则不进行此转换，一般用于测试场景
+	EES_OrderType		m_OrderType;					///< 目前支持：1=限价; 3=限价止盈; 4=限价止损; 这3种，且仅对大连订单真正有效。
+	double				m_StopPrice;					///< 当m_OrderType为 3/4/5/6 时必填，其它情况填0
 	EES_EnterOrderField()
 	{
 		memset(this, 0, sizeof(*this));
@@ -203,6 +213,8 @@ struct EES_EnterOrderField
 		m_SecType = EES_SecType_fut;
 		m_ForceMarketSessionId = 0;
 		m_DoNotAdjustCoverSide = 0;
+		m_OrderType = EES_Order_Type_Limt;
+		m_StopPrice = 0.0;
 	}
 
 };

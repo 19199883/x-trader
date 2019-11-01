@@ -319,7 +319,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 
 	MDBestAndDeep_MY* md = md_producer_->GetBestAnddeep(index);
 
-	clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
+	//clog_info("[%s] [ProcBestAndDeep] index: %d; contract: %s", module_name_, index, md->Contract);
 
 #if FIND_STRATEGIES == 1 //unordered_multimap  
 	auto range = cont_straidx_map_table_.equal_range(md->Contract);
@@ -448,8 +448,8 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 #else
 		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
 #endif
-			clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", 
-				module_name_, index, md->ContractID);
+			//clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", 
+			//	module_name_, index, md->ContractID);
 
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 

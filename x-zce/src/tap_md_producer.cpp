@@ -315,6 +315,12 @@ void TapMDProducer::OnRspSubscribeQuote(TAPIUINT32 sessionID, TAPIINT32 errorCod
 	if(ended_) return;
 
     if (errorCode == 0 && NULL != info){
+		// discard option
+		if(strlen(info->Contract.ContractNo1) > 6)
+		{
+			return;
+		}
+
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 		clog_info("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 
@@ -348,6 +354,12 @@ void TapMDProducer::OnRtnQuote(const TapAPIQuoteWhole *info)
 	if(ended_) return;
 
     if ( NULL != info) {
+		// discard option
+		if(strlen(info->Contract.ContractNo1) > 6)
+		{
+			return;
+		}
+
 		// 抛弃非主力合约
 		if(!(IsDominant(info->Contract.Commodity.CommodityNo, info->Contract.ContractNo1))) return;
 		clog_debug("[test] [%s] rev TapAPIQuoteWhole contract:%s%s, time:%s", 

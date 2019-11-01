@@ -436,11 +436,11 @@ public:
 	/// \return 没有返回值
 	virtual void SetAsyncReceiveMode() = 0;
 
-	/// 批量下单，最多一次下4个报单
+	/// 批量下单，最多一次下8个报单，只能在TCP模式下使用
 	/// 注意每个报单的的OrderToken必须保证在外部就设置好不重复，
-	/// pArrOrders: EES_EnterOrderField结构体数组，最多4个，nCount必须 >=1，且 <=4
+	/// pArrOrders: EES_EnterOrderField结构体数组，最多4个，nCount必须 >=1，且 <=8
 	/// \return: 成功返回0，任意一个报单有错，则返回非0值，且所有报单都不会被发送
-	//virtual RESULT EnterMultiOrders(EES_EnterOrderField* pArrOrders, int nCount) = 0;
+	virtual RESULT EnterMultiOrders(EES_EnterOrderField* pArrOrders, int nCount) = 0;
 
 	/// 按照交易所的深度行情查询请求，注意：后台系统必须配置支持深度行情，该功能才会工作	
 	/// nRequestId: 客户自行编号，对应的返回事件OnQueryMarketMBLData中，会返回这个RequestId，客户可用于匹配自己的查询请求

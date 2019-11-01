@@ -16,7 +16,7 @@
 using namespace std;
 
 #define STRATEGY_METHOD_INIT "st_init_"
-#define STRATEGY_METHOD_FEED_MD_MYSHFE "st_feed_marketinfo_6_"
+#define STRATEGY_METHOD_FEED_MD_MYSHFE "st_feed_marketinfo_22_"
 #define STRATEGY_METHOD_FEED_SIG_RESP "st_feed_sig_resp_"
 #define STRATEGY_METHOD_FEED_DESTROY "st_destroy_"
 #define STRATEGY_METHOD_FEED_INIT_POSITION  "st_feed_init_position_"
@@ -79,7 +79,7 @@ public:
 	typedef void ( *LogFn1Ptr) (int strategy_id, struct Log1 &content);
 	typedef void ( *LogFn2Ptr) (int strategy_id, struct Log2 &content);
 	typedef void (* Init_ptr)(st_config_t *config, int *ret_code, struct strat_out_log *log);
-	typedef void ( *FeedShfeMarketData_ptr)(MYShfeMarketData* md, int *sig_cnt, 
+	typedef void ( *FeedShfeMarketData_ptr)(CThostFtdcDepthMarketDataField* md, int *sig_cnt, 
 				signal_t* signals, struct strat_out_log *log);	
 	typedef void ( *FeedSignalResponse_ptr)(signal_resp_t* rpt, 
 				symbol_pos_t *pos, int *sig_cnt, signal_t* sigs, struct strat_out_log *log);

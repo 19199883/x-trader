@@ -59,4 +59,7 @@
 /// 流控参数修改，超出了允许的范围	
 #define FLOWCTRL_PARAM_INVALID		16
 
+/// 在UDP模式下，使用了EnterMultiOrders接口，该接口只能在TCP下使用
+#define ENTER_MULTI_ORDER_BY_UDP	17
+
 #endif

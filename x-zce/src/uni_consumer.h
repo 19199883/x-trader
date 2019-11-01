@@ -37,8 +37,10 @@ struct Uniconfig
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer, 
-			L2MDProducer *l2md_producer, TunnRptProducer *tunn_rpt_producer);
+		UniConsumer(struct vrt_queue  *queue, 
+					TapMDProducer *l1md_producer, 
+					L2MDProducer *l2md_producer, 
+					TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
 		void Start();

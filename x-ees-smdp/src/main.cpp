@@ -63,9 +63,6 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("INE_DISABLE"); 
 #endif
 
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-	clog_warning("ONE_PRODUCT_ONE_CONTRACT"); 
-#endif
 
 	struct sigaction SIGINT_act;
 	SIGINT_act.sa_handler = SIG_handler;

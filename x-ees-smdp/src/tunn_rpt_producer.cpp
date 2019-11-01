@@ -31,10 +31,13 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
+#ifdef PERSISTENCE_ENABLED
+#else
 	// create EES object
     api_ = LoadTunnelApi();
     RESULT err = api_->ConnServer(api_config_,this);
     clog_warning("[%s] ConnServer-err=%d-%s", module_name_,err,EESDatatypeFormater::ToString(&api_config_));
+#endif
 }
 
 EESTraderApi *TunnRptProducer::LoadTunnelApi()
@@ -67,17 +70,19 @@ EESTraderApi *TunnRptProducer::LoadTunnelApi()
 
 void TunnRptProducer::UnloadTunnelApi()
 {
+#ifdef PERSISTENCE_ENABLED
+#else
 	if (api_){
 		api_->DisConnServer();
 		m_distoryFun(api_);
 		api_ = NULL;
 		m_distoryFun = NULL;
 	}
-
 	if (m_handle){
 		dlclose(m_handle);
 		m_handle = NULL;
 	}
+#endif
 }
 
 TunnRptProducer::~TunnRptProducer()

@@ -5,6 +5,10 @@
 #include <pthread.h>
 
 // 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,	以提高速度
+//*************************************************
+//// ****如果定义 PERSISTENCE_ENABLED，就不能定******
+//// ****义ONE_PRODUCT_ONE_CONTRACT，因为一个品******
+//// ****种有全部合约*******************************
 #define ONE_PRODUCT_ONE_CONTRACT
 
 //#define LATENCY_MEASURE

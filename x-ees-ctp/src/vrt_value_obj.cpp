@@ -7,11 +7,8 @@ FILE *Log::fp = NULL;/*文件指针*/
  */
 bool IsEqualContract(char *contract1, char* contract2)
 {
-	if ( contract1[0]==contract2[0] &&
-		 contract1[1]==contract2[1] &&
-		 contract1[3]==contract2[3] &&
-		 contract1[4]==contract2[4] &&
-		 contract1[5]==contract2[5]){
+	if (strcmp(contract1, contract2) == 0)
+	{
 		return true;
 	}else{
 		return false;
