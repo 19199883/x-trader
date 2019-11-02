@@ -20,7 +20,7 @@
 /*
  * 10 power of 2
  */
-#define L1MD_BUFFER_SIZE 1000 
+#define L1MD_BUFFER_SIZE 5120 
 
 /*
  * 识Level行情处于未接收数居前的未知位置
@@ -50,8 +50,10 @@ class L1MDProducerHelper
 		 * 获取指定合约的最新行情。
 		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
 		 */
-		static CDepthMarketDataField* GetLastDataImp(const char *contract, int32_t last_index,
-			CDepthMarketDataField *buffer, int32_t buffer_size,int32_t traverse_count);
+		static CDepthMarketDataField* GetLastDataImp(const char *contract, 
+					int32_t last_index, 
+					CDepthMarketDataField *buffer, 
+					int32_t buffer_size);
 };
 
 #ifdef FEMAS_TOPSPEED_QUOTE
@@ -128,7 +130,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 */
 		bool IsDominant(const char *contract);
 		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
-		int max_traverse_count_;
 		int  contract_count_;
 
 		QuoteDataSave<CDepthMarketDataField> *p_level1_save_;
@@ -287,7 +288,6 @@ class L1MDProducer : public EESQuoteEvent
 		 */
 		bool IsDominant(const char *contract);
 		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
-		int max_traverse_count_;
 		int  contract_count_;
 
 		QuoteDataSave<CDepthMarketDataField> *p_level1_save_;
