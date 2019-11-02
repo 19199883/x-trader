@@ -21,7 +21,7 @@
 /*
  * 10 power of 2
  */
-#define MD_BUFFER_SIZE 1000 
+#define MD_BUFFER_SIZE 5120 
 
 using namespace std;
 
