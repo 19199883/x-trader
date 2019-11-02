@@ -51,7 +51,7 @@ class L1MDProducerHelper
 		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
 		 */
 		static CThostFtdcDepthMarketDataField* GetLastDataImp(const char *contract, 
-					int32_t last_index,
+					int32_t last_index, 
 					CThostFtdcDepthMarketDataField *buffer, 
 					int32_t buffer_size);
 };

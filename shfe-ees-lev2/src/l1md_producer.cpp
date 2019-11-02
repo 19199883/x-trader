@@ -133,15 +133,23 @@ CThostFtdcDepthMarketDataField* L1MDProducer::GetData(int32_t index)
 // lic
 CThostFtdcDepthMarketDataField* L1MDProducer::GetLastDataForIllegaluser(const char *contract)
 {
-	CThostFtdcDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(
-		contract,0,md_buffer_,L1MD_BUFFER_SIZE);
+	CThostFtdcDepthMarketDataField* data = 
+		L1MDProducerHelper::GetLastDataImp( 
+					contract,
+					0,
+					md_buffer_,
+					L1MD_BUFFER_SIZE);
 	return data;
 }
 
 CThostFtdcDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, int32_t last_index)
 {
-	CThostFtdcDepthMarketDataField* data = L1MDProducerHelper::GetLastDataImp(
-		contract,last_index,md_buffer_,L1MD_BUFFER_SIZE);
+	CThostFtdcDepthMarketDataField* data = 
+		L1MDProducerHelper::GetLastDataImp( 
+					contract,
+					last_index,
+					md_buffer_,
+					L1MD_BUFFER_SIZE);
 	return data;
 }
 
