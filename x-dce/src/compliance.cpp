@@ -4,6 +4,9 @@
 #include "compliance.h"
 #include <tinyxml.h>
 #include <tinystr.h>
+#include <ctime>
+#include <chrono>
+#include <ratio>
 
 Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
 {
@@ -71,14 +74,25 @@ int Compliance::GetCancelTimes(const char* contract)
 
 }
 
-bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
-			double price, TX1FtdcBuySellTypeType side,TX1FtdcOpenCloseTypeType offset)
+bool Compliance::TryReqOrderInsert(int ord_counter, 
+			const char * contract, 
+			double price, 
+			TX1FtdcBuySellTypeType side,
+			TX1FtdcOpenCloseTypeType offset)
 {
     bool ret = true;
 
-	if(offset == X1_FTDC_SPD_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_)){
-		clog_error("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
-			module_name_, ord_counter, GetCancelTimes(contract));
+	if(offset == X1_FTDC_SPD_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_))
+	{
+		char time[80];
+		get_curtime(time,sizeof(time));
+		clog_error("[%s][%s] rejected for cancel upper limit. "
+					"ord counter:%d; cur times:%d ",
+					module_name_, 
+					time,
+					ord_counter, 
+					GetCancelTimes(contract));
+
 		return false;
 	}
 
@@ -88,19 +102,33 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 
 #ifdef ONE_PRODUCT_ONE_CONTRACT
 		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
-		if (IsEqualProduct((char*)ord.contract, (char*)contract) && side != ord.side){
+		if (IsEqualProduct((char*)ord.contract, (char*)contract) && side != ord.side)
+		{
 #else
-		if (strcmp(ord.contract, contract)==0 && side != ord.side){
+		if (strcmp(ord.contract, contract)==0 && side != ord.side)
+		{
 #endif
 			if ((side == X1_FTDC_SPD_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
-				(side != X1_FTDC_SPD_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
+				(side != X1_FTDC_SPD_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price))
+			{
 				ret = false;
+
+				char time[80];
+				get_curtime(time,sizeof(time));
+				clog_error("[%s][%s] contract:%s; matched with myself. ord counter:%d; "
+							"queue counter:%d ",
+							module_name_, 
+							time,
+							contract,
+							ord_counter, 
+							i);
 				break;
 			}
 		} // if (strcmp(ord.contract, contract)==0 && side != ord.side)
 	} // for (int i = min_counter_; i< max_counter_; i++)
 
-	if (ret){
+	if (ret)
+	{
 		if (0 == min_counter_) min_counter_ = ord_counter;
 		max_counter_ = ord_counter;
 
