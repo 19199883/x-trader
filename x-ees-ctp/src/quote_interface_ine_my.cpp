@@ -187,6 +187,11 @@ void MYIneQuoteData::FillFullDepthInfo()
 
 void MYIneQuoteData::Send(const char* contract)
 {
+	if(!l1_md_producer_->IsDominant(contract))
+	{
+		return;
+	}
+
 	CDepthMarketDataField* l1_md = NULL;
 
 	//clog_info("[%s] INE send %s.", module_name_,contract);

@@ -90,7 +90,7 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 	if(cancel_times>=cancel_upper_limit_ && 
 	   (side==EES_SideType_open_long || side==EES_SideType_open_short)){
 		char time[80];
-		get_curtime(time,sizeof(time));
+		get_curtime(time, sizeof(time));
 		clog_error("[%s][%s] contract:%s; side:%c rejected for cancel upper limit.ord counter:%d;"
 			"cur times:%d; ord counter:%d;",
 			module_name_,
@@ -117,22 +117,26 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 			if (
 				 ((side==EES_SideType_open_long || side==EES_SideType_close_today_short) && (price+DOUBLE_CHECH_PRECISION)>=ord.price) || 
 				 ((side==EES_SideType_open_short || side==EES_SideType_close_today_long) && (price-DOUBLE_CHECH_PRECISION)<=ord.price)
-				){
+				)
+			{
 				ret = false;
+
 				char time[80];
 				get_curtime(time,sizeof(time));
-				clog_error("[%s][%s] contract:%s; matched with myself. ord counter:%d; queue counter:%d ",
-					module_name_, 
-					time,
-					contract,
-					ord_counter, 
-					i);
+				clog_error("[%s][%s] contract:%s; matched with myself. ord counter:%d; "
+							"queue counter:%d ",
+							module_name_, 
+							time,
+							contract,
+							ord_counter, 
+							i);
 				break;
 			}
 		} // if (strcmp(ord.contract, contract)==0 && side != ord.side)
 	} // for (int i = min_counter_; i< max_counter_; i++)
 
-	if (ret){
+	if (ret)
+	{
 		if (0 == min_counter_) min_counter_ = ord_counter;
 		max_counter_ = ord_counter;
 
