@@ -12,10 +12,7 @@
 #include "quote_datatype_level1.h"
 #include "quote_cmn_utility.h"
 #include "quote_cmn_save.h"
-//#include "efh_sf_api.h"
-
 #include "ThostFtdcMdApi.h"
-
 
 /*
  * 10 power of 2
@@ -52,8 +49,7 @@ class L1MDProducerHelper
 		 */
 		static CThostFtdcDepthMarketDataField* GetLastDataImp(const char *contract, 
 					int32_t last_index, 
-					CThostFtdcDepthMarketDataField *buffer, 
-					int32_t buffer_size);
+					CThostFtdcDepthMarketDataField *buffer);
 };
 
 #ifdef FEMAS_TOPSPEED_QUOTE

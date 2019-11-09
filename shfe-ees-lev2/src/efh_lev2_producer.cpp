@@ -92,9 +92,9 @@ void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
 
 	// TODO: commented for debug
 	char buffer[2048];
-	clog_info("[%s] rev efh3_lev2:%s", 
-				module_name_,
-				EfhLev2Producer::Format(*data,buffer));
+	//clog_info("[%s] rev efh3_lev2:%s", 
+	//			module_name_,
+	//			EfhLev2Producer::Format(*data,buffer));
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;

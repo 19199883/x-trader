@@ -11,7 +11,10 @@
 using namespace std;
 using namespace std::chrono;
 
-Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Compliance")
+Compliance::Compliance()
+		: min_counter_(0), 
+		max_counter_(0),
+		module_name_("Compliance")
 {
 	clog_warning("[%s] Compliance on.", module_name_);
 
@@ -21,7 +24,8 @@ Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Complia
 	memset(cur_cancel_times_, 0, sizeof(cur_cancel_times_));
 
 	memset(ord_buffer_, 0, sizeof(ord_buffer_));
-	for(int i = 0; i < COUNTER_UPPER_LIMIT; i++){
+	for(int i = 0; i < COUNTER_UPPER_LIMIT; i++)
+	{
 		ord_buffer_[i].valid = false;
 	}
 }
@@ -29,7 +33,8 @@ Compliance::Compliance(): min_counter_(0), max_counter_(0),module_name_("Complia
 void Compliance::Save()
 {
 	int i = 0;
-	for(; i < MAX_CONTRACT_NUMBER; i++){
+	for(; i < MAX_CONTRACT_NUMBER; i++)
+	{
 		// empty contract
 		if (IsEmptyString(contracts_[i])) break;
 
@@ -37,8 +42,10 @@ void Compliance::Save()
 			module_name_, contracts_[i], cur_cancel_times_[i]);
 	}
 
-	clog_warning("[%s] min counter:%d; max counter:%d;",
-			module_name_, min_counter_, max_counter_);
+	clog_warning("[%s] min counter:%d; max counter:%d;", 
+				module_name_, 
+				min_counter_, 
+				max_counter_);
 
 	fflush (Log::fp);
 }
@@ -53,10 +60,15 @@ void Compliance::ParseConfig()
     config.LoadFile();
     TiXmlElement *RootElement = config.RootElement();    
     TiXmlElement *comp_node = RootElement->FirstChildElement("Compliance");
-	if (comp_node != NULL){
+	if (comp_node != NULL)
+	{
 		cancel_upper_limit_ = atoi(comp_node->Attribute("cancelUpperLimit"));
 		clog_warning("[%s] cancelUpperLimit:%d;", module_name_, cancel_upper_limit_);
-	} else { clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); }
+	} 
+	else 
+	{ 
+		clog_error("[%s] x-trader.config error: Compliance node missing.", module_name_); 
+	}
 }
 
 int Compliance::GetCancelTimes(const char* contract)
@@ -66,58 +78,70 @@ int Compliance::GetCancelTimes(const char* contract)
 		// empty contract
 		if (IsEmptyString(contracts_[i])) break;
 
-		if(IsEqualContract((char*)contract, (char*)contracts_[i])){
-			clog_debug("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
+		if(IsEqualContract((char*)contract, (char*)contracts_[i]))
+		{
+			clog_debug("[%s] GetCancelTimes:%s,%d;", 
+						module_name_,
+						contract,
+						cur_cancel_times_[i]);
 			return cur_cancel_times_[i];
 		}
 	}
 
-	if(i < MAX_CONTRACT_NUMBER){
+	if(i < MAX_CONTRACT_NUMBER)
+	{
 		strcpy(contracts_[i], contract);
 	}
 
-	clog_debug("[%s] GetCancelTimes:%s,%d;", module_name_,contract,cur_cancel_times_[i]);
+	clog_debug("[%s] GetCancelTimes:%s,%d;", 
+				module_name_,
+				contract,
+				cur_cancel_times_[i]);
+
 	return cur_cancel_times_[i];
 
 }
 
-bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
-			double price, EES_SideType side)
+bool Compliance::TryReqOrderInsert(int ord_counter, 
+			const char * contract, 
+			double price, 
+			EES_SideType side)
 {
     bool ret = true;
 
 	int32_t cancel_times = GetCancelTimes(contract);
 	if(cancel_times>=cancel_upper_limit_ && 
-	   (side==EES_SideType_open_long || side==EES_SideType_open_short)){
+				(side==EES_SideType_open_long || side==EES_SideType_open_short))
+	{
 		char time[80];
 		get_curtime(time,sizeof(time));
-		clog_error("[%s][%s] contract:%s; side:%c rejected for cancel upper limit.ord counter:%d;"
-			"cur times:%d; ord counter:%d;",
-			module_name_,
-			time,
-			contract,
-			side,
-			ord_counter,
-			cancel_times,
-			ord_counter);
+		clog_error("[%s][%s] contract:%s; side:%c rejected for "
+					"cancel upper limit.ord counter:%d;cur times:%d; ord counter:%d;", module_name_,
+					time,
+					contract,
+					side,
+					ord_counter,
+					cancel_times,
+					ord_counter);
 
 		return false;
 	}
 
-	for (int i = min_counter_; i<= max_counter_; i++){
+	for (int i = min_counter_; i<= max_counter_; i++)
+	{
 		OrderInfo& ord = ord_buffer_[i];
 		if (!ord.valid) continue;
 
 		if (IsEqualContract((char*)ord.contract, (char*)contract) && 
-				(
-					 (side==EES_SideType_open_long||side==EES_SideType_close_today_short)&&(ord.side==EES_SideType_open_short||ord.side==EES_SideType_close_today_long) ||
-					 (ord.side==EES_SideType_open_long||ord.side==EES_SideType_close_today_short)&&(side==EES_SideType_open_short||side==EES_SideType_close_today_long)
-				)
-		   ){
-			if (
-				 ((side==EES_SideType_open_long || side==EES_SideType_close_today_short) && (price+DOUBLE_CHECH_PRECISION)>=ord.price) || 
-				 ((side==EES_SideType_open_short || side==EES_SideType_close_today_long) && (price-DOUBLE_CHECH_PRECISION)<=ord.price)
-				){
+					( (side==EES_SideType_open_long||side==EES_SideType_close_today_short)&&
+					  (ord.side==EES_SideType_open_short||ord.side==EES_SideType_close_today_long) ||
+					  (ord.side==EES_SideType_open_long||ord.side==EES_SideType_close_today_short) &&
+					  (side==EES_SideType_open_short||side==EES_SideType_close_today_long) )
+		   )
+		{
+			if ( ((side==EES_SideType_open_long || side==EES_SideType_close_today_short) && (price+DOUBLE_CHECH_PRECISION)>=ord.price) ||
+				 ((side==EES_SideType_open_short || side==EES_SideType_close_today_long) && (price-DOUBLE_CHECH_PRECISION)<=ord.price) )
+			{
 				ret = false;
 				char time[80];
 				get_curtime(time,sizeof(time));
@@ -132,7 +156,8 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		} // if (strcmp(ord.contract, contract)==0 && side != ord.side)
 	} // for (int i = min_counter_; i< max_counter_; i++)
 
-	if (ret){
+	if (ret)
+	{
 		if (0 == min_counter_) min_counter_ = ord_counter;
 		max_counter_ = ord_counter;
 

@@ -44,12 +44,6 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("latency measure off"); 
 #endif
 
-#ifdef COMPLIANCE_CHECK
-	clog_warning("COMPLIANCE_CHECK on"); 
-#else
-	clog_warning("COMPLIANCE_CHECK off"); 
-#endif
-
 #ifdef PERSISTENCE_ENABLED
 	clog_warning("PERSISTENCE_ENABLED on"); 
 #else
@@ -71,7 +65,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// version
-	clog_warning("version:x-ees_2019-09-04"); 
+	clog_warning("version: shfe-lev2-md_2019-11-09"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;

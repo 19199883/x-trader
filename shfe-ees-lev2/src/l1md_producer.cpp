@@ -12,21 +12,23 @@ using namespace std;
 CThostFtdcDepthMarketDataField* L1MDProducerHelper::GetLastDataImp(
 			const char *contract, 
 			int32_t last_index,
-			CThostFtdcDepthMarketDataField *buffer, 
-			int32_t buffer_size) 
+			CThostFtdcDepthMarketDataField *buffer) 
 {
 	CThostFtdcDepthMarketDataField* data = NULL;
 
 	// 全息行情需要一档行情时，从缓存最新位置向前查找13个位置（假设有13个主力合约），找到即停
 	int i = 0;
-	for(; i<buffer_size; i++){
+	for(; i<L1MD_BUFFER_SIZE; i++)
+	{
 		int data_index = last_index - i;
-		if(data_index < 0){
-			data_index = data_index + buffer_size;
+		if(data_index < 0)
+		{
+			data_index = data_index + L1MD_BUFFER_SIZE;
 		}
 
 		CThostFtdcDepthMarketDataField &tmp = buffer[data_index];
-		if(IsEqualContract((char*)contract, (char*)tmp.InstrumentID)){
+		if(IsEqualContract((char*)contract, (char*)tmp.InstrumentID))
+		{
 			data = &tmp; 
 			break;
 		}
@@ -137,8 +139,7 @@ CThostFtdcDepthMarketDataField* L1MDProducer::GetLastDataForIllegaluser(const ch
 		L1MDProducerHelper::GetLastDataImp( 
 					contract,
 					0,
-					md_buffer_,
-					L1MD_BUFFER_SIZE);
+					md_buffer_);
 	return data;
 }
 
@@ -148,8 +149,7 @@ CThostFtdcDepthMarketDataField* L1MDProducer::GetLastData(const char *contract, 
 		L1MDProducerHelper::GetLastDataImp( 
 					contract,
 					last_index,
-					md_buffer_,
-					L1MD_BUFFER_SIZE);
+					md_buffer_);
 	return data;
 }
 
@@ -279,9 +279,9 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 
 	// TODO: commented for debug
 	char buffer[5120];
-	clog_info("[%s] rev lev1 data:%s",
-				module_name_,
-				ShfeLev2Formater::Format(*data,buffer) );
+//	clog_info("[%s] rev lev1 data:%s",
+//				module_name_,
+//				ShfeLev2Formater::Format(*data,buffer) );
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;

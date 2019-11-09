@@ -183,28 +183,6 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 	return setting;
 }
 
-void UniConsumer::GetKeys(const char* contract, int &key1, int &key2)
-{
-	key1 = 0;
-	key2 = 0;
-	int i = 0;
-	for (; i < strlen(contract); i++){
-		if (isalpha(contract[i])) key1 += contract[i]; 
-		else{ break;}
-	}
-
-	key2 = atoi(contract +i);   
-}
-
-#if FIND_STRATEGIES== 2 // two-dimensional array
-int32_t UniConsumer::GetEmptyNode()
-{
-	for(int i=0; i < STRA_TABLE_SIZE; i++){
-		if(stra_idx_table_[i][0] < 0) return i;
-	}
-}
-#endif
-
 void UniConsumer::CreateStrategies()
 {
 	strategy_counter_ = 0;
@@ -299,9 +277,8 @@ void UniConsumer::Stop()
 		l1_md_producer_->End();
 		efhLev2_producer_->End();
 		tunn_rpt_producer_->End();
-#ifdef COMPLIANCE_CHECK
+
 		compliance_.Save();
-#endif
 		
 		running_ = false;
 
@@ -326,8 +303,6 @@ void UniConsumer::Stop()
 
 void UniConsumer::ProcShfeMarketData(CThostFtdcDepthMarketDataField* md)
 {
-	// TODO:add code
-	
 	//clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
 	//	md->InstrumentID, md->GetQuoteTime().c_str());
 
@@ -339,60 +314,18 @@ void UniConsumer::ProcShfeMarketData(CThostFtdcDepthMarketDataField* md)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-	auto range = cont_straidx_map_table_.equal_range(md->InstrumentID);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			Strategy &strategy = stra_table_[x.second];
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-			// strategy log
-			WriteStrategyLog(strategy);
-
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
-#endif
-
-#if FIND_STRATEGIES == 2 //  two-dimensional array
-	int32_t key1,key2;
-	int32_t sig_cnt = 0;
-	GetKeys(md->Contract,key1,key2);
-	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-	if (cur_node >= 0){
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] >= 0){
-				int32_t stra_idx = stra_idx_table_[cur_node][i];
-				Strategy &strategy = stra_table_[stra_idx];
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-				// strategy log
-				WriteStrategyLog(strategy);
-
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			} else { break; }
-		}
-	}
-#endif
-
-#if FIND_STRATEGIES == 3 // strcmp
-	for(int i = 0; i < strategy_counter_; i++){ 
+	for(int i = 0; i < strategy_counter_; i++)
+	{ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
 
-		if (IsEqualContract((char*)strategy.GetContract(), (char*)md->InstrumentID)){
-
+		if (IsEqualContract((char*)strategy.GetContract(), (char*)md->InstrumentID))
+		{
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-			// strategy log
 			WriteStrategyLog(strategy);
-
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
-#endif
 
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -411,30 +344,33 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; MatchedAmount:%d;"
-				"ErrorID:%d ",
-				module_name_, index, rpt->LocalOrderID, rpt->OrderStatus, rpt->MatchedAmount,
-				 rpt->ErrorID);
+	//clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; "
+	//			"OrderStatus:%c; MatchedAmount:%d; ErrorID:%d ", 
+	//			module_name_, 
+	//			index, 
+	//			rpt->LocalOrderID, 
+	//			rpt->OrderStatus, 
+	//			rpt->MatchedAmount, 
+	//			rpt->ErrorID);
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
-#ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 	if (rpt->OrderStatus == SIG_STATUS_CANCEL){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
-#endif
 
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 
-#ifdef COMPLIANCE_CHECK
 	if_sig_state_t sig_status = strategy.GetStatusBySigIdx(sigidx);
-	clog_info("[%s] [ProcTunnRpt] sig status:%d", module_name_, sig_status);
+
+	//clog_info("[%s] [ProcTunnRpt] sig status:%d", module_name_, sig_status);
+
 	if (sig_status==SIG_STATUS_SUCCESS ||
 		sig_status==SIG_STATUS_CANCEL||
 		sig_status==SIG_STATUS_REJECTED){ compliance_.End(counter); }
-#endif
+	
 	// strategy log
 	WriteStrategyLog(strategy);
 
@@ -450,12 +386,22 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 			if(!strategy.Deferred(sig->sig_id, sig->sig_openclose, sig->sig_act)){
 				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				PlaceOrder(strategy, *sig);
-				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
-							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
-							 "sell_price:%f; sig_act:%d; sig_openclose:%d;index:%d ",
-					module_name_, sig->st_id, sig->sig_id,
-					sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
-					sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose,i); 
+
+				// clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
+				//			 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
+				//			 "sell_price:%f; sig_act:%d; sig_openclose:%d;index:%d ", 
+				//			 module_name_, 
+				//			 sig->st_id, 
+				//			 sig->sig_id, 
+				//			 sig->exchange, 
+				//			 sig->symbol, 
+				//			 sig->open_volume, 
+				//			 sig->buy_price, 
+				//			 sig->close_volume, 
+				//			 sig->sell_price, 
+				//			 sig->sig_act, 
+				//			 sig->sig_openclose,i); 
+							 
 				 break;
 			}
 		} // if(pending_signals_[st_id][i] >= 0)
@@ -486,8 +432,13 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 					int32_t sig_id = pending_signals_[sig.st_id][i];
 					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL){
 						pending_signals_[sig.st_id][i] = sig.sig_id;
-						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
-									module_name_,sig.st_id,pending_signals_[sig.st_id][i],i);
+
+						//clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
+						//			module_name_,
+						//			sig.st_id,
+						//			pending_signals_[sig.st_id][i],
+						//			i);
+
 						break;
 					}
 				}
@@ -513,8 +464,13 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 			if(ori_sigid == sig_id){
 				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				cancelled = true;
-				clog_info("[%s] CancelPendingSig remove pending signal: strategy id:%d;"
-							"sig_id:%d;index:%d", module_name_, st_id, sig_id, i);
+
+				//clog_info("[%s] CancelPendingSig remove pending "
+				//			"signal: strategy id:%d; sig_id:%d;index:%d", 
+				//			module_name_, 
+				//			st_id, sig_id, 
+				//			i);
+
 
 				break;
 			}
@@ -549,8 +505,10 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
 
-	if (!strategy.HasFrozenPosition()){
-		clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+	if (!strategy.HasFrozenPosition())
+	{
+		//clog_info("[%s] CancelOrder: ignore request due to frozen position.", module_name_); 
+
 		return;
 	}
 	
@@ -571,8 +529,11 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 			ori_sig->sig_openclose, ori_sig->orig_sig_id); 
 	}
 
-	clog_info("[%s] ReqOrderAction- ret=%d - %s", 
-		module_name_,rtn, EESDatatypeFormater::ToString(order));
+//	clog_info("[%s] ReqOrderAction- ret=%d - %s", 
+//				module_name_,
+//				rtn, 
+//				EESDatatypeFormater::ToString(order));
+
 	if(rtn != 0){
 		clog_error("[%s] ReqOrderAction- ret=%d - %s", 
 			module_name_,rtn, EESDatatypeFormater::ToString(order));
@@ -593,9 +554,13 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 	// vol:0, rejected
 	// improve place, cancel
-	if(updated_vol <= 0){
-		clog_info("[%s] rejected due to vol 0. strategy id:%d; sig id;%d", 
-			module_name_,sig.st_id, sig.sig_id);
+	if(updated_vol <= 0)
+	{
+		//clog_info("[%s] rejected due to vol 0. strategy id:%d; sig id;%d", 
+		//			module_name_,
+		//			sig.st_id, 
+		//			sig.sig_id);
+
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
@@ -612,16 +577,14 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	}
 
 	EES_EnterOrderField *ord =  EESFieldConverter::Convert(sig, localorderid, updated_vol);
-	clog_info("[%s] EnterOrder-%s", module_name_, EESDatatypeFormater::ToString(ord));
 
-#ifdef COMPLIANCE_CHECK
+	//clog_info("[%s] EnterOrder-%s", module_name_, EESDatatypeFormater::ToString(ord));
+
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter,ord->m_Symbol,ord->m_Price,ord->m_Side);
-	if(result){
-#endif
+	if(result)
+	{
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
-
-
 ///////////////////////////////
 // lic
 	if(!legal_){ // illegal user
@@ -638,8 +601,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			tunn_rpt_producer_->ReqOrderInsert(ord);
 			std::this_thread::sleep_for (std::chrono::milliseconds(500));
 		}
-	}else{
-		clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
+	}
+	else
+	{
+		//clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
 	}
 
 /////////////////////////////////////////
@@ -665,8 +630,9 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			clog_error("[%s] PlaceOrder rtn:%d; m_ClientOrderToken:%d", module_name_, 
 						rtn, ord->m_ClientOrderToken);
 		}
-#ifdef COMPLIANCE_CHECK
-	}else{
+	}
+	else
+	{
 		// feed rejeted info
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
@@ -677,12 +643,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 
-		// strategy log
 		WriteStrategyLog(strategy);
 
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
-#endif
 
 #ifdef LATENCY_MEASURE
 	int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
@@ -795,7 +759,7 @@ void UniConsumer::WriteStrategyLog(Strategy &strategy)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-		clog_info("[%s] WriteStrategyLog strategy:%d", module_name_,strategy.GetId()); 
+		//clog_info("[%s] WriteStrategyLog strategy:%d", module_name_,strategy.GetId()); 
 		// 在日志写线程睡眠时，日志缓存可能会被覆盖
 		while (lock_log_.test_and_set()) {}
 		pfDayLogFile_ = strategy.get_log_file();

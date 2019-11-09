@@ -80,9 +80,9 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 
 			// TODO: log
 			char buffer[5120];
-			clog_info("[%s] send data:%s", 
-						module_name_,
-						ShfeLev2Formater::Format(*my_data,buffer));
+			//clog_info("[%s] send data:%s", 
+			//			module_name_,
+			//			ShfeLev2Formater::Format(*my_data,buffer));
 
 			if (lev2_data_handler_ != NULL) { lev2_data_handler_(my_data); }
 

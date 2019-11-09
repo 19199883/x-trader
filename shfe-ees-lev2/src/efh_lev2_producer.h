@@ -10,11 +10,11 @@
 #include "quote_datatype_shfe_deep.h"
 #include <tinyxml.h>
 #include <tinystr.h>
-#include "guava_quote.h"
 #include <chrono>
 #include <ctime>
 #include <ratio>
 #include <ctime>
+#include "guava_quote.h"
 
 
 using namespace std::chrono;

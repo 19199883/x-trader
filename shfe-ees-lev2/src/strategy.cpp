@@ -208,11 +208,11 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(CThostFtdcDepthMarketDataField* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s.%d", 
-				module_name_, 
-				md->InstrumentID, 
-				md->UpdateTime,
-				md->UpdateMillisec);
+//	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s.%d", 
+//				module_name_, 
+//				md->InstrumentID, 
+//				md->UpdateTime,
+//				md->UpdateMillisec);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -234,21 +234,21 @@ void Strategy::FeedMd(CThostFtdcDepthMarketDataField* md, int *sig_cnt, signal_t
 
 		sigs[i].st_id = this->GetId();
 
-		 clog_info("[%s] FeedMd shfe-lev2 signal: strategy id:%d; sig_id:%d; "
-					 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
-					 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d", 
-					 module_name_, 
-					 sigs[i].st_id, 
-					 sigs[i].sig_id, 
-					 sigs[i].exchange, 
-					 sigs[i].symbol, 
-					 sigs[i].open_volume, 
-					 sigs[i].buy_price, 
-					 sigs[i].close_volume, 
-					 sigs[i].sell_price, 
-					 sigs[i].sig_act, 
-					 sigs[i].sig_openclose, 
-					 sigs[i].orig_sig_id); 
+		// clog_info("[%s] FeedMd shfe-lev2 signal: strategy id:%d; sig_id:%d; "
+		//			 "exchange:%d; symbol:%s; open_volume:%d; buy_price:%f; "
+		//			 "close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d", 
+		//			 module_name_, 
+		//			 sigs[i].st_id, 
+		//			 sigs[i].sig_id, 
+		//			 sigs[i].exchange, 
+		//			 sigs[i].symbol, 
+		//			 sigs[i].open_volume, 
+		//			 sigs[i].buy_price, 
+		//			 sigs[i].close_volume, 
+		//			 sigs[i].sell_price, 
+		//			 sigs[i].sig_act, 
+		//			 sigs[i].sig_openclose, 
+		//			 sigs[i].orig_sig_id); 
 	}
 }
 
@@ -261,20 +261,20 @@ void Strategy::feed_sig_response(signal_resp_t* rpt, symbol_pos_t *pos, int *sig
 
 	for (int i = 0; i < *sig_cnt; i++ ){
 		sigs[i].st_id = GetId();
-		clog_info("[%s] feed_sig_respons esignal: strategy id:%d;sig_id:%d; exchange:%d; symbol:%s;"
-					"open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
-					module_name_, 
-					sigs[i].st_id, 
-					sigs[i].sig_id, 
-					sigs[i].exchange, 
-					sigs[i].symbol, 
-					sigs[i].open_volume, 
-					sigs[i].buy_price,
-					sigs[i].close_volume, 
-					sigs[i].sell_price, 
-					sigs[i].sig_act, 
-					sigs[i].sig_openclose, 
-					sigs[i].orig_sig_id); 
+	//	clog_info("[%s] feed_sig_respons esignal: strategy id:%d;sig_id:%d; exchange:%d; symbol:%s;"
+	//				"open_volume:%d; buy_price:%f; close_volume:%d; sell_price:%f; sig_act:%d; sig_openclose:%d; orig_sig_id:%d",
+	//				module_name_, 
+	//				sigs[i].st_id, 
+	//				sigs[i].sig_id, 
+	//				sigs[i].exchange, 
+	//				sigs[i].symbol, 
+	//				sigs[i].open_volume, 
+	//				sigs[i].buy_price,
+	//				sigs[i].close_volume, 
+	//				sigs[i].sell_price, 
+	//				sigs[i].sig_act, 
+	//				sigs[i].sig_openclose, 
+	//				sigs[i].orig_sig_id); 
 	}
 }
 
@@ -482,8 +482,13 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d;"
-		"LocalOrderID:%ld;", module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
+//	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; "
+//				"sig id: %d; cursor,%d; LocalOrderID:%ld;", 
+//				module_name_, 
+//				sig.st_id, 
+//				sig.sig_id, 
+//				cursor, 
+//				localorderid);
 }
 
 
@@ -531,13 +536,24 @@ void Strategy::FeedTunnRpt(int32_t sigidx, const TunnRpt &rpt, int *sig_cnt, sig
 
 	feed_sig_response(&sigrpt, &pos_cache_.s_pos[0], sig_cnt, sigs);
 
-	clog_info("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d; \
-				symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f; \
-				exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
-				module_name_, setting_.config.st_id, pos_cache_.s_pos[0].symbol, pos_cache_.s_pos[0].long_volume, 
-				pos_cache_.s_pos[0].short_volume, sigrpt.sig_id, sigrpt.symbol,
-				sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
-				sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,sigrpt.rejected);
+//	clog_info("[%s] FeedTunnRpt: strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d; \
+//				symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f; \
+//				exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
+//				module_name_, 
+//				setting_.config.st_id, 
+//				pos_cache_.s_pos[0].symbol, 
+//				pos_cache_.s_pos[0].long_volume, 
+//				pos_cache_.s_pos[0].short_volume, 
+//				sigrpt.sig_id, sigrpt.symbol,
+//				sigrpt.sig_act, 
+//				sigrpt.order_volume, 
+//				sigrpt.order_price, 
+//				sigrpt.exec_price,
+//				sigrpt.exec_volume, 
+//				sigrpt.acc_volume,
+//				sigrpt.status,
+//				sigrpt.killed,
+//				sigrpt.rejected);
 
 }
 
@@ -596,12 +612,17 @@ void Strategy::UpdatePosition(int32_t lastqty, if_sig_state_t status,
 		}
 	}
 
-	clog_info("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d; \
-				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
-				frozen_open_short:%d; ",
-				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
-				position_.frozen_close_long, position_.frozen_close_short,
-				position_.frozen_open_long, position_.frozen_open_short);
+//	clog_info("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d; \
+//				frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d; \
+//				frozen_open_short:%d; ",
+//				module_name_, 
+//				setting_.config.st_id, 
+//				position_.cur_long, 
+//				position_.cur_short,
+//				position_.frozen_close_long, 
+//				position_.frozen_close_short,
+//				position_.frozen_open_long, 
+//				position_.frozen_open_short);
 }
 
 void Strategy::FillPositionRpt(position_t &pos)
