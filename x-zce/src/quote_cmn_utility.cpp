@@ -111,7 +111,7 @@ bool IsEqualSize3(const char *contract, const char*commodity_no, const char* con
 
 bool IsEqualSize4(const char *contract, const char*commodity_no, const char* contract_no)
 {
-	// contract:e.g. SR801
+	// contract:e.g. SR1801
 	if(strncmp(contract, commodity_no, 2) == 0 && 
 		strncmp(contract + 3, contract_no, 3) == 0){
 		return true;

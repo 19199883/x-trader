@@ -15,9 +15,9 @@
 #include "quote_cmn_save.h"
 
 #ifdef PERSISTENCE_ENABLED 
-	#define L1_DOMINANT_MD_BUFFER_SIZE 600
+	#define L1_DOMINANT_MD_BUFFER_SIZE 5120
 #else
-	#define L1_DOMINANT_MD_BUFFER_SIZE 40
+	#define L1_DOMINANT_MD_BUFFER_SIZE 1024
 #endif
 
 using namespace std;

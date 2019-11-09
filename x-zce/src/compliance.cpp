@@ -76,9 +76,16 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 {
     bool ret = true;
 
-	if(offset==TAPI_PositionEffect_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_)){
-		clog_error("[%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ",
-			module_name_, ord_counter, GetCancelTimes(contract));
+	if(offset==TAPI_PositionEffect_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_))
+	{
+		char time[80];
+		get_curtime(time,sizeof(time));
+		clog_error("[%s] [%s] rejected for cancel upper limit. ord counter:%d; cur times:%d ", 
+					module_name_, 
+					time,
+					ord_counter, 
+					GetCancelTimes(contract));
+
 		return false;
 	}
 
@@ -93,12 +100,17 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		if (strcmp(ord.contract, contract)==0 && side != ord.side){
 #endif
 			if ((side == TAPI_SIDE_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
-				(side != TAPI_SIDE_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price)){
+				(side != TAPI_SIDE_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price))
+			{
 				ret = false;
-				time_t rawtime;
-				time (&rawtime);
+
+				char time[80];
+				get_curtime(time, sizeof(time));
 				clog_error("[%s][%s] matched with myself. ord counter:%d; queue counter:%d ",
-					module_name_, ctime(&rawtime),ord_counter, i);
+							module_name_, 
+							time,
+							ord_counter, 
+							i);
 				break;
 			}
 		} // if (strcmp(ord.contract, contract)==0 && side != ord.side)
