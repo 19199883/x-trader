@@ -104,6 +104,10 @@ class L1MDProducer : public CThostFtdcMdSpi
 		// lic
 		CDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
 
+		/*
+		 * check whether the given contract is dominant.
+		 */
+		bool IsDominant(const char *contract);
 	private:
 		/*
 		 * 与API相关
@@ -125,10 +129,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 		void Convert(CDepthMarketDataField &quote_level1, const CThostFtdcDepthMarketDataField &ctp_data);
 		CDepthMarketDataField quote_level1_;
 
-		/*
-		 * check whether the given contract is dominant.
-		 */
-		bool IsDominant(const char *contract);
 		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
 		int  contract_count_;
 
