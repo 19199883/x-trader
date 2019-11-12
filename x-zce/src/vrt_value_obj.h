@@ -10,7 +10,7 @@
 // #define PERSISTENCE_ENABLED
 
 // software license
-#define SERVER_NAME  "zz16f-hq"
+#define SERVER_NAME  "zztest3"
 
 /*
  * 行情UDP通讯设置成非阻塞模式
@@ -109,7 +109,7 @@ class Log
 
 bool IsEmptyString(char *str);
 bool IsEqualContract(char *contract1, char* contract2);
-bool IsEqualProduct(char *contract1, char* contract2);
 
+void get_curtime(char buffer[],int size);
 
 #endif
