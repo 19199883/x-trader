@@ -28,10 +28,6 @@
 // software license
 #define SERVER_NAME  "zjtest1"
 
-// 合规检查开关
-#define COMPLIANCE_CHECK
-
-
 #define CLOG_CHANNEL  "x-trader"
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
