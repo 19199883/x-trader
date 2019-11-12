@@ -283,9 +283,8 @@ void UniConsumer::Stop()
 		l1_md_producer_->End();
 		l2_md_producer_->End();
 		tunn_rpt_producer_->End();
-#ifdef COMPLIANCE_CHECK
+
 		compliance_.Save();
-#endif
 
 		running_ = false;
 		thread_log_ ->join();
@@ -357,12 +356,7 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-			// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
-		if (IsEqualProduct((char*)strategy.GetContract(), (char*)md->ContractID)){
-#else
 		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
-#endif
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
 			// strategy log
@@ -405,7 +399,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
-#ifdef COMPLIANCE_CHECK
 	if (rpt->OrderStatus == TAPI_ORDER_STATE_CANCELED ||
 			rpt->OrderStatus == TAPI_ORDER_STATE_LEFTDELETED){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
@@ -418,7 +411,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
-#endif
 
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
@@ -592,12 +584,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	TapAPINewOrder* ord = ESUNNYPacker::OrderRequest(sig,account,localorderid,updated_vol);
 	TAPIUINT32 session_id;
 
-#ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter,sig.symbol,
 				ord->OrderPrice,ord->OrderSide, ord->PositionEffect);
 	if(result){
-#endif
 		int rtn = tunn_rpt_producer_->ReqOrderInsert(localorderid,&session_id,ord);
 
 ///////////////////////////////
@@ -640,7 +630,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
-#ifdef COMPLIANCE_CHECK
 	}else{
 			clog_error("[%s] compliance checking failed:%ld", 
 						module_name_,
@@ -677,7 +666,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
-#endif
 
 #ifdef LATENCY_MEASURE
   // latency measure

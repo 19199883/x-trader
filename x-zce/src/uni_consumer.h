@@ -119,9 +119,7 @@ class UniConsumer
 		int32_t log_write_count_;
 		FILE * pfDayLogFile_;
 
-#ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
-#endif
 		
 };
 

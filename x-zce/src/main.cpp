@@ -53,23 +53,12 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("latency measure off"); 
 #endif
 
-#ifdef COMPLIANCE_CHECK
-	clog_warning("COMPLIANCE_CHECK on"); 
-#else
-	clog_warning("COMPLIANCE_CHECK off"); 
-#endif
-
 #ifdef PERSISTENCE_ENABLED
 	clog_warning("PERSISTENCE_ENABLED on"); 
 #else
 	clog_warning("PERSISTENCE_ENABLEDon off"); 
 #endif
 
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-	clog_warning("ONE_PRODUCT_ONE_CONTRACT"); 
-#else
-	clog_warning("ONE_PRODUCT_MULTI_CONTRACT"); 
-#endif
 
 	clog_warning("server name:%s", SERVER_NAME); 
 
