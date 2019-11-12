@@ -5,13 +5,6 @@
 #include <pthread.h>
 
 
-// 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,以提高速度
-//*************************************************
-// ****如果定义 PERSISTENCE_ENABLED，就不能定******
-// ****义ONE_PRODUCT_ONE_CONTRACT，因为一个品******
-// ****种有全部合约*******************************
-#define ONE_PRODUCT_ONE_CONTRACT
-
 /*
 * DCE_DATA_FEED: 大连data feed组播行情
 * DCE_OLD: 大连李杨时的旧行情(DCE_L2 if.txt)
@@ -38,9 +31,6 @@
 // 2: two-dimensional array
 // 3: strcmp
 #define FIND_STRATEGIES 3
-
-// 合规检查
-#define COMPLIANCE_CHECK
 
 #define CLOG_CHANNEL  "x-trader"
 // 一个trader支持最多信号数 

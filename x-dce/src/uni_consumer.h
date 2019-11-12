@@ -160,9 +160,7 @@ class UniConsumer
 		 *								 */
 		int32_t pending_signals_[MAX_STRATEGY_COUNT][MAX_PENDING_SIGNAL_COUNT];
 
-#ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
-#endif
 		
 };
 

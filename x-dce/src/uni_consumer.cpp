@@ -285,9 +285,8 @@ void UniConsumer::Stop()
 	if(running_){
 		md_producer_->End();
 		tunn_rpt_producer_->End();
-#ifdef COMPLIANCE_CHECK
-			compliance_.Save();
-#endif
+
+		compliance_.Save();
 
 		running_ = false;
 		thread_log_ ->join();
@@ -364,12 +363,7 @@ void UniConsumer::ProcBestAndDeep(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
-		if (IsEqualProduct((char*)strategy.GetContract(), (char*)md->Contract)){
-#else
 		if (strcmp(strategy.GetContract(), md->Contract) == 0){
-#endif
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 			// strategy log
 			WriteStrategyLog(strategy);
@@ -442,12 +436,7 @@ void UniConsumer::ProcOrderStatistic(int32_t index)
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
-		if (IsEqualProduct((char*)strategy.GetContract(), md->ContractID)){
-#else
 		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
-#endif
 			//clog_info("[%s] [ProcOrderStatistic] index: %d; contract: %s", 
 			//	module_name_, index, md->ContractID);
 
@@ -486,7 +475,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
-#ifdef COMPLIANCE_CHECK
 	if (rpt->OrderStatus == X1_FTDC_SPD_CANCELED ||
 			rpt->OrderStatus == X1_FTDC_SPD_PARTIAL_CANCELED ||
 			rpt->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
@@ -501,7 +489,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
-#endif
 
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
@@ -673,12 +660,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 	CX1FtdcInsertOrderField *ord = X1FieldConverter::Convert(sig,localorderid,updated_vol);
 
-#ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(ord->LocalOrderID);
 	bool result = compliance_.TryReqOrderInsert(counter, ord->InstrumentID,
 				ord->InsertPrice,ord->BuySellType, ord->OpenCloseType);
 	if(result){
-#endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 
 ///////////////////////////////
@@ -719,7 +704,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
-#ifdef COMPLIANCE_CHECK
 	}else{
 		clog_warning("[%s] matched with myself:%ld", module_name_, ord->LocalOrderID);
 
@@ -738,7 +722,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
-#endif
 
 #ifdef LATENCY_MEASURE
   // latency measure

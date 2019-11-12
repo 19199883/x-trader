@@ -545,12 +545,7 @@ MDBestAndDeep_MY* MDProducer::GetLastDataForIllegaluser(const char *contract)
 	MDBestAndDeep_MY *data = NULL;
 	for(int i=0; i<MD_BUFFER_SIZE; i++){
 		MDBestAndDeep_MY &tmp = bestanddeep_buffer_[i];
-#ifdef ONE_PRODUCT_ONE_CONTRACT
-		// 如果一个交易程序中一个品种只有一种合约，那么只需要比较品种部分即可
-		if(IsEqualProduct((char*)contract, tmp.Contract)){
-#else
 		if(strcmp(contract, tmp.Contract)==0){
-#endif
 			data = &tmp; 
 			break;
 		}
