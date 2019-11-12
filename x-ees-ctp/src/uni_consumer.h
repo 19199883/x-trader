@@ -186,9 +186,7 @@ class UniConsumer
 		 */
 		int32_t pending_signals_[STRA_TABLE_SIZE][MAX_PENDING_SIGNAL_COUNT];
 
-#ifdef COMPLIANCE_CHECK
 		Compliance compliance_;
-#endif
 		
 };
 

@@ -52,20 +52,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, FullDepthMDProducer *fulldept
 	EESFieldConverter::InitNewOrder(tunn_rpt_producer_->config_);
 	EESFieldConverter::InitCancelOrder(tunn_rpt_producer_->config_);
 
-#if FIND_STRATEGIES == 1
-	unordered_multimap 
-	clog_warning("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-	memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
-	memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
-	clog_warning("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
-#endif	
-
-#if FIND_STRATEGIES == 3 // strcmp
 	clog_warning("[%s] method for finding strategies by contract:strcmp", module_name_);
-#endif
 
 	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
@@ -192,15 +179,6 @@ void UniConsumer::GetKeys(const char* contract, int &key1, int &key2)
 	key2 = atoi(contract +i);   
 }
 
-#if FIND_STRATEGIES== 2 // two-dimensional array
-int32_t UniConsumer::GetEmptyNode()
-{
-	for(int i=0; i < STRA_TABLE_SIZE; i++){
-		if(stra_idx_table_[i][0] < 0) return i;
-	}
-}
-#endif
-
 void UniConsumer::CreateStrategies()
 {
 	strategy_counter_ = 0;
@@ -213,28 +191,6 @@ void UniConsumer::CreateStrategies()
 		FILE *log_file = strategy.get_log_file();
 		WriteLogTitle(log_file);
 		WriteStrategyLog(strategy);
-
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-		// only support one contract for one strategy
-		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-		int key1 = 0;
-		int key2 = 0;
-		GetKeys(setting.config.symbols[0].name,key1,key2);
-		int32_t cur_node = -1;
-		if (cont_straidx_map_table_[key1][key2] < 0){
-			cur_node = GetEmptyNode();
-			cont_straidx_map_table_[key1][key2] = cur_node;
-		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] < 0){
-				stra_idx_table_[cur_node][i] = strategy_counter_;
-				break;
-			}
-		}
-#endif
 
 		clog_warning("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),
@@ -306,9 +262,8 @@ void UniConsumer::Stop()
 		l1_md_producer_->End();
 		fulldepth_md_producer_->End();
 		tunn_rpt_producer_->End();
-#ifdef COMPLIANCE_CHECK
+
 		compliance_.Save();
-#endif
 		
 		running_ = false;
 
@@ -344,46 +299,8 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-	auto range = cont_straidx_map_table_.equal_range(md->InstrumentID);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			Strategy &strategy = stra_table_[x.second];
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
-			// strategy log
-			WriteStrategyLog(strategy);
 
-			ProcSigs(stra_table_[x.second], sig_cnt, sig_buffer_);
-		}
-	);
-#endif
-
-#if FIND_STRATEGIES == 2 //  two-dimensional array
-	int32_t key1,key2;
-	int32_t sig_cnt = 0;
-	GetKeys(md->Contract,key1,key2);
-	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-	if (cur_node >= 0){
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] >= 0){
-				int32_t stra_idx = stra_idx_table_[cur_node][i];
-				Strategy &strategy = stra_table_[stra_idx];
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-				// strategy log
-				WriteStrategyLog(strategy);
-
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			} else { break; }
-		}
-	}
-#endif
-
-#if FIND_STRATEGIES == 3 // strcmp
 	for(int i = 0; i < strategy_counter_; i++){ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
@@ -396,7 +313,6 @@ void UniConsumer::ProcShfeMarketData(MYShfeMarketData* md)
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
-#endif
 
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -422,23 +338,19 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
-#ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 	if (rpt->OrderStatus == SIG_STATUS_CANCEL){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
-#endif
 
 	int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt->LocalOrderID);
 	strategy.FeedTunnRpt(sigidx, *rpt, &sig_cnt, sig_buffer_);
 
-#ifdef COMPLIANCE_CHECK
 	if_sig_state_t sig_status = strategy.GetStatusBySigIdx(sigidx);
 	//clog_info("[%s] [ProcTunnRpt] sig status:%d", module_name_, sig_status);
 	if (sig_status==SIG_STATUS_SUCCESS ||
 		sig_status==SIG_STATUS_CANCEL||
 		sig_status==SIG_STATUS_REJECTED){ compliance_.End(counter); }
-#endif
 	// strategy log
 	WriteStrategyLog(strategy);
 
@@ -626,11 +538,9 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	EES_EnterOrderField *ord =  EESFieldConverter::Convert(sig, localorderid, updated_vol);
 	//clog_info("[%s] EnterOrder-%s", module_name_, EESDatatypeFormater::ToString(ord));
 
-#ifdef COMPLIANCE_CHECK
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	bool result = compliance_.TryReqOrderInsert(counter,ord->m_Symbol,ord->m_Price,ord->m_Side);
 	if(result){
-#endif
 		int32_t rtn = tunn_rpt_producer_->ReqOrderInsert(ord);
 
 
@@ -677,7 +587,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			clog_error("[%s] PlaceOrder rtn:%d; m_ClientOrderToken:%d", module_name_, 
 						rtn, ord->m_ClientOrderToken);
 		}
-#ifdef COMPLIANCE_CHECK
 	}else{
 			 clog_error("[%s] compliance checking failed:%ld", 
 						 module_name_,
@@ -715,7 +624,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 		ProcSigs(strategy, sig_cnt, sig_buffer_);
 	}
-#endif
 
 #ifdef LATENCY_MEASURE
 	int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);

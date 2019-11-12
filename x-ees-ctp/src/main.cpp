@@ -50,12 +50,6 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("latency measure off"); 
 #endif
 
-#ifdef COMPLIANCE_CHECK
-	clog_warning("COMPLIANCE_CHECK on"); 
-#else
-	clog_warning("COMPLIANCE_CHECK off"); 
-#endif
-
 #ifdef PERSISTENCE_ENABLED
 	clog_warning("PERSISTENCE_ENABLED on"); 
 #else
