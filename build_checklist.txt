@@ -2,7 +2,6 @@
 # x-trader
 1. 编译修改项：
 	1. debug版本:Makefile
-	2. 合规检查:COMPLIANCE_CHECK
 	3. 日志级别:clog_set_minimum_level(CLOG_LEVEL_WARNING);
 	4. 行情开关:PERSISTENCE_ENABLED
 	5. 版本： clog_warning("version:x-shfe_20180130_r");
@@ -13,8 +12,6 @@
 	10. x-dce: LOCK_POSITION_ENABLE(开启锁仓),	LOCK_POSITION_DISNABL(关闭锁仓)	
 	11. x-dce: DCE_DATA_FEED: 大连data feed组播行情;  DCE_OLD: 大连李杨时的旧行情
 	11. x-ees-ctp: 如果要支持INE的行情，需要定义INE_ENABLE宏
-	12. x-dce: 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,以提高速度
-	12. x-zce: 如果一个交易程序中一个品种只有一种合约，可以定义ONE_PRODUCT_ONE_CONTRACT,以提高速度
 	15. 如发布release版，则注释掉所有clog_info, 并确认是否存在不必要的字符段格式化语句
 
 
