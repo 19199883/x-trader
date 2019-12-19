@@ -89,10 +89,12 @@ void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole *tap_data,
 	//时间：如2014-02-03 13:23:45   
 	system_clock::time_point today = system_clock::now();
 	std::time_t tt = system_clock::to_time_t ( today );
-	strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S",localtime(&tt));
-	strcpy(data.TimeStamp+11,other.updateTime);
-	strcpy(data.TimeStamp+19,".");
-	sprintf(data.TimeStamp+20,"%03d", 0/*other.updateMS*/); // 策略需要该时间字段.因当前行情的updateMS存储的是递增的值（不是时间的毫秒部分），故使用0代替
+	strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S", localtime(&tt));
+	strncpy(data.TimeStamp+11, other.updateTime, 2);
+	strncpy(data.TimeStamp+14, other.updateTime+2, 2);
+	strncpy(data.TimeStamp+17, other.updateTime+4, 2);
+	strncpy(data.TimeStamp+19, ".", 1);
+	sprintf(data.TimeStamp+20, "%03d", other.updateMS); 
 
 	data.TotalBidLot = (int)other.buyv;	/*委买总量*/
 	data.TotalAskLot = (int)other.sellv;	/*委卖总量*/
