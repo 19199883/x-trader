@@ -107,18 +107,5 @@ bool IsDominantImp(const char* contract, char buffer[][10],
  */
 bool IsEqualSize3(const char *contract, const char*commidity_no, const char* contract_no);
 
-/* 判断commidity_no和contract_no代表的合约是否与contract指定的完整合约相等，如：
-* contract:SR1801
-* commidity_no:SR
-* contract_no:801
-*/
-bool IsEqualSize4(const char *contract, const char*commciodity_no, const char* contract_no);
-
-/*
- * 判断contract_size3是否与contract_size4相等，如：
- * contract_size3:SR801
- * contract_size4:SR1801
- */
-bool IsEqual(const char *contract_size3, const char* contract_size4);
-
+bool IsEqualContract(char *contract1, char* contract2);
 #endif  //

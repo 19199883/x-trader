@@ -153,7 +153,7 @@ void MdHelper::ProcL1MdData(int32_t index)
 
 	*old_l1_md = *new_l1_md;
 
-		clog_debug("[%s] ProcL1MdData invoked. contract:%s%s", 
+		clog_info("[%s] ProcL1MdData invoked. contract:%s%s", 
 					module_name_, 
 					new_l1_md->Contract.ContractNo1,
 					new_l1_md->Contract.Commodity.CommodityNo);
@@ -169,7 +169,10 @@ TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 			break;
 		}
 
-		if(IsEqualSize4(contract, tmp.Contract.Commodity.CommodityNo, tmp.Contract.ContractNo1)){ // contract: e.g. SR1801
+		if(IsEqualSize3(contract, 
+						tmp.Contract.Commodity.CommodityNo, 
+						tmp.Contract.ContractNo1))
+		{ // contract: e.g. SR801
 			data = &tmp; 
 			break;
 		}
