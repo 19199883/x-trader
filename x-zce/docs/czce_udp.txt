@@ -1,13 +1,20 @@
-172.18.108.255: udp 10070
-
+// added by wangying on 20161028, jinrui future company, udp level2
+#pragma pack(push,8)
 struct StdQuote5{
-    char instrument[32]; // e.g. SM1802
+    char instrument[32];
+    //char tradingDay[9];
     char updateTime[9];
     int updateMS;
-    double price; // last price
-    int volume;   // cumulate quantity
+    double price;
+    int volume;
     double turnover;
+    double highlimit;
+    double lowlimit;
     int openinterest;
+    int 	buyv;	//买委托总量
+    int 	sellv;	//卖委托总量
+    double	buyp;	//加权平均委买价格
+    double	sellp;	//加权平均委卖价格
     double askPrice1;
     int askVolume1;
     double bidPrice1;
@@ -28,6 +35,5 @@ struct StdQuote5{
     int askVolume5;
     double bidPrice5;
     int bidVolume5;
-	unsigned long long totalbid;
-	unsigned long long totalask;		 
 };
+#pragma pack(pop)
