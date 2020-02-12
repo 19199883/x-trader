@@ -29,7 +29,7 @@ function monitor()
 	do		
 		sleep 2s
 		
-		result=`find ./ -cmin -$interval | grep ${target}`
+		result=`ssh -p 8012 u910019@1.193.38.91 "find /home/u910019/medi/day211/x-zce -cmin -$interval | grep ${target}"`
 		echo $result
 		if [[ -n $result ]];then			
 			message=`cat $target | grep "ERROR \[Compliance\]"`
