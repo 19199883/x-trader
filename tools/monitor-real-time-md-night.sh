@@ -20,6 +20,27 @@ t2=`date -d "$t_str2" +%s`
 t3=`date -d "$t_str3" +%s`
 t4=`date -d "$t_str4" +%s`
 
+###########################
+# 休市时间
+#
+##############################
+rest_str1="09:00:00"
+rest_str2="10:15:00"
+rest_str3="10:30:00"
+rest_str4="11:30:00"
+rest_str5="13:30:00"
+rest_str6="15:00:00"
+rest_str7="21:00:00"
+rest_str8="23:00:00"
+rest1=`date -d "$rest_str1" +%s`
+rest2=`date -d "$rest_str2" +%s`
+rest3=`date -d "$rest_str3" +%s`
+rest4=`date -d "$rest_str4" +%s`
+rest5=`date -d "$rest_str5" +%s`
+rest6=`date -d "$rest_str6" +%s`
+rest7=`date -d "$rest_str7" +%s`
+rest8=`date -d "$rest_str8" +%s`
+
 # the directory where this script file is.
 function enter_cur_dir()
 {
@@ -42,7 +63,13 @@ function enter_cur_dir()
 
 function exit_script()
 {
+	# TODO: debug 
+	#t_str="20:32:00"
+	#t=`date -d "$t_str" +%s`
+	# TODO: commented for debuging
+	t_str=`date +"%H:%M:%S"`
 	t=`date +%s`
+
 	echo "now: $t"
 	if [[ ($t -gt $t1 && $t -lt $t2) ||  ($t -gt $t3 && $t -lt $t4) ]]; then
 		echo "exit！！"
@@ -71,19 +98,26 @@ function monitor_rt_md()
 		# 退出脚本		
 		exit_script
 
-		sleep $interval
+		sleep ${interval}m
 		
 		result=`ssh $remoteip "find ${targetdir} -cmin $interval | grep ${targetfile}"`		
 		if [[ -z $result ]];then										
-			title="行情错误：${remoteip}-${targetdir}"								
-			echo "" | mail -s "${title}" 17199883@qq.com			
+			if [[ ($t -gt $rest1 && $t -lt $rest2) || \
+				  ($t -gt $rest3 && $t -lt $rest4) || \
+				  ($t -gt $rest5 && $t -lt $rest6) || \
+				  ($t -gt $rest7 && $t -lt $rest8) ]]; then
+				title="行情中断(如果是休市时间，请忽略)：${remoteip}-${targetdir}"	
+				echo "" | mail -s "${title}" 17199883@qq.com			
+			else
+			  echo "休市时间: $t_str"
+			fi
 		 fi
 		 
 		 # 监控进程
 		 result=`ssh $remoteip "ps ux" | grep "${targetproc}" `		
 		 echo $result
 		 if [[ -z $result ]];then			
-			title="${targetproc}异常退出！"								
+			title="${targetproc}异常退出！(${remoteip}-${targetdir})"								
 			echo "" | mail -s "${title}" 17199883@qq.com						
 		 fi
 	done
@@ -92,10 +126,42 @@ function monitor_rt_md()
 
 enter_cur_dir
 
+#######################
 # TODO: 需要相应修改
-remoteip="-p 8015 u910019@1.193.38.91"
-interval=1
-targetdir="/home/u910019/medi/day211/x-zce/"
-targetfile="b.txt"	
-targetproc="x-day211"
-monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc"
+####################
+interval=1 # minute
+
+###################
+# 如下与实盘部署相关
+#
+####################
+echo "------------JRdl-test2(dce_quote) u910028@101.231.3.117:44152--------"
+remoteip="-p 44152 u910028@101.231.3.117"
+targetdir="/home/u910028/md/download/night/dcelv2_mktsvc/Data/"
+targetfile="bestanddeepquote_`date +%Y%m%d`.dat"	
+targetproc="down_md_ngt"
+monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+echo "------------JRdl-test3(dce_trade) u910019@101.231.3.117:44153--------"
+remoteip="-p 44153 u910019@101.231.3.117"
+targetdir="/home/u910019/md/download/night/dcelv2_mktsvc/Data/"
+targetfile="bestanddeepquote_`date +%Y%m%d`.dat"	
+targetproc="down_md_ngt"
+monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+
+echo "------------zjtest1(shfe_trade1) u910019@101.231.3.117:44163--------"
+remoteip="-p 44163 u910019@101.231.3.117"
+targetdir="/home/u910019/md/download/night/shfe_jr_mktsvc/Data/"
+targetfile="my_shfe_md_`date +%Y%m%d`.dat"	
+targetproc="down_md_ngt"
+monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+
+echo "------------zztest3(zce_trade1) u910019@1.193.38.91:8012--------"
+remoteip="-p 8012 u910019@1.193.38.91"
+targetdir="/home/u910019/md/download/night/mktdata/Data/"
+targetfile="czce_level2_`date +%Y%m%d`.dat"	
+targetproc="down_md_ngt"
+monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+

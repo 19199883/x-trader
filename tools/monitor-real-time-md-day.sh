@@ -64,11 +64,11 @@ function enter_cur_dir()
 function exit_script()
 {
 	# TODO: debug 
-	t_str="20:32:00"
-	t=`date -d "$t_str" +%s`
+	#t_str="20:32:00"
+	#t=`date -d "$t_str" +%s`
 	# TODO: commented for debuging
-	#t_str=`date +"%H:%M:%S"`
-	#t=`date +%s`
+	t_str=`date +"%H:%M:%S"`
+	t=`date +%s`
 
 	echo "now: $t"
 	if [[ ($t -gt $t1 && $t -lt $t2) ||  ($t -gt $t3 && $t -lt $t4) ]]; then
@@ -140,12 +140,28 @@ remoteip="-p 44152 u910028@101.231.3.117"
 targetdir="/home/u910028/md/download/day/dcelv2_mktsvc/Data/"
 targetfile="bestanddeepquote_`date +%Y%m%d`.dat"	
 targetproc="down_md_day"
-monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc"
+monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
 
 echo "------------JRdl-test3(dce_trade) u910019@101.231.3.117:44153--------"
 remoteip="-p 44153 u910019@101.231.3.117"
 targetdir="/home/u910019/md/download/day/dcelv2_mktsvc/Data/"
 targetfile="bestanddeepquote_`date +%Y%m%d`.dat"	
 targetproc="down_md_day"
-monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc"
+monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+
+echo "------------zjtest1(shfe_trade1) u910019@101.231.3.117:44163--------"
+remoteip="-p 44163 u910019@101.231.3.117"
+targetdir="/home/u910019/md/download/day/shfe_jr_mktsvc/Data/"
+targetfile="my_shfe_md_`date +%Y%m%d`.dat"	
+targetproc="down_md_day"
+monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+
+echo "------------zztest3(zce_trade1) u910019@1.193.38.91:8012--------"
+remoteip="-p 8012 u910019@1.193.38.91"
+targetdir="/home/u910019/md/download/day/mktdata/Data/"
+targetfile="czce_level2_`date +%Y%m%d`.dat"	
+targetproc="down_md_day"
+monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
 
