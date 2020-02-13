@@ -22,23 +22,23 @@ function enter_cur_dir()
 
 function monitor()
 {
+	# 配置选项
+	remoteip="-p 8015 u910019@1.193.38.91"
 	interval=1
-	target="x-trader.log"	
+	targetdir="/home/u910019/medi/day211/x-zce/"
+	targetfile="b.txt"	
 	
 	while true
 	do		
-		sleep 2s
+		sleep 2s # $interval
 		
-		result=`ssh -p 8012 u910019@1.193.38.91 "find /home/u910019/medi/day211/x-zce -cmin -$interval | grep ${target}"`
-		echo $result
-		if [[ -n $result ]];then			
-			message=`cat $target | grep "ERROR \[Compliance\]"`
-			message+=`cat $target | grep "ERROR \[TunnRptProducer\]"`
+		result=`ssh -p 8015 u910019@1.193.38.91 "find ${targetdir} -cmin $interval | grep ${targetfile}"`		
+		if [[ -n $result ]];then				
+			message=` ssh  $remoteip "cat ${targetdir}${targetfile} | grep 'ERROR \[Compliance\]'" `
+			message+=` ssh $remoteip "cat ${targetdir}${targetfile} | grep 'ERROR \[TunnRptProducer\]'" `
 			
 			if [[ -n $message ]];then 
-				title="交易错误：`pwd`"
-				echo $title
-				echo $message
+				title="交易错误：$targetdir"								
 				echo "${message}" | mail -s "${title}" 17199883@qq.com
 				
 			fi
