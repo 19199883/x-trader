@@ -10,6 +10,15 @@
 #
 #######################################
 
+# 如下定义该脚本要退出的时间范围
+t_str1="02:25:00"
+t_str2="08:30:00"
+t_str3="14:59:00"
+t_str4="20:30:00"
+t1=`date -d "$t_str1" +%s`
+t2=`date -d "$t_str2" +%s`
+t3=`date -d "$t_str3" +%s`
+t4=`date -d "$t_str4" +%s`
 
 # the directory where this script file is.
 function enter_cur_dir()
@@ -35,8 +44,9 @@ function enter_cur_dir()
 #
 #
 ######################
-function monitor_real_time_md()
+function monitor_rt_md()
 {
+	echo "md"
 }
 
 ##################
@@ -62,9 +72,17 @@ function monitor_trader()
 	echo "targetproc:$targetproc"
 	
 	while true
-	do		
+	do	
+		# 退出脚本		
+		t=`date +%s`
+		echo "now: $t"
+		if [[ ($t -gt $t1 && $t -lt $t2) ||  ($t -gt $t3 && $t -lt $t4) ]]; then
+			echo "exit！！"
+			exit
+		fi
+
 		# TODO:
-		sleep 2s # $interval
+		sleep $interval
 		
 		result=`ssh $remoteip "find ${targetdir} -cmin $interval | grep ${targetfile}"`		
 		if [[ -n $result ]];then				
