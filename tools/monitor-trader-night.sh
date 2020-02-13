@@ -40,6 +40,15 @@ function enter_cur_dir()
 	cd $this_dir
 }
 
+#########################
+#
+#
+######################
+function monitor_rt_md()
+{
+	echo "md"
+}
+
 function exit_script()
 {
 	t=`date +%s`
@@ -57,7 +66,7 @@ function exit_script()
 # param4: targetfile
 # param4: targetproc
 ###################
-function monitor_rt_md()
+function monitor_trader()
 {
 	# 配置选项
 	remoteip=$1
@@ -75,9 +84,15 @@ function monitor_rt_md()
 		sleep $interval
 		
 		result=`ssh $remoteip "find ${targetdir} -cmin $interval | grep ${targetfile}"`		
-		if [[ -z $result ]];then										
-			title="行情错误：${remoteip}-${targetdir}"								
-			echo "" | mail -s "${title}" 17199883@qq.com			
+		if [[ -n $result ]];then				
+			message=` ssh  $remoteip "cat ${targetdir}${targetfile} | grep 'ERROR \[Compliance\]'" `
+			message+=` ssh $remoteip "cat ${targetdir}${targetfile} | grep 'ERROR \[TunnRptProducer\]'" `
+			
+			if [[ -n $message ]];then 
+				title="交易错误：$targetdir"								
+				echo "${message}" | mail -s "${title}" 17199883@qq.com
+				
+			fi
 		 fi
 		 
 		 # 监控进程
@@ -99,4 +114,4 @@ interval=1
 targetdir="/home/u910019/medi/day211/x-zce/"
 targetfile="b.txt"	
 targetproc="x-day211"
-monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc"
