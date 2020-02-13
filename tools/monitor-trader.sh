@@ -1,5 +1,16 @@
 #!/bin/bash
 
+##################
+# !!!!!!!!!!!!!!注意事项！！！！！
+# 1. 该脚本必须在交易程序和行情程序启动后启动，
+#    否则会产生错误报警信息，如"交易程序异常退出"
+# 2. 该计划的时间依赖实盘的交易程序，行情程序的启停时间，
+#     该脚本必须在交易程序和行情程序启动后启动；关闭前关闭
+#
+#
+#######################################
+
+
 # the directory where this script file is.
 function enter_cur_dir()
 {
@@ -20,6 +31,14 @@ function enter_cur_dir()
 	cd $this_dir
 }
 
+#########################
+#
+#
+######################
+function monitor_real_time_md()
+{
+}
+
 ##################
 # param1: remoteip="
 # param2: interval=1
@@ -27,7 +46,7 @@ function enter_cur_dir()
 # param4: targetfile
 # param4: targetproc
 ###################
-function monitor()
+function monitor_trader()
 {
 	# 配置选项
 	remoteip=$1
@@ -44,6 +63,7 @@ function monitor()
 	
 	while true
 	do		
+		# TODO:
 		sleep 2s # $interval
 		
 		result=`ssh $remoteip "find ${targetdir} -cmin $interval | grep ${targetfile}"`		
@@ -71,9 +91,10 @@ function monitor()
 
 enter_cur_dir
 
+# TODO: 需要相应修改
 remoteip="-p 8015 u910019@1.193.38.91"
 interval=1
 targetdir="/home/u910019/medi/day211/x-zce/"
 targetfile="b.txt"	
 targetproc="x-day211"
-monitor "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc"
