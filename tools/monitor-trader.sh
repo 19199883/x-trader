@@ -49,6 +49,16 @@ function monitor_rt_md()
 	echo "md"
 }
 
+function exit_script()
+{
+	t=`date +%s`
+	echo "now: $t"
+	if [[ ($t -gt $t1 && $t -lt $t2) ||  ($t -gt $t3 && $t -lt $t4) ]]; then
+		echo "exit！！"
+		exit
+	fi	
+}
+
 ##################
 # param1: remoteip="
 # param2: interval=1
@@ -63,23 +73,12 @@ function monitor_trader()
 	interval=$2
 	targetdir=$3
 	targetfile=$4
-	targetproc=$5
-	
-	echo "remoteip:$remoteip"
-	echo "interval:$interval"
-	echo "targetdir:$targetdir"
-	echo "targetfile:$targetfile"
-	echo "targetproc:$targetproc"
+	targetproc=$5	
 	
 	while true
 	do	
 		# 退出脚本		
-		t=`date +%s`
-		echo "now: $t"
-		if [[ ($t -gt $t1 && $t -lt $t2) ||  ($t -gt $t3 && $t -lt $t4) ]]; then
-			echo "exit！！"
-			exit
-		fi
+		exit_script
 
 		# TODO:
 		sleep $interval
