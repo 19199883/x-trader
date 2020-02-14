@@ -89,7 +89,10 @@ function monitor_trader()
 			
 			if [[ -n $message ]];then 
 				title="交易错误：$targetdir"								
+				# to wy
 				echo "${message}" | mail -s "${title}" 17199883@qq.com
+				# to hzp
+				echo "${message}" | mail -s "${title}" 2684027160@qq.com
 				
 			fi
 		 fi
@@ -99,7 +102,10 @@ function monitor_trader()
 		 echo $result
 		 if [[ -z $result ]];then			
 			title="${targetproc}异常退出！"								
+			# to wy
 			echo "" | mail -s "${title}" 17199883@qq.com						
+			# to hzp
+			echo "" | mail -s "${title}" 2684027160@qq.com						
 		 fi
 	done
 }

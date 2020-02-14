@@ -109,7 +109,10 @@ function monitor_rt_md()
 				  ($t -gt $rest5 && $t -lt $rest6) || \
 				  ($t -gt $rest7 && $t -lt $rest8) ]]; then
 				title="行情中断(如果是休市时间，请忽略)：${remoteip}-${targetdir}"	
+				# to wy
 				echo "" | mail -s "${title}" 17199883@qq.com			
+				# to hzp
+				echo "" | mail -s "${title}" 2684027160@qq.com			
 			else
 			  echo "休市时间: $t_str"
 			fi
@@ -120,7 +123,10 @@ function monitor_rt_md()
 		 echo $result
 		 if [[ -z $result ]];then			
 			title="${targetproc}异常退出！(${remoteip}-${targetdir})"								
+			# to wy
 			echo "" | mail -s "${title}" 17199883@qq.com						
+			# to hzp
+			echo "" | mail -s "${title}" 2684027160@qq.com						
 		 fi
 	done
 }
