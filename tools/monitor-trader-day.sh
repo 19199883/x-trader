@@ -152,14 +152,14 @@ monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" 
 echo "------------zjtest1(shfe_trade1) u910019@101.231.3.117:44163--------"
 remoteip="-p 44163 u910019@101.231.3.117"
 targetdir="/home/u910019/medi/day110/x-shfe/"
-targetfile="x-trader.log
+targetfile="x-trader.log"
 targetproc="x-day110"
 monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
 
 echo "------------zjtest1(shfe_trade1) u910019@101.231.3.117:44163--------"
 remoteip="-p 44163 u910019@101.231.3.117"
 targetdir="/home/u910019/medi/day169/x-shfe/"
-targetfile="x-trader.log
+targetfile="x-trader.log"
 targetproc="x-day169"
 monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
 
