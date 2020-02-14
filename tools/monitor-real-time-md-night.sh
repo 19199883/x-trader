@@ -143,6 +143,7 @@ interval=1 # minute
 # 如下与实盘部署相关
 #
 ####################
+########################### dce start ####################
 echo "------------JRdl-test2(dce_quote) u910028@101.231.3.117:44152--------"
 remoteip="-p 44152 u910028@101.231.3.117"
 targetdir="/home/u910028/md/download/night/dcelv2_mktsvc/Data/"
@@ -156,20 +157,25 @@ targetdir="/home/u910019/md/download/night/dcelv2_mktsvc/Data/"
 targetfile="bestanddeepquote_`date +%Y%m%d`.dat"	
 targetproc="down_md_ngt"
 monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+########################### dce end ####################
 
 
+########################### shfe start ####################
 echo "------------zjtest1(shfe_trade1) u910019@101.231.3.117:44163--------"
 remoteip="-p 44163 u910019@101.231.3.117"
-targetdir="/home/u910019/md/download/night/shfe_jr_mktsvc/Data/"
-targetfile="my_shfe_md_`date +%Y%m%d`.dat"	
-targetproc="down_md_ngt"
+targetdir="/home/u910019/market-data/shfe-lev2/night/x-shfe/Data/"
+targetfile="shfe_lev2_data_`date +%Y%m%d`.dat"	
+targetproc="lev2-md-night"
 monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+########################### shfe end ####################
 
 
+########################### zce start ####################
 echo "------------zztest3(zce_trade1) u910019@1.193.38.91:8012--------"
 remoteip="-p 8012 u910019@1.193.38.91"
 targetdir="/home/u910019/md/download/night/mktdata/Data/"
 targetfile="czce_level2_`date +%Y%m%d`.dat"	
 targetproc="down_md_ngt"
 monitor_rt_md "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+########################### zce end ####################
 
