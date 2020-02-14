@@ -80,8 +80,7 @@ function monitor_trader()
 		# 退出脚本		
 		exit_script
 
-		# TODO:
-		sleep $interval
+		sleep ${interval}m
 		
 		result=`ssh $remoteip "find ${targetdir} -cmin $interval | grep ${targetfile}"`		
 		if [[ -n $result ]];then				
@@ -108,10 +107,76 @@ function monitor_trader()
 
 enter_cur_dir
 
-# TODO: 需要相应修改
+#########################
+# 根据情况设置合适值
+#
+##########################
+interval=1  # minutes
+
+############################
+# 根据实盘进行设置
+#
+################################
+
+############## dce start ##############
+echo "------------JRdl-test2(dce_quote) u910028@101.231.3.117:44152--------"
+remoteip="-p 44152 u910028@101.231.3.117"
+targetdir="/home/u910028/medi/night115/x-dce/"
+targetfile="x-trader.log"	
+targetproc="x-night115"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+echo "------------JRdl-test2(dce_quote) u910028@101.231.3.117:44152--------"
+remoteip="-p 44152 u910028@101.231.3.117"
+targetdir="/home/u910028/medi/night210/x-dce/"
+targetfile="x-trader.log"	
+targetproc="x-night210"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+echo "------------JRdl-test3(dce_trade1) u910019@101.231.3.117:44153--------"
+remoteip="-p 44153 u910019@101.231.3.117"
+targetdir="/home/u910019/medi/night067/x-dce/"
+targetfile="x-trader.log"	
+targetproc="x-night067"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+############## dce end ##############
+
+
+############## shfe start ##############
+echo "------------zjtest1(shfe_trade1) u910019@101.231.3.117:44163--------"
+remoteip="-p 44163 u910019@101.231.3.117"
+targetdir="/home/u910019/medi/night110/x-shfe/"
+targetfile="x-trader.log
+targetproc="x-night110"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+echo "------------zjtest1(shfe_trade1) u910019@101.231.3.117:44163--------"
+remoteip="-p 44163 u910019@101.231.3.117"
+targetdir="/home/u910019/medi/night169/x-shfe/"
+targetfile="x-trader.log
+targetproc="x-night169"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+echo "------------zjtest1(shfe_trade1) u910019@101.231.3.117:44163--------"
+remoteip="-p 44163 u910019@101.231.3.117"
+targetdir="/home/u910019/medi/night96/x-shfe/"
+targetfile="x-trader.log"
+targetproc="x-night96" 
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+############## shfe end ##############
+
+############## zce start ##############
+echo "------------zz16f-hq(zce_quote) u910019@1.193.38.91:8015--------"
 remoteip="-p 8015 u910019@1.193.38.91"
-interval=1
-targetdir="/home/u910019/medi/day211/x-zce/"
-targetfile="b.txt"	
-targetproc="x-day211"
-monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc"
+targetdir="/home/u910019/medi/night211/x-zce/"
+targetfile="x-trader.log"	
+targetproc="x-night211"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
+echo "------------zztest3(zce_trade1) u910019@1.193.38.91:8012--------"
+remoteip="-p 8012 u910019@1.193.38.91"
+targetdir="/home/u910019/medi/night21-00/x-zce/"
+targetfile="x-trader.log"	
+targetproc="x-night21-00"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+############## zce end  ##############

@@ -102,6 +102,8 @@ function monitor_rt_md()
 		
 		result=`ssh $remoteip "find ${targetdir} -cmin $interval | grep ${targetfile}"`		
 		if [[ -z $result ]];then										
+			t=`date +%s`
+			echo "monitor now: $t"
 			if [[ ($t -gt $rest1 && $t -lt $rest2) || \
 				  ($t -gt $rest3 && $t -lt $rest4) || \
 				  ($t -gt $rest5 && $t -lt $rest6) || \
