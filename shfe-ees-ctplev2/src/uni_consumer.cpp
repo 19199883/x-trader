@@ -15,12 +15,10 @@ EES_EnterOrderField EESFieldConverter::new_order_;
 EES_CancelOrder EESFieldConverter::cancel_order_;
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, 
-			EfhLev2Producer *efhLev2_producer, 
 	L1MDProducer *l1_md_producer,  
 	TunnRptProducer *tunn_rpt_producer)
 :   module_name_("uni_consumer"),
 	running_(true), 
-    efhLev2_producer_(efhLev2_producer),
     l1_md_producer_(l1_md_producer),
     tunn_rpt_producer_(tunn_rpt_producer),
 	lock_log_(ATOMIC_FLAG_INIT)
@@ -237,10 +235,6 @@ void UniConsumer::Start()
 	// strategy log
 	thread_log_ = new std::thread(&UniConsumer::WriteLogImp,this);
 
-	MYQuoteData myquotedata(efhLev2_producer_, l1_md_producer_);
-	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
-	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
-
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
@@ -250,10 +244,7 @@ void UniConsumer::Start()
 					parent);
 			switch (ivalue->data){
 				case L1_MD:
-					myquotedata.ProcL1MdData(ivalue->index);
-					break;
-				case EFH_LEV2:
-					myquotedata.ProcEfhLev2Data(ivalue->index);
+					ProcShfeMarketData(ivalue->index);
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -275,7 +266,6 @@ void UniConsumer::Stop()
 {
 	if(running_){		
 		l1_md_producer_->End();
-		efhLev2_producer_->End();
 		tunn_rpt_producer_->End();
 
 		compliance_.Save();
@@ -301,8 +291,9 @@ void UniConsumer::Stop()
 	fflush (Log::fp);
 }
 
-void UniConsumer::ProcShfeMarketData(CThostFtdcDepthMarketDataField* md)
+void UniConsumer::ProcShfeMarketData(int32_t index)
 {
+	CThostFtdcDepthMarketDataField* md = l1_md_producer_->GetData(index);
 	//clog_info("[test] proc [%s] [ProcShfeMarketData] contract:%s, time:%s", module_name_, 
 	//	md->InstrumentID, md->GetQuoteTime().c_str());
 

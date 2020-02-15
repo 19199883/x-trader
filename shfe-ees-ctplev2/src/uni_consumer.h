@@ -16,7 +16,6 @@
 #include "moduleloadlibrarylinux.h"
 #include "loadlibraryproxy.h"
 #include "compliance.h"
-#include "quote_interface_shfe_my.h"
 #include "l1md_producer.h"
 
 /*
@@ -111,7 +110,7 @@ class EESFieldConverter
 class UniConsumer
 {
 	public:
-		UniConsumer(struct vrt_queue  *queue, EfhLev2Producer *efhLev2_producer, 
+		UniConsumer(struct vrt_queue  *queue,  
 			L1MDProducer *l1_md_producer,  TunnRptProducer *tunn_rpt_producer);
 		~UniConsumer();
 
@@ -122,7 +121,6 @@ class UniConsumer
 		atomic<bool> running_;
 		const char* module_name_;  
 		struct vrt_consumer *consumer_;
-		EfhLev2Producer *efhLev2_producer_;
 		L1MDProducer *l1_md_producer_;
 		TunnRptProducer *tunn_rpt_producer_;
 		CLoadLibraryProxy *pproxy_;
@@ -168,7 +166,7 @@ class UniConsumer
 		int32_t GetEmptyNode();
 
 		// business logic
-		void ProcShfeMarketData(CThostFtdcDepthMarketDataField* md);
+		void ProcShfeMarketData(int32_t index);
 		void ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs);
 		void ProcTunnRpt(int32_t index);
 		void CancelOrder(Strategy &strategy,signal_t &sig);

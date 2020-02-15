@@ -52,7 +52,6 @@ class L1MDProducerHelper
 					CThostFtdcDepthMarketDataField *buffer);
 };
 
-#ifdef FEMAS_TOPSPEED_QUOTE
 class L1MDProducer : public CThostFtdcMdSpi
 {
 	public:
@@ -109,6 +108,8 @@ class L1MDProducer : public CThostFtdcMdSpi
 		char * pp_instruments_[700];
 		bool is_multicast_;
 
+		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_shfe_lev2_data_save_;
+
 		/*
 		 * 与逻辑处理相关
 		 */
@@ -137,164 +138,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 		void ParseConfig();
 		L1MDConfig config_;
 };
-#endif
 
 
-#ifdef EES_UDP_TOPSPEED_QUOTE
-#include "EESQuoteApi.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <dlfcn.h>
-#include <string.h>
-
-class L1MDProducer : public EESQuoteEvent
-{
-	public:
-		L1MDProducer(struct vrt_queue  *queue);
-		~L1MDProducer();
-
-		/*
-		 * 与逻辑处理相关
-		 */
-		CThostFtdcDepthMarketDataField* GetData(int32_t index);
-
-		/*
-		 * contract: 要获取行情的合约
-		 * last_index;最新行情在缓存的位置
-		 * 获取指定合约最新的一档行情。
-		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
-		 */
-		CThostFtdcDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
-		void End();
-
-		/*
-		 * 与API相关
-		 */
-		virtual void OnEqsConnected();
-		virtual void OnEqsDisconnected();
-		virtual void OnLoginResponse(bool bSuccess, const char* pReason);
-		virtual void OnSymbolRegisterResponse(EesEqsIntrumentType chInstrumentType, const char* pSymbol, bool bSuccess);
-		virtual void OnQuoteUpdated(EesEqsIntrumentType chInstrumentType, 
-					EESMarketDepthQuoteData* pDepthQuoteData);
-
-		void ToString(CThostFtdcDepthMarketDataField &data);
-		//
-		// lic
-		CThostFtdcDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
-
-	private:
-		/*
-		 * 与API相关
-		 */
-		void InitMDApi();
-		EESQuoteApi *LoadQuoteApi();
-		void UnloadQuoteApi();
-		void *m_handle;
-		EESQuoteApi *api_;
-		funcDestroyEESQuoteApi m_distoryFun;
-
-		/*
-		 * 与逻辑处理相关
-		 */
-		void RalaceInvalidValue_EES(EESMarketDepthQuoteData &d, CThostFtdcDepthMarketDataField &data_dest);
-		int32_t Push(const CThostFtdcDepthMarketDataField& md);
-		struct vrt_producer  *producer_;
-		CThostFtdcDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
-		int32_t l1data_cursor_;
-		bool ended_;
-
-		/*
-		 * check whether the given contract is dominant.
-		 */
-		bool IsDominant(const char *contract);
-		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
-		int max_traverse_count_;
-		int  contract_count_;
-
-		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_level1_save_;
-
-		/*
-		 *日志相关
-		 */
-		const char *module_name_;  
-
-		/*
-		 * 配置相关
-		 */
-		void ParseConfig();
-		L1MDConfig config_;
-};
-#endif
-
-
-#ifdef EES_EFH_SF_TOPSPEED_QUOTE
-
-class L1MDProducer : public EESQuoteEvent
-{
-	public:
-		L1MDProducer(struct vrt_queue  *queue);
-		~L1MDProducer();
-
-		/*
-		 * 与逻辑处理相关
-		 */
-		CThostFtdcDepthMarketDataField* GetData(int32_t index);
-
-		/*
-		 * contract: 要获取行情的合约
-		 * last_index;最新行情在缓存的位置
-		 * 获取指定合约最新的一档行情。
-		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
-		 */
-		CThostFtdcDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
-		void End();
-
-		/*
-		 * 与API相关
-		 */
-		void Rev(const struct guava_udp_normal* p_quote);
-
-		void ToString(CThostFtdcDepthMarketDataField &data);
-
-		static L1MDProducer *This;
-
-	private:
-		/*
-		 * 与API相关
-		 */
-		void InitMDApi();
-		struct sl_efh_quote* p_SlEfh;
-		
-		/*
-		 * 与逻辑处理相关
-		 */
-		void RalaceInvalidValue_EES(guava_udp_normal&d);
-		int32_t Push(const CThostFtdcDepthMarketDataField& md);
-		struct vrt_producer  *producer_;
-		CThostFtdcDepthMarketDataField md_buffer_[L1MD_BUFFER_SIZE];
-		int32_t l1data_cursor_;
-		bool ended_;
-
-		/*
-		 * check whether the given contract is dominant.
-		 */
-		bool IsDominant(const char *contract);
-		char dominant_contracts_[MAX_CONTRACT_COUNT][10];
-		int max_traverse_count_;
-		int  contract_count_;
-
-		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_level1_save_;
-
-		/*
-		 *日志相关
-		 */
-		const char *module_name_;  
-
-		/*
-		 * 配置相关
-		 */
-		void ParseConfig();
-		L1MDConfig config_;
-};
-#endif
 #endif // __L1MD_PRODUCER_H__

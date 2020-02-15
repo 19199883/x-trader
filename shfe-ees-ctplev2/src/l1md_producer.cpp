@@ -63,6 +63,11 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		this->producer_ ->yield	 = vrt_yield_strategy_hybrid();
 	}
+
+#ifdef PERSISTENCE_ENABLED 
+    p_shfe_lev2_data_save_ = new QuoteDataSave<CThostFtdcDepthMarketDataField>("shfe_lev2_data", SHFE_LEV2_DATA_QUOTE_TYPE);
+#endif
+
 }
 
 void L1MDProducer::ParseConfig()
@@ -115,6 +120,9 @@ void L1MDProducer::ParseConfig()
 
 L1MDProducer::~L1MDProducer()
 {
+#ifdef PERSISTENCE_ENABLED 
+    if (p_shfe_lev2_data_save_) delete p_shfe_lev2_data_save_;
+#endif
 }
 
 
@@ -164,10 +172,6 @@ bool L1MDProducer::IsDominant(const char *contract)
 #endif
 }
 
-/////////////////
-//A使用飞马UDP行情
-/////////////////
-#ifdef FEMAS_TOPSPEED_QUOTE
 void L1MDProducer::OnFrontConnected()
 {
     clog_warning("[%s] shfe_ex(CTP): OnFrontConnected", module_name_);
@@ -266,6 +270,12 @@ void L1MDProducer::InitMDApi()
 
 void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 {
+	// TODO: commented for debug
+	char buffer[5120];
+	clog_info("[%s] rev lev1 data:%s",
+				module_name_,
+				ShfeLev2Formater::Format(*data,buffer) );
+
 	if (ended_) return;
 
 	// discard option
@@ -277,12 +287,6 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	// 抛弃非主力合约
 	if(!(IsDominant(data->InstrumentID))) return;
 
-	// TODO: commented for debug
-	char buffer[5120];
-//	clog_info("[%s] rev lev1 data:%s",
-//				module_name_,
-//				ShfeLev2Formater::Format(*data,buffer) );
-
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);
@@ -290,6 +294,12 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	ivalue->index = Push(*data);
 	ivalue->data = L1_MD;
 	vrt_producer_publish(producer_);
+
+#ifdef PERSISTENCE_ENABLED 
+			timeval t;
+			gettimeofday(&t, NULL);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, data);
+#endif
 
 }
 
@@ -310,5 +320,4 @@ void L1MDProducer::End()
 	}
 	fflush (Log::fp);
 }
-#endif
 
