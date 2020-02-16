@@ -14,7 +14,6 @@
 #include <ctime>
 #include <ratio>
 #include <ctime>
-#include "guava_quote.h"
 
 
 using namespace std::chrono;
@@ -114,14 +113,6 @@ struct efh3_lev2
 	int				m_ask_5_share;			///<最新卖量5档
 };
 
-struct multicast_info
-{
-	char	m_remote_ip[MAX_IP_LEN];		///< 组播行情远端地址
-	int		m_remote_port;					///< 组播行情远端端口
-	char	m_local_ip[MAX_IP_LEN];			///< 组播本机地址
-	int		m_local_port;					///< 组播本机端口
-};
-
 
 #pragma pack(pop)
 ////////////////////////////////end market data by socket udp multicast
@@ -144,7 +135,7 @@ struct EfhLev2Config
 	char yield[20]; // disruptor yield strategy
 };
 
-class EfhLev2Producer : public guava_quote_event
+class EfhLev2Producer 
 {
 	public:
 		EfhLev2Producer(struct vrt_queue  *queue);
@@ -232,10 +223,7 @@ class EfhLev2Producer : public guava_quote_event
 
 		///////////////// market data bu socket udp multicast  //////
 		/// \brief 组播实例初始化
-		bool sock_init(const string& remote_ip, 
-					unsigned short remote_port,
-					const string& local_ip, 
-					unsigned short local_port);
+		bool sock_init();
 		/// \brief 组播实例关闭
 		bool sock_close();
 		
@@ -258,7 +246,7 @@ class EfhLev2Producer : public guava_quote_event
 		
 	private:
 
-		virtual void on_receive_quote(efh3_lev2* data);
+		void on_receive_quote(efh3_lev2* data);
 
 		/*
 		 * 与API相关
@@ -288,8 +276,10 @@ class EfhLev2Producer : public guava_quote_event
 		void ParseConfig();
 
 	private:
-		guava_quote	m_efh3;				///< 行情接收对象
-		multicast_info	m_conf_info;		///< UDP信息
+		char	m_remote_ip[MAX_IP_LEN];		///< 组播行情远端地址
+		int		m_remote_port;					///< 组播行情远端端口
+		char	m_local_ip[MAX_IP_LEN];			///< 组播本机地址
+		int		m_local_port;					///< 组播本机端口
 };
 
 #endif

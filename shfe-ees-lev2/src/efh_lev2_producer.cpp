@@ -22,7 +22,6 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "socket_multicast.h"
 using std::cout;
 using std::endl;
 using std::stringstream;
@@ -32,6 +31,8 @@ using namespace std;
 EfhLev2Producer::EfhLev2Producer(struct vrt_queue  *queue)
 :module_name_("EfhLev2Producer")
 {
+	m_sock = MY_SOCKET_DEFAULT;
+
 	ended_ = false;
 	clog_warning("[%s] FULL_DEPTH_MD_BUFFER_SIZE: %d;", module_name_, FULL_DEPTH_MD_BUFFER_SIZE);
 
@@ -82,14 +83,14 @@ void EfhLev2Producer::ParseConfig()
 	} else { clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); }
 
     TiXmlElement *efhLev2  = RootElement->FirstChildElement("EfhLev2");
-	strcpy(m_conf_info.m_remote_ip, efhLev2->Attribute("remote_ip"));
+	strcpy(m_remote_ip, efhLev2->Attribute("remote_ip"));
 	int remote_port = 0;
 	efhLev2->QueryIntAttribute("remote_port", &remote_port);
-	this->m_conf_info.m_remote_port = remote_port;
-	strcpy(m_conf_info.m_local_ip, efhLev2->Attribute("local_ip"));
+	this->m_remote_port = remote_port;
+	strcpy(m_local_ip, efhLev2->Attribute("local_ip"));
 	int local_port = 0;
 	 efhLev2->QueryIntAttribute("local_port", &local_port);
-	this->m_conf_info.m_local_port = local_port;
+	this->m_local_port = local_port;
 }
 
 EfhLev2Producer::~EfhLev2Producer()
@@ -98,12 +99,7 @@ EfhLev2Producer::~EfhLev2Producer()
 
 int EfhLev2Producer::InitMDApi()
 {
-	m_udp_conf = m_conf_info;
-	return sock_init(m_udp_conf.m_remote_ip, 
-				m_udp_conf.m_remote_port, 
-				m_udp_conf.m_local_ip, 
-				m_udp_conf.m_local_port, 
-				this);
+	return sock_init();
 }
 
 void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
@@ -115,12 +111,6 @@ void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
 	}
 
 	if(!IsDominant(data->m_symbol)) return;
-
-	// TODO: commented for debug
-	char buffer[2048];
-	//clog_info("[%s] rev efh3_lev2:%s", 
-	//			module_name_,
-	//			EfhLev2Producer::Format(*data,buffer));
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -144,7 +134,8 @@ void EfhLev2Producer::End()
 	fflush (Log::fp);
 }
 
-int32_t EfhLev2Producer::Push(const efh3_lev2& md){
+int32_t EfhLev2Producer::Push(const efh3_lev2& md)
+{
 	static int32_t shfemarketdata_cursor = FULL_DEPTH_MD_BUFFER_SIZE - 1;
 	shfemarketdata_cursor++;
 	if (shfemarketdata_cursor%FULL_DEPTH_MD_BUFFER_SIZE == 0){
@@ -174,20 +165,10 @@ bool EfhLev2Producer::IsDominant(const char *contract)
 /////////////////////////////////////////////
 // the following is market data from multicast 
 //////////////////////////////////
-bool socket_multicast::sock_init(const string& remote_ip, 
-			unsigned short remote_port,
-			const string& local_ip, 
-			unsigned short local_port, 
-			socket_event* ptr_event)//const string& local_ip,
+bool EfhLev2Producer::sock_init()
 {
 	bool b_ret = false;
 	const int CONST_ERROR_SOCK = -1;
-
-	m_remote_ip = remote_ip;
-	m_remote_port = remote_port;
-	m_local_ip = local_ip;
-	m_local_port = local_port;
-	m_event = ptr_event;
 
 	try
 	{
@@ -227,8 +208,8 @@ bool socket_multicast::sock_init(const string& remote_ip,
 		}
 
 		struct ip_mreq mreq;
-		mreq.imr_multiaddr.s_addr = inet_addr(m_remote_ip.c_str());	//multicast group ip
-		mreq.imr_interface.s_addr = inet_addr(m_local_ip.c_str());
+		mreq.imr_multiaddr.s_addr = inet_addr(m_remote_ip);	//multicast group ip
+		mreq.imr_interface.s_addr = inet_addr(m_local_ip);
 
 		if (setsockopt(m_sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) != 0)
 		{
@@ -254,7 +235,7 @@ bool socket_multicast::sock_init(const string& remote_ip,
 }
 
 
-bool socket_multicast::sock_close()
+bool EfhLev2Producer::sock_close()
 {
 	bool b_ret = false;
 	//关闭线程
@@ -269,18 +250,20 @@ bool socket_multicast::sock_close()
 	return b_ret;
 }
 
-void* socket_multicast::socket_server_event_thread(void* ptr_param)	
+void* EfhLev2Producer::socket_server_event_thread(void* ptr_param)	
 {
-	socket_multicast* ptr_this = (socket_multicast*) ptr_param;
+
+	EfhLev2Producer* ptr_this = (EfhLev2Producer*) ptr_param;
 	if (NULL == ptr_this)
 	{
 		return NULL;
 	}
 
 	return ptr_this->on_socket_server_event_thread();
+
 }
 
-void* socket_multicast::on_socket_server_event_thread()
+void* EfhLev2Producer::on_socket_server_event_thread()
 {
 	char line[RCV_BUF_SIZE] = "";
 
@@ -290,7 +273,7 @@ void* socket_multicast::on_socket_server_event_thread()
 
 	memset(&muticast_addr, 0, sizeof(muticast_addr));
 	muticast_addr.sin_family = AF_INET;
-	muticast_addr.sin_addr.s_addr = inet_addr(m_remote_ip.c_str());	
+	muticast_addr.sin_addr.s_addr = inet_addr(m_remote_ip);	
 	muticast_addr.sin_port = htons(m_remote_port);
 
 	while (true)
@@ -308,7 +291,7 @@ void* socket_multicast::on_socket_server_event_thread()
 		}					
 		else
 		{
-			m_event->on_receive_message(line, n_rcved);
+			on_receive_quote((efh3_lev2*)line);
 		}	
 
 		//检测线程退出信号
@@ -324,7 +307,7 @@ void* socket_multicast::on_socket_server_event_thread()
 }
 
 
-bool socket_multicast::start_server_event_thread()
+bool EfhLev2Producer::start_server_event_thread()
 {
 	m_thrade_quit_flag = false;
 
@@ -354,7 +337,7 @@ bool socket_multicast::start_server_event_thread()
 	return true;
 }
 
-bool socket_multicast::stop_server_event_thread()
+bool EfhLev2Producer::stop_server_event_thread()
 {
 	m_thrade_quit_flag = true;
 
