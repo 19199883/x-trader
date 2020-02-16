@@ -19,6 +19,54 @@
 
 using namespace std::chrono;
 
+/////////////////////////
+// market data by socket udp multicast
+//////////////////////
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+#include <string>
+#include <map>
+
+using std::string;
+using std::map;
+
+#define MY_SOCKET							int		
+
+#define SL_SOCK_DEFAULT						0
+#define SL_SOCK_SEND						1
+#define SL_SOCK_RECV						2
+#define SL_SOCK_ERROR						3
+
+///socket文件描述符缺省值
+#define MY_SOCKET_DEFAULT					-1
+///socket错误信息
+#define MY_SOCKET_ERROR						-1	
+///最大的接收缓冲区最
+#define	RCV_BUF_SIZE						65535
+///服务器端最大的支持的客户端的连接数
+#define MAX_SOCKET_CONNECT					1024
+
+///-----------------------------------------------------------------------------
+///回调参数事件
+///-----------------------------------------------------------------------------
+enum SOCKET_EVENT
+{
+	EVENT_CONNECT,				//连接成功事件
+	EVENT_REMOTE_DISCONNECT,	//联接端断开事件
+	EVENT_LOCALE_DISCONNECT,	//主动断开事件
+	EVENT_NETWORK_ERROR,		//网络错误
+	EVENT_RECEIVE,				//数据接收事件
+	EVENT_SEND,					//数据发送结束事件
+	EVENT_RECEIVE_BUFF_FULL,	//接收缓冲区满
+	EVENT_UNKNOW,				//未定义状态
+};
+////////////////////////////////end market data by socket udp multicast
 
 /*
  * 缓存的最大的行情数量
@@ -124,6 +172,32 @@ class EfhLev2Producer : public guava_quote_event
 			return dest;
 		}
 
+		///////////////// market data bu socket udp multicast  //////
+		/// \brief 组播实例初始化
+		bool sock_init(const string& remote_ip, 
+					unsigned short remote_port,
+					const string& local_ip, 
+					unsigned short local_port);
+		/// \brief 组播实例关闭
+		bool sock_close();
+		
+	private:
+		/// \brief 组播数收发信号的线程函数(linux 版)
+		static void* socket_server_event_thread(void* ptr_param);			
+
+		/// \brief 组播数收发信号的处理函数
+		void* on_socket_server_event_thread();
+
+		/// \brief 启动组播信号处理线程
+		bool start_server_event_thread();										
+		/// \brief 停止组播信号处理线程
+		bool stop_server_event_thread();	
+
+		bool					m_thrade_quit_flag;		///< 信号检测线程退出标志		
+		MY_SOCKET				m_sock;					///< 套接口
+		///////////////// end market data bu socket udp multicast  //////
+		//
+		
 	private:
 
 		virtual void on_receive_quote(efh3_lev2* data);
