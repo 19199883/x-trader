@@ -9,31 +9,15 @@
 
  @note 
 ******************************************************************************/
-
 #pragma once
-
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#ifdef SHENGLI_WINDOWS
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 
-#endif
-
-#include <WS2tcpip.h>
-#include <WinSock2.h>
-
-
-#else
-
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-
-#endif
 
 #include <string>
 #include <map>
@@ -41,17 +25,7 @@
 using std::string;
 using std::map;
 
-
-
-#ifdef SHENGLI_WINDOWS
-
-#define MY_SOCKET							SOCKET				//符合windows标准	
-
-#else
-
 #define MY_SOCKET							int		
-
-#endif
 
 #define SL_SOCK_DEFAULT						0
 #define SL_SOCK_SEND						1
@@ -66,8 +40,6 @@ using std::map;
 #define	RCV_BUF_SIZE						65535
 ///服务器端最大的支持的客户端的连接数
 #define MAX_SOCKET_CONNECT					1024
-
-
 
 ///-----------------------------------------------------------------------------
 ///回调参数事件

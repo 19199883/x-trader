@@ -1,7 +1,4 @@
-﻿#ifdef SHENGLI_WINDOWS
-
-#else
-
+﻿
 #include <sys/socket.h> 
 #include <sys/types.h>
 #include <bits/socket.h>
@@ -12,8 +9,6 @@
 #include <fcntl.h>
 #include <pthread.h>
 //#include <asm/errno.h>
-
-#endif
 
 #include <iostream>
 #include <sstream>
@@ -26,226 +21,6 @@ using std::cout;
 using std::endl;
 using std::stringstream;
 
-
-
-#ifdef SHENGLI_WINDOWS
-
-
-socket_multicast::socket_multicast()
-{
-	WORD version_requested;
-	WSADATA wsa_data;
-
-	version_requested = MAKEWORD( 2, 2 );
-
-	int ret = WSAStartup( version_requested, &wsa_data );
-
-	m_thrade_quit_flag = false;
-
-	m_id = 0;
-	m_local_port = 0;
-	m_remote_port = 0;
-
-	m_event = NULL;
-	m_sock = MY_SOCKET_DEFAULT;
-
-}
-
-socket_multicast::~socket_multicast(void)
-{
-	WSACleanup();
-}
-
-bool socket_multicast::sock_init(const string& remote_ip, unsigned short remote_port,const string& local_ip, unsigned short local_port, int id, socket_event* ptr_event)//const string& local_ip,
-{
-	bool b_ret = false;
-	const int CONST_ERROR_SOCK = -1;
-
-	m_remote_ip = remote_ip;
-	m_remote_port = remote_port;
-	m_local_ip = local_ip;
-	m_local_port = local_port;
-	m_id = id;
-	m_event = ptr_event;
-
-	m_sock = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, 0, 0, WSA_FLAG_OVERLAPPED|WSA_FLAG_MULTIPOINT_C_LEAF|WSA_FLAG_MULTIPOINT_D_LEAF);
-	if(MY_SOCKET_ERROR == m_sock) 
-	{
-		return false;
-	}
-	
-	u_long flag = 1;
-	if(ioctlsocket(m_sock, FIONBIO, &flag) != 0)
-	{
-		closesocket(m_sock);
-		return false;
-	}
-
-	sockaddr_in addrLocal;
-	sockaddr_in addrMulticast;
-	addrLocal.sin_family = AF_INET;
-	//addrLocal.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-	addrLocal.sin_addr.S_un.S_addr = inet_addr(m_local_ip.c_str());
-	addrLocal.sin_port = htons(m_remote_port);
-
-	addrMulticast.sin_family = AF_INET;
-	addrMulticast.sin_addr.S_un.S_addr = inet_addr(m_remote_ip.c_str());
-	addrMulticast.sin_port = htons(m_remote_port);
-
-
-	int ttl = 64;
-	if (setsockopt(m_sock, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&ttl, sizeof(ttl)) != 0)	//设置跳数
-	{
-		closesocket(m_sock);
-		return false;
-	}
-
-
-	BOOL bTrue = TRUE;
-	if(setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (char*)&bTrue, sizeof(BOOL)) != 0)
-	{
-		closesocket(m_sock);
-		return false;
-	}
-
-	int ibind = bind(m_sock,(sockaddr*)&addrLocal,sizeof(addrLocal));
-	if (ibind != 0)
-	{
-		closesocket(m_sock);
-		return false;
-	}
-
-	struct in_addr address;
-	address.s_addr = inet_addr(m_local_ip.c_str());
-	if(setsockopt(m_sock, IPPROTO_IP, IP_MULTICAST_IF, (char*)&address, sizeof(address)) != 0)
-	{
-		closesocket(m_sock);
-		return false;
-	}
-
-
-	DWORD dw_flag;
-	dw_flag = JL_RECEIVER_ONLY;
-
-	SOCKET ret_sock = WSAJoinLeaf(m_sock,(sockaddr*)&addrMulticast,sizeof(addrMulticast),0,0,0,0,dw_flag);
-	if(INVALID_SOCKET == ret_sock)
-	{
-		int ret_error = WSAGetLastError();
-		closesocket(m_sock);
-		return false;
-	}
-
-	int newSize = 5242880;
-	if(setsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, (char*)&newSize, sizeof(newSize)) != 0)
-	{
-		closesocket(m_sock);
-		return false;
-	}
-		
-	//启动线程
-	b_ret = start_server_event_thread();
-
-	return b_ret;
-}
-
-
-bool socket_multicast::sock_close()
-{
-	bool b_ret = false;
-	//关闭线程
-	b_ret = stop_server_event_thread();
-
-	closesocket(m_sock);
-
-	return b_ret;
-}
-
-
-
-
-DWORD WINAPI socket_multicast::socket_server_event_thread(void* ptr_param)	
-{
-	socket_multicast* ptr_this = (socket_multicast*) ptr_param;
-	if (NULL == ptr_this)
-	{
-		return NULL;
-	}
-
-	ptr_this->on_socket_server_event_thread();
-
-	return 0L;
-}
-
-
-void* socket_multicast::on_socket_server_event_thread()
-{
-	char line[RCV_BUF_SIZE] = "";
-
-	int n_rcved = -1;
-
-	struct sockaddr_in muticast_addr;
-
-	memset(&muticast_addr, 0, sizeof(muticast_addr));
-	muticast_addr.sin_family = AF_INET;
-	muticast_addr.sin_addr.s_addr = inet_addr(m_remote_ip.c_str());	
-	muticast_addr.sin_port = htons(m_remote_port);
-
-	while (true)
-	{
-		int len = sizeof(sockaddr_in);
-
-		n_rcved = recvfrom(m_sock, line, RCV_BUF_SIZE, 0, (struct sockaddr*)&muticast_addr, &len);
-		if ( n_rcved < 0) 
-		{
-			continue;
-		} 
-		else if (0 == n_rcved)
-		{
-			continue;
-		}					
-		else
-		{
-			report_user(EVENT_RECEIVE, m_id, line, n_rcved);				
-		}	
-
-		//检测线程退出信号
-		if (m_thrade_quit_flag)
-		{
-			//此时已关闭完所有的客户端
-			return NULL;
-		}		
-	}
-
-	return NULL;;
-
-}
-
-
-bool socket_multicast::start_server_event_thread()
-{
-	m_thrade_quit_flag = false;
-
-	DWORD dwThreadId;
-	HANDLE hThread; 
-
-	hThread = CreateThread(NULL, 0, socket_server_event_thread, this, 0, &dwThreadId);
-	if(hThread != NULL)
-	{
-		CloseHandle(hThread);
-	}
-
-	return true;
-}
-
-bool socket_multicast::stop_server_event_thread()
-{
-	m_thrade_quit_flag = true;
-
-	return true;
-}
-
-
-#else
 
 
 socket_multicast::socket_multicast()
@@ -454,11 +229,6 @@ bool socket_multicast::stop_server_event_thread()
 
 	return true;
 }
-
-
-#endif
-
-
 
 
 bool socket_multicast::report_user( SOCKET_EVENT type, int id, const char *buff, unsigned int size )
