@@ -31,7 +31,7 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	Log::fp = fp;

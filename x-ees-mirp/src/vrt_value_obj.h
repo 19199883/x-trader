@@ -46,9 +46,9 @@
 #define RPT_BUFFER_SIZE 15000
 
 #ifdef PERSISTENCE_ENABLED 
-	#define MAX_CONTRACT_COUNT 1000
+	#define MAX_CONTRACT_COUNT 5120
 #else
-	#define MAX_CONTRACT_COUNT 25
+	#define MAX_CONTRACT_COUNT 1024
 #endif
 
 #ifdef __cplusplus
