@@ -148,6 +148,8 @@ class EfhLev2Producer
 		 */
 		bool IsDominant(const char *contract);
 
+		void on_receive_quote(efh3_lev2* data);
+
 		/*
 		 * 对source指定的行情数据进行格式化后存储到dest
 		 */
@@ -158,6 +160,7 @@ class EfhLev2Producer
 			sprintf (dest,
 				"efh3_lev2 "				
 				"InstrumentID:%s; "
+				"m_sequence:%u; "
 				"UpdateTime[9]:%s; "
 				"UpdateMillisec:%d; "
 				"timestmp:%ld"
@@ -188,6 +191,7 @@ class EfhLev2Producer
 				"AskVolume5:%d; "
 				"\n",
 				source.m_symbol,
+				source.m_sequence,
 				source.m_update_time,
 				source.m_millisecond,
 				timestamp,
@@ -246,8 +250,6 @@ class EfhLev2Producer
 		
 	private:
 
-		void on_receive_quote(efh3_lev2* data);
-
 		/*
 		 * 与API相关
 		 */
@@ -261,7 +263,7 @@ class EfhLev2Producer
 		 */
 		int32_t Push(const efh3_lev2& md);
 		struct vrt_producer  *producer_;
-		std::array<efh3_lev2, FULL_DEPTH_MD_BUFFER_SIZE> shfemarketdata_buffer_;
+		efh3_lev2 shfemarketdata_buffer_[FULL_DEPTH_MD_BUFFER_SIZE];
 		bool ended_;
 
 		/*
