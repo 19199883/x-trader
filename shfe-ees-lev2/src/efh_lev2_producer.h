@@ -47,7 +47,6 @@ using std::map;
 ///socket错误信息
 #define MY_SOCKET_ERROR						-1	
 ///最大的接收缓冲区最
-#define	RCV_BUF_SIZE						65535
 ///服务器端最大的支持的客户端的连接数
 #define MAX_SOCKET_CONNECT					1024
 
@@ -120,7 +119,7 @@ struct efh3_lev2
 /*
  * 缓存的最大的行情数量
  */
-#define FULL_DEPTH_MD_BUFFER_SIZE 8192 
+#define FULL_DEPTH_MD_BUFFER_SIZE 32768 
 
 using namespace std;
 
@@ -148,7 +147,7 @@ class EfhLev2Producer
 		 */
 		bool IsDominant(const char *contract);
 
-		void on_receive_quote(efh3_lev2* data);
+		void on_receive_quote(efh3_lev2* data, int32_t index);
 
 		/*
 		 * 对source指定的行情数据进行格式化后存储到dest
@@ -261,7 +260,7 @@ class EfhLev2Producer
 		/*
 		 *disruptor相关
 		 */
-		int32_t Push(const efh3_lev2& md);
+		int32_t Push();
 		struct vrt_producer  *producer_;
 		efh3_lev2 shfemarketdata_buffer_[FULL_DEPTH_MD_BUFFER_SIZE];
 		bool ended_;
@@ -282,6 +281,8 @@ class EfhLev2Producer
 		int		m_remote_port;					///< 组播行情远端端口
 		char	m_local_ip[MAX_IP_LEN];			///< 组播本机地址
 		int		m_local_port;					///< 组播本机端口
+
+		int RCV_BUF_SIZE;
 };
 
 #endif

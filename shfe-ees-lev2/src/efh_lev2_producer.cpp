@@ -32,6 +32,7 @@ EfhLev2Producer::EfhLev2Producer(struct vrt_queue  *queue)
 :module_name_("EfhLev2Producer")
 {
 	m_sock = MY_SOCKET_DEFAULT;
+	RCV_BUF_SIZE = sizeof(efh3_lev2);
 
 	ended_ = false;
 	clog_warning("[%s] FULL_DEPTH_MD_BUFFER_SIZE: %d;", module_name_, FULL_DEPTH_MD_BUFFER_SIZE);
@@ -102,7 +103,7 @@ int EfhLev2Producer::InitMDApi()
 	return sock_init();
 }
 
-void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
+void EfhLev2Producer::on_receive_quote(efh3_lev2* data, int32_t index)
 {
 	// discard option
 	if(strlen(data->m_symbol) > 6)
@@ -116,7 +117,7 @@ void EfhLev2Producer::on_receive_quote(efh3_lev2* data)
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);
 	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = Push(*data);
+	ivalue->index = index;
 	ivalue->data = EFH_LEV2;
 	vrt_producer_publish(producer_);
 }
@@ -134,14 +135,13 @@ void EfhLev2Producer::End()
 	fflush (Log::fp);
 }
 
-int32_t EfhLev2Producer::Push(const efh3_lev2& md)
+int32_t EfhLev2Producer::Push()
 {
 	static int32_t shfemarketdata_cursor = FULL_DEPTH_MD_BUFFER_SIZE - 1;
 	shfemarketdata_cursor++;
 	if (shfemarketdata_cursor%FULL_DEPTH_MD_BUFFER_SIZE == 0){
 		shfemarketdata_cursor = 0;
 	}
-	shfemarketdata_buffer_[shfemarketdata_cursor] = md;
 
 	return shfemarketdata_cursor;
 }
@@ -265,9 +265,10 @@ void* EfhLev2Producer::socket_server_event_thread(void* ptr_param)
 
 void* EfhLev2Producer::on_socket_server_event_thread()
 {
-	char line[RCV_BUF_SIZE] = "";
-
 	int n_rcved = -1;
+	RCV_BUF_SIZE = sizeof(efh3_lev2);
+	efh3_lev2* line = NULL;
+	socklen_t len = sizeof(sockaddr_in);
 
 	struct sockaddr_in muticast_addr;
 
@@ -278,7 +279,8 @@ void* EfhLev2Producer::on_socket_server_event_thread()
 
 	while (true)
 	{
-		socklen_t len = sizeof(sockaddr_in);
+		int32_t next_index = Push();
+		line = shfemarketdata_buffer_ + next_index;
 
 		n_rcved = recvfrom(m_sock, line, RCV_BUF_SIZE, 0, (struct sockaddr*)&muticast_addr, &len);
 		if ( n_rcved < 0) 
@@ -291,7 +293,7 @@ void* EfhLev2Producer::on_socket_server_event_thread()
 		}					
 		else
 		{
-			on_receive_quote((efh3_lev2*)line);
+			on_receive_quote((efh3_lev2*)line, next_index);
 		}	
 
 		//检测线程退出信号
@@ -303,7 +305,6 @@ void* EfhLev2Producer::on_socket_server_event_thread()
 	}
 
 	return NULL;
-
 }
 
 
