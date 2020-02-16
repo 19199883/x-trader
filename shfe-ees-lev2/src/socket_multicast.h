@@ -61,7 +61,7 @@ class socket_event
 public:
 	virtual ~socket_event() {}
 	/// \brief 接收到组播数据的回詷事件
-	virtual void on_receive_message(int id, const char* buff, unsigned int len) = 0;
+	virtual void on_receive_message(const char* buff, unsigned int len) = 0;
 };
 
 
@@ -95,12 +95,6 @@ protected:
 	bool start_server_event_thread();										
 	/// \brief 停止组播信号处理线程
 	bool stop_server_event_thread();	
-	
-	/// \brief 向客户报告的回调事件
-	bool report_user(SOCKET_EVENT eventType, int id, const char *buff, unsigned int size);
-	/// \brief 日志记录接口
-	void log_msg(const string& msg);
-
 protected:
 	socket_event*			m_event;				///< 回调接口
 	bool					m_thrade_quit_flag;		///< 信号检测线程退出标志		
@@ -109,7 +103,6 @@ protected:
 	unsigned short			m_remote_port;			///< 组播端口
 	string					m_local_ip;				///< 本地IP
 	unsigned short			m_local_port;			///< 本地端口
-	int						m_id;					///< 连接编号
 	MY_SOCKET				m_sock;					///< 套接口
 };
 

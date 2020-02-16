@@ -111,8 +111,6 @@ struct multicast_info
 
 #pragma pack(pop)
 
-
-
 class guava_quote_event
 {
 public:
@@ -124,11 +122,6 @@ public:
 class guava_quote : public socket_event
 {
 public:
-	guava_quote(void);
-	~guava_quote(void);
-
-	/// \brief 初始化
-	bool init(multicast_info cffex, guava_quote_event* event);
 
 	/// \brief 关闭
 	void close();
