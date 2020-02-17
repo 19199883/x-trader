@@ -49,6 +49,7 @@ using std::map;
 ///最大的接收缓冲区最
 ///服务器端最大的支持的客户端的连接数
 #define MAX_SOCKET_CONNECT					1024
+#define RCV_BUF_SIZE						1 * 1024 * 1024
 
 ///-----------------------------------------------------------------------------
 ///回调参数事件
@@ -188,7 +189,7 @@ class EfhLev2Producer
 				//"BidVolume5:%d; "
 				//"AskPrice5:%.4f; "
 				//"AskVolume5:%d; "
-				"\n",
+				,
 				source.m_symbol,
 				source.m_sequence,
 				source.m_update_time,
@@ -282,7 +283,6 @@ class EfhLev2Producer
 		char	m_local_ip[MAX_IP_LEN];			///< 组播本机地址
 		int		m_local_port;					///< 组播本机端口
 
-		int RCV_BUF_SIZE;
 };
 
 #endif

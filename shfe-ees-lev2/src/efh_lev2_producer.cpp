@@ -32,7 +32,6 @@ EfhLev2Producer::EfhLev2Producer(struct vrt_queue  *queue)
 :module_name_("EfhLev2Producer")
 {
 	m_sock = MY_SOCKET_DEFAULT;
-	RCV_BUF_SIZE = sizeof(efh3_lev2);
 
 	ended_ = false;
 	clog_warning("[%s] FULL_DEPTH_MD_BUFFER_SIZE: %d;", module_name_, FULL_DEPTH_MD_BUFFER_SIZE);
@@ -170,6 +169,23 @@ bool EfhLev2Producer::sock_init()
 			throw CONST_ERROR_SOCK;
 		}
 		
+
+		int opt_val = 0;
+		socklen_t opt_len = sizeof(opt_val);
+		getsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
+		clog_warning("[%s] get default SO_RCVBUF option: %d.", module_name_, opt_val);
+
+		int receive_buf_size  = RCV_BUF_SIZE;	
+		if (setsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, (const char*)&receive_buf_size, sizeof(receive_buf_size)) != 0)
+		{
+			clog_warning("[%s] it is failed to set SO_RCVBUF option: %d.", module_name_, receive_buf_size);
+			//throw CONST_ERROR_SOCK;
+		}
+		opt_val = 0;
+		opt_len = sizeof(opt_val);
+		getsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
+		clog_warning("[%s] get SO_RCVBUF option: %d.", module_name_, opt_val);
+
 		//socket可以重新使用一个本地地址
 		int flag=1;
 		if(setsockopt(m_sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&flag, sizeof(flag)) != 0)
@@ -205,12 +221,6 @@ bool EfhLev2Producer::sock_init()
 		mreq.imr_interface.s_addr = inet_addr(m_local_ip);
 
 		if (setsockopt(m_sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) != 0)
-		{
-			throw CONST_ERROR_SOCK;
-		}
-
-		int receive_buf_size  = RCV_BUF_SIZE;	
-		if (setsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, (const char*)&receive_buf_size, sizeof(receive_buf_size)) != 0)
 		{
 			throw CONST_ERROR_SOCK;
 		}
@@ -259,7 +269,7 @@ void* EfhLev2Producer::socket_server_event_thread(void* ptr_param)
 void* EfhLev2Producer::on_socket_server_event_thread()
 {
 	int n_rcved = -1;
-	RCV_BUF_SIZE = sizeof(efh3_lev2);
+	int buffer_size = sizeof(efh3_lev2);
 	efh3_lev2* line = NULL;
 	socklen_t len = sizeof(sockaddr_in);
 
@@ -275,7 +285,7 @@ void* EfhLev2Producer::on_socket_server_event_thread()
 		int32_t next_index = Push();
 		line = shfemarketdata_buffer_ + next_index;
 
-		n_rcved = recvfrom(m_sock, line, RCV_BUF_SIZE, 0, (struct sockaddr*)&muticast_addr, &len);
+		n_rcved = recvfrom(m_sock, line, buffer_size, 0, (struct sockaddr*)&muticast_addr, &len);
 		if ( n_rcved < 0) 
 		{
 			continue;
