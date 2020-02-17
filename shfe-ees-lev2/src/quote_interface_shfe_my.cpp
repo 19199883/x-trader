@@ -40,7 +40,7 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 		return;
 	}
 
-	if(!IsDominant(efh_data->m_symbol)) return;
+	if(!efhLev2Producer_->IsDominant(efh_data->m_symbol)) return;
 
 
 	CThostFtdcDepthMarketDataField* my_data = NULL;
