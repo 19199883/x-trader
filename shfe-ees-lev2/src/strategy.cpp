@@ -111,7 +111,7 @@ void Strategy::Init(StrategySetting &setting, CLoadLibraryProxy *pproxy)
 	max_log_lines_ = MAX_LINES_FOR_LOG - MAX_STRATEGY_COUNT * 100 + GetId() * 100;
 	clog_warning("[%s] strategy:%d; max_log_lines_ :%d", module_name_, this->GetId(), max_log_lines_ ); 
 
-	// TODO: lic
+	//  lic
 	char cmd[1024];
 	sprintf(cmd, "openssl des3 -d -k 617999 -salt -in %s.so | tar -xzf - -C ./lib", this->setting_.file.c_str());
 	system(cmd);
