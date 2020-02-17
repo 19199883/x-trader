@@ -105,14 +105,6 @@ int EfhLev2Producer::InitMDApi()
 
 void EfhLev2Producer::on_receive_quote(efh3_lev2* data, int32_t index)
 {
-	// discard option
-	if(strlen(data->m_symbol) > 6)
-	{
-		return;
-	}
-
-	if(!IsDominant(data->m_symbol)) return;
-
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);

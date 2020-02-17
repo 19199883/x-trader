@@ -34,6 +34,14 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 				module_name_,
 				EfhLev2Producer::Format(*efh_data, buffer));
 
+	// discard option
+	if(strlen(efh_data->m_symbol) > 6)
+	{
+		return;
+	}
+
+	if(!IsDominant(efh_data->m_symbol)) return;
+
 
 	CThostFtdcDepthMarketDataField* my_data = NULL;
 	if(l1_md_last_index_ != L1MD_NPOS)
