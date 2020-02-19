@@ -170,29 +170,18 @@ void L2MDProducer::RevData()
 		line = md_buffer_ + next_index;
 
         data_len = recvfrom(udp_fd, line, buffer_size, 0, (sockaddr *)&src_addr, &addr_len);
-        if (data_len == -1) 
+		if (data_len < 0) 
 		{
-            int error_no = errno;
-			clog_error("[%s] UDP-recvfrom failed, error_no=%d: %s.",module_name_,error_no, strerror(error_no));
-			fflush (Log::fp);
-            if (error_no == 0 || error_no == 251 || 
-				error_no == EWOULDBLOCK) {/*251 for PARisk */ //20060224 IA64 add 0
-                continue;
-            }
-			else
-			{
-                continue;
-            }
-        }
-
-		on_receive_quote(next_index);
-
-#ifdef LATENCY_MEASURE
-		 static int cnt = 0;
-		 perf_ctx::insert_t0(cnt);
-		 cnt++;
-#endif
-
+			continue;
+		} 
+		else if (0 == data_len)
+		{
+			continue;
+		}					
+		else
+		{
+			on_receive_quote(next_index);
+		}
     } // end while (!ended_) 
 	clog_warning("[%s] RevData exit.",module_name_);
 
