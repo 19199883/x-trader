@@ -193,6 +193,8 @@ bool EfhLev2Producer::sock_init()
 			throw CONST_ERROR_SOCK;
 		}
 
+#ifdef PERSISTENCE_ENABLED 
+#else
 		int options = fcntl(m_sock, F_GETFL);
 		if(options < 0)
 		{
@@ -205,6 +207,7 @@ bool EfhLev2Producer::sock_init()
 			clog_warning("[%s] it is failed to set O_NONBLOCK option.", module_name_);
 			// throw CONST_ERROR_SOCK;
 		}
+#endif
 
 		struct sockaddr_in local_addr;
 		memset(&local_addr, 0, sizeof(local_addr));
