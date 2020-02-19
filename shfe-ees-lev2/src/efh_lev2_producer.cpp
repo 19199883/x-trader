@@ -176,9 +176,15 @@ bool EfhLev2Producer::sock_init()
 		clog_warning("[%s] get default SO_RCVBUF option: %d.", module_name_, opt_val);
 
 		int receive_buf_size  = RCV_BUF_SIZE;	
-		if (setsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, (const char*)&receive_buf_size, sizeof(receive_buf_size)) != 0)
+		if (setsockopt(m_sock, 
+						SOL_SOCKET, 
+						SO_RCVBUF, 
+						(const char*)&receive_buf_size, 
+						sizeof(receive_buf_size)) != 0)
 		{
-			clog_warning("[%s] it is failed to set SO_RCVBUF option: %d.", module_name_, receive_buf_size);
+			clog_warning("[%s] it is failed to set SO_RCVBUF option: %d.", 
+						module_name_, 
+						receive_buf_size);
 			//throw CONST_ERROR_SOCK;
 		}
 		opt_val = 0;
