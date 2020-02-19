@@ -99,7 +99,8 @@ int L2MDProducer::InitMDApi()
         return -1;
     }
 
-#ifdef MD_UDP_NOBLOCK
+#ifdef PERSISTENCE_ENABLED 
+#else
     // set nonblock flag
     int socket_ctl_flag = fcntl(udp_client_fd, F_GETFL);
     if (socket_ctl_flag < 0){
