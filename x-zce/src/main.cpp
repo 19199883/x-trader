@@ -63,7 +63,7 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("server name:%s", SERVER_NAME); 
 
 	// version
-	clog_warning("ver:x-zce_2019-12-19"); 
+	clog_warning("ver:x-zce_trade(%s)-2020-02-19", SERVER_NAME  ); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;

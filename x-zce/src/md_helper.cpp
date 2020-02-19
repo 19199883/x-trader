@@ -38,6 +38,22 @@ void MdHelper::ProcL2Data(int32_t index)
 	TapAPIQuoteWhole* l1_md = NULL;
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
+	// discard option
+	if(strlen(md->instrument) > 6)
+	{
+		return;
+	}
+
+	bool dominant = l2_md_producer_->IsDominant(md->instrument);
+	clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", 
+				module_name_, 
+				dominant, 
+				md->instrument, 
+				md->updateTime, 
+				md->updateMS);
+
+	// 抛弃非主力合约
+	if(!dominant) return;
 
 	clog_info("[test] ProcL2Data StdQuote5 contract:%s, idx:%d, turnover:%f", md->instrument,index,md->turnover);
 

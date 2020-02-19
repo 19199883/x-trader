@@ -17,6 +17,9 @@
  */
 #define L2MD_BUFFER_SIZE 8192 
 
+// socket RCVBUF size
+#define RCV_BUF_SIZE	1 * 1024 * 1024
+
 using namespace std;
 
 struct L2MDConfig 
@@ -60,9 +63,10 @@ class L2MDProducer
 		/*
 		 *disruptor相关
 		 */
-		int32_t Push(const StdQuote5& md);
+		int32_t Push();
+		void on_receive_quote(int32_t index);
 		struct vrt_producer  *producer_;
-		std::array<StdQuote5, L2MD_BUFFER_SIZE> md_buffer_;
+		StdQuote5 md_buffer_[L2MD_BUFFER_SIZE];
 		bool ended_;
 
 		/*
