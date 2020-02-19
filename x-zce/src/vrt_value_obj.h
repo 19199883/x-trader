@@ -12,11 +12,6 @@
 // software license
 #define SERVER_NAME  "zz16f-hq"
 
-/*
- * 行情UDP通讯设置成非阻塞模式
- */
-//#define MD_UDP_NOBLOCK
-
 #define CLOG_CHANNEL  "x-trader"
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  
