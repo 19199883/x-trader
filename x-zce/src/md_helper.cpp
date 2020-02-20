@@ -73,8 +73,10 @@ void MdHelper::ProcL2Data(int32_t index)
 		gettimeofday(&t, NULL);
 		p_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
 #endif
-	}else{
-		clog_error("[%s] ProcL2Data: L1 is null.", module_name_);
+	}
+	else
+	{
+		clog_error("[%s] ProcL2Data: %s; L1 is null.", module_name_, md->instrument);
 	}
 }
 
@@ -100,17 +102,13 @@ void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole *tap_data,
 		strcpy(data.ContractID + 2, tap_data->Contract.ContractNo1);		/*合约编码*/
 	}
 	 
-
-
 	//时间：如2014-02-03 13:23:45   
 	system_clock::time_point today = system_clock::now();
 	std::time_t tt = system_clock::to_time_t ( today );
-	strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S", localtime(&tt));
-	strncpy(data.TimeStamp+11, other.updateTime, 2);
-	strncpy(data.TimeStamp+14, other.updateTime+2, 2);
-	strncpy(data.TimeStamp+17, other.updateTime+4, 2);
-	strncpy(data.TimeStamp+19, ".", 1);
-	sprintf(data.TimeStamp+20, "%03d", other.updateMS); 
+	strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S",localtime(&tt));
+	strcpy(data.TimeStamp+11,other.updateTime);
+	strcpy(data.TimeStamp+19,".");
+	sprintf(data.TimeStamp+20,"%03d", 0/*other.updateMS*/); // 策略需要该时间字段.因当前行情的updateMS存储的是递增的值（不是时间的毫秒部分），故使用0代替
 
 	data.TotalBidLot = (int)other.buyv;	/*委买总量*/
 	data.TotalAskLot = (int)other.sellv;	/*委卖总量*/
@@ -187,10 +185,10 @@ TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 			break;
 		}
 
-		if(IsEqualSize3(contract, 
+		if(IsEqualSize4(contract, 
 						tmp.Contract.Commodity.CommodityNo, 
 						tmp.Contract.ContractNo1))
-		{ // contract: e.g. SR801
+		{ // contract: e.g. SR1801
 			data = &tmp; 
 			break;
 		}

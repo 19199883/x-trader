@@ -103,6 +103,7 @@ class Log
 	}
 
 bool IsEmptyString(char *str);
+bool IsEqualContract(char *contract1, char* contract2);
 
 void get_curtime(char buffer[],int size);
 
