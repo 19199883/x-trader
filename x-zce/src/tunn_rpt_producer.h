@@ -16,6 +16,77 @@ using namespace std;
 typedef std::pair<std::string, unsigned short> IPAndPortNum;
 typedef std::pair<std::string, std::string> IPAndPortStr;
 
+#pragma pack(push, 1)
+
+	//UDP数据帧头结构
+	struct TapAPIUdpHead
+	{
+		TAPIUINT32						PackageFlag;
+		TAPIUINT16		                ProtocolCode;
+		TAPIUINT16                      Version;
+		TAPIUINT32                      Sequence;
+	} ;
+
+	const TAPIUINT32					UDP_Package_Flag = 0x22E95CA7;
+
+	//链路认证请求命令
+	const TAPIUINT16					CMD_UDPAuth_Req = 0x0001;
+	//链路认证应答命令
+	const TAPIUINT16					CMD_UDPAuth_Rsp = 0x0002;
+
+	struct TapAPIUdpAuthReq
+	{
+		TAPIINT64                       AuthCode;
+		TAPISTR_20                      UserNo;
+	} ;
+
+	//心跳请求命令
+	const TAPIUINT16			CMD_UDPHeartBeat_Req = 0x0003;
+	//心跳应答命令
+	const TAPIUINT16			CMD_UDPHeartBeat_Rsp = 0x0004;
+
+	//报单请求命令
+	const TAPIUINT16			CMD_UDPOrderInsert_Req = 0x0101;
+	//报单应答命令
+	const TAPIUINT16			CMD_UDPOrderInsert_Rsp = 0x0102;
+
+
+
+	//客户下单请求结构简化
+
+	struct TapAPIUdpOrderInsertReq
+	{
+		TAPISTR_20							AccountNo;						//客户资金帐号 21
+
+		TAPICHAR							Contract[16];                   //合约编码  16
+		TAPICHAR							Contract2[16];                  //合约编码  16
+		TAPIOrderTypeType					OrderType;						//委托类型 1
+		TAPITimeInForceType					TimeInForce;					//委托有效类型 1
+		TAPISideType						OrderSide;						//买入卖出 1
+		TAPIPositionEffectType				PositionEffect;					//开平标志1 1
+		TAPIHedgeFlagType					HedgeFlag;						//投机保值 1
+		TAPIREAL64							OrderPrice;						//委托价格1 8
+		TAPIUINT32							OrderQty;						//委托数量 4
+		TAPIREAL64							OrderPrice2;					//委托价格2 8
+		TAPIUINT32							OrderQty2;						//委托数量2 4
+
+		TAPICHAR							ClientOrderNo[16];				//客户端本地委托编号 16
+		TAPICHAR							UpperChannelNo[11];				//上手通道号 11
+	} ;
+
+	//撤单请求命令
+	const TAPIUINT16			CMD_UDPOrderDelete_Req = 0x0103;
+	//撤单应答命令
+	const TAPIUINT16			CMD_UDPOrderDelete_Rsp = 0x0104;
+
+	//客户撤单请求结构
+
+	struct TapAPIUdpOrderDeleteReq
+	{
+		TAPICHAR							OrderNo[21];						//委托编码
+	} ;
+#pragma pack(pop)
+
 struct Tunnconfig
 {
 	string address;
@@ -349,6 +420,36 @@ class TunnRptProducer: public ITapTradeAPINotify
 					TAPIINT32 errorCode, TAPIYNFLAG isLast, 
 					const TapAPISubmitUserLoginRspInfo * info);
 
+  /**
+	* @brief 查询用户账单应答
+    * @details	查询txt文件格式时将回调数据写入到本地的txt文件中查看，查询pdf文件时，需要将回调数据转存到pdf文件中，用pdf阅读工具打开。
+    *           写文件需要用二进制的方式写入。如果文件较大，数据会分包回调，isLast为APIYNFLAG_YES时，文件传送完毕。
+	* @param[in] sessionID 请求的会话ID；
+	* @param[in] errorCode 错误码。0 表示成功。
+	* @param[in] info		指向返回的信息结构体。当errorCode不为0时，info为空。
+	* @attention 不要修改和删除info所指示的数据；函数调用结束，参数不再有效。
+	* @ingroup G_T_Bill
+	*/
+	virtual void TAP_CDECL OnRspQryBill(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIBillQryRsp *info){};
+
+    /**
+    * @brief 客户现货库存查询应答
+	* @param[in] sessionID 请求ID
+	* @param[in] errorCode 错误码。0 表示成功。
+	* @param[in] isLast 	标示是否是最后一批数据
+	* @param[out] info	指向返回的信息结构体。
+	* @attention  不要修改和删除pRspInfo所指示的数据；函数调用结束，参数不再有效。
+	* @ingroup G_T_TradeInfo
+    */
+    virtual void TAP_CDECL OnRspQryAccountStorage(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIAccountStorageInfo* info) {};
+
+/**
+    * @brief 客户现货库存通知
+	* @param[out] pInfo	指向返回的信息结构体。
+	* @attention  不要修改和删除pRspInfo所指示的数据；函数调用结束，参数不再有效。
+	* @ingroup G_T_TradeInfo
+    */
+    virtual void TAP_CDECL OnRtnAccountStorage(const TapAPIAccountStorageInfo* info){};
 
 		/*
 		 * things relating to x-trader internal logic

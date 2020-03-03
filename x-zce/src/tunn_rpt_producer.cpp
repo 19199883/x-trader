@@ -84,6 +84,8 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 				real_size,
 				nver);
 
+	clog_warning("[%s] tap version: %s", module_name_, GetTapTradeAPIVersion());
+
 	// create esunny object
     TapAPIApplicationInfo auth_info;
     std::string auth_code = ReadAuthCode();
@@ -92,7 +94,8 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     strcpy(auth_info.KeyOperationLogPath, "");
     TAPIINT32 result;
     api_ = CreateTapTradeAPI(&auth_info, result);
-    if (!api_ || result != TAPIERROR_SUCCEED) {
+    if (!api_ || result != TAPIERROR_SUCCEED) 
+	{
         clog_warning("[%s] CreateTapTradeAPI result:%d",module_name_,result);
         return;
     }
