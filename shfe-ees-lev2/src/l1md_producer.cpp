@@ -278,7 +278,7 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	if(!(IsDominant(data->InstrumentID))) return;
 
 	// TODO: commented for debug
-	char buffer[5120];
+	// char buffer[5120];
 //	clog_info("[%s] rev lev1 data:%s",
 //				module_name_,
 //				ShfeLev2Formater::Format(*data,buffer) );

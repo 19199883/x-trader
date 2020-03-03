@@ -201,18 +201,18 @@ bool EfhLev2Producer::sock_init()
 
 #ifdef PERSISTENCE_ENABLED 
 #else
-		int options = fcntl(m_sock, F_GETFL);
-		if(options < 0)
-		{
-			throw CONST_ERROR_SOCK;
-		}
-		options = options | O_NONBLOCK;
-		int i_ret = fcntl(m_sock, F_SETFL, options);
-		if(i_ret < 0)
-		{
-			clog_warning("[%s] it is failed to set O_NONBLOCK option.", module_name_);
-			// throw CONST_ERROR_SOCK;
-		}
+//		int options = fcntl(m_sock, F_GETFL);
+//		if(options < 0)
+//		{
+//			throw CONST_ERROR_SOCK;
+//		}
+//		options = options | O_NONBLOCK;
+//		int i_ret = fcntl(m_sock, F_SETFL, options);
+//		if(i_ret < 0)
+//		{
+//			clog_warning("[%s] it is failed to set O_NONBLOCK option.", module_name_);
+//			// throw CONST_ERROR_SOCK;
+//		}
 #endif
 
 		struct sockaddr_in local_addr;

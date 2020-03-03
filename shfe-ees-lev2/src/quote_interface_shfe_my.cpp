@@ -29,10 +29,10 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
 
 	// TODO: commented for debug
-	char buffer[2048];
-	clog_info("[%s] rev efh3_lev2:%s", 
-				module_name_,
-				EfhLev2Producer::Format(*efh_data, buffer));
+	//char buffer[2048];
+	//clog_info("[%s] rev efh3_lev2:%s", 
+	//			module_name_,
+	//			EfhLev2Producer::Format(*efh_data, buffer));
 
 	// discard option
 	if(strlen(efh_data->m_symbol) > 6)
