@@ -50,7 +50,9 @@ IPAndPortNum TunnRptProducer::ParseIPAndPortNum(const std::string &addr_cfg)
 }
 
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
-: module_name_("TunnRptProducer")
+: module_name_("TunnRptProducer"),
+	 m_UdpCertCode(0),
+     m_udpFd(-1)
 {
 	ended_ = false;
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
@@ -253,10 +255,13 @@ void TunnRptProducer::OnConnect()
 // done
 void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspInfo* loginRspInfo)
 {
-    clog_warning("[%s] OnRspLogin: errorCode:%d,%s",
+    clog_warning("[%s] OnRspLogin: errorCode: %d, %s",
         module_name_,
-		errorCode, ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
+		errorCode, 
+		ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
 	fflush (Log::fp);
+
+	m_UdpCertCode = loginRspInfo->UdpCertCode;
 }
 
 // done

@@ -500,6 +500,10 @@ private:
 
 	IPAndPortNum ParseIPAndPortNum(const std::string &addr_cfg);
 	IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
+
+	// udp order operation
+	TAPIUINT64 m_UdpCertCode;
+	int			m_udpFd;
 };
 
 #endif
