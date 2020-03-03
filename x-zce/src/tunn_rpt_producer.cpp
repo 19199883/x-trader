@@ -261,6 +261,7 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
 		ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
 	fflush (Log::fp);
 
+	// TODO: coding
 	m_UdpCertCode = loginRspInfo->UdpCertCode;
 }
 
@@ -507,3 +508,72 @@ int32_t TunnRptProducer::Push()
 	return cursor;
 }
 
+void TunnRptProducer::AuthUdpServer()
+{
+	m_udpFd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+    char sendbuf[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpAuthReq)];
+    TapAPIUdpHead* pHead = (TapAPIUdpHead*) sendbuf;
+    pHead->PackageFlag = UDP_Package_Flag;
+    pHead->ProtocolCode = CMD_UDPAuth_Req;
+    pHead->Sequence = 1;
+    pHead->Version = 1;
+    TapAPIUdpAuthReq* pAuth = (TapAPIUdpAuthReq*) (sendbuf + sizeof (TapAPIUdpHead));
+    pAuth->AuthCode = m_UdpCertCode;
+	// TODO: coding
+    strncpy(pAuth->UserNo, DEFAULT_USERNAME, sizeof (pAuth->UserNo) - 1);
+
+    struct sockaddr_in server;
+    socklen_t len = sizeof (server);
+    server.sin_family = AF_INET;
+	// TODO: coding
+    server.sin_port = htons(6869); ///server的监听端口
+    server.sin_addr.s_addr = inet_addr(DEFAULT_IP); ///server的地址
+    //inet_pton(AF_INET, DEFAULT_IP, (void*)&server);
+    if (sendto(m_udpFd, sendbuf, sizeof (sendbuf), 0, (struct sockaddr*) & server, len) != -1)
+    {
+        char recvBuf[2048];
+        if (recvfrom(m_udpFd, recvBuf, sizeof (recvBuf), 0, (struct sockaddr*) & server, &len) != -1)
+        {
+            TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
+			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
+        }
+    }
+}
+
+void TunnRptProducer::InsertUdpOrder()
+{
+	// TODO: coding
+    int iSeq = 1;
+    char ordbuf[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)] = {};
+    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ordbuf;
+    pHead->PackageFlag = UDP_Package_Flag;
+    pHead->ProtocolCode = CMD_UDPOrderInsert_Req;
+    pHead->Sequence = ++iSeq;
+    pHead->Version = 1;
+    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ordbuf + sizeof (TapAPIUdpHead));
+    strncpy(pOrder->AccountNo, DEFAULT_ACCOUNT_NO, sizeof (pOrder->AccountNo) - 1);
+    strncpy(pOrder->Contract, "SR909", sizeof (pOrder->Contract) - 1);
+    pOrder->OrderType = '2';
+    pOrder->TimeInForce = '0';
+    pOrder->OrderSide = 'B';
+    pOrder->PositionEffect = 'O';
+    pOrder->HedgeFlag = 'T';
+    pOrder->OrderPrice = 4910;
+    //std::cout << "input order price:" << std::endl;
+    //std::cin >> pOrder->OrderPrice;
+    pOrder->OrderQty = 1;
+    ///timespec* abstime = (timespec*) & pOrder->ClientOrderNo;
+    //clock_gettime(CLOCK_REALTIME, abstime);
+    
+    struct sockaddr_in server;
+    socklen_t len = sizeof (server);
+    server.sin_family = AF_INET;
+    server.sin_port = htons(6869); ///server的监听端口
+    server.sin_addr.s_addr = inet_addr(DEFAULT_IP); ///server的地址
+    
+    if (sendto(m_udpFd, ordbuf, sizeof (ordbuf), 0, (struct sockaddr*) & server, len) != -1)
+    {
+        std::cout << "send order success" << std::endl;
+    }
+}

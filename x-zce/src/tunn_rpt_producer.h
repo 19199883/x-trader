@@ -502,6 +502,8 @@ private:
 	IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
 
 	// udp order operation
+	void AuthUdpServer();
+	void InsertUdpOrder();
 	TAPIUINT64 m_UdpCertCode;
 	int			m_udpFd;
 };
