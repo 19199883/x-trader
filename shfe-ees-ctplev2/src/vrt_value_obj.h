@@ -17,13 +17,10 @@
  * 如下宏根据情况进行定义
 */
 // 行情持久化开关
-#define PERSISTENCE_ENABLED
+//#define PERSISTENCE_ENABLED
 //#define LATENCY_MEASURE
 
-// 飞马极速行情
-#define FEMAS_TOPSPEED_QUOTE
 // 盛立极速行情 API multicast
-//#define EES_UDP_TOPSPEED_QUOTE
 
 // software license
 #define SERVER_NAME  "zjtest1"
