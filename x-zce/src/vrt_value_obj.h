@@ -10,7 +10,7 @@
 #define PERSISTENCE_ENABLED
 
 // software license
-#define SERVER_NAME  "zz16f-hq"
+#define SERVER_NAME  "zztest3"
 
 #define CLOG_CHANNEL  "x-trader"
 // 通过合约查找订阅该合约行情的方法:
