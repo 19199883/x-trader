@@ -591,16 +591,23 @@ void TunnRptProducer::AuthUdpServer()
     }
 }
 
-void TunnRptProducer::InsertUdpOrder()
+int TunnRptProducer::InitUdpSequence()
+{
+	udp_sequence_ = 1;
+	return udp_sequence_;
+}
+
+int TunnRptProducer::NewUdpSequence()
+{
+	udp_sequence_++;
+	return udp_sequence_;
+}
+
+void TunnRptProducer::InsertUdpOrder(char *udporder)
 {
 	// TODO: coding
     int iSeq = 1;
     pHead->Sequence = ++iSeq;
-    strncpy(pOrder->Contract, "SR909", sizeof (pOrder->Contract) - 1);
-    pOrder->OrderSide = 'B';
-    pOrder->PositionEffect = 'O';
-    pOrder->OrderPrice = 4910;
-    pOrder->OrderQty = 1;
     ///timespec* abstime = (timespec*) & pOrder->ClientOrderNo;
     //clock_gettime(CLOCK_REALTIME, abstime);
     

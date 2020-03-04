@@ -11,12 +11,12 @@ char ESUNNYPacker::new_udporder_[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrder
 // TODO: coding for udp version
 void ESUNNYPacker::InitNewUdpOrder(const char *account)
 {
-    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ESUNNYPacker::new_udp;
+    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ESUNNYPacker::new_udporder_;
     pHead->PackageFlag = UDP_Package_Flag;
     pHead->ProtocolCode = CMD_UDPOrderInsert_Req;
     pHead->Version = 1;
 
-    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udp + sizeof(TapAPIUdpHead));
+    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udporder_ + sizeof(TapAPIUdpHead));
     strcpy(pOrder->AccountNo, account);
     pOrder->OrderType = TAPI_ORDER_TYPE_LIMIT;
     pOrder->TimeInForce = TAPI_ORDER_TIMEINFORCE_GFD;
@@ -54,9 +54,58 @@ void ESUNNYPacker::InitNewOrder(const char *account)
 }
 
 	// TODO: coding for udp version
-// done
-TapAPINewOrder* ESUNNYPacker::OrderRequest(const signal_t& sig,const char *account,
-			long localorderid,int32_t vol)
+char* ESUNNYPacker::UdpOrderRequest(
+			const signal_t& sig,
+			const char *account,
+			long localorderid,
+			int32_t vol)
+{
+    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udp + sizeof(TapAPIUdpHead));
+
+	// contract
+	strcpy(pOrder->Contract, sig.symbol);
+	// side
+	if (sig.sig_act==signal_act_t::buy){
+		pOrder->OrderPrice = sig.buy_price;
+		pOrder->OrderSide = TAPI_SIDE_BUY;
+	} 
+	else if (sig.sig_act==signal_act_t::sell)
+	{
+		pOrder->OrderPrice = sig.sell_price;
+		pOrder->OrderSide = TAPI_SIDE_SELL;
+	} 
+	else
+	{
+		 clog_error("do support BuySellType value:%d; sig id:%d",
+			sig.sig_act, 
+			sig.sig_id); 
+	}
+	// position effect
+	if (sig.sig_openclose == alloc_position_effect_t::open_)
+	{
+		pOrder->PositionEffect = TAPI_PositionEffect_OPEN;
+	} 
+	else if (sig.sig_openclose == alloc_position_effect_t::close_)
+	{
+		pOrder->PositionEffect = TAPI_PositionEffect_COVER;
+	}
+	else
+	{
+		 clog_error("do support PositionEffect value:%d; sig id:%d",
+			sig.sig_openclose, 
+			sig.sig_id); 
+	}
+	// volume
+    pOrder->OrderQty = vol;
+
+	return ESUNNYPacker::new_udporder_;
+}
+	
+TapAPINewOrder* ESUNNYPacker::OrderRequest(
+			const signal_t& sig,
+			const char *account,
+			long localorderid,
+			int32_t vol)
 {
 	// contract
     strncpy(new_order_.CommodityNo,sig.symbol,2);

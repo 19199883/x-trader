@@ -9,6 +9,13 @@
 class ESUNNYPacker
 {
 public:
+	// TODO: coding for udp version
+	static char* ESUNNYPacker::UdpOrderRequest(
+			const signal_t& sig,
+			const char *account,
+			long localorderid,
+			int32_t vol);
+
     static void InitNewOrder(const char *account);
 
 	static TapAPINewOrder* OrderRequest(const signal_t& sig,const char *account,
