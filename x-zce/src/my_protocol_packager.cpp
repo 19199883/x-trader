@@ -6,7 +6,17 @@
 TapAPINewOrder ESUNNYPacker::new_order_;
 
 // TODO: coding for udp version
-char ESUNNYPacker::new_udporder_[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)] = {};
+char ESUNNYPacker::new_udporder_[UDP_ORDER_INSERT_LEN] = {};
+char ESUNNYPacker::delete_udporder_[UDP_ORDER_DELETE_LEN] = {};
+
+// TODO: coding for udp version
+void ESUNNYPacker::InitDeleteUdpOrder()
+{
+    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ESUNNYPacker::delete_udporder_;
+    pHead->PackageFlag = UDP_Package_Flag;
+    pHead->ProtocolCode = CMD_UDPOrderDelete_Req;
+    pHead->Version = 1;
+}
 
 // TODO: coding for udp version
 void ESUNNYPacker::InitNewUdpOrder(const char *account)
@@ -54,13 +64,22 @@ void ESUNNYPacker::InitNewOrder(const char *account)
 }
 
 	// TODO: coding for udp version
+char* ESUNNYPacker::DeleteUdpOrderRequest(const char *orderNo)
+{
+    TapAPIUdpOrderDeleteReq* pDeleteOrder = (TapAPIUdpOrderDeleteReq*)(ESUNNYPacker::delete_udporder + sizeof(TapAPIUdpHead));
+
+	strcpy(pDeleteOrder->OrderNo, orderNo);
+	return ESUNNYPacker::delete_udporder;
+}
+
+	// TODO: coding for udp version
 char* ESUNNYPacker::UdpOrderRequest(
 			const signal_t& sig,
 			const char *account,
 			long localorderid,
 			int32_t vol)
 {
-    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udp + sizeof(TapAPIUdpHead));
+    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udporder + sizeof(TapAPIUdpHead));
 
 	sprintf(pOrder->ClientOrderNo, "%d", localorderid);
 	// contract

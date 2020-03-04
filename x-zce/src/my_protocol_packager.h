@@ -7,6 +7,7 @@
 #define EXCHANGE_NO "ZCE"
 
 #define UDP_ORDER_INSERT_LEN sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)
+#define UDP_ORDER_DELETE_LEN sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderDeleteReq)
 
 class ESUNNYPacker
 {
@@ -28,6 +29,7 @@ private:
 	
 	// TODO: coding for udp version
 	char new_udporder_[UDP_ORDER_INSERT_LEN];
+	char delete_udporder_[UDP_ORDER_DELETE_LEN];
 };
 
 #endif // MY_PROTOCOL_Packer_H_

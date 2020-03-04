@@ -303,7 +303,19 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
 	fflush (Log::fp);
 
 	// TODO: coding
-	m_UdpCertCode = loginRspInfo->UdpCertCode;
+	if(0 != errorCode)
+	{
+		clog_error("[%s] OnRspLogin: errorCode: %d, %s",
+			module_name_,
+			errorCode, 
+			ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
+		fflush (Log::fp);
+	}
+	else
+	{
+		m_UdpCertCode = loginRspInfo->UdpCertCode;
+		AuthUdpServer();
+	}
 }
 
 void TunnRptProducer::OnAPIReady()
@@ -564,6 +576,7 @@ int32_t TunnRptProducer::Push()
 	return cursor;
 }
 
+// TODO: coding for udp version
 void TunnRptProducer::AuthUdpServer()
 {
 	m_udpFd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -572,24 +585,26 @@ void TunnRptProducer::AuthUdpServer()
     TapAPIUdpHead* pHead = (TapAPIUdpHead*) sendbuf;
     pHead->PackageFlag = UDP_Package_Flag;
     pHead->ProtocolCode = CMD_UDPAuth_Req;
-    pHead->Sequence = 1;
+    pHead->Sequence = InitUdpSequence();
     pHead->Version = 1;
-    TapAPIUdpAuthReq* pAuth = (TapAPIUdpAuthReq*) (sendbuf + sizeof (TapAPIUdpHead));
+    TapAPIUdpAuthReq* pAuth = (TapAPIUdpAuthReq*)(sendbuf + sizeof (TapAPIUdpHead));
     pAuth->AuthCode = m_UdpCertCode;
-	// TODO: coding
-    strncpy(pAuth->UserNo, DEFAULT_USERNAME, sizeof (pAuth->UserNo) - 1);
+    strncpy(pAuth->UserNo, config_.userid.c_str(), sizeof (pAuth->UserNo) - 1);
 
-    struct sockaddr_in server;
-    socklen_t len = sizeof (server);
-    server.sin_family = AF_INET;
-	// TODO: coding
-    server.sin_port = htons(6869); ///server的监听端口
-    server.sin_addr.s_addr = inet_addr(DEFAULT_IP); ///server的地址
-    //inet_pton(AF_INET, DEFAULT_IP, (void*)&server);
-    if (sendto(m_udpFd, sendbuf, sizeof (sendbuf), 0, (struct sockaddr*) & server, len) != -1)
+    if (sendto(m_udpFd, 
+					sendbuf, 
+					sizeof(sendbuf), 
+					0, 
+					(struct sockaddr*)&udpserver_, 
+					len) != -1)
     {
         char recvBuf[2048];
-        if (recvfrom(m_udpFd, recvBuf, sizeof (recvBuf), 0, (struct sockaddr*) & server, &len) != -1)
+        if (recvfrom(m_udpFd, 
+						recvBuf, 
+						sizeof(recvBuf), 
+						0, 
+						(struct sockaddr*)&udpserver_, 
+						&len) != -1)
         {
             TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
 			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
@@ -597,12 +612,14 @@ void TunnRptProducer::AuthUdpServer()
     }
 }
 
+// TODO: coding for udp version
 int TunnRptProducer::InitUdpSequence()
 {
 	udp_sequence_ = 1;
 	return udp_sequence_;
 }
 
+// TODO: coding for udp version
 int TunnRptProducer::NewUdpSequence()
 {
 	udp_sequence_++;
@@ -636,30 +653,26 @@ void TunnRptProducer::InsertUdpOrder(char *udporder)
     }
 }
 
-void TunnRptProducer::CancelUdpOrder()
+// TODO: coding for udp version
+void TunnRptProducer::CancelUdpOrder(char *deleteudporder)
 {
-	// TODO: coding
-    int iSeq = 1;
-    char ordbuf[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderDeleteReq)] = {};
-    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ordbuf;
-    pHead->PackageFlag = UDP_Package_Flag;
-    pHead->ProtocolCode = CMD_UDPOrderDelete_Req;
-    pHead->Sequence = ++iSeq;
-    pHead->Version = 1;
-    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ordbuf + sizeof (TapAPIUdpHead));
-    strncpy(pOrder->AccountNo, DEFAULT_ACCOUNT_NO, sizeof (pOrder->AccountNo) - 1);
-    strncpy(pOrder->Contract, "SR909", sizeof (pOrder->Contract) - 1);
+    TapAPIUdpHead* pHead = (TapAPIUdpHead*)deleteudporder;
+    pHead->Sequence = NewUdpSequence();
     
-    struct sockaddr_in server;
-    socklen_t len = sizeof (server);
-    server.sin_family = AF_INET;
-    server.sin_port = htons(6869); ///server的监听端口
-    server.sin_addr.s_addr = inet_addr(DEFAULT_IP); ///server的地址
-    
-    if (sendto(m_udpFd, ordbuf, sizeof (ordbuf), 0, (struct sockaddr*) & server, len) != -1)
+    if (sendto(m_udpFd, 
+					deleteudporder, 
+					UDP_ORDER_DELETE_LEN, 
+					0, 
+					(struct sockaddr*)&udpserver_, 
+					len) != -1)
     {
         char recvBuf[2048];
-        if (recvfrom(m_udpFd, recvBuf, sizeof (recvBuf), 0, (struct sockaddr*) & server, &len) != -1)
+        if (recvfrom(m_udpFd, 
+						recvBuf, 
+						sizeof (recvBuf), 
+						0, 
+						(struct sockaddr*)&udpserver_, 
+						&len) != -1)
         {
             TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
 			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
