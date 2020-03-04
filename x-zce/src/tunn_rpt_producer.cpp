@@ -63,10 +63,11 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     clog_warning("[%s] TapTradeAPIVersion:%s", module_name_, GetTapTradeAPIVersion());
 
 	this->ParseConfig();
+
 	// TODO: coding for udp
 #ifdef UPD_ORDER_OPERATION
 	ESUNNYPacker::InitNewUdpOrder(GetAccount());
-	ESUNNYPacker::InitDeleteUdpOrder(GetAccount());
+	ESUNNYPacker::InitDeleteUdpOrder();
 #else
 	ESUNNYPacker::InitNewOrder(GetAccount());
     memset(&cancel_req_, 0, sizeof(cancel_req_));
@@ -180,6 +181,7 @@ void TunnRptProducer::ParseConfig()
 		strcpy(this->appid_, tunn_node->Attribute("appid"));
 		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
 
+		// TODO: coding for udp config
 		strcpy(this->config_.udpserverip, tunn_node->Attribute("udpserverip"));
 		this->config_.udpserverport = atoi(tunn_node->Attribute("udpserverport"));
 		socklen_t len = sizeof (udpserver_);
@@ -187,24 +189,22 @@ void TunnRptProducer::ParseConfig()
 		udpserver_.sin_port = htons(this->config_.udpserverport); ///server的监听端口
 		udpserver_.sin_addr.s_addr = inet_addr(this->config_.udpserverip); ///server的地址
 
-		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
+		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s; "
+					"udp server ip: %s; udp server port: %d",
 					module_name_, 
 					this->config_.address.c_str(), 
 					this->config_.brokerid.c_str(),
 					this->config_.userid.c_str(),
-					this->config_.password.c_str());
+					this->config_.password.c_str(),
+					this->config_.udpserverip,
+					this->config_.udpserverport);
 	} 
 	else 
 	{ 
 		clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); 
 	}
 
-	// TODO: coding for udp config
 }
-
-//  TODO: coding for udp order insert
-//  udp version do not use sessiong, and use client order id instead of it.
-
 
 void TunnRptProducer::OnConnect()
 {
@@ -313,9 +313,11 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 
 	if (ended_) return;
 
-
 	// TODO: udp version need not session
-	
+#ifdef UPD_ORDER_OPERATION
+	// TODO: note that udp version how to get local order id
+	long localorderid = atol(info->OrderInfo->ClientOrderNo);
+#else
 	bool session_found = false;
 	while(!session_found)
 	{
@@ -340,8 +342,9 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 			std::this_thread::sleep_for (std::chrono::milliseconds(5));
 		}
 	}
-	// TODO: note that udp version how to get local order id
 	long localorderid = session_localorderid_map_[info->SessionID];
+#endif
+
 	int32_t cursor = Push();
 	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
 	tunnrpt.SessionID = info->SessionID;

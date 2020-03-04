@@ -6,13 +6,16 @@
 
 #define EXCHANGE_NO "ZCE"
 
-#define UDP_ORDER_INSERT_LEN sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)
-#define UDP_ORDER_DELETE_LEN sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderDeleteReq)
+#ifdef UPD_ORDER_OPERATION
+	#define UDP_ORDER_INSERT_LEN sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)
+	#define UDP_ORDER_DELETE_LEN sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderDeleteReq)
+#endif
 
 class ESUNNYPacker
 {
 public:
 	// TODO: coding for udp version
+#ifdef UPD_ORDER_OPERATION
 	static char* UdpOrderRequest(
 			const signal_t& sig,
 			const char *account,
@@ -23,18 +26,22 @@ public:
 	// TODO: coding for udp version
 	static void InitDeleteUdpOrder();
 	static void InitNewUdpOrder(const char *account);
-
+#else
     static void InitNewOrder(const char *account);
 
 	static TapAPINewOrder* OrderRequest(const signal_t& sig,const char *account,
 			long localorderid,int32_t vol);
+#endif
 
 private:
-	static TapAPINewOrder new_order_;
 	
 	// TODO: coding for udp version
-	char new_udporder_[UDP_ORDER_INSERT_LEN];
-	char delete_udporder_[UDP_ORDER_DELETE_LEN];
+#ifdef UPD_ORDER_OPERATION
+	static char new_udporder_[UDP_ORDER_INSERT_LEN];
+	static char delete_udporder_[UDP_ORDER_DELETE_LEN];
+#else
+	static TapAPINewOrder new_order_;
+#endif
 };
 
 #endif // MY_PROTOCOL_Packer_H_

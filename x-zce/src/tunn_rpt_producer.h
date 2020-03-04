@@ -424,15 +424,6 @@ private:
 	Tunnconfig config_;
 	const char * module_name_;  
 	bool ended_;
-	/*
-	 * key:session_id; value:counter of LocalOrderID
-	 */
-	unordered_map<TAPIUINT32,long > session_localorderid_map_;
-
-	/*
-	 * 撤单请求，避免每次初始化
-	 */
-	TapAPIOrderCancelReq cancel_req_;
 
 	/*
 	 * things relating to counter API
@@ -452,6 +443,16 @@ private:
 	TAPIUINT64 m_UdpCertCode;
 	int			m_udpFd;
     struct sockaddr_in udpserver_;
+#else
+	/*
+	 * key:session_id; value:counter of LocalOrderID
+	 */
+	unordered_map<TAPIUINT32,long > session_localorderid_map_;
+
+	/*
+	 * 撤单请求，避免每次初始化
+	 */
+	TapAPIOrderCancelReq cancel_req_;
 #endif
 };
 

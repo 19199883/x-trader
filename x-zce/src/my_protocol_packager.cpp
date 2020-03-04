@@ -3,13 +3,17 @@
 #include <stdlib.h>
 #include "vrt_value_obj.h"
 
-TapAPINewOrder ESUNNYPacker::new_order_;
 
 // TODO: coding for udp version
-char ESUNNYPacker::new_udporder_[UDP_ORDER_INSERT_LEN] = {};
-char ESUNNYPacker::delete_udporder_[UDP_ORDER_DELETE_LEN] = {};
+#ifdef UPD_ORDER_OPERATION
+	char ESUNNYPacker::new_udporder_[UDP_ORDER_INSERT_LEN] = {};
+	char ESUNNYPacker::delete_udporder_[UDP_ORDER_DELETE_LEN] = {};
+#else
+	TapAPINewOrder ESUNNYPacker::new_order_;
+#endif
 
 // TODO: coding for udp version
+#ifdef UPD_ORDER_OPERATION
 void ESUNNYPacker::InitDeleteUdpOrder()
 {
     TapAPIUdpHead* pHead = (TapAPIUdpHead*) ESUNNYPacker::delete_udporder_;
@@ -32,43 +36,12 @@ void ESUNNYPacker::InitNewUdpOrder(const char *account)
     pOrder->TimeInForce = TAPI_ORDER_TIMEINFORCE_GFD;
     pOrder->HedgeFlag = TAPI_HEDGEFLAG_T;
 }
-
-void ESUNNYPacker::InitNewOrder(const char *account)
-{
-    memset(&new_order_, 0, sizeof(new_order_));
-    strcpy(new_order_.AccountNo,account);
-    strcpy(new_order_.ExchangeNo, EXCHANGE_NO);
-    new_order_.CommodityType = TAPI_COMMODITY_TYPE_FUTURES; 
-    strcpy(new_order_.StrikePrice, "");
-    new_order_.CallOrPutFlag = TAPI_CALLPUT_FLAG_NONE;
-    strcpy(new_order_.ContractNo2, "");
-    strcpy(new_order_.StrikePrice2, "");
-    new_order_.CallOrPutFlag2 = TAPI_CALLPUT_FLAG_NONE;
-    new_order_.OrderType = TAPI_ORDER_TYPE_LIMIT;
-    new_order_.OrderSource = TAPI_ORDER_SOURCE_ESUNNY_API;
-    new_order_.TimeInForce = TAPI_ORDER_TIMEINFORCE_GFD;
-    strcpy(new_order_.ExpireTime, "");
-    new_order_.IsRiskOrder = APIYNFLAG_NO;
-    new_order_.PositionEffect2 = TAPI_PositionEffect_NONE;
-    strcpy(new_order_.InquiryNo, "");
-    new_order_.HedgeFlag = TAPI_HEDGEFLAG_T;
-    new_order_.RefInt = 0;
-    new_order_.TacticsType = TAPI_TACTICS_TYPE_NONE;
-    new_order_.TriggerCondition = TAPI_TRIGGER_CONDITION_NONE;
-    new_order_.TriggerPriceType = TAPI_TRIGGER_PRICE_NONE;
-    new_order_.AddOneIsValid = APIYNFLAG_NO;
-    new_order_.FutureAutoCloseFlag = APIYNFLAG_NO;
-    new_order_.HedgeFlag2 = TAPI_HEDGEFLAG_NONE;
-    new_order_.MarketLevel= TAPI_MARKET_LEVEL_0;
-    //new_order_.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
-}
-
 	// TODO: coding for udp version
 char* ESUNNYPacker::DeleteUdpOrderRequest(const char *orderNo)
 {
     TapAPIUdpOrderDeleteReq* pDeleteOrder = (TapAPIUdpOrderDeleteReq*)(ESUNNYPacker::delete_udporder + sizeof(TapAPIUdpHead));
-
 	strcpy(pDeleteOrder->OrderNo, orderNo);
+
 	return ESUNNYPacker::delete_udporder;
 }
 
@@ -117,9 +90,40 @@ char* ESUNNYPacker::UdpOrderRequest(
 	}
 	// volume
     pOrder->OrderQty = vol;
-
-	return ESUNNYPacker::new_udporder_;
+	
+	return ESUNNYPacker::new_udporder;
 }
+#else
+void ESUNNYPacker::InitNewOrder(const char *account)
+{
+    memset(&new_order_, 0, sizeof(new_order_));
+    strcpy(new_order_.AccountNo,account);
+    strcpy(new_order_.ExchangeNo, EXCHANGE_NO);
+    new_order_.CommodityType = TAPI_COMMODITY_TYPE_FUTURES; 
+    strcpy(new_order_.StrikePrice, "");
+    new_order_.CallOrPutFlag = TAPI_CALLPUT_FLAG_NONE;
+    strcpy(new_order_.ContractNo2, "");
+    strcpy(new_order_.StrikePrice2, "");
+    new_order_.CallOrPutFlag2 = TAPI_CALLPUT_FLAG_NONE;
+    new_order_.OrderType = TAPI_ORDER_TYPE_LIMIT;
+    new_order_.OrderSource = TAPI_ORDER_SOURCE_ESUNNY_API;
+    new_order_.TimeInForce = TAPI_ORDER_TIMEINFORCE_GFD;
+    strcpy(new_order_.ExpireTime, "");
+    new_order_.IsRiskOrder = APIYNFLAG_NO;
+    new_order_.PositionEffect2 = TAPI_PositionEffect_NONE;
+    strcpy(new_order_.InquiryNo, "");
+    new_order_.HedgeFlag = TAPI_HEDGEFLAG_T;
+    new_order_.RefInt = 0;
+    new_order_.TacticsType = TAPI_TACTICS_TYPE_NONE;
+    new_order_.TriggerCondition = TAPI_TRIGGER_CONDITION_NONE;
+    new_order_.TriggerPriceType = TAPI_TRIGGER_PRICE_NONE;
+    new_order_.AddOneIsValid = APIYNFLAG_NO;
+    new_order_.FutureAutoCloseFlag = APIYNFLAG_NO;
+    new_order_.HedgeFlag2 = TAPI_HEDGEFLAG_NONE;
+    new_order_.MarketLevel= TAPI_MARKET_LEVEL_0;
+    //new_order_.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
+}
+
 	
 TapAPINewOrder* ESUNNYPacker::OrderRequest(
 			const signal_t& sig,
@@ -158,4 +162,4 @@ TapAPINewOrder* ESUNNYPacker::OrderRequest(
 	return &new_order_;
 }
 
-
+#endif
