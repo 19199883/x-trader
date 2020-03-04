@@ -175,6 +175,12 @@ void TunnRptProducer::ParseConfig()
 		strcpy(this->appid_, tunn_node->Attribute("appid"));
 		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
 
+		strcpy(this->config_.udpserverip, tunn_node->Attribute("udpserverip"));
+		this->config_.udpserverport = atoi(tunn_node->Attribute("udpserverport"));
+		socklen_t len = sizeof (udpserver_);
+		udpserver_.sin_family = AF_INET;
+		udpserver_.sin_port = htons(this->config_.udpserverport); ///server的监听端口
+		udpserver_.sin_addr.s_addr = inet_addr(this->config_.udpserverip); ///server的地址
 
 		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s",
 					module_name_, 
@@ -603,29 +609,30 @@ int TunnRptProducer::NewUdpSequence()
 	return udp_sequence_;
 }
 
+// TODO: coding for udp version
 void TunnRptProducer::InsertUdpOrder(char *udporder)
 {
-	// TODO: coding
-    int iSeq = 1;
-    pHead->Sequence = ++iSeq;
-    ///timespec* abstime = (timespec*) & pOrder->ClientOrderNo;
-    //clock_gettime(CLOCK_REALTIME, abstime);
+    TapAPIUdpHead* pHead = udporder;
+    pHead->Sequence = NewUdpSequence();
     
-    struct sockaddr_in server;
-    socklen_t len = sizeof (server);
-    server.sin_family = AF_INET;
-    server.sin_port = htons(6869); ///server的监听端口
-    server.sin_addr.s_addr = inet_addr(DEFAULT_IP); ///server的地址
-    
-    if (sendto(m_udpFd, ordbuf, sizeof (ordbuf), 0, (struct sockaddr*) & server, len) != -1)
+    if (sendto(m_udpFd, 
+					udporder, 
+					ESUNNYPacker::UDP_ORDER_INSERT_LEN, 
+					0, 
+					(struct sockaddr*)&udpserver_, 
+					len) != -1)
     {
         char recvBuf[2048];
-        if (recvfrom(m_udpFd, recvBuf, sizeof (recvBuf), 0, (struct sockaddr*) & server, &len) != -1)
+        if (recvfrom(m_udpFd, 
+						recvBuf, 
+						sizeof (recvBuf), 
+						0, 
+						(struct sockaddr*)&udpserver_, 
+						&len) != -1)
         {
             TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
 			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
         }
-        std::cout << "send order success" << std::endl;
     }
 }
 

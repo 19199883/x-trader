@@ -62,6 +62,7 @@ char* ESUNNYPacker::UdpOrderRequest(
 {
     TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udp + sizeof(TapAPIUdpHead));
 
+	sprintf(pOrder->ClientOrderNo, "%d", localorderid);
 	// contract
 	strcpy(pOrder->Contract, sig.symbol);
 	// side

@@ -28,6 +28,8 @@ struct Tunnconfig
 
 	// disruptor yield strategy
 	char yield[20];
+	char udpserverip[20];
+	int udpserverport;
 };
 
 struct TunnRpt
@@ -438,6 +440,7 @@ private:
 	void InsertUdpOrder();
 	TAPIUINT64 m_UdpCertCode;
 	int			m_udpFd;
+    struct sockaddr_in udpserver_;
 };
 
 #endif
