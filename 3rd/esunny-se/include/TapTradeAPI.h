@@ -309,6 +309,34 @@ public:
 	* @ingroup G_T_UserInfo
 	*/
 	virtual void TAP_CDECL OnRspSubmitUserLoginInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPISubmitUserLoginRspInfo * info) = 0;
+    /**
+	* @brief 查询用户账单应答
+    * @details	查询txt文件格式时将回调数据写入到本地的txt文件中查看，查询pdf文件时，需要将回调数据转存到pdf文件中，用pdf阅读工具打开。
+    *           写文件需要用二进制的方式写入。如果文件较大，数据会分包回调，isLast为APIYNFLAG_YES时，文件传送完毕。
+	* @param[in] sessionID 请求的会话ID；
+	* @param[in] errorCode 错误码。0 表示成功。
+	* @param[in] info		指向返回的信息结构体。当errorCode不为0时，info为空。
+	* @attention 不要修改和删除info所指示的数据；函数调用结束，参数不再有效。
+	* @ingroup G_T_Bill
+	*/
+	virtual void TAP_CDECL OnRspQryBill(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIBillQryRsp *info) = 0;
+    /**
+    * @brief 客户现货库存查询应答
+	* @param[in] sessionID 请求ID
+	* @param[in] errorCode 错误码。0 表示成功。
+	* @param[in] isLast 	标示是否是最后一批数据
+	* @param[out] info	指向返回的信息结构体。
+	* @attention  不要修改和删除pRspInfo所指示的数据；函数调用结束，参数不再有效。
+	* @ingroup G_T_TradeInfo
+    */
+    virtual void TAP_CDECL OnRspQryAccountStorage(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIAccountStorageInfo* info) = 0;
+    /**
+    * @brief 客户现货库存通知
+	* @param[out] pInfo	指向返回的信息结构体。
+	* @attention  不要修改和删除pRspInfo所指示的数据；函数调用结束，参数不再有效。
+	* @ingroup G_T_TradeInfo
+    */
+    virtual void TAP_CDECL OnRtnAccountStorage(const TapAPIAccountStorageInfo* info) = 0;
 };
 
 //TapTradeAPI 对外功能接口。包含了用户可以调用的功能函数。
@@ -598,6 +626,25 @@ public:
 	* @ingroup G_T_UserInfo
 	*/
 	virtual TAPIINT32 TAP_CDECL SubmitUserLoginInfo(TAPIUINT32 *sessionID, const TapAPISubmitUserLoginInfo* qryReq) = 0;
+    /**
+	* @brief 查询用户账单
+	* @param[out]	sessionID 返回请求的会话ID;
+	* @param[in]	qryReq	查询帐单请求的结构体指针
+	* @retval 0 请求成功
+	* @retval 非0 错误码
+	* @operationtype 异步操作
+	* @ingroup G_T_Bill
+	*/
+	virtual TAPIINT32 TAP_CDECL QryBill(TAPIUINT32 *sessionID, const TapAPIBillQryReq *qryReq) = 0;
+    /**
+	* @brief 客户现货库存查询
+	* @param[in]	sessionID 请求ID
+	* @param[in]	pReqInfo 客户现货库存查询请求结构
+	* @retval		0 请求成功;非0 错误码
+	* @operationtype 异步操作
+	* @ingroup G_T_TradeInfo
+	*/
+    virtual TAPIINT32 TAP_CDECL QryAccountStorage(TAPIUINT32 *sessionID, const TapAPIAccountStorageQryReq *qryReq) = 0;
 };
 
 //-----------------------------TapTradeAPI导出函数------------------------------------

@@ -633,6 +633,35 @@ const TAPIOrderQryTypeType TAPI_ORDER_QRY_TYPE_ALL				= 'A';
 const TAPIOrderQryTypeType TAPI_ORDER_QRY_TYPE_UNENDED			= 'U';
 /** @}*/
 
+//=============================================================================
+/**
+ *	\addtogroup G_DATATYPE_T_TAPIBILLTYPETYPE	账单类型
+ *	@{
+ */
+//=============================================================================
+//! 账单类型
+typedef TAPICHAR						TAPIBillTypeType;
+//! 日账单
+const TAPIBillTypeType					TAPI_BILL_DATE			= 'D';
+//! 月账单
+const TAPIBillTypeType					TAPI_BILL_MONTH			= 'M';
+/** @}*/
+
+//=============================================================================
+/**
+ *	\addtogroup G_DATATYPE_T_TAPIBILLFILETYPETYPE	帐单文件类型
+ *	@{
+ */
+//=============================================================================
+//! 帐单文件类型
+typedef TAPICHAR						TAPIBillFileTypeType;
+//! txt格式文件
+const TAPIBillFileTypeType				TAPI_BILL_FILE_TXT		= 'T';
+//! pdf格式文件
+const TAPIBillFileTypeType				TAPI_BILL_FILE_PDF		= 'F';
+/** @}*/
+
+
 
 //! ------------------------------------------------------------------------------------------
 
@@ -669,6 +698,7 @@ struct TapAPITradeLoginRspInfo
 	TAPIDATETIME				InitTime;						///< 系统初始化时间
 	TAPIAuthTypeType			AuthType;						///< 用户授权类型
 	TAPIDATETIME				AuthDate;						///< 用户授权到期日
+	TAPIUINT64					UdpCertCode;					///< UDP报单认证码
 };
 
 //! 登录采集信息
@@ -1382,7 +1412,39 @@ struct	TapAPIAccountRentInfo
 	TAPIREAL64				                SellLMaintMargin;											//卖套利维持保证金
 	TAPIREAL64				                BuyMMaintMargin;											//买做市商维持保证金
 	TAPIREAL64				                SellMMaintMargin;											//卖做市商维持保证金
+};
 
+//! 客户账单查询请求结构
+struct TapAPIBillQryReq
+{
+	TAPISTR_20				UserNo;
+	TAPIBillTypeType		BillType;
+	TAPIDATE				BillDate;
+	TAPIBillFileTypeType	BillFileType;
+};
+
+//! 客户账单查询应答结构
+struct TapAPIBillQryRsp
+{
+	TapAPIBillQryReq		Reqdata;	
+	TAPIINT32				BillLen;
+	TAPICHAR				BillText[1];	///< 变长账单内容，长度由BillLen指定
+};
+
+//! 客户现货库存查询请求结构
+struct TapAPIAccountStorageQryReq
+{
+    TAPISTR_20						AccountNo;
+};
+
+//! 客户现货库存信息
+struct TapAPIAccountStorageInfo
+{
+    TAPISTR_20						AccountNo;
+    TAPISTR_10					    ExchangeNo;							///< 交易所编号
+	TAPICommodityType				CommodityType;						///< 品种类型
+	TAPISTR_10				    	CommodityNo;						///< 品种编号
+    TAPIREAL64                      StorageQty;						    ///< 库存量
 };
 
 #pragma pack(pop)
