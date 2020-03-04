@@ -6,13 +6,13 @@
 	4. 行情开关:PERSISTENCE_ENABLED
 	5. 版本： clog_warning("version:x-shfe_20180130_r");
 	6. #define LATENCY_MEASURE
-	7. x-ees: choice: EES_UDP_TOPSPEED_QUOTE,FEMAS_TOPSPEED_QUOTE
 	8. x-eex-ctp, x-dce, x-zce: 许可是绑定到服务器名，所以需要根据服务器名做相应的编译修改:SERVER_NAME
 	9. 编译行情程序：需定义PERSISTENCE_ENABLED
 	10. x-dce: LOCK_POSITION_ENABLE(开启锁仓),	LOCK_POSITION_DISNABL(关闭锁仓)	
 	11. x-dce: DCE_DATA_FEED: 大连data feed组播行情;  DCE_OLD: 大连李杨时的旧行情
 	11. x-ees-ctp: 如果要支持INE的行情，需要定义INE_ENABLE宏
 	15. 如发布release版，则注释掉所有clog_info, 并确认是否存在不必要的字符段格式化语句
+	16. x-zce: UPD_ORDER_OPERATION 如果定义了，则使用UDP下单操作；否则使用TCP下单操作  
 
 
 
