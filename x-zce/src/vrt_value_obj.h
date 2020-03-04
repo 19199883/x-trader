@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <pthread.h>
 
+// 如果定义了，则使用UDP下单操作；否则使用TCP下单操作
+#define UPD_ORDER_OPERATION
 
 //#define LATENCY_MEASURE
 // 行情持久化开关

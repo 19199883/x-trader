@@ -64,8 +64,13 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 	this->ParseConfig();
 	// TODO: coding for udp
+#ifdef UPD_ORDER_OPERATION
+	ESUNNYPacker::InitNewUdpOrder(GetAccount());
+	ESUNNYPacker::InitDeleteUdpOrder(GetAccount());
+#else
 	ESUNNYPacker::InitNewOrder(GetAccount());
     memset(&cancel_req_, 0, sizeof(cancel_req_));
+#endif
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
@@ -197,97 +202,9 @@ void TunnRptProducer::ParseConfig()
 	// TODO: coding for udp config
 }
 
-//  coding for udp order insert
+//  TODO: coding for udp order insert
 //  udp version do not use sessiong, and use client order id instead of it.
 
-int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, TapAPINewOrder *p)
-{
-#ifdef LATENCY_MEASURE
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-	clog_info("[%s] ReqInsertOrder-:%s", module_name_, ESUNNYDatatypeFormater::ToString(p).c_str());
-	int ret = api_->InsertOrder(session,p);
-	{
-		std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
-		session_localorderid_map_[*session] = localorderid;
-	}
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] ReqOrderInsert latency:%d us", 
-					module_name_,latency); 
-#endif
-	if (ret != 0){
-		//因为穿透版，权限问题采集信息不全，临时方案 
-		if(TAPIERROR_API_NotReady == ret) ret = 0;
-
-		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
-				module_name_,ret, *session,localorderid);
-	}
-	else 
-	{
-		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
-				module_name_,
-				ret, 
-				*session,
-				localorderid);
-	}
-
-	return ret;
-}
-
-// TODO: coding for udp version
-//
-
-int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
-{
-#ifdef LATENCY_MEASURE
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-	TAPIUINT32 sessionID;
-    cancel_req_.ServerFlag = serverflag;
-    strcpy(cancel_req_.OrderNo, orderno);
-
-	clog_info("[%s] ReqOrderAction-:%s", 
-				module_name_, 
-				ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
-
-	clog_info("[%s]before ReqOrderAction", module_name_);
-
-	int ret = api_->CancelOrder(&sessionID, &cancel_req_);
-
-	clog_info("[%s]after ReqOrderAction", module_name_);
-
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] ReqOrderAction latency:%d us", 
-					module_name_,latency); 
-#endif
-
-	if (ret != 0)
-	{
-		clog_error("[%s] CancelOrder - return:%d, session_id:%u, "
-			"server flag:%c,order no:%s", 
-			module_name_,
-			ret,
-			sessionID,
-			cancel_req_.ServerFlag,
-			cancel_req_.OrderNo);
-	} 
-	else 
-	{
-		clog_info("[%s] CancelOrder - return:%d, session_id:%u, "
-			"server flag:%c,order no:%s", 
-			module_name_,
-			ret,
-			sessionID,
-			cancel_req_.ServerFlag,
-			cancel_req_.OrderNo);
-	}
-
-	return ret;
-}
 
 void TunnRptProducer::OnConnect()
 {
@@ -576,6 +493,7 @@ int32_t TunnRptProducer::Push()
 	return cursor;
 }
 
+#ifdef UPD_ORDER_OPERATION
 // TODO: coding for udp version
 void TunnRptProducer::AuthUdpServer()
 {
@@ -679,3 +597,94 @@ void TunnRptProducer::CancelUdpOrder(char *deleteudporder)
         }
     }
 }
+#else
+
+int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, TapAPINewOrder *p)
+{
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+	clog_info("[%s] ReqInsertOrder-:%s", module_name_, ESUNNYDatatypeFormater::ToString(p).c_str());
+	int ret = api_->InsertOrder(session,p);
+	{
+		std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
+		session_localorderid_map_[*session] = localorderid;
+	}
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
+		clog_warning("[%s] ReqOrderInsert latency:%d us", 
+					module_name_,latency); 
+#endif
+	if (ret != 0){
+		//因为穿透版，权限问题采集信息不全，临时方案 
+		if(TAPIERROR_API_NotReady == ret) ret = 0;
+
+		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
+				module_name_,ret, *session,localorderid);
+	}
+	else 
+	{
+		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
+				module_name_,
+				ret, 
+				*session,
+				localorderid);
+	}
+
+	return ret;
+}
+
+// TODO: coding for udp version
+//
+
+int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
+{
+#ifdef LATENCY_MEASURE
+	high_resolution_clock::time_point t0 = high_resolution_clock::now();
+#endif
+	TAPIUINT32 sessionID;
+    cancel_req_.ServerFlag = serverflag;
+    strcpy(cancel_req_.OrderNo, orderno);
+
+	clog_info("[%s] ReqOrderAction-:%s", 
+				module_name_, 
+				ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
+
+	clog_info("[%s]before ReqOrderAction", module_name_);
+
+	int ret = api_->CancelOrder(&sessionID, &cancel_req_);
+
+	clog_info("[%s]after ReqOrderAction", module_name_);
+
+#ifdef LATENCY_MEASURE
+		high_resolution_clock::time_point t1 = high_resolution_clock::now();
+		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
+		clog_warning("[%s] ReqOrderAction latency:%d us", 
+					module_name_,latency); 
+#endif
+
+	if (ret != 0)
+	{
+		clog_error("[%s] CancelOrder - return:%d, session_id:%u, "
+			"server flag:%c,order no:%s", 
+			module_name_,
+			ret,
+			sessionID,
+			cancel_req_.ServerFlag,
+			cancel_req_.OrderNo);
+	} 
+	else 
+	{
+		clog_info("[%s] CancelOrder - return:%d, session_id:%u, "
+			"server flag:%c,order no:%s", 
+			module_name_,
+			ret,
+			sessionID,
+			cancel_req_.ServerFlag,
+			cancel_req_.OrderNo);
+	}
+
+	return ret;
+}
+#endif

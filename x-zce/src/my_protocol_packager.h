@@ -13,11 +13,16 @@ class ESUNNYPacker
 {
 public:
 	// TODO: coding for udp version
-	static char* ESUNNYPacker::UdpOrderRequest(
+	static char* UdpOrderRequest(
 			const signal_t& sig,
 			const char *account,
 			long localorderid,
 			int32_t vol);
+	static char* DeleteUdpOrderRequest(const char *orderNo);
+
+	// TODO: coding for udp version
+	static void InitDeleteUdpOrder();
+	static void InitNewUdpOrder(const char *account);
 
     static void InitNewOrder(const char *account);
 

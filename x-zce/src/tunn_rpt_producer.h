@@ -50,6 +50,14 @@ class TunnRptProducer: public ITapTradeAPINotify
 		TunnRptProducer(struct vrt_queue  *queue);
 		~TunnRptProducer();
 
+		// udp order operation
+#ifdef UPD_ORDER_OPERATION
+		void AuthUdpServer();
+		int InitUdpSequence();
+		int NewUdpSequence();
+		void InsertUdpOrder(char *udporder);
+		void CancelUdpOrder(char *deleteudporder);
+#else
 		/*
 		 * things relating to esunny Api
 		 */
@@ -61,6 +69,8 @@ class TunnRptProducer: public ITapTradeAPINotify
 		 * counter:要撤单的委托单的counter of LocalOrderID
 		 */
 		int ReqOrderAction(TAPICHAR serverflag, const char* orderno);
+#endif
+
 
 		/**
 		 * @brief 连接成功回调通知
@@ -435,12 +445,14 @@ private:
 	IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
 
 	// udp order operation
+#ifdef UPD_ORDER_OPERATION
 	int udp_sequence_;
 	void AuthUdpServer();
 	void InsertUdpOrder();
 	TAPIUINT64 m_UdpCertCode;
 	int			m_udpFd;
     struct sockaddr_in udpserver_;
+#endif
 };
 
 #endif
