@@ -15,13 +15,13 @@
 
 using namespace std::chrono;
 
-// done
 static std::string ReadAuthCode()
 {
     char l[1024];
     std::string auth_code;
     ifstream auth_cfg("auth_code.dat");
-    while (auth_cfg.getline(l, 1023)) {
+    while (auth_cfg.getline(l, 1023)) 
+	{
         auth_code.append(l);
     }
 
@@ -33,7 +33,8 @@ IPAndPortNum TunnRptProducer::ParseIPAndPortNum(const std::string &addr_cfg)
     //format: udp://192.168.60.23:7120   or  tcp://192.168.60.23:7120
     std::string ip_port = addr_cfg.substr(6);
     std::size_t split_pos = ip_port.find(":");
-    if ((split_pos == std::string::npos) || (split_pos + 1 >= ip_port.length())) {
+    if ((split_pos == std::string::npos) || (split_pos + 1 >= ip_port.length())) 
+	{
         clog_error("parse address failed: %s", addr_cfg.c_str());
         return std::make_pair("", (unsigned short) 0);
     }
@@ -41,7 +42,8 @@ IPAndPortNum TunnRptProducer::ParseIPAndPortNum(const std::string &addr_cfg)
     std::string addr_ip = ip_port.substr(0, split_pos);
     std::string addr_port = ip_port.substr(split_pos + 1);
     int port_tmp = atoi(addr_port.c_str());
-    if (port_tmp <= 0 || port_tmp > 0xFFFF) {
+    if (port_tmp <= 0 || port_tmp > 0xFFFF) 
+	{
         clog_error("port in address beyond valid range: %s", addr_cfg.c_str());
         return std::make_pair("", 0);
     }
@@ -58,21 +60,26 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 	
 	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
-    // check api version
-    clog_warning("[%s] TapTradeAPIVersion:%s",module_name_,GetTapTradeAPIVersion());
+    clog_warning("[%s] TapTradeAPIVersion:%s", module_name_, GetTapTradeAPIVersion());
 
 	this->ParseConfig();
+	// TODO: coding for udp
 	ESUNNYPacker::InitNewOrder(GetAccount());
     memset(&cancel_req_, 0, sizeof(cancel_req_));
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	if(strcmp(config_.yield, "threaded") == 0){
+	if(strcmp(config_.yield, "threaded") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_threaded();
-	}else if(strcmp(config_.yield, "spin") == 0){
+	}
+	else if(strcmp(config_.yield, "spin") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_spin_wait();
-	}else if(strcmp(config_.yield, "hybrid") == 0){
+	}
+	else if(strcmp(config_.yield, "hybrid") == 0)
+	{
 		this->producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
@@ -85,8 +92,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 				error, 
 				real_size,
 				nver);
-
-	clog_warning("[%s] tap version: %s", module_name_, GetTapTradeAPIVersion());
 
 	// create esunny object
     TapAPIApplicationInfo auth_info;
@@ -129,19 +134,20 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 				result, 
 				ESUNNYDatatypeFormater::ToString(&stLoginAuth).c_str());
 
-    if (TAPIERROR_SUCCEED != result) {
+    if (TAPIERROR_SUCCEED != result) 
+	{
         clog_error("[%s] Login Error, result:%d",module_name_,result);
-    }else{
+    }
+	else
+	{
         clog_warning("[%s] Login success", module_name_);
 	}
 }
 
-// done
 TunnRptProducer::~TunnRptProducer()
 {
 }
 
-// done
 void TunnRptProducer::ParseConfig()
 {
 	TiXmlDocument config = TiXmlDocument("x-trader.config");
@@ -150,12 +156,18 @@ void TunnRptProducer::ParseConfig()
 
 	// yield strategy
     TiXmlElement *comp_node = RootElement->FirstChildElement("Disruptor");
-	if (comp_node != NULL){
+	if (comp_node != NULL)
+	{
 			strcpy(config_.yield, comp_node->Attribute("yield"));
-	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+	} 
+	else 
+	{ 
+		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
+	}
 
     TiXmlElement *tunn_node = RootElement->FirstChildElement("Tunnel");
-	if (tunn_node != NULL){
+	if (tunn_node != NULL)
+	{
 		this->config_.address = tunn_node->Attribute("address");
 		this->config_.brokerid = tunn_node->Attribute("brokerid");
 		this->config_.userid = tunn_node->Attribute("userid");
@@ -170,10 +182,18 @@ void TunnRptProducer::ParseConfig()
 					this->config_.brokerid.c_str(),
 					this->config_.userid.c_str(),
 					this->config_.password.c_str());
-	} else { clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); }
+	} 
+	else 
+	{ 
+		clog_error("[%s] x-trader.config error: Tunnel node missing.", module_name_); 
+	}
+
+	// TODO: coding for udp config
 }
 
-// done
+//  coding for udp order insert
+//  udp version do not use sessiong, and use client order id instead of it.
+
 int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, TapAPINewOrder *p)
 {
 #ifdef LATENCY_MEASURE
@@ -197,16 +217,22 @@ int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, Ta
 
 		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
 				module_name_,ret, *session,localorderid);
-	}else {
+	}
+	else 
+	{
 		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
-				module_name_,ret, *session,localorderid);
+				module_name_,
+				ret, 
+				*session,
+				localorderid);
 	}
 
 	return ret;
 }
 
-// 撤单操作请求
-// done
+// TODO: coding for udp version
+//
+
 int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
 {
 #ifdef LATENCY_MEASURE
@@ -216,11 +242,13 @@ int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
     cancel_req_.ServerFlag = serverflag;
     strcpy(cancel_req_.OrderNo, orderno);
 
-	clog_info("[%s] ReqOrderAction-:%s", module_name_, ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
+	clog_info("[%s] ReqOrderAction-:%s", 
+				module_name_, 
+				ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
 
 	clog_info("[%s]before ReqOrderAction", module_name_);
 
-	int ret = api_->CancelOrder(&sessionID,&cancel_req_);
+	int ret = api_->CancelOrder(&sessionID, &cancel_req_);
 
 	clog_info("[%s]after ReqOrderAction", module_name_);
 
@@ -231,28 +259,35 @@ int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
 					module_name_,latency); 
 #endif
 
-	if (ret != 0){
+	if (ret != 0)
+	{
 		clog_error("[%s] CancelOrder - return:%d, session_id:%u, "
 			"server flag:%c,order no:%s", 
-			module_name_,ret,sessionID,cancel_req_.ServerFlag,
+			module_name_,
+			ret,
+			sessionID,
+			cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
-	} else {
+	} 
+	else 
+	{
 		clog_info("[%s] CancelOrder - return:%d, session_id:%u, "
 			"server flag:%c,order no:%s", 
-			module_name_,ret,sessionID,cancel_req_.ServerFlag,
+			module_name_,
+			ret,
+			sessionID,
+			cancel_req_.ServerFlag,
 			cancel_req_.OrderNo);
 	}
 
 	return ret;
 }
 
-// done
 void TunnRptProducer::OnConnect()
 {
     clog_warning("[%s] OnConnect.", module_name_);
 }
 
-// done
 void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspInfo* loginRspInfo)
 {
     clog_warning("[%s] OnRspLogin: errorCode: %d, %s",
@@ -265,32 +300,27 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
 	m_UdpCertCode = loginRspInfo->UdpCertCode;
 }
 
-// done
 void TunnRptProducer::OnAPIReady()
 {
     clog_warning("[%s] OnAPIReady",module_name_);	
 }
 
-// done
 void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
 {
-    //clog_error("[%s] OnDisconnect, reasonCode:%d",module_name_,reasonCode);
+    clog_error("[%s] OnDisconnect, reasonCode:%d", module_name_, reasonCode);
 }
 
-// done
 void TunnRptProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode)
 {
     clog_warning("[%s] OnRspChangePassword.", module_name_);
 }
 
-// done
 void TunnRptProducer::OnRspSetReservedInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
 			const TAPISTR_50 info)
 {
     clog_warning("[%s] OnRspSetReservedInfo.", module_name_);
 }
 
-// done
 void TunnRptProducer::OnRspQryAccount(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
 			TAPIYNFLAG isLast, const TapAPIAccountInfo* info)
 {
@@ -312,7 +342,10 @@ void TunnRptProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode
 			TAPIYNFLAG isLast, const TapAPITradeContractInfo* info)
 {
     clog_warning("[%s] OnRspQryContract: sessionID:%u, errorCode:%d, isLast:%c, %s",
-        module_name_,sessionID, errorCode, isLast, 
+        module_name_,
+		sessionID, 
+		errorCode, 
+		isLast, 
 		ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
@@ -321,11 +354,12 @@ void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
     clog_warning("[%s] OnRtnContract.", module_name_);
 }
 
-// done
 void TunnRptProducer::End()
 {
-	if(!ended_){ 
-		if (api_) {
+	if(!ended_)
+	{ 
+		if (api_) 
+		{
 			FreeTapTradeAPI(api_);
 			api_ = NULL;
 		}
@@ -338,30 +372,40 @@ void TunnRptProducer::End()
 
 void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 {
-    clog_info("[%s] OnRtnOrder:%s",module_name_, 
+    clog_info("[%s] OnRtnOrder:%s",
+				module_name_, 
 				ESUNNYDatatypeFormater::ToString(info).c_str());
 
 	if (ended_) return;
 
+
+	// TODO: udp version need not session
+	
 	bool session_found = false;
-	while(!session_found){
+	while(!session_found)
+	{
 		{
 			std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
 			auto it = session_localorderid_map_.find(info->SessionID);
-			if(it == session_localorderid_map_.end()){
+			if(it == session_localorderid_map_.end())
+			{
 				// api_->InsertOrder函数返回，有时会后于OnRtnOrder到达
 				session_found = false;
-			}else{
+			}
+			else
+			{
 				session_found = true;
 			}
 		}
 
-		if (!session_found){
+		if (!session_found)
+		{
 			clog_error("[%s] can not find localorderid by session:%u,err:%u",module_name_, 
 				info->SessionID,info->ErrorCode);
 			std::this_thread::sleep_for (std::chrono::milliseconds(5));
 		}
 	}
+	// TODO: note that udp version how to get local order id
 	long localorderid = session_localorderid_map_[info->SessionID];
 	int32_t cursor = Push();
 	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
@@ -373,7 +417,8 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_SUBMIT ||
 		info->OrderInfo->OrderState==TAPI_ORDER_STATE_QUEUED ||
 		info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELING
-		) {// discard these reports
+		) 
+	{// discard these reports
 		return;
 	}
 
@@ -396,8 +441,10 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 				ESUNNYDatatypeFormater::ToString(info).c_str());
 	}
 
-	clog_info("[%s] cursor:%d,OnRtnOrder:%s",module_name_,cursor, 
-			ESUNNYDatatypeFormater::ToString(info).c_str());
+	clog_info("[%s] cursor:%d,OnRtnOrder:%s",
+				module_name_,
+				cursor, 
+				ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
 // 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.
@@ -405,8 +452,11 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 void TunnRptProducer::OnRspOrderAction(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
 			const TapAPIOrderActionRsp* info)
 {
-    clog_info("[%s] OnRspOrderAction:sessionID:%u,errorCode:%d, %s",
-        module_name_,sessionID, errorCode, ESUNNYDatatypeFormater::ToString(info).c_str());
+    clog_info("[%s] OnRspOrderAction:sessionID:%u,errorCode:%d, %s", 
+				module_name_,
+				sessionID, 
+				errorCode, 
+				ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
 void TunnRptProducer::OnRspQryOrder(TAPIUINT32 sessionID, TAPIINT32 errorCode,
@@ -545,23 +595,11 @@ void TunnRptProducer::InsertUdpOrder()
 {
 	// TODO: coding
     int iSeq = 1;
-    char ordbuf[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)] = {};
-    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ordbuf;
-    pHead->PackageFlag = UDP_Package_Flag;
-    pHead->ProtocolCode = CMD_UDPOrderInsert_Req;
     pHead->Sequence = ++iSeq;
-    pHead->Version = 1;
-    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ordbuf + sizeof (TapAPIUdpHead));
-    strncpy(pOrder->AccountNo, DEFAULT_ACCOUNT_NO, sizeof (pOrder->AccountNo) - 1);
     strncpy(pOrder->Contract, "SR909", sizeof (pOrder->Contract) - 1);
-    pOrder->OrderType = '2';
-    pOrder->TimeInForce = '0';
     pOrder->OrderSide = 'B';
     pOrder->PositionEffect = 'O';
-    pOrder->HedgeFlag = 'T';
     pOrder->OrderPrice = 4910;
-    //std::cout << "input order price:" << std::endl;
-    //std::cin >> pOrder->OrderPrice;
     pOrder->OrderQty = 1;
     ///timespec* abstime = (timespec*) & pOrder->ClientOrderNo;
     //clock_gettime(CLOCK_REALTIME, abstime);
@@ -574,6 +612,43 @@ void TunnRptProducer::InsertUdpOrder()
     
     if (sendto(m_udpFd, ordbuf, sizeof (ordbuf), 0, (struct sockaddr*) & server, len) != -1)
     {
+        char recvBuf[2048];
+        if (recvfrom(m_udpFd, recvBuf, sizeof (recvBuf), 0, (struct sockaddr*) & server, &len) != -1)
+        {
+            TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
+			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
+        }
         std::cout << "send order success" << std::endl;
+    }
+}
+
+void TunnRptProducer::CancelUdpOrder()
+{
+	// TODO: coding
+    int iSeq = 1;
+    char ordbuf[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderDeleteReq)] = {};
+    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ordbuf;
+    pHead->PackageFlag = UDP_Package_Flag;
+    pHead->ProtocolCode = CMD_UDPOrderDelete_Req;
+    pHead->Sequence = ++iSeq;
+    pHead->Version = 1;
+    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ordbuf + sizeof (TapAPIUdpHead));
+    strncpy(pOrder->AccountNo, DEFAULT_ACCOUNT_NO, sizeof (pOrder->AccountNo) - 1);
+    strncpy(pOrder->Contract, "SR909", sizeof (pOrder->Contract) - 1);
+    
+    struct sockaddr_in server;
+    socklen_t len = sizeof (server);
+    server.sin_family = AF_INET;
+    server.sin_port = htons(6869); ///server的监听端口
+    server.sin_addr.s_addr = inet_addr(DEFAULT_IP); ///server的地址
+    
+    if (sendto(m_udpFd, ordbuf, sizeof (ordbuf), 0, (struct sockaddr*) & server, len) != -1)
+    {
+        char recvBuf[2048];
+        if (recvfrom(m_udpFd, recvBuf, sizeof (recvBuf), 0, (struct sockaddr*) & server, &len) != -1)
+        {
+            TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
+			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
+        }
     }
 }

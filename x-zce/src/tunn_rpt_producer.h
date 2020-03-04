@@ -433,6 +433,7 @@ private:
 	IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
 
 	// udp order operation
+	int udp_sequence_;
 	void AuthUdpServer();
 	void InsertUdpOrder();
 	TAPIUINT64 m_UdpCertCode;

@@ -5,7 +5,24 @@
 
 TapAPINewOrder ESUNNYPacker::new_order_;
 
-// done
+// TODO: coding for udp version
+char ESUNNYPacker::new_udporder_[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)] = {};
+
+// TODO: coding for udp version
+void ESUNNYPacker::InitNewUdpOrder(const char *account)
+{
+    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ESUNNYPacker::new_udp;
+    pHead->PackageFlag = UDP_Package_Flag;
+    pHead->ProtocolCode = CMD_UDPOrderInsert_Req;
+    pHead->Version = 1;
+
+    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udp + sizeof(TapAPIUdpHead));
+    strcpy(pOrder->AccountNo, account);
+    pOrder->OrderType = TAPI_ORDER_TYPE_LIMIT;
+    pOrder->TimeInForce = TAPI_ORDER_TIMEINFORCE_GFD;
+    pOrder->HedgeFlag = TAPI_HEDGEFLAG_T;
+}
+
 void ESUNNYPacker::InitNewOrder(const char *account)
 {
     memset(&new_order_, 0, sizeof(new_order_));
@@ -36,6 +53,7 @@ void ESUNNYPacker::InitNewOrder(const char *account)
     //new_order_.OrderDeleteByDisConnFlag = APIYNFLAG_NO;
 }
 
+	// TODO: coding for udp version
 // done
 TapAPINewOrder* ESUNNYPacker::OrderRequest(const signal_t& sig,const char *account,
 			long localorderid,int32_t vol)

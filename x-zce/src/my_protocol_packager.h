@@ -16,6 +16,9 @@ public:
 
 private:
 	static TapAPINewOrder new_order_;
+	
+	// TODO: coding for udp version
+	char new_udporder_[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)];
 };
 
 #endif // MY_PROTOCOL_Packer_H_

@@ -183,7 +183,8 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPITradeLoginRspInfo* p)
             "StartTime=%s "
             "InitTime=%s "
 			"AuthType=%c"
-			"AuthDate=%s",
+			"AuthDate=%s"
+			"UdpCertCode=%llu",
             p->UserNo,                         ///< 用户编号
             p->UserType,                       ///< 用户类型
             p->UserName,                       ///< 用户名
@@ -198,7 +199,8 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPITradeLoginRspInfo* p)
             p->StartTime,                      ///< 系统启动时间
             p->InitTime,                        ///< 系统初始化时间
 			p->AuthType,
-			p->AuthDate
+			p->AuthDate,
+			p->UdpCertCode
             );
     } else {
         snprintf(buf, sizeof(buf), "structName=TapAPITradeLoginRspInfo <null>");

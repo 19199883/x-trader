@@ -518,32 +518,44 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 	return cancelled;
 }
 
-void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
+void UniConsumer::CancelOrder(Strategy &strategy, signal_t &sig)
 {
 	int32_t ori_sigid = sig.orig_sig_id;
 	bool cancelled = CancelPendingSig(strategy, ori_sigid);
 	if(cancelled) return;
 
-	if (!strategy.HasFrozenPosition()){
+	if (!strategy.HasFrozenPosition())
+	{
 		clog_info("[%s] strategy id:%d,sig id:%d. CancelOrder: ignore"
 					"request due to frozen position.", 
-					module_name_,sig.st_id,sig.sig_id); 
+					module_name_,
+					sig.st_id,
+					sig.sig_id); 
 		return;
 	}
 	
 	long ori_localorderid = strategy.GetLocalOrderID(sig.orig_sig_id);
 	int32_t counter = strategy.GetCounterByLocalOrderID(ori_localorderid);
 	clog_info("[%s] CancelOrder:strategy id:%d,sig id:%d,LocalOrderID:%ld; ", 
-				module_name_,sig.st_id,sig.sig_id, ori_localorderid); 
+				module_name_,
+				sig.st_id,
+				sig.sig_id, 
+				ori_localorderid); 
 
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 
+	// TODO: coding for udp version
 	// TODO: debug on 2019032
 	int rtn = this->tunn_rpt_producer_->ReqOrderAction(rptforcancel.ServerFlag, rptforcancel.OrderNo);
-	if(rtn != 0){
+	if(rtn != 0)
+	{
 		clog_error("[%s] CancelOrder - return:%d, strategy id:%d, sig_id:%d, orig_sig_id:%d, "
 				   "ori_localorderid:%d", 
-				   module_name_, rtn, sig.st_id, sig.sig_id, sig.orig_sig_id);
+				   module_name_, 
+				   rtn, 
+				   sig.st_id, 
+				   sig.sig_id, 
+				   sig.orig_sig_id);
 	}
 
 #ifdef LATENCY_MEASURE
@@ -581,32 +593,44 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	}
 
 	const char *account = tunn_rpt_producer_->GetAccount();
-	TapAPINewOrder* ord = ESUNNYPacker::OrderRequest(sig,account,localorderid,updated_vol);
+	// TODO: coding for udp version
+	TapAPINewOrder* ord = ESUNNYPacker::OrderRequest(sig, account, localorderid, updated_vol);
 	TAPIUINT32 session_id;
 
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
-	bool result = compliance_.TryReqOrderInsert(counter,sig.symbol,
-				ord->OrderPrice,ord->OrderSide, ord->PositionEffect);
-	if(result){
-		int rtn = tunn_rpt_producer_->ReqOrderInsert(localorderid,&session_id,ord);
+	bool result = compliance_.TryReqOrderInsert(
+				counter,
+				sig.symbol, 
+				ord->OrderPrice,
+				ord->OrderSide, 
+				ord->PositionEffect);
+	if(result)
+	{
+		// TODO: coding for udp version
+		int rtn = tunn_rpt_producer_->ReqOrderInsert(localorderid, &session_id, ord);
 
 ///////////////////////////////
 // lic
 		if(!legal_){ // illegal user
 			TapAPIQuoteWhole* data = l1_md_producer_->GetLastDataForIllegaluser(
 						ord->CommodityNo, ord->ContractNo);
-			while(true){
+			while(true)
+			{
 				if(TAPI_SIDE_BUY==ord->OrderSide){
 					ord->OrderPrice = data->QLimitUpPrice;// uppet limit
 				}
-				else if(TAPI_SIDE_SELL==ord->OrderSide){
+				else if(TAPI_SIDE_SELL==ord->OrderSide)
+				{
 					ord->OrderPrice = data->QLimitDownPrice;// lowerest limit
 				}
 				localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+		// TODO: coding for udp version
 				tunn_rpt_producer_->ReqOrderInsert(localorderid, &session_id, ord);
 				std::this_thread::sleep_for (std::chrono::milliseconds(500));
 			}
-		}else{
+		}
+		else
+		{
 			clog_info("[%s]legal user. legal_:%d", module_name_, legal_);
 		}
 
