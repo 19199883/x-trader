@@ -512,6 +512,7 @@ void TunnRptProducer::AuthUdpServer()
     pAuth->AuthCode = m_UdpCertCode;
     strncpy(pAuth->UserNo, config_.userid.c_str(), sizeof (pAuth->UserNo) - 1);
 
+	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
 					sendbuf, 
 					sizeof(sendbuf), 
@@ -548,14 +549,15 @@ int TunnRptProducer::NewUdpSequence()
 }
 
 // TODO: coding for udp version
-void TunnRptProducer::InsertUdpOrder(char *udporder)
+int TunnRptProducer::InsertUdpOrder(char *udporder)
 {
-    TapAPIUdpHead* pHead = udporder;
+    TapAPIUdpHead* pHead = (TapAPIUdpHead*)udporder;
     pHead->Sequence = NewUdpSequence();
     
+	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
 					udporder, 
-					ESUNNYPacker::UDP_ORDER_INSERT_LEN, 
+					UDP_ORDER_INSERT_LEN, 
 					0, 
 					(struct sockaddr*)&udpserver_, 
 					len) != -1)
@@ -572,14 +574,17 @@ void TunnRptProducer::InsertUdpOrder(char *udporder)
 			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
         }
     }
+
+	return 0;
 }
 
 // TODO: coding for udp version
-void TunnRptProducer::CancelUdpOrder(char *deleteudporder)
+int TunnRptProducer::CancelUdpOrder(char *deleteudporder)
 {
     TapAPIUdpHead* pHead = (TapAPIUdpHead*)deleteudporder;
     pHead->Sequence = NewUdpSequence();
     
+	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
 					deleteudporder, 
 					UDP_ORDER_DELETE_LEN, 
@@ -599,6 +604,8 @@ void TunnRptProducer::CancelUdpOrder(char *deleteudporder)
 			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
         }
     }
+
+	return 0;
 }
 #else
 

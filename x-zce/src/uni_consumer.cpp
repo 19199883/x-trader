@@ -548,8 +548,7 @@ void UniConsumer::CancelOrder(Strategy &strategy, signal_t &sig)
 	// TODO: debug on 2019032
 #ifdef UPD_ORDER_OPERATION
 	char* deleteOrderBuf = ESUNNYPacker::DeleteUdpOrderRequest(rptforcancel.OrderNo);
-    TapAPIUdpOrderDeleteReq* pDeleteOrder = (TapAPIUdpOrderDeleteReq*)(deleteOrderBuf + sizeof(TapAPIUdpHead));
-	int rtn = this->tunn_rpt_producer_->CancelUdpOrder(pDeleteOrder );
+	int rtn = this->tunn_rpt_producer_->CancelUdpOrder(deleteOrderBuf);
 #else
 	int rtn = this->tunn_rpt_producer_->ReqOrderAction(
 				rptforcancel.ServerFlag, 
@@ -604,7 +603,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	// TODO: coding for udp version
 #ifdef UPD_ORDER_OPERATION
 	char* ordBuf = ESUNNYPacker::UdpOrderRequest(sig, account, localorderid, updated_vol);
-    TapAPIUdpOrderInsertReq* ord = (TapAPIUdpOrderInsertReq*) (orderBuf + sizeof(TapAPIUdpHead));
+    TapAPIUdpOrderInsertReq* ord = (TapAPIUdpOrderInsertReq*) (ordBuf + sizeof(TapAPIUdpHead));
 	bool result = compliance_.TryReqOrderInsert(
 				counter,
 				sig.symbol, 
@@ -625,7 +624,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	{
 		// TODO: coding for udp version
 #ifdef UPD_ORDER_OPERATION
-		int rtn = tunn_rpt_producer_->InsertUdpOrder(localorderid, &session_id, ordBuf);
+		int rtn = tunn_rpt_producer_->InsertUdpOrder(ordBuf);
 #else
 		int rtn = tunn_rpt_producer_->ReqOrderInsert(localorderid, &session_id, ord);
 #endif

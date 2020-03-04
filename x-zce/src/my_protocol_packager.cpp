@@ -39,10 +39,10 @@ void ESUNNYPacker::InitNewUdpOrder(const char *account)
 	// TODO: coding for udp version
 char* ESUNNYPacker::DeleteUdpOrderRequest(const char *orderNo)
 {
-    TapAPIUdpOrderDeleteReq* pDeleteOrder = (TapAPIUdpOrderDeleteReq*)(ESUNNYPacker::delete_udporder + sizeof(TapAPIUdpHead));
+    TapAPIUdpOrderDeleteReq* pDeleteOrder = (TapAPIUdpOrderDeleteReq*)(ESUNNYPacker::delete_udporder_ + sizeof(TapAPIUdpHead));
 	strcpy(pDeleteOrder->OrderNo, orderNo);
 
-	return ESUNNYPacker::delete_udporder;
+	return ESUNNYPacker::delete_udporder_;
 }
 
 	// TODO: coding for udp version
@@ -52,7 +52,7 @@ char* ESUNNYPacker::UdpOrderRequest(
 			long localorderid,
 			int32_t vol)
 {
-    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udporder + sizeof(TapAPIUdpHead));
+    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udporder_ + sizeof(TapAPIUdpHead));
 
 	sprintf(pOrder->ClientOrderNo, "%d", localorderid);
 	// contract
@@ -91,7 +91,7 @@ char* ESUNNYPacker::UdpOrderRequest(
 	// volume
     pOrder->OrderQty = vol;
 	
-	return ESUNNYPacker::new_udporder;
+	return ESUNNYPacker::new_udporder_;
 }
 #else
 void ESUNNYPacker::InitNewOrder(const char *account)

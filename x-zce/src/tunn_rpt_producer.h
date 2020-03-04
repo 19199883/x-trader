@@ -2,6 +2,9 @@
 #define __TUNN_RPT_PRODUCER_H__
 
 #include <mutex>          // std::mutex, std::lock_guard
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <array>
 #include <string>
 #include <unordered_map>
@@ -55,8 +58,8 @@ class TunnRptProducer: public ITapTradeAPINotify
 		void AuthUdpServer();
 		int InitUdpSequence();
 		int NewUdpSequence();
-		void InsertUdpOrder(char *udporder);
-		void CancelUdpOrder(char *deleteudporder);
+		int InsertUdpOrder(char *udporder);
+		int CancelUdpOrder(char *deleteudporder);
 #else
 		/*
 		 * things relating to esunny Api
@@ -438,8 +441,6 @@ private:
 	// udp order operation
 #ifdef UPD_ORDER_OPERATION
 	int udp_sequence_;
-	void AuthUdpServer();
-	void InsertUdpOrder();
 	TAPIUINT64 m_UdpCertCode;
 	int			m_udpFd;
     struct sockaddr_in udpserver_;
