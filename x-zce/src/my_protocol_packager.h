@@ -26,7 +26,7 @@ public:
 
 	// TODO: coding for udp version
 	static void InitDeleteUdpOrder();
-	static void InitNewUdpOrder(const char *account);
+	static void InitNewUdpOrder(const char *account, char *upperchannel);
 //#else
     static void InitNewOrder(const char *account);
 

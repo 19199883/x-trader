@@ -23,7 +23,7 @@ void ESUNNYPacker::InitDeleteUdpOrder()
 }
 
 // TODO: coding for udp version
-void ESUNNYPacker::InitNewUdpOrder(const char *account)
+void ESUNNYPacker::InitNewUdpOrder(const char *account, char *upperchannel)
 {
     TapAPIUdpHead* pHead = (TapAPIUdpHead*) ESUNNYPacker::new_udporder_;
     pHead->PackageFlag = UDP_Package_Flag;
@@ -35,6 +35,7 @@ void ESUNNYPacker::InitNewUdpOrder(const char *account)
     pOrder->OrderType = TAPI_ORDER_TYPE_LIMIT;
     pOrder->TimeInForce = TAPI_ORDER_TIMEINFORCE_GFD;
     pOrder->HedgeFlag = TAPI_HEDGEFLAG_T;
+    strcpy(pOrder->UpperChannelNo, upperchannel);
 }
 	// TODO: coding for udp version
 char* ESUNNYPacker::DeleteUdpOrderRequest(const char *orderNo)

@@ -9,7 +9,7 @@
 
 //#define LATENCY_MEASURE
 // 行情持久化开关
-#define PERSISTENCE_ENABLED
+//#define PERSISTENCE_ENABLED
 
 // software license
 #define SERVER_NAME  "zztest3"

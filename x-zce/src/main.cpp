@@ -47,6 +47,13 @@ int main(/*int argc, const char **argv*/)
 	clog_handler_push_process(clog_handler);
 
 	clog_warning("test..."); 
+
+#ifdef UPD_ORDER_OPERATION
+	clog_warning("tunnel is on UDP."); 
+#else
+	clog_warning("tunnel is on TCP."); 
+#endif
+
 #ifdef LATENCY_MEASURE
 	clog_warning("latency measure on"); 
 #else
@@ -63,7 +70,7 @@ int main(/*int argc, const char **argv*/)
 	clog_warning("server name:%s", SERVER_NAME); 
 
 	// version
-	clog_warning("ver:x-zce_md(%s)-2020-02-19", SERVER_NAME  ); 
+	clog_warning("ver:x-zce_trade(%s)-2020-03-6", SERVER_NAME  ); 
 	
 	struct vrt_queue  *queue;
 	int64_t  result;

@@ -33,6 +33,7 @@ struct Tunnconfig
 	char yield[20];
 	char udpserverip[20];
 	int udpserverport;
+	char UpperChannel[30];
 };
 
 struct TunnRpt

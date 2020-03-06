@@ -52,9 +52,11 @@ IPAndPortNum TunnRptProducer::ParseIPAndPortNum(const std::string &addr_cfg)
 }
 
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
-: module_name_("TunnRptProducer"),
-	 m_UdpCertCode(0),
+: module_name_("TunnRptProducer")
+#ifdef UPD_ORDER_OPERATION
+	 , m_UdpCertCode(0),
      m_udpFd(-1)
+#endif
 {
 	ended_ = false;
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
@@ -66,7 +68,7 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 
 	// TODO: coding for udp
 #ifdef UPD_ORDER_OPERATION
-	ESUNNYPacker::InitNewUdpOrder(GetAccount());
+	ESUNNYPacker::InitNewUdpOrder(GetAccount(), this->config_.UpperChannel);
 	ESUNNYPacker::InitDeleteUdpOrder();
 #else
 	ESUNNYPacker::InitNewOrder(GetAccount());
@@ -182,22 +184,28 @@ void TunnRptProducer::ParseConfig()
 		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
 
 		// TODO: coding for udp config
+#ifdef UPD_ORDER_OPERATION
 		strcpy(this->config_.udpserverip, tunn_node->Attribute("udpserverip"));
 		this->config_.udpserverport = atoi(tunn_node->Attribute("udpserverport"));
+		strcpy(this->config_.UpperChannel, tunn_node->Attribute("upperchannel"));
+
 		socklen_t len = sizeof (udpserver_);
 		udpserver_.sin_family = AF_INET;
 		udpserver_.sin_port = htons(this->config_.udpserverport); ///server的监听端口
 		udpserver_.sin_addr.s_addr = inet_addr(this->config_.udpserverip); ///server的地址
+		clog_warning("[%s] udp server ip: %s; udp server port: %d; upperchannel: %s",
+					module_name_, 
+					this->config_.udpserverip,
+					this->config_.udpserverport,
+					this->config_.UpperChannel);
+#endif
 
-		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s; "
-					"udp server ip: %s; udp server port: %d",
+		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s; " ,
 					module_name_, 
 					this->config_.address.c_str(), 
 					this->config_.brokerid.c_str(),
 					this->config_.userid.c_str(),
-					this->config_.password.c_str(),
-					this->config_.udpserverip,
-					this->config_.udpserverport);
+					this->config_.password.c_str());
 	} 
 	else 
 	{ 
@@ -230,8 +238,10 @@ void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspI
 	}
 	else
 	{
+#ifdef UPD_ORDER_OPERATION
 		m_UdpCertCode = loginRspInfo->UdpCertCode;
 		AuthUdpServer();
+#endif
 	}
 }
 
@@ -374,9 +384,11 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	vrt_producer_publish(producer_);
 
 	if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL ||
-		tunnrpt.ErrorID != TAPIERROR_SUCCEED){
-		clog_error("[%s] OnRtnOrder:%s",module_name_, 
-				ESUNNYDatatypeFormater::ToString(info).c_str());
+		tunnrpt.ErrorID != TAPIERROR_SUCCEED)
+	{
+		clog_error("[%s] OnRtnOrder:%s",
+					module_name_, 
+					ESUNNYDatatypeFormater::ToString(info).c_str());
 	}
 
 	clog_info("[%s] cursor:%d,OnRtnOrder:%s",
@@ -529,7 +541,7 @@ void TunnRptProducer::AuthUdpServer()
 						&len) != -1)
         {
             TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
-			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
+			clog_info("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
         }
     }
 }
@@ -571,7 +583,7 @@ int TunnRptProducer::InsertUdpOrder(char *udporder)
 						&len) != -1)
         {
             TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
-			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
+			clog_info("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
         }
     }
 
@@ -601,7 +613,7 @@ int TunnRptProducer::CancelUdpOrder(char *deleteudporder)
 						&len) != -1)
         {
             TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
-			clog_warning("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
+			clog_info("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
         }
     }
 
