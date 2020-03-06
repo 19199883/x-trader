@@ -179,6 +179,12 @@ targetfile="x-trader.log"
 targetproc="x-day211"
 monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
 
+remoteip="-p 8015 u910019@1.193.38.91"
+targetdir="/home/u910019/medi/day225/x-zce/"
+targetfile="x-trader.log"	
+targetproc="x-day225"
+monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
+
 echo "------------zztest3(zce_trade1) u910019@1.193.38.91:8012--------"
 remoteip="-p 8012 u910019@1.193.38.91"
 targetdir="/home/u910019/medi/day21-00/x-zce/"
