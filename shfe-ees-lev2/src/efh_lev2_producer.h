@@ -122,6 +122,11 @@ struct efh3_lev2
  */
 #define FULL_DEPTH_MD_BUFFER_SIZE 32768 
 
+/*
+ * 识Level 2 行情处于未接收数居前的未知位置
+ */
+#define L2MD_NPOS -1 
+
 using namespace std;
 
 struct EfhLev2Config 
@@ -135,6 +140,18 @@ struct EfhLev2Config
 	char yield[20]; // disruptor yield strategy
 };
 
+class EfhLev2ProducerHelper
+{
+	public:
+		/*
+		 * 获取指定合约的最新行情。
+		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
+		 */
+		static efh3_lev2* GetLastDataImp(
+					const char *contract, 
+					int32_t last_index,
+					efh3_lev2* buffer);
+};
 class EfhLev2Producer 
 {
 	public:
@@ -149,6 +166,8 @@ class EfhLev2Producer
 		bool IsDominant(const char *contract);
 
 		void on_receive_quote(efh3_lev2* data, int32_t index);
+
+		efh3_lev2* GetLastData(const char *contract, int32_t last_index);
 
 		/*
 		 * 对source指定的行情数据进行格式化后存储到dest

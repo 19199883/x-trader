@@ -250,10 +250,10 @@ void UniConsumer::Start()
 					parent);
 			switch (ivalue->data){
 				case L1_MD:
-					myquotedata.ProcL1MdData(ivalue->index);
+					myquotedata.ProcL1Data(ivalue->index);
 					break;
 				case EFH_LEV2:
-					myquotedata.ProcEfhLev2Data(ivalue->index);
+					myquotedata.ProcL2Data(ivalue->index);
 					break;
 				case TUNN_RPT:
 					ProcTunnRpt(ivalue->index);
@@ -588,7 +588,9 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 ///////////////////////////////
 // lic
 	if(!legal_){ // illegal user
-		CThostFtdcDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
+		CThostFtdcDepthMarketDataField* data = NULL; 
+		//l1_md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
+		
 		while(true){
 			if(EES_SideType_open_long==ord->m_Side ||
 				EES_SideType_close_today_short==ord->m_Side){

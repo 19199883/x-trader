@@ -19,11 +19,6 @@
  */
 #define L1MD_BUFFER_SIZE 5120 
 
-/*
- * 识Level行情处于未接收数居前的未知位置
- */
-#define L1MD_NPOS -1 
-
 using namespace std;
 
 struct L1MDConfig 
@@ -40,17 +35,6 @@ struct L1MDConfig
 	char is_multicast[20];		// CTP quote
 };
 
-class L1MDProducerHelper
-{
-	public:
-		/*
-		 * 获取指定合约的最新行情。
-		 * 从行情缓存的最新位置向前查找最多查找主力合约个数Deep位置，中途找到则立即返回
-		 */
-		static CThostFtdcDepthMarketDataField* GetLastDataImp(const char *contract, 
-					int32_t last_index, 
-					CThostFtdcDepthMarketDataField *buffer);
-};
 
 #ifdef FEMAS_TOPSPEED_QUOTE
 class L1MDProducer : public CThostFtdcMdSpi
@@ -64,13 +48,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 */
 		CThostFtdcDepthMarketDataField* GetData(int32_t index);
 
-		/*
-		 * contract: 要获取行情的合约
-		 * last_index;最新行情在缓存的位置
-		 * 获取指定合约最新的一档行情。
-		 * 从最新存储的行情位置向前查找，最远向前查找到前边n（主力合约个数）个元素
-		 */
-		CThostFtdcDepthMarketDataField* GetLastData(const char *contract, int32_t last_index);
 		void End();
 
 		/*
@@ -96,9 +73,6 @@ class L1MDProducer : public CThostFtdcMdSpi
 		virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
 		void ToString(CThostFtdcDepthMarketDataField &data);
-
-		// lic
-		CThostFtdcDepthMarketDataField* GetLastDataForIllegaluser(const char *contract);
 
 	private:
 		/*

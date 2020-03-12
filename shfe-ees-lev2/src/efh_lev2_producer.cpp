@@ -28,6 +28,33 @@ using std::stringstream;
 using namespace std::placeholders;
 using namespace std;
 
+efh3_lev2* EfhLev2ProducerHelper::GetLastDataImp(
+			const char *contract, 
+			int32_t last_index,
+			efh3_lev2* buffer) 
+{
+	efh3_lev2* data = NULL;
+
+	int i = 0;
+	for(; i<FULL_DEPTH_MD_BUFFER_SIZE; i++)
+	{
+		int data_index = last_index - i;
+		if(data_index < 0)
+		{
+			data_index = data_index + FULL_DEPTH_MD_BUFFER_SIZE;
+		}
+
+		efh3_lev2 &tmp = buffer[data_index];
+		if(IsEqualContract((char*)contract, (char*)tmp.m_symbol))
+		{
+			data = &tmp; 
+			break;
+		}
+	}
+
+	return data;
+}
+
 EfhLev2Producer::EfhLev2Producer(struct vrt_queue  *queue)
 :module_name_("EfhLev2Producer")
 {
@@ -140,6 +167,15 @@ int32_t EfhLev2Producer::Push()
 efh3_lev2* EfhLev2Producer::GetData(int32_t index)
 {
 	return &shfemarketdata_buffer_[index];
+}
+
+efh3_lev2* EfhLev2Producer::GetLastData(const char *contract, int32_t last_index)
+{
+	efh3_lev2* data = EfhLev2ProducerHelper::GetLastDataImp( 
+					contract,
+					last_index,
+					shfemarketdata_buffer_);
+	return data;
 }
 
 bool EfhLev2Producer::IsDominant(const char *contract)
