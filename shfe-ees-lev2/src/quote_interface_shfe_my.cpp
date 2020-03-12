@@ -58,9 +58,9 @@ void MYQuoteData::ProcL1Data(int32_t index)
 			l1_data->PreSettlementPrice = InvalidToZeroD(l1_data->PreSettlementPrice);			
 			//l1_data->PreDelta =		  InvalidToZeroD(l1_data->PreDelta);
 			//l1_data->CurrDelta =		  InvalidToZeroD(l1_data->CurrDelta);
+			l1_data->LastPrice =		  InvalidToZeroD(l1_data->LastPrice);														
 
 			// the below is from sfh_lev2
-			l1_data->LastPrice =		  InvalidToZeroD(l2_data->m_last_px);														
 			l1_data->Volume =					   l2_data->m_last_share;
 			l1_data->Turnover =     InvalidToZeroD(l2_data->m_turnover);
 			l1_data->OpenInterest = InvalidToZeroD(l2_data->m_open_interest);	
