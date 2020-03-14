@@ -48,6 +48,7 @@ class L1MDProducer : public CThostFtdcMdSpi
 		 */
 		CThostFtdcDepthMarketDataField* GetData(int32_t index);
 
+		void Start();
 		void End();
 
 		/*

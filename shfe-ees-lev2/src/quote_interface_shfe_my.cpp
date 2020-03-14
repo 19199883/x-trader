@@ -28,15 +28,6 @@ void MYQuoteData::ProcL1Data(int32_t index)
 {
 	CThostFtdcDepthMarketDataField* l1_data = l1_md_producer_->GetData(index);
 
-	// discard option
-	if(strlen(l1_data->InstrumentID) > 6)
-	{
-		return;
-	}
-
-	if(!efhLev2Producer_->IsDominant(l1_data->InstrumentID)) return;
-
-
 	efh3_lev2* l2_data = NULL;
 	if(l2_md_last_index_ != L2MD_NPOS)
 	{
@@ -89,12 +80,6 @@ void MYQuoteData::ProcL1Data(int32_t index)
 			l1_data->AskVolume4 =                  l2_data->m_ask_4_share;
 			l1_data->AskVolume5 =                  l2_data->m_ask_5_share;			
 
-			// TODO: log
-			char buffer[5120];
-			//clog_info("[%s] send data:%s", 
-			//			module_name_,
-			//			ShfeLev2Formater::Format(*my_data,buffer));
-
 			if (lev2_data_handler_ != NULL) { lev2_data_handler_(l1_data); }
 
 #ifdef PERSISTENCE_ENABLED 
@@ -120,12 +105,10 @@ void MYQuoteData::ProcL2Data(int32_t index)
 {
 	l2_md_last_index_ = index;
 
-	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
-
 	// TODO: commented for debug
 	char buffer[2048];
 	clog_info("[%s] rev efh3_lev2:%s", 
 				module_name_,
-				EfhLev2Producer::Format(*efh_data, buffer));
+				EfhLev2Producer::Format(*efhLev2Producer_->GetData(index), buffer));
 }
 

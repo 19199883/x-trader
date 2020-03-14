@@ -241,6 +241,9 @@ void UniConsumer::Start()
 	auto f_shfemarketdata = std::bind(&UniConsumer::ProcShfeMarketData, this,_1);
 	myquotedata.SetQuoteDataHandler(f_shfemarketdata);
 
+	efhLev2_producer_->Start();
+	l1_md_producer_->Start();
+
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&

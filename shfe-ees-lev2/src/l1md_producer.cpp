@@ -25,7 +25,6 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	contract_count_ = LoadDominantContracts(config_.contracts_file, dominant_contracts_);
 
 	memset(&md_buffer_, 0, sizeof(md_buffer_));
-	InitMDApi();
 
 	this->producer_ = vrt_producer_new("l1md_producer", 1, queue);
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
@@ -36,6 +35,11 @@ L1MDProducer::L1MDProducer(struct vrt_queue  *queue) : module_name_("L1MDProduce
 	}else if(strcmp(config_.yield, "hybrid") == 0){
 		this->producer_ ->yield	 = vrt_yield_strategy_hybrid();
 	}
+}
+
+void L1MDProducer::Start()
+{
+	InitMDApi();
 }
 
 void L1MDProducer::ParseConfig()
@@ -227,13 +231,15 @@ void L1MDProducer::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *data)
 	if (ended_) return;
 
 	// discard option
-	if(strlen(data->InstrumentID) > 6)
-	{
-		return;
-	}
+	// 注释掉，因为ctp行情是订阅来决定行情接收的。
+	// if(strlen(data->InstrumentID) > 6)
+	//{
+	//	return;
+	//}
 
 	// 抛弃非主力合约
-	if(!(IsDominant(data->InstrumentID))) return;
+	// 注释掉，因为ctp行情是订阅来决定行情接收的。
+	// if(!(IsDominant(data->InstrumentID))) return;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;

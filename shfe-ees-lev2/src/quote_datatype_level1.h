@@ -1,5 +1,12 @@
 ﻿#pragma once
 
+#include <chrono>
+#include <ctime>
+#include <ratio>
+#include <ctime>
+
+
+using namespace std::chrono;
 #include "ThostFtdcMdApi.h"
 #include "quote_cmn_utility.h"
 
@@ -24,6 +31,7 @@ public:
 			"InstrumentID:%s; "
 			"UpdateTime[9]:%s; "
 			"UpdateMillisec:%d; "
+			"timestamp:%lld"
 			"TradingDay:%s; "
 			"LastPrice:%.4f; "
 			"PreSettlementPrice:%.4f; "
@@ -35,8 +43,8 @@ public:
 			"Volume:%d; "
 			"Turnover:%.4f; "
 			"OpenInterest:%.4f; "
-			//"ClosePrice:%.4f; "
-			//"SettlementPrice:%.4f; "
+			"ClosePrice:%.4f; "
+			"SettlementPrice:%.4f; "
 			"UpperLimitPrice:%.4f; "
 			"LowerLimitPrice:%.4f; "
 			//"PreDelta:%.4f; "
@@ -65,6 +73,7 @@ public:
 			source.InstrumentID,
 			source.UpdateTime,
 			source.UpdateMillisec,
+			(int64_t)high_resolution_clock::now().time_since_epoch().count(),
 			source.TradingDay,
 			InvalidToZeroD(source.LastPrice),
 			InvalidToZeroD(source.PreSettlementPrice),
@@ -76,8 +85,8 @@ public:
 			source.Volume,
 			InvalidToZeroD(source.Turnover),
 			InvalidToZeroD(source.OpenInterest),
-			//source.ClosePrice,
-			//source.SettlementPrice,
+			source.ClosePrice,
+			source.SettlementPrice,
 			InvalidToZeroD(source.UpperLimitPrice),
 			InvalidToZeroD(source.LowerLimitPrice),
 			//InvalidToZeroD(source.PreDelta),

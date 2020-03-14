@@ -80,6 +80,10 @@ EfhLev2Producer::EfhLev2Producer(struct vrt_queue  *queue)
 		producer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
+}
+
+void EfhLev2Producer::Start()
+{
 	int err = InitMDApi();
 	if(!err)
 	{
@@ -131,6 +135,15 @@ int EfhLev2Producer::InitMDApi()
 
 void EfhLev2Producer::on_receive_quote(efh3_lev2* data, int32_t index)
 {
+	// discard option
+	if(strlen(data->m_symbol) > 6)
+	{
+		return;
+	}
+
+	// 抛弃非主力合约
+	if(!(IsDominant(data->m_symbol))) return;
+
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);

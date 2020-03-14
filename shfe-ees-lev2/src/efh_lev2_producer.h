@@ -159,6 +159,7 @@ class EfhLev2Producer
 		~EfhLev2Producer();
 
 		efh3_lev2* GetData(int32_t index);
+		void Start();
 		void End();
 		/*
 		 * check whether the given contract is dominant.
@@ -174,7 +175,7 @@ class EfhLev2Producer
 		 */
 		static char* Format(efh3_lev2 &source, char *dest)
 		{
-				//long timestamp = (long)high_resolution_clock::now().time_since_epoch().count();
+				//long timestamp = ;
 			
 			sprintf (dest,
 				"efh3_lev2 "				
@@ -182,63 +183,63 @@ class EfhLev2Producer
 				"m_sequence:%u; "
 				"UpdateTime[9]:%s; "
 				"UpdateMillisec:%d; "
-				//"timestamp:%ld"
-				//"m_symbol_code:%d; "
-				//"LastPrice:%.4f; "												
-				//"Volume:%d; "
-				//"Turnover:%.4f; "								
-				//"m_open_interest:%.4f; "
-				//"BidPrice1:%.4f; "
-				//"BidVolume1:%d; "
-				//"AskPrice1:%.4f; "
-				//"AskVolume1:%d; "
-				//"BidPrice2:%.4f; "
-				//"BidVolume2:%d; "
-				//"AskPrice2:%.4f; "
-				//"AskVolume2:%d; "
-				//"BidPrice3:%.4f; "
-				//"BidVolume3:%d; "
-				//"AskPrice3:%.4f; "
-				//"AskVolume3:%d; "
-				//"BidPrice4:%.4f; "
-				//"BidVolume4:%d; "
-				//"AskPrice4:%.4f; "
-				//"AskVolume4:%d; "
-				//"BidPrice5:%.4f; "
-				//"BidVolume5:%d; "
-				//"AskPrice5:%.4f; "
-				//"AskVolume5:%d; "
+				"timestamp:%lld"
+				"m_symbol_code:%d; "
+				"LastPrice:%.4f; "												
+				"Volume:%d; "
+				"Turnover:%.4f; "								
+				"m_open_interest:%.4f; "
+				"BidPrice1:%.4f; "
+				"BidVolume1:%d; "
+				"AskPrice1:%.4f; "
+				"AskVolume1:%d; "
+				"BidPrice2:%.4f; "
+				"BidVolume2:%d; "
+				"AskPrice2:%.4f; "
+				"AskVolume2:%d; "
+				"BidPrice3:%.4f; "
+				"BidVolume3:%d; "
+				"AskPrice3:%.4f; "
+				"AskVolume3:%d; "
+				"BidPrice4:%.4f; "
+				"BidVolume4:%d; "
+				"AskPrice4:%.4f; "
+				"AskVolume4:%d; "
+				"BidPrice5:%.4f; "
+				"BidVolume5:%d; "
+				"AskPrice5:%.4f; "
+				"AskVolume5:%d; "
 				,
 				source.m_symbol,
 				source.m_sequence,
 				source.m_update_time,
-				source.m_millisecond
-				//timestamp,
-				//source.m_symbol_code,
-				//source.m_last_px,															
-				//source.m_last_share,
-				//source.m_turnover,				
-				//source.m_open_interest,
-				//source.m_bid_1_px,
-				//source.m_bid_1_share,
-				//source.m_ask_1_px,
-				//source.m_ask_1_share,
-				//source.m_bid_2_px,
-				//source.m_bid_2_share,
-				//source.m_ask_2_px,
-				//source.m_ask_2_share,
-				//source.m_bid_3_px,
-				//source.m_bid_3_share,
-				//source.m_ask_3_px,
-				//source.m_ask_3_share,
-				//source.m_bid_4_px,
-				//source.m_bid_4_share,
-				//source.m_ask_4_px,
-				//source.m_ask_4_share,
-				//source.m_bid_5_px,
-				//source.m_bid_5_share,
-				//source.m_ask_5_px,
-				//source.m_ask_5_share
+				source.m_millisecond,
+				(int64_t)(high_resolution_clock::now().time_since_epoch().count()),
+				source.m_symbol_code,
+				source.m_last_px,															
+				source.m_last_share,
+				source.m_turnover,				
+				source.m_open_interest,
+				source.m_bid_1_px,
+				source.m_bid_1_share,
+				source.m_ask_1_px,
+				source.m_ask_1_share,
+				source.m_bid_2_px,
+				source.m_bid_2_share,
+				source.m_ask_2_px,
+				source.m_ask_2_share,
+				source.m_bid_3_px,
+				source.m_bid_3_share,
+				source.m_ask_3_px,
+				source.m_ask_3_share,
+				source.m_bid_4_px,
+				source.m_bid_4_share,
+				source.m_ask_4_px,
+				source.m_ask_4_share,
+				source.m_bid_5_px,
+				source.m_bid_5_share,
+				source.m_ask_5_px,
+				source.m_ask_5_share
 					);
 
 			return dest;
