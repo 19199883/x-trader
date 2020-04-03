@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <dlfcn.h>
+#include <ctime>
+#include <ratio>
+#include <chrono>
 #include <string>
 
 #include <signal.h>     /* signal */
@@ -31,7 +34,7 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_INFO);
+	clog_set_minimum_level(CLOG_LEVEL_WARNING);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	Log::fp = fp;
@@ -65,7 +68,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// version
-	clog_warning("version: shfe-lev2-md_info-03-14"); 
+	clog_warning("version: shfe-lev2-md-03-18"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;

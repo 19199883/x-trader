@@ -90,7 +90,27 @@ void MYQuoteData::ProcL1Data(int32_t index)
 		}
 		else
 		{
-			clog_warning("[%s] can not find lev2 for:%s", module_name_, l2_data->m_symbol);
+			l1_data->BidPrice2 =    InvalidToZeroD(l1_data->BidPrice2);
+			l1_data->BidPrice3 =    InvalidToZeroD(l1_data->BidPrice3);
+			l1_data->BidPrice4 =    InvalidToZeroD(l1_data->BidPrice4);
+			l1_data->BidPrice5 =    InvalidToZeroD(l1_data->BidPrice5);
+			
+			l1_data->AskPrice2 =    InvalidToZeroD(l1_data->AskPrice2);
+			l1_data->AskPrice3 =    InvalidToZeroD(l1_data->AskPrice3);
+			l1_data->AskPrice4 =    InvalidToZeroD(l1_data->AskPrice4);
+			l1_data->AskPrice5 =    InvalidToZeroD(l1_data->AskPrice5);
+			
+			if (lev2_data_handler_ != NULL) { lev2_data_handler_(l1_data); }
+
+#ifdef PERSISTENCE_ENABLED 
+			timeval t;
+			gettimeofday(&t, NULL);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, l1_data);
+#endif
+			char buffer[2048];
+			clog_warning("[%s] can not find lev2 for:%s", 
+						module_name_,  
+						ShfeLev2Formater::Format(*l1_data, buffer));
 		}
 	}
 }
