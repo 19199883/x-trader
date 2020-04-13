@@ -172,14 +172,14 @@ monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" 
 ############## shfe end ##############
 
 ############## zce start ##############
-echo "------------zz16f-hq(zce_quote) u910019@1.193.38.91:8015--------"
-remoteip="-p 8015 u910019@1.193.38.91"
+echo "------------zz16f-hq(zce_quote_new) u910019@1.193.38.91:8017--------"
+remoteip="-p 8017 u910019@1.193.38.91"
 targetdir="/home/u910019/medi/night211/x-zce/"
 targetfile="x-trader.log"	
 targetproc="x-night211"
 monitor_trader "$remoteip" "$interval" "$targetdir" "$targetfile" "$targetproc" &
 
-remoteip="-p 8015 u910019@1.193.38.91"
+remoteip="-p 8017 u910019@1.193.38.91"
 targetdir="/home/u910019/medi/night225/x-zce/"
 targetfile="x-trader.log"	
 targetproc="x-night225"
