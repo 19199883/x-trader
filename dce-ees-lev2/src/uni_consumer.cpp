@@ -54,21 +54,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue,
 	EESFieldConverter::InitNewOrder(tunn_rpt_producer_->config_);
 	EESFieldConverter::InitCancelOrder(tunn_rpt_producer_->config_);
 
-#if FIND_STRATEGIES == 1
-	unordered_multimap 
-	clog_warning("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-	memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
-	memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
-	clog_warning("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
-#endif	
-
-#if FIND_STRATEGIES == 3 // strcmp
-	clog_warning("[%s] method for finding strategies by contract:strcmp", module_name_);
-#endif
-
 	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, STRA_TABLE_SIZE);
 
 	// lic, 非法用户，进程降级为hybrid
@@ -76,11 +61,16 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue,
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	if(strcmp(config_.yield, "threaded") == 0){
+	if(strcmp(config_.yield, "threaded") == 0)
+	{
 		this->consumer_ ->yield = vrt_yield_strategy_threaded();
-	}else if(strcmp(config_.yield, "spin") == 0){
+	}
+	else if(strcmp(config_.yield, "spin") == 0)
+	{
 		this->consumer_ ->yield = vrt_yield_strategy_spin_wait();
-	}else if(strcmp(config_.yield, "hybrid") == 0){
+	}
+	else if(strcmp(config_.yield, "hybrid") == 0)
+	{
 		this->consumer_ ->yield = vrt_yield_strategy_hybrid();
 	}
 
@@ -129,7 +119,7 @@ void UniConsumer::ParseConfig()
 		clog_warning("[%s] yield:%s", module_name_, config_.yield); 
 	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
 
-    TiXmlElement *strategies_ele = root->FirstChildElement("models");
+    TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
 	if (strategies_ele != 0){
 		TiXmlElement *strategy_ele = strategies_ele->FirstChildElement();
 		while (strategy_ele != 0){
@@ -193,28 +183,6 @@ void UniConsumer::CreateStrategies()
 		FILE *log_file = strategy.get_log_file();
 		WriteLogTitle(log_file);
 		WriteStrategyLog(strategy);
-
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-		// only support one contract for one strategy
-		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-		int key1 = 0;
-		int key2 = 0;
-		GetKeys(setting.config.symbols[0].name,key1,key2);
-		int32_t cur_node = -1;
-		if (cont_straidx_map_table_[key1][key2] < 0){
-			cur_node = GetEmptyNode();
-			cont_straidx_map_table_[key1][key2] = cur_node;
-		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] < 0){
-				stra_idx_table_[cur_node][i] = strategy_counter_;
-				break;
-			}
-		}
-#endif
 
 		clog_warning("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),

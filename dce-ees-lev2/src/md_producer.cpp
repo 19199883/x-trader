@@ -401,10 +401,10 @@ void MDProducer::RevData()
 	int udp_fd = InitMDApi();
 	udp_fd_ = udp_fd; 
     if (udp_fd < 0) {
-        clog_error("[%s] MY_SHFE_MD - CreateUdpFD failed.",module_name_);
+        clog_error("[%s] MY_DCE_MD - CreateUdpFD failed.",module_name_);
         return;
     }else{
-        clog_warning("[%s] MY_SHFE_MD - CreateUdpFD succeeded.",module_name_);
+        clog_warning("[%s] MY_DCE_MD - CreateUdpFD succeeded.",module_name_);
 	}
 
     clog_debug("[%s] DCE_UDP-sizeof(MDBestAndDeep):%u", module_name_, sizeof(MDBestAndDeep));
@@ -415,8 +415,13 @@ void MDProducer::RevData()
     int data_len = 0;
     sockaddr_in src_addr;
     unsigned int addr_len = sizeof(sockaddr_in);
-    while (!ended_){
+    while (!ended_)
+	{
         data_len = recvfrom(udp_fd, buf, 2048, 0, (sockaddr *) &src_addr, &addr_len);
+		// TODO:debug
+        //clog_warning("[%s] MY_DCE_MD - enter while.",module_name_);
+
+
 
         if (data_len > 0){
             int type = (int) buf[0];
@@ -425,14 +430,14 @@ void MDProducer::RevData()
 
 
 				// TODO: debug
-				//clog_info("[%s] rev eMDBestAndDeep contract: %s",module_name_, p->Contract);
+				clog_info("[%s] rev eMDBestAndDeep contract: %s",module_name_, p->Contract);
 
 				if(!(IsDominant(p->Contract))) continue; // 抛弃非主力合约
 
                 Convert(*p, bestanddeep_);
 
 				// TODO: debug
-				//clog_info("[%s] rev dominant  eMDBestAndDeep contract: %s",module_name_, p->Contract);
+				clog_info("[%s] rev dominant  eMDBestAndDeep contract: %s",module_name_, p->Contract);
 
 #ifdef PERSISTENCE_ENABLED 
     timeval t;

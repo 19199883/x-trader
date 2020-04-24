@@ -30,7 +30,7 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	Log::fp = fp;
@@ -72,16 +72,16 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// version
-	clog_warning("version: shfe-ctplev2-trade_2020-02-17"); 
+	clog_warning("version: dce-ees-lev2-trade_2020-04-23"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;
 
 	rip_check(queue = vrt_queue_new("x-trader queue", vrt_hybrid_value_type(), QUEUE_SIZE));
-	tunnRptProducer = new TunnRptProducer(queue);
 	mdproducer = new MDProducer(queue);
 	tunnRptProducer = new TunnRptProducer(queue);
+	uniConsumer = new UniConsumer (queue, mdproducer, tunnRptProducer);
 	uniConsumer->Start();
 	fflush (fp);
 

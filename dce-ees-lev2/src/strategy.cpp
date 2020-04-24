@@ -489,8 +489,8 @@ int32_t Strategy::GetSignalIdxByLocalOrdId(long localordid)
 
 void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	//clog_info("[%s] strategy id:%d;rev MDBestAndDeep_MY contract:%s; time:%s", 
-	//			module_name_,GetId(), md->Contract, md->GenTime);
+	clog_info("[%s] strategy id:%d;rev MDBestAndDeep_MY contract:%s; time:%s", 
+				module_name_,GetId(), md->Contract, md->GenTime);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();

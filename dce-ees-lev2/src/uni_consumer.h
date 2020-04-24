@@ -57,26 +57,24 @@ class EESFieldConverter
 		{
 			strncpy(new_order_.m_Symbol, sig.symbol, sizeof(EES_Symbol));
 			new_order_.m_ClientOrderToken = localorderid; 
-			if(new_order_.m_Symbol[0]=='s' && new_order_.m_Symbol[1]=='c'){
-				new_order_.m_Exchange = EES_ExchangeID_ine;
-			}else{
-				new_order_.m_Exchange = EES_ExchangeID_shfe;
-			}
+			new_order_.m_Exchange = EES_ExchangeID_dce;
 			new_order_.m_Qty = vol;
 
-
 			if (sig.sig_act == signal_act_t::buy &&
-				sig.sig_openclose == alloc_position_effect_t::open_	){
+				sig.sig_openclose == alloc_position_effect_t::open_	)
+			{
 				new_order_.m_Price = sig.buy_price;
 				new_order_.m_Side = EES_SideType_open_long;
 			}
 			if (sig.sig_act == signal_act_t::buy &&
-				sig.sig_openclose == alloc_position_effect_t::close_){
+				sig.sig_openclose == alloc_position_effect_t::close_)
+			{
 				new_order_.m_Price = sig.buy_price;
 				new_order_.m_Side = EES_SideType_close_today_short;
 			}
 			if (sig.sig_act == signal_act_t::sell &&
-				sig.sig_openclose == alloc_position_effect_t::open_	){
+				sig.sig_openclose == alloc_position_effect_t::open_	)
+			{
 				new_order_.m_Price = sig.sell_price;
 				new_order_.m_Side = EES_SideType_open_short;
 			}

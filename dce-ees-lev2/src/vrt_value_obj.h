@@ -15,8 +15,8 @@
  * 锁仓，非锁仓开关.
  *  
  */
-#define LOCK_POSITION_ENABLE	// 开启锁仓  
-//#define LOCK_POSITION_DISNABLE	// 关闭锁仓  
+//#define LOCK_POSITION_ENABLE	// 开启锁仓  
+#define LOCK_POSITION_DISNABLE	// 关闭锁仓  
 
 // 延迟度量
 //#define LATENCY_MEASURE
