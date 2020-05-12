@@ -15,10 +15,6 @@ t_str1="02:25:00"
 t_str2="08:30:00"
 t_str3="14:59:00"
 t_str4="20:30:00"
-t1=`date -d "$t_str1" +%s`
-t2=`date -d "$t_str2" +%s`
-t3=`date -d "$t_str3" +%s`
-t4=`date -d "$t_str4" +%s`
 
 ###########################
 # 休市时间
@@ -32,14 +28,6 @@ rest_str5="13:30:00"
 rest_str6="15:00:00"
 rest_str7="21:00:00"
 rest_str8="23:00:00"
-rest1=`date -d "$rest_str1" +%s`
-rest2=`date -d "$rest_str2" +%s`
-rest3=`date -d "$rest_str3" +%s`
-rest4=`date -d "$rest_str4" +%s`
-rest5=`date -d "$rest_str5" +%s`
-rest6=`date -d "$rest_str6" +%s`
-rest7=`date -d "$rest_str7" +%s`
-rest8=`date -d "$rest_str8" +%s`
 
 # the directory where this script file is.
 function enter_cur_dir()
@@ -63,6 +51,11 @@ function enter_cur_dir()
 
 function exit_script()
 {
+	t1=`date -d "$t_str1" +%s`
+	t2=`date -d "$t_str2" +%s`
+	t3=`date -d "$t_str3" +%s`
+	t4=`date -d "$t_str4" +%s`
+
 	# TODO: debug 
 	#t_str="20:32:00"
 	#t=`date -d "$t_str" +%s`
@@ -100,6 +93,15 @@ function monitor_rt_md()
 
 		sleep ${interval}m
 		
+		rest1=`date -d "$rest_str1" +%s`
+		rest2=`date -d "$rest_str2" +%s`
+		rest3=`date -d "$rest_str3" +%s`
+		rest4=`date -d "$rest_str4" +%s`
+		rest5=`date -d "$rest_str5" +%s`
+		rest6=`date -d "$rest_str6" +%s`
+		rest7=`date -d "$rest_str7" +%s`
+		rest8=`date -d "$rest_str8" +%s`
+
 		result=`ssh $remoteip "find ${targetdir} -cmin $interval | grep ${targetfile}"`		
 		if [[ -z $result ]];then										
 			t=`date +%s`

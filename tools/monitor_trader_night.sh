@@ -15,10 +15,6 @@ t_str1="02:25:00"
 t_str2="08:30:00"
 t_str3="14:59:00"
 t_str4="20:30:00"
-t1=`date -d "$t_str1" +%s`
-t2=`date -d "$t_str2" +%s`
-t3=`date -d "$t_str3" +%s`
-t4=`date -d "$t_str4" +%s`
 
 # the directory where this script file is.
 function enter_cur_dir()
@@ -51,6 +47,11 @@ function monitor_rt_md()
 
 function exit_script()
 {
+	t1=`date -d "$t_str1" +%s`
+	t2=`date -d "$t_str2" +%s`
+	t3=`date -d "$t_str3" +%s`
+	t4=`date -d "$t_str4" +%s`
+
 	t=`date +%s`
 	echo "now: $t"
 	if [[ ($t -gt $t1 && $t -lt $t2) ||  ($t -gt $t3 && $t -lt $t4) ]]; then
