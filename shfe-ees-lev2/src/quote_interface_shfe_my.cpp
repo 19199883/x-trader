@@ -102,17 +102,18 @@ void MYQuoteData::ProcL1Data(int32_t index)
 			
 			if (lev2_data_handler_ != NULL) { lev2_data_handler_(l1_data); }
 
-#ifdef PERSISTENCE_ENABLED 
-			timeval t;
-			gettimeofday(&t, NULL);
-			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, l1_data);
-#endif
 			char buffer[2048];
 			clog_warning("[%s] can not find lev2 for:%s", 
 						module_name_,  
 						ShfeLev2Formater::Format(*l1_data, buffer));
 		}
 	}
+
+#ifdef PERSISTENCE_ENABLED 
+			timeval t;
+			gettimeofday(&t, NULL);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, l1_data);
+#endif
 }
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField*)> quote_handler)
