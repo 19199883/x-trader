@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=n
+DEBUG:=y
 TOP:=..
 DIST_DIR:=$(TOP)/x-zce/dist
 
