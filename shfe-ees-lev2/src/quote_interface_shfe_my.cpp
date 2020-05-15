@@ -117,13 +117,21 @@ void MYQuoteData::ProcEfhLev2Data(int32_t index)
 		else
 		{
 			CThostFtdcDepthMarketDataField my_data;
-			memset(&my_data, 0, sizeof(CThostFtdcDepthMarketDataField ));
+			memset(&my_data, 0, sizeof(CThostFtdcDepthMarketDataField));
+			strcpy(my_data.InstrumentID, efh_data->m_symbol);
+
 			CopyLev1ToLev2(&my_data, efh_data);
 
 #ifdef PERSISTENCE_ENABLED 
 			timeval t;
 			gettimeofday(&t, NULL);
 			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &my_data);
+
+			// TODO: log
+			char buffer[5120];
+			clog_info("[%s] new contract data:%s", 
+						module_name_,
+						ShfeLev2Formater::Format(my_data, buffer));
 #endif
 			clog_warning("[%s] can not find lev1 for:%s",module_name_, efh_data->m_symbol);
 		}
