@@ -1,4 +1,9 @@
 2020-5-15:
+shfe-ees-lev2:
+bug描述：
+新合约处理时，没有向目标对象拷贝合约数据，造成数据没有合约。
+
+2020-5-15:
 废除 github 的hzp-first-send-lev2分支，将其处理行情的代码
 合并到bdy-first-send-ctp-lev1（保留bdy-first-send-ctp-lev1
 分支的原因是：该分支存储了最新版的zce，dce的代码）.
