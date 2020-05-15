@@ -36,6 +36,8 @@ class DLL_PUBLIC MYQuoteData
 		MYQuoteData(const MYQuoteData & other);
 		MYQuoteData operator=(const MYQuoteData & other);
 
+		void CopyLev1ToLev2(CThostFtdcDepthMarketDataField* my_data, efh3_lev2* efh_data );
+
 	    EfhLev2Producer* efhLev2Producer_;
 		L1MDProducer* l1_md_producer_;
 		int32_t l1_md_last_index_;
