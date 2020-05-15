@@ -1,3 +1,10 @@
+2020-5-15:
+废除 github 的hzp-first-send-lev2分支，将其处理行情的代码
+合并到bdy-first-send-ctp-lev1（保留bdy-first-send-ctp-lev1
+分支的原因是：该分支存储了最新版的zce，dce的代码）.
+最新的bdy-first-send-ctp-lev1分支：其行情采用适合hzp的行情处理方式（废除bdy要求的方式，
+因bdy的策略失效了）
+
 shfe-ees-lev2：不管是否收到一档行情，都进行落地。
 				 这样可以落地所有合约的行情数据，
 				 然后根据这些文件更新all_contrs.txt，这样一档行情可以根据该文件订阅新的合约。

@@ -25,8 +25,7 @@ public:
 	 */
 	static char* Format(CThostFtdcDepthMarketDataField&source,char *dest)
 	{
-		
-		sprintf (dest,
+			sprintf (dest,
 			"CThostFtdcDepthMarketDataField  "
 			"InstrumentID:%s; "
 			"UpdateTime[9]:%s; "
@@ -114,5 +113,6 @@ public:
 			source.ActionDay);
 
 		return dest;
+	
 	}
 };

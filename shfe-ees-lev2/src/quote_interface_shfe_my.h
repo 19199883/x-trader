@@ -27,8 +27,8 @@ class DLL_PUBLIC MYQuoteData
 		~MYQuoteData();
 
 		void SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField *)> quote_handler);
-		void ProcL1Data(int32_t index);
-		void ProcL2Data(int32_t index);
+		void ProcL1MdData(int32_t index);
+		void ProcEfhLev2Data(int32_t index);
 
 		QuoteDataSave<CThostFtdcDepthMarketDataField> *p_shfe_lev2_data_save_;
 	private:
@@ -36,9 +36,11 @@ class DLL_PUBLIC MYQuoteData
 		MYQuoteData(const MYQuoteData & other);
 		MYQuoteData operator=(const MYQuoteData & other);
 
+		void CopyLev1ToLev2(CThostFtdcDepthMarketDataField* my_data, efh3_lev2* efh_data );
+
 	    EfhLev2Producer* efhLev2Producer_;
 		L1MDProducer* l1_md_producer_;
-		int32_t l2_md_last_index_;
+		int32_t l1_md_last_index_;
 	
 	private:
 		const char *module_name_;  

@@ -6,7 +6,7 @@ MYQuoteData::MYQuoteData(EfhLev2Producer *efhLev2_producer, L1MDProducer *l1_md_
 	l1_md_producer_(l1_md_producer),
 	module_name_("MYQuoteData")
 {
-	l2_md_last_index_ = L2MD_NPOS;
+	l1_md_last_index_ = L1MD_NPOS;
 
 #ifdef PERSISTENCE_ENABLED 
     p_shfe_lev2_data_save_ = new QuoteDataSave<CThostFtdcDepthMarketDataField>("shfe_lev2_data", SHFE_LEV2_DATA_QUOTE_TYPE);
@@ -24,96 +24,110 @@ MYQuoteData::~MYQuoteData()
 	clog_warning("[%s] ~MYQuoteData invoked.", module_name_);
 }
 
-void MYQuoteData::ProcL1Data(int32_t index)
+void MYQuoteData::CopyLev1ToLev2(CThostFtdcDepthMarketDataField* my_data, efh3_lev2* efh_data )
 {
-	CThostFtdcDepthMarketDataField* l1_data = l1_md_producer_->GetData(index);
+		// from level1
+		my_data->UpperLimitPrice =	  InvalidToZeroD(my_data->UpperLimitPrice);
+		my_data->LowerLimitPrice =	  InvalidToZeroD(my_data->LowerLimitPrice);
+		my_data->HighestPrice =		  InvalidToZeroD(my_data->HighestPrice);
+		my_data->LowestPrice =		  InvalidToZeroD(my_data->LowestPrice);
+		my_data->OpenPrice =		  InvalidToZeroD(my_data->OpenPrice);
+		my_data->ClosePrice =		  InvalidToZeroD(my_data->ClosePrice);
+		my_data->PreClosePrice =	  InvalidToZeroD(my_data->PreClosePrice);			
+		my_data->PreOpenInterest =	  InvalidToZeroD(my_data->PreOpenInterest);
+		my_data->SettlementPrice =	  InvalidToZeroD(my_data->SettlementPrice);
+		my_data->PreSettlementPrice = InvalidToZeroD(my_data->PreSettlementPrice);			
+		//my_data->PreDelta =			  InvalidToZeroD(my_data->PreDelta);
+		//my_data->CurrDelta =		  InvalidToZeroD(my_data->CurrDelta);
+		// the below is from sfh_lev2
+		my_data->LastPrice =	InvalidToZeroD(efh_data->m_last_px);															
+		my_data->Volume =					   efh_data->m_last_share;
+		my_data->Turnover =     InvalidToZeroD(efh_data->m_turnover);				
+		strcpy(my_data->UpdateTime,efh_data->m_update_time);
+		my_data->UpdateMillisec = efh_data->m_millisecond;
+		my_data->OpenInterest = InvalidToZeroD(efh_data->m_open_interest);	
+		// my_datalev2_data_ = efh_data->m_symbol_code;
+		my_data->BidPrice1 =    InvalidToZeroD(efh_data->m_bid_1_px);
+		my_data->BidPrice2 =    InvalidToZeroD(efh_data->m_bid_2_px);
+		my_data->BidPrice3 =    InvalidToZeroD(efh_data->m_bid_3_px);
+		my_data->BidPrice4 =    InvalidToZeroD(efh_data->m_bid_4_px);
+		my_data->BidPrice5 =    InvalidToZeroD(efh_data->m_bid_5_px);
+		
+		my_data->BidVolume1 =				   efh_data->m_bid_1_share;
+		my_data->BidVolume2 =				   efh_data->m_bid_2_share;
+		my_data->BidVolume3 =				   efh_data->m_bid_3_share;
+		my_data->BidVolume4 =				   efh_data->m_bid_4_share;
+		my_data->BidVolume5 =				   efh_data->m_bid_5_share;
+		
+		my_data->AskPrice1 =    InvalidToZeroD(efh_data->m_ask_1_px);
+		my_data->AskPrice2 =    InvalidToZeroD(efh_data->m_ask_2_px);
+		my_data->AskPrice3 =    InvalidToZeroD(efh_data->m_ask_3_px);
+		my_data->AskPrice4 =    InvalidToZeroD(efh_data->m_ask_4_px);
+		my_data->AskPrice5 =    InvalidToZeroD(efh_data->m_ask_5_px);
+		
+		my_data->AskVolume1 =                  efh_data->m_ask_1_share;		
+		my_data->AskVolume2 =                  efh_data->m_ask_2_share;
+		my_data->AskVolume3 =                  efh_data->m_ask_3_share;		
+		my_data->AskVolume4 =                  efh_data->m_ask_4_share;
+		my_data->AskVolume5 =                  efh_data->m_ask_5_share;			
 
-	efh3_lev2* l2_data = NULL;
-	if(l2_md_last_index_ != L2MD_NPOS)
+}
+
+void MYQuoteData::ProcEfhLev2Data(int32_t index)
+{
+	efh3_lev2* efh_data = efhLev2Producer_->GetData(index);
+
+	// TODO: commented for debug
+	//char buffer[2048];
+	//clog_info("[%s] rev efh3_lev2:%s", 
+	//			module_name_,
+	//			EfhLev2Producer::Format(*efh_data, buffer));
+
+	// discard option
+	if(strlen(efh_data->m_symbol) > 6)
 	{
-		 l2_data =  efhLev2Producer_->GetLastData(l1_data->InstrumentID, l2_md_last_index_);
-		if(NULL != l2_data)
+		return;
+	}
+
+	if(!efhLev2Producer_->IsDominant(efh_data->m_symbol)) return;
+
+
+	CThostFtdcDepthMarketDataField* my_data = NULL;
+	if(l1_md_last_index_ != L1MD_NPOS)
+	{
+		 my_data =  l1_md_producer_->GetLastData(efh_data->m_symbol, l1_md_last_index_);
+		if(NULL != my_data)
 		{	
-			// from level1
-			//strcpy(l1_data->UpdateTime, l2_data->m_update_time);
-			//l1_data->UpdateMillisec = l2_data->m_millisecond;
-			l1_data->UpperLimitPrice =	  InvalidToZeroD(l1_data->UpperLimitPrice);
-			l1_data->LowerLimitPrice =	  InvalidToZeroD(l1_data->LowerLimitPrice);
-			l1_data->HighestPrice =		  InvalidToZeroD(l1_data->HighestPrice);
-			l1_data->LowestPrice =		  InvalidToZeroD(l1_data->LowestPrice);
-			l1_data->OpenPrice =		  InvalidToZeroD(l1_data->OpenPrice);
-			l1_data->ClosePrice =		  InvalidToZeroD(l1_data->ClosePrice);
-			l1_data->PreClosePrice =	  InvalidToZeroD(l1_data->PreClosePrice);			
-			l1_data->PreOpenInterest =	  InvalidToZeroD(l1_data->PreOpenInterest);
-			l1_data->SettlementPrice =	  InvalidToZeroD(l1_data->SettlementPrice);
-			l1_data->PreSettlementPrice = InvalidToZeroD(l1_data->PreSettlementPrice);			
-			//l1_data->PreDelta =		  InvalidToZeroD(l1_data->PreDelta);
-			//l1_data->CurrDelta =		  InvalidToZeroD(l1_data->CurrDelta);
-			l1_data->LastPrice =		  InvalidToZeroD(l1_data->LastPrice);														
+			CopyLev1ToLev2(my_data, efh_data);
 
-			// the below is from sfh_lev2
-			l1_data->Volume =					   l2_data->m_last_share;
-			l1_data->Turnover =     InvalidToZeroD(l2_data->m_turnover);
-			l1_data->OpenInterest = InvalidToZeroD(l2_data->m_open_interest);	
-			// l2_datalev2_data_ = l2_data->m_symbol_code;
-			l1_data->BidPrice1 =    InvalidToZeroD(l2_data->m_bid_1_px);
-			l1_data->BidPrice2 =    InvalidToZeroD(l2_data->m_bid_2_px);
-			l1_data->BidPrice3 =    InvalidToZeroD(l2_data->m_bid_3_px);
-			l1_data->BidPrice4 =    InvalidToZeroD(l2_data->m_bid_4_px);
-			l1_data->BidPrice5 =    InvalidToZeroD(l2_data->m_bid_5_px);
-			
-			l1_data->BidVolume1 =				   l2_data->m_bid_1_share;
-			l1_data->BidVolume2 =				   l2_data->m_bid_2_share;
-			l1_data->BidVolume3 =				   l2_data->m_bid_3_share;
-			l1_data->BidVolume4 =				   l2_data->m_bid_4_share;
-			l1_data->BidVolume5 =				   l2_data->m_bid_5_share;
-			
-			l1_data->AskPrice1 =    InvalidToZeroD(l2_data->m_ask_1_px);
-			l1_data->AskPrice2 =    InvalidToZeroD(l2_data->m_ask_2_px);
-			l1_data->AskPrice3 =    InvalidToZeroD(l2_data->m_ask_3_px);
-			l1_data->AskPrice4 =    InvalidToZeroD(l2_data->m_ask_4_px);
-			l1_data->AskPrice5 =    InvalidToZeroD(l2_data->m_ask_5_px);
-			
-			l1_data->AskVolume1 =                  l2_data->m_ask_1_share;		
-			l1_data->AskVolume2 =                  l2_data->m_ask_2_share;
-			l1_data->AskVolume3 =                  l2_data->m_ask_3_share;		
-			l1_data->AskVolume4 =                  l2_data->m_ask_4_share;
-			l1_data->AskVolume5 =                  l2_data->m_ask_5_share;			
+			// TODO: log
+			char buffer[5120];
+			//clog_info("[%s] send data:%s", 
+			//			module_name_,
+			//			ShfeLev2Formater::Format(*my_data,buffer));
 
-			if (lev2_data_handler_ != NULL) { lev2_data_handler_(l1_data); }
+			if (lev2_data_handler_ != NULL) { lev2_data_handler_(my_data); }
 
 #ifdef PERSISTENCE_ENABLED 
 			timeval t;
 			gettimeofday(&t, NULL);
-			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, l1_data);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, my_data);
 #endif
 		}
 		else
 		{
-			l1_data->BidPrice2 =    InvalidToZeroD(l1_data->BidPrice2);
-			l1_data->BidPrice3 =    InvalidToZeroD(l1_data->BidPrice3);
-			l1_data->BidPrice4 =    InvalidToZeroD(l1_data->BidPrice4);
-			l1_data->BidPrice5 =    InvalidToZeroD(l1_data->BidPrice5);
-			
-			l1_data->AskPrice2 =    InvalidToZeroD(l1_data->AskPrice2);
-			l1_data->AskPrice3 =    InvalidToZeroD(l1_data->AskPrice3);
-			l1_data->AskPrice4 =    InvalidToZeroD(l1_data->AskPrice4);
-			l1_data->AskPrice5 =    InvalidToZeroD(l1_data->AskPrice5);
-			
-			if (lev2_data_handler_ != NULL) { lev2_data_handler_(l1_data); }
-
-			char buffer[2048];
-			clog_warning("[%s] can not find lev2 for:%s", 
-						module_name_,  
-						ShfeLev2Formater::Format(*l1_data, buffer));
-		}
-	}
+			CThostFtdcDepthMarketDataField my_data;
+			memset(&my_data, 0, sizeof(CThostFtdcDepthMarketDataField ));
+			CopyLev1ToLev2(&my_data, efh_data);
 
 #ifdef PERSISTENCE_ENABLED 
 			timeval t;
 			gettimeofday(&t, NULL);
-			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, l1_data);
+			p_shfe_lev2_data_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &my_data);
 #endif
+			clog_warning("[%s] can not find lev1 for:%s",module_name_, efh_data->m_symbol);
+		}
+	}
 }
 
 void MYQuoteData::SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDataField*)> quote_handler)
@@ -122,14 +136,8 @@ void MYQuoteData::SetQuoteDataHandler(std::function<void(CThostFtdcDepthMarketDa
 	lev2_data_handler_ = quote_handler;
 }
 
-void MYQuoteData::ProcL2Data(int32_t index)
+void MYQuoteData::ProcL1MdData(int32_t index)
 {
-	l2_md_last_index_ = index;
-
-	// TODO: commented for debug
-	char buffer[2048];
-	clog_info("[%s] rev efh3_lev2:%s", 
-				module_name_,
-				EfhLev2Producer::Format(*efhLev2Producer_->GetData(index), buffer));
+	l1_md_last_index_ = index;
 }
 
