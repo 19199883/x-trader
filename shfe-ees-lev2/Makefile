@@ -1,7 +1,7 @@
 # Makefile 
 
 CC:=g++
-DEBUG:=y
+DEBUG:=n
 TOP:=..
 DIST_DIR:=$(TOP)/shfe-ees-lev2/dist
 INCPATH:=-I$(TOP)/3rd/ees/include -I$(TOP)/3rd/tinyxml/include \
