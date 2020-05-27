@@ -8,6 +8,7 @@
 #include <tinystr.h>
 
 CX1FtdcInsertOrderField X1FieldConverter::new_order_;
+CX1FtdcCancelOrderField  X1FieldConverter::cancel_order_;
 
 UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer, 
 			TunnRptProducer *tunn_rpt_producer)
@@ -40,6 +41,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, MDProducer *md_producer,
 	memset(pending_signals_, -1, sizeof(pending_signals_));
 	ParseConfig();
 	X1FieldConverter::InitNewOrder(tunn_rpt_producer_->GetAccount());
+	X1FieldConverter::InitCancelOrder(tunn_rpt_producer_->GetAccount());
 
 	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
@@ -612,18 +614,20 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 		return;
 	}
 	
-    CX1FtdcCancelOrderField cancel_order;
-    memset(&cancel_order, 0, sizeof(CX1FtdcCancelOrderField));
-	cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
-	cancel_order.RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
-    cancel_order.X1OrderID = 0; // only use LocalOrderID to cancel order
+    CX1FtdcCancelOrderField *cancel_order = X1FieldConverter::GetCancelOrder();
+	//cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
+	//cancel_order.RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
+    cancel_order->X1OrderID = strategy.GetOrderID(sig.orig_sig_id);
 	// 验证是否需要合约
-    strncpy(cancel_order.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
+    strncpy(cancel_order->InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
 
 	clog_info("[%s] CancelOrder: LocalOrderID:%ld; X1OrderID:%ld; contract:%s", 
-				module_name_, cancel_order.LocalOrderID, cancel_order.X1OrderID, cancel_order.InstrumentID); 
+				module_name_, 
+				cancel_order->LocalOrderID, 
+				cancel_order->X1OrderID, 
+				cancel_order->InstrumentID); 
 
-	this->tunn_rpt_producer_->ReqOrderAction(&cancel_order);
+	this->tunn_rpt_producer_->ReqOrderAction(cancel_order);
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);

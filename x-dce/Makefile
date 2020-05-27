@@ -6,9 +6,9 @@ TOP:=..
 DIST_DIR:=$(TOP)/x-dce/dist
 
 # kanchuan
-INCPATH:=-I$(TOP)/3rd/x1/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include \
+INCPATH:=-I$(TOP)/3rd/x1/2.0/include -I$(TOP)/3rd/tinyxml/include  -I$(TOP)/3rd/utils/include \
 		 -I$(TOP)/3rd/dce_md/include 
-LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/x1/lib -L$(TOP)/3rd/tinyxml/lib \
+LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/x1/2.0/lib -L$(TOP)/3rd/tinyxml/lib \
 		 -L$(TOP)/3rd/utils/lib -L$(TOP)/3rd/dce_md/lib \
 		 -L$(TOP)/3rd/dce_md/lib 
 
@@ -68,7 +68,7 @@ dist:
 	-rm -fr $(DIST_DIR)/$(PACKAGE_NAME)
 	-mkdir -p $(DIST_DIR)/$(PACKAGE_NAME)
 	-cp -arf $(TOP)/x-dce/bin/* $(DIST_DIR)/$(PACKAGE_NAME)/
-	-cp -arf $(TOP)/3rd/x1/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
+	-cp -arf $(TOP)/3rd/x1/2.0/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/gfortran/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/level2/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/
 	-cp -arf $(TOP)/3rd/boost/lib/* $(DIST_DIR)/$(PACKAGE_NAME)/

@@ -41,6 +41,7 @@ Strategy::Strategy()
 
 	memset(localorderid_sigandrptidx_map_table_, 0, sizeof(localorderid_sigandrptidx_map_table_));
 	memset(sigid_localorderid_map_table_, 0, sizeof(sigid_localorderid_map_table_));
+	memset(sigid_orderid_map_table_, 0, sizeof(sigid_orderid_map_table_));
 	memset(sigid_sigidx_map_table_, 0, sizeof(sigid_sigidx_map_table_));
 }
 
@@ -342,6 +343,11 @@ long Strategy::GetLocalOrderID(int32_t sig_id)
 	return sigid_localorderid_map_table_[sig_id];
 }
 
+long Strategy::GetOrderID(int32_t sig_id)
+{
+	return sigid_orderid_map_table_[sig_id];
+}
+
 bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, int32_t updated_vol)
 {
 	// 开仓限制要使用多空仓位的差值，锁仓部分不算
@@ -551,6 +557,9 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 {
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
+
+	// TODO: x1-2.0
+	sigid_orderid_map_table_[sig.sig_id] = rpt.OrderID;
 
 	// update strategy's position
 	UpdatePosition(rpt, sig.sig_openclose, sig.sig_act);

@@ -1,8 +1,0 @@
-*.o
-*.so.2
-*.so.15
-*.so*
-*.a
-/vrt_value_obj.h
-/compliance_test
-/compliance.h

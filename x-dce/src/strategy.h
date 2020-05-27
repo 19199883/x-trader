@@ -109,6 +109,8 @@ public:
 	int32_t GetMaxPosition();
 	const char* GetSoFile();
 	long GetLocalOrderID(int32_t sig_id);
+	// TODO: x1-2.0
+	long GetOrderID(int32_t sig_id);
 	bool Deferred(int sig_id, unsigned short sig_openclose, unsigned short int sig_act);
 	void PrepareForExecutingSig(long localorderid, const signal_t &sig, int32_t actual_vol);
 	void FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t* sigs);
@@ -156,6 +158,9 @@ private:
 
 	// key: signal id; value: LocalOrderID
 	long sigid_localorderid_map_table_[SIGANDRPT_TABLE_SIZE];
+	// TODO: order id
+	// key: signal id; value: OrderID
+	long sigid_orderid_map_table_[SIGANDRPT_TABLE_SIZE];
 
 	// key: signal id; value: 号所存数组的位置
 	long sigid_sigidx_map_table_[SIGANDRPT_TABLE_SIZE];

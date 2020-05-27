@@ -30,6 +30,9 @@ struct Tunnconfig
 struct TunnRpt
 {
 	TX1FtdcLocalOrderIDType               LocalOrderID;                 ///< 本地委托号
+	// TODO: order id
+	TX1FtdcX1OrderIDType				  OrderID;				//柜台委托号	
+
 	TX1FtdcOrderAnswerStatusType          OrderStatus;                  ///< 委托状态
 	TX1FtdcAmountType                     MatchedAmount;                ///< 成交数量
 	TX1FtdcPriceType                      MatchedPrice;                 ///< 成交价格

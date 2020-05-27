@@ -54,22 +54,32 @@ class X1FieldConverter
 			new_order_.RequestID = localorderid;
 			strncpy(new_order_.InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
 
-			if (sig.sig_act == signal_act_t::buy){
+			if (sig.sig_act == signal_act_t::buy)
+			{
 				new_order_.InsertPrice = sig.buy_price;
 				new_order_.BuySellType = X1_FTDC_SPD_BUY;
-			}else if (sig.sig_act == signal_act_t::sell){
+			}
+			else if (sig.sig_act == signal_act_t::sell)
+			{
 				new_order_.InsertPrice = sig.sell_price;
 				new_order_.BuySellType = X1_FTDC_SPD_SELL;
-			}else{
+			}
+			else
+			{
 				 clog_warning("[%s] do support BuySellType value:%d; sig id:%d", "X1FieldConverter",
 					new_order_.BuySellType, sig.sig_id); 
 			}
 
-			if (sig.sig_openclose == alloc_position_effect_t::open_){
+			if (sig.sig_openclose == alloc_position_effect_t::open_)
+			{
 				new_order_.OpenCloseType = X1_FTDC_SPD_OPEN;
-			}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+			}
+			else if (sig.sig_openclose == alloc_position_effect_t::close_)
+			{
 				new_order_.OpenCloseType = X1_FTDC_SPD_CLOSE;
-			}else{
+			}
+			else
+			{
 				clog_warning("[%s] do support sig_openclose value:%d; sig id:%d", "X1FieldConverter",
 				sig.sig_openclose, sig.sig_id); 
 			}
@@ -79,8 +89,20 @@ class X1FieldConverter
 			return &new_order_;
 		}
 
+		static void InitCancelOrder(const char *account)
+		{
+			memset(&cancel_order_, 0, sizeof(CX1FtdcCancelOrderField));
+			strncpy(cancel_order_.AccountID, account, sizeof(TX1FtdcAccountIDType));
+		}
+
+		static CX1FtdcCancelOrderField *  GetCancelOrder()
+		{
+			return &cancel_order_;
+		}
+
 	private:
 		static CX1FtdcInsertOrderField new_order_;
+		static CX1FtdcCancelOrderField cancel_order_;
 };
 
 class UniConsumer
