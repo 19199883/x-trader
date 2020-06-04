@@ -366,7 +366,7 @@ void TunnRptProducer::OnRspCancelOrder(struct CX1FtdcRspOperOrderField* pfield, 
 		ivalue->index = cursor;
 		ivalue->data = TUNN_RPT;
 
-		clog_debug("[%s] OnRspCancelOrder: index,%d; data,%d; LocalOrderID:%ld",
+		clog_debug("[%s] OnRspCancelOrder: index,%d; data,%d; LocalOrderID:%ld;",
 					module_name_, 
 					ivalue->index, 
 					ivalue->data, 
@@ -425,7 +425,7 @@ void TunnRptProducer::OnRtnErrorMsg(struct CX1FtdcRspErrorField* pfield)
 	ivalue->data = TUNN_RPT;
 	(vrt_producer_publish(producer_));
 
-	clog_debug("[%s] OnRtnErrorMsg: index,%d; data,%d; LocalOrderID:%ld",
+	clog_debug("[%s] OnRtnErrorMsg: index,%d; data,%d; LocalOrderID:%ld;",
 				module_name_, 
 				ivalue->index, 
 				ivalue->data, 
@@ -456,7 +456,7 @@ void TunnRptProducer::OnRtnMatchedInfo(struct CX1FtdcRspPriMatchInfoField* pfiel
 	ivalue->index = cursor;
 	ivalue->data = TUNN_RPT;
 
-	clog_info("[%s] OnRtnMatchedInfo: index,%d; data,%d; LocalOrderID:%ld; OrderID:%ld",
+	clog_info("[%s] OnRtnMatchedInfo: index,%d; data,%d; LocalOrderID:%ld; OrderID:%ld;",
 				module_name_, 
 				ivalue->index, 
 				ivalue->data, 

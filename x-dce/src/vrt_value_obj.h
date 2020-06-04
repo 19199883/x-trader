@@ -15,8 +15,8 @@
  * 锁仓，非锁仓开关.
  *  
  */
-#define LOCK_POSITION_ENABLE	// 开启锁仓  
-//#define LOCK_POSITION_DISNABLE	// 关闭锁仓  
+//#define LOCK_POSITION_ENABLE	// 开启锁仓  
+#define LOCK_POSITION_DISNABLE	// 关闭锁仓  
 
 // 延迟度量
 //#define LATENCY_MEASURE
@@ -24,7 +24,7 @@
 //#define PERSISTENCE_ENABLED
 
 // software license
-#define SERVER_NAME  "JRdl-test3"
+#define SERVER_NAME  "JRdl-test2"
 
 // 通过合约查找订阅该合约行情的方法:
 // 1: unordered_multimap  

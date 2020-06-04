@@ -29,7 +29,7 @@ SIG_handler(int s)
 int main(/*int argc, const char **argv*/)
 {
 	// clog setting		   CLOG_LEVEL_WARNING
-	clog_set_minimum_level(CLOG_LEVEL_WARNING);
+	clog_set_minimum_level(CLOG_LEVEL_INFO);
 	FILE *fp;/*文件指针*/
 	fp=fopen("./x-trader.log","w+");
 	Log::fp = fp;
@@ -66,7 +66,7 @@ int main(/*int argc, const char **argv*/)
 
 
 	// version
-	clog_warning("version:dce_2019-11-12"); 
+	clog_warning("version:dce_2020-5-27"); 
 
 	struct vrt_queue  *queue;
 	int64_t  result;

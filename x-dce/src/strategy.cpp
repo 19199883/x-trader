@@ -266,6 +266,10 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 
+	// TODO: debug, remove when release	
+	fflush (Log::fp);
+
+
 	*sig_cnt = 0;
 	(log_.data()+log_cursor_)->exch_time = 0;
 
@@ -364,12 +368,17 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 		position_.frozen_close_long += updated_vol;
 	}
 
-	clog_debug("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
+	clog_info("[%s] Freeze: strategy id:%d; current long:%d; current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
-				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
-				position_.frozen_close_long, position_.frozen_close_short,
-				position_.frozen_open_long, position_.frozen_open_short);
+				module_name_, 
+				setting_.config.st_id, 
+				position_.cur_long, 
+				position_.cur_short,
+				position_.frozen_close_long, 
+				position_.frozen_close_short,
+				position_.frozen_open_long, 
+				position_.frozen_open_short);
 }
 
 int Strategy::GetVol(const signal_t &sig)
@@ -522,8 +531,12 @@ void Strategy::PrepareForExecutingSig(long localorderid, const signal_t &sig, in
 	localorderid_sigandrptidx_map_table_[counter] = cursor;
 	sigid_localorderid_map_table_[sig.sig_id] = localorderid;
 
-	clog_debug("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
-				module_name_, sig.st_id, sig.sig_id, cursor, localorderid);
+	clog_info("[%s] PrepareForExecutingSig: strategy id:%d; sig id: %d; cursor,%d; LocalOrderID:%ld;",
+				module_name_, 
+				sig.st_id, 
+				sig.sig_id, 
+				cursor, 
+				localorderid);
 }
 
 
@@ -576,11 +589,22 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 	clog_info("[%s] FeedTunnRpt:strategy id:%d; contract:%s; long:%d; short:%d; sig_id:%d;"
 				"symbol:%s; sig_act:%d; order_volume:%d; order_price:%f; exec_price:%f;"
 				"exec_volume:%d; acc_volume:%d; status:%d; killed:%d; rejected:%d",
-				module_name_, setting_.config.st_id, pos_cache_.s_pos[0].symbol,
+				module_name_, 
+				setting_.config.st_id, 
+				pos_cache_.s_pos[0].symbol,
 				pos_cache_.s_pos[0].long_volume, 
-				pos_cache_.s_pos[0].short_volume, sigrpt.sig_id, sigrpt.symbol,
-				sigrpt.sig_act, sigrpt.order_volume, sigrpt.order_price, sigrpt.exec_price,
-				sigrpt.exec_volume, sigrpt.acc_volume,sigrpt.status,sigrpt.killed,sigrpt.rejected);
+				pos_cache_.s_pos[0].short_volume, 
+				sigrpt.sig_id, 
+				sigrpt.symbol,
+				sigrpt.sig_act, 
+				sigrpt.order_volume, 
+				sigrpt.order_price, 
+				sigrpt.exec_price,
+				sigrpt.exec_volume, 
+				sigrpt.acc_volume,
+				sigrpt.status,
+				sigrpt.killed,
+				sigrpt.rejected);
 
 }
 
@@ -599,52 +623,66 @@ bool Strategy::HasFrozenPosition()
 
 void Strategy::UpdatePosition(const TunnRpt& rpt, unsigned short sig_openclose, unsigned short int sig_act)
 {
-	if (rpt.MatchedAmount > 0){
+	if (rpt.MatchedAmount > 0)
+	{
 		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
 			position_.cur_long += rpt.MatchedAmount;
 			position_.frozen_open_long -= rpt.MatchedAmount;
 		}
-		else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
+		else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell)
+		{
 			position_.cur_short += rpt.MatchedAmount;
 			position_.frozen_open_short -= rpt.MatchedAmount;
 		}
-		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
+		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy)
+		{
 			position_.cur_short -= rpt.MatchedAmount;
 			position_.frozen_close_short -= rpt.MatchedAmount;
 		}
-		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
+		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell)
+		{
 			position_.cur_long -= rpt.MatchedAmount;
 			position_.frozen_close_long -= rpt.MatchedAmount;
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
 	// 从pending队列中撤单 done
-	if (rpt.ErrorID != CANCELLED_FROM_PENDING){
+	if (rpt.ErrorID != CANCELLED_FROM_PENDING)
+	{
 		if (rpt.OrderStatus==X1_FTDC_SPD_CANCELED ||
 			rpt.OrderStatus==X1_FTDC_SPD_PARTIAL_CANCELED ||
 			rpt.OrderStatus==X1_FTDC_SPD_ERROR ||
-			rpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED){ // 释放冻结仓位
-			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
+			rpt.OrderStatus==X1_FTDC_SPD_IN_CANCELED)
+		{ // 释放冻结仓位
+			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy)
+			{
 				position_.frozen_open_long = 0;
 			}
 			else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
 				position_.frozen_open_short = 0;
 			}
-			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
+			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy)
+			{
 				position_.frozen_close_short = 0;
 			}
-			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
+			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell)
+			{
 				position_.frozen_close_long = 0;
 			}
 		}
 	}
 
-	clog_debug("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
+	clog_info("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
-				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
-				position_.frozen_close_long, position_.frozen_close_short,
-				position_.frozen_open_long, position_.frozen_open_short);
+				module_name_, 
+				setting_.config.st_id, 
+				position_.cur_long, 
+				position_.cur_short,
+				position_.frozen_close_long, 
+				position_.frozen_close_short,
+				position_.frozen_open_long, 
+				position_.frozen_open_short);
 }
 
 void Strategy::FillPositionRpt(position_t &pos)

@@ -37,7 +37,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcInsertOrderField* p)
     {
         snprintf(buf, sizeof(buf), "structName=CX1FtdcInsertOrderField "
             "    accountID=%s "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    instrumentID=%s "
             "    insertPrice=%.4f "
             "    orderAmount=%ld "
@@ -89,7 +89,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcCancelOrderField* p)
         snprintf(buf, sizeof(buf), "structName=CX1FtdcCancelOrderField "
             "    accountID=%s "
             "    spdOrderID=%ld "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    instrumentID=%s "
             "    lRequestID=%ld ",
             p->AccountID,                    //资金账户ID
@@ -216,7 +216,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcQuoteInsertField* p)
         snprintf(buf, sizeof(buf), "structName=CX1FtdcQuoteInsertField "
             "    accountID=%s "
             "    lRequestID=%ld "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    insertType=%d "
             "    instrumentID=%s "
             "    quoteID=%s "
@@ -294,7 +294,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspErrorField* p)
             "    accountID=%s "
             "    nErrorID=%d "
             "    spdOrderID=%ld "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    errorMsg=%s ",
             p->RequestID,                    //请求ID
             p->SessionID,                    //会话标识
@@ -386,7 +386,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspOperOrderField* p)
     if (p)
     {
         snprintf(buf, sizeof(buf), "structName=CX1FtdcRspOperOrderField "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    spdOrderID=%ld "
             "    orderStatus=%d "
             "    lRequestID=%ld "
@@ -417,7 +417,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriOrderField* p)
     if (p)
     {
         snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriOrderField "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    spdOrderID=%ld "
             "    OrderSysID=%s "
             "    orderStatus=%d "
@@ -479,7 +479,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriMatchInfoField* p)
     if (p)
     {
         snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriMatchInfoField "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    OrderSysID=%s "
             "    matchID=%s "
             "    instrumentID=%s "
@@ -546,7 +546,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspPriCancelOrderField* p)
     if (p)
     {
         snprintf(buf, sizeof(buf), "structName=CX1FtdcRspPriCancelOrderField "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    OrderSysID=%s "
             "    instrumentID=%s "
             "    insertPrice=%.4f "
@@ -624,7 +624,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspOrderField* p)
             "    customCategory=%s "
             "    margin=%.4f "
             "    fee=%.4f "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    sessionId=%ld "
             "    reservedType2=%d "
             "    profitLossPrice=%.4f ",
@@ -685,7 +685,7 @@ std::string X1DatatypeFormater::ToString(const CX1FtdcRspMatchField* p)
             "    speculator=%d "
             "    matchedTime=%s "
             "    matchedID=%s "
-            "    localOrderID=%ld "
+            "    LocalOrderID=%ld; "
             "    clientID=%s "
             "    matchType=%ld "
             "    instrumentType=%d "

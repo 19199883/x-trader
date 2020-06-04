@@ -503,19 +503,31 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
 		int32_t st_id = strategy.GetId();
 		int32_t sig_id = pending_signals_[st_id][i];
-		if(sig_id < 0){ // hit tail
+		if(sig_id < 0)
+		{ // hit tail
 			break;
-		}else if(sig_id != INVALID_PENDING_SIGNAL){
+		}
+		else if(sig_id != INVALID_PENDING_SIGNAL)
+		{
 			signal_t *sig = strategy.GetSignalBySigID(sig_id);
-			if(!strategy.Deferred(sig->sig_id, sig->sig_openclose, sig->sig_act)){
+			if(!strategy.Deferred(sig->sig_id, sig->sig_openclose, sig->sig_act))
+			{
 				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				PlaceOrder(strategy, *sig);
 				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
 							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
 							 "sell_price:%f; sig_act:%d; sig_openclose:%d;index:%d ",
-					module_name_, sig->st_id, sig->sig_id,
-					sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
-					sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose,i); 
+					module_name_, 
+					sig->st_id, 
+					sig->sig_id,
+					sig->exchange, 
+					sig->symbol, 
+					sig->open_volume, 
+					sig->buy_price,
+					sig->close_volume, 
+					sig->sell_price, 
+					sig->sig_act, 
+					sig->sig_openclose,i); 
 				 break;
 			}
 		} // if(pending_signals_[st_id][i] >= 0)
@@ -534,27 +546,39 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 {
 	clog_debug("[%s] [ProcSigs] sig_cnt: %d; ", module_name_, sig_cnt);
 
-	for (int i = 0; i < sig_cnt; i++){
-		if (sigs[i].sig_act == signal_act_t::cancel){
+	for (int i = 0; i < sig_cnt; i++)
+	{
+		if (sigs[i].sig_act == signal_act_t::cancel)
+		{
 			CancelOrder(strategy, sigs[i]);
-		}else{
+		}
+		else
+		{
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
-			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
+			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act))
+			{
 				// improve place, cancel
-				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
+				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++)
+				{
 					int32_t sig_id = pending_signals_[sig.st_id][i];
-					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL){
+					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL)
+					{
 						pending_signals_[sig.st_id][i] = sig.sig_id;
 						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
 									module_name_,sig.st_id,pending_signals_[sig.st_id][i],i);
 						break;
 					}
 				}
-				if(i == MAX_PENDING_SIGNAL_COUNT){
+				if(i == MAX_PENDING_SIGNAL_COUNT)
+				{
 					clog_warning("[%s] pending_signals_ beyond;", module_name_);
 				}
-			} else { PlaceOrder(strategy, sigs[i]); }
+			} 
+			else 
+			{
+				PlaceOrder(strategy, sigs[i]); 
+			}
 		}
 	}
 }
@@ -615,8 +639,8 @@ void UniConsumer::CancelOrder(Strategy &strategy,signal_t &sig)
 	}
 	
     CX1FtdcCancelOrderField *cancel_order = X1FieldConverter::GetCancelOrder();
-	//cancel_order.LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
-	//cancel_order.RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
+	cancel_order->LocalOrderID = strategy.GetLocalOrderID(sig.orig_sig_id);
+	cancel_order->RequestID = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());;
     cancel_order->X1OrderID = strategy.GetOrderID(sig.orig_sig_id);
 	// 验证是否需要合约
     strncpy(cancel_order->InstrumentID, sig.symbol, sizeof(TX1FtdcInstrumentIDType));
