@@ -266,10 +266,6 @@ void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
 
-	// TODO: debug, remove when release	
-	fflush (Log::fp);
-
-
 	*sig_cnt = 0;
 	(log_.data()+log_cursor_)->exch_time = 0;
 
