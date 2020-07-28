@@ -511,36 +511,41 @@ void TunnRptProducer::OnRtnCancelOrder(struct CX1FtdcRspPriCancelOrderField* pfi
 
     clog_info("[%s] OnRtnCancelOrder:%s", module_name_, X1DatatypeFormater::ToString(pfield).c_str());
 
-	if (pfield->OrderStatus == X1_FTDC_SPD_ERROR){
+	if (pfield->OrderStatus == X1_FTDC_SPD_ERROR)
+	{
 		clog_warning("[%s] OnRtnCancelOrder:%s",
 			module_name_,
 			X1DatatypeFormater::ToString(pfield).c_str());
 	}
 
-	if (pfield->OrderStatus == X1_FTDC_SPD_CANCELED ||
-		pfield->OrderStatus == X1_FTDC_SPD_PARTIAL_CANCELED ||
-		pfield->OrderStatus == X1_FTDC_SPD_IN_CANCELED){
-		int32_t cursor = Push();
-		struct TunnRpt &rpt = rpt_buffer_[cursor];
-		rpt.LocalOrderID = pfield->LocalOrderID;
-		rpt.OrderID = pfield->X1OrderID;
-		rpt.OrderStatus = pfield->OrderStatus;
+	if(0 == pfield->ErrorID) // 只有成功的撤单才推给策略
+	{
+		if (pfield->OrderStatus == X1_FTDC_SPD_CANCELED ||
+			pfield->OrderStatus == X1_FTDC_SPD_PARTIAL_CANCELED ||
+			pfield->OrderStatus == X1_FTDC_SPD_IN_CANCELED)
+		{
+			int32_t cursor = Push();
+			struct TunnRpt &rpt = rpt_buffer_[cursor];
+			rpt.LocalOrderID = pfield->LocalOrderID;
+			rpt.OrderID = pfield->X1OrderID;
+			rpt.OrderStatus = pfield->OrderStatus;
 
-		struct vrt_value  *vvalue;
-		struct vrt_hybrid_value  *ivalue;
-		(vrt_producer_claim(producer_, &vvalue));
-		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-		ivalue->index = cursor;
-		ivalue->data = TUNN_RPT;
+			struct vrt_value  *vvalue;
+			struct vrt_hybrid_value  *ivalue;
+			(vrt_producer_claim(producer_, &vvalue));
+			ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+			ivalue->index = cursor;
+			ivalue->data = TUNN_RPT;
 
-		clog_debug("[%s] OnRtnCancelOrder: index,%d; data,%d; LocalOrderID:%ld; OrderID:%ld",
-					module_name_, 
-					ivalue->index, 
-					ivalue->data, 
-					pfield->LocalOrderID,
-					pfield->X1OrderID);
+			clog_debug("[%s] OnRtnCancelOrder: index,%d; data,%d; LocalOrderID:%ld; OrderID:%ld",
+						module_name_, 
+						ivalue->index, 
+						ivalue->data, 
+						pfield->LocalOrderID,
+						pfield->X1OrderID);
 
-		(vrt_producer_publish(producer_));
+			(vrt_producer_publish(producer_));
+		}
 	}
 }
 
