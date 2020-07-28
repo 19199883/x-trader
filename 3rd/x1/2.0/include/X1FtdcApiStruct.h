@@ -1,7 +1,7 @@
 ﻿/**
 * Copyright (C) 2019-2021, 大连飞创信息技术有限公司
 * @brief    定义接口所需的数据接口
-* @version  2.1.13.3
+* @version  2.1.16.2
 * @author   Xone 项目组
 * @date     2019年8月16日
 * @note     Xone 2.0柜台用户API帮助手册
