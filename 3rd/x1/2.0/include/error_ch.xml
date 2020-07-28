@@ -249,7 +249,7 @@
     <error id="X1_API_QRYFRONT_NO_CONT_INFO"                                                                value="1202"        prompt="未找到该合约的合约信息"/>
     <error id="X1_API_QRYFRONT_INVAL_TRADE_CODE"                                                            value="1203"        prompt="交易编码无效或为空"/>
     <error id="X1_API_QRYFRONT_INVAL_ORD_ID"                                                                value="1204"        prompt="请检查柜台委托号"/>
-    <error id="X1_API_QRYFRONT_INVAL_NEW_PWD"                                                               value="1205"        prompt="新密码长度不能超过15位，且必须为数字或字母"/>
+    <error id="X1_API_QRYFRONT_INVAL_NEW_PWD"                                                               value="1205"        prompt="新密码长度6-16位，且必须为数字或字母"/>
     <error id="X1_API_QRYFRONT_EMPTY_DATA"                                                                  value="1206"        prompt="查询数据结果为空"/>
     <error id="X1_API_QRYFRONT_EMPTY_CONFIRM_DATE"                                                          value="1207"        prompt="请求确认日期为空"/>
     <error id="X1_API_QRYFRONT_INVAL_CONFIRM_DATE"                                                          value="1208"        prompt="请输入正确的日期"/>

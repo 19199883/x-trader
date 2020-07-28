@@ -249,7 +249,7 @@
     <error id="X1_API_QRYFRONT_NO_CONT_INFO"                                                                value="1202"        prompt="Cannot find the contract info"/>
     <error id="X1_API_QRYFRONT_INVAL_TRADE_CODE"                                                            value="1203"        prompt="Invalid or empty trade code"/>
     <error id="X1_API_QRYFRONT_INVAL_ORD_ID"                                                                value="1204"        prompt="Please check the order ID"/>
-    <error id="X1_API_QRYFRONT_INVAL_NEW_PWD"                                                               value="1205"        prompt="The password length is longer than 16 and it must be digits or letters"/>
+    <error id="X1_API_QRYFRONT_INVAL_NEW_PWD"                                                               value="1205"        prompt="The password length must be 6-16 and it must be digits or letters"/>
     <error id="X1_API_QRYFRONT_EMPTY_DATA"                                                                  value="1206"        prompt="Queried empty data"/>
     <error id="X1_API_QRYFRONT_EMPTY_CONFIRM_DATE"                                                          value="1207"        prompt="Empty date when request confirm bill"/>
     <error id="X1_API_QRYFRONT_INVAL_CONFIRM_DATE"                                                          value="1208"        prompt="Please input correct confirm date form:yyyy.mm.dd"/>
