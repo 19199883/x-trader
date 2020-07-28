@@ -259,8 +259,8 @@ void Strategy::FeedMd(MDBestAndDeep_MY* md, int *sig_cnt, signal_t* sigs)
 
 void Strategy::FeedMd(MDOrderStatistic_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	//clog_debug("[%s] strategy id:%d;rev MDOrderStatistic_MY contract:%s", 
-	//			module_name_,GetId(), md->ContractID);
+	// clog_debug("[%s] strategy id:%d;rev MDOrderStatistic_MY contract:%s", 
+	// 			module_name_,GetId(), md->ContractID);
 
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -567,7 +567,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 	signal_resp_t& sigrpt = sigrpt_table_[sigidx];
 	signal_t& sig = sig_table_[sigidx];
 
-	// TODO: x1-2.0
+	// x1-2.0
 	sigid_orderid_map_table_[sig.sig_id] = rpt.OrderID;
 
 	// update strategy's position
