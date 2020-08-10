@@ -714,7 +714,10 @@ void Strategy::LoadPosition()
 	}
 	if(sett_cont != cont){
 		clog_error("[%s] pos_calc error:strategy ID(%d); pos contract(%s); setting contract(%s)",
-			GetId(), cont.c_str(), sett_cont.c_str());
+			module_name_,
+			GetId(), 
+			cont.c_str(), 
+			sett_cont.c_str());
 	}
 }
 
