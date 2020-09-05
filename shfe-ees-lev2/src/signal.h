@@ -214,9 +214,11 @@ enum instr_t
 	instr_undefined = -1,
 };
 
-enum alloc_position_effect_t {
+enum alloc_position_effect_t 
+{
 	open_	= 1,
-	close_	= 2,
+	close_	= 2,		// 平今仓
+	close_yesterday	= 3, // 平昨仓
 };
 
 class signal_resp_t{

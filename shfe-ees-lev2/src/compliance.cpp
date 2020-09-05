@@ -133,14 +133,12 @@ bool Compliance::TryReqOrderInsert(int ord_counter,
 		if (!ord.valid) continue;
 
 		if (IsEqualContract((char*)ord.contract, (char*)contract) && 
-					( (side==EES_SideType_open_long||side==EES_SideType_close_today_short)&&
-					  (ord.side==EES_SideType_open_short||ord.side==EES_SideType_close_today_long) ||
-					  (ord.side==EES_SideType_open_long||ord.side==EES_SideType_close_today_short) &&
-					  (side==EES_SideType_open_short||side==EES_SideType_close_today_long) )
+					( (side==EES_SideType_open_long||side==EES_SideType_close_today_short||side==EES_SideType_close_ovn_short)&& (ord.side==EES_SideType_open_short||ord.side==EES_SideType_close_today_long||ord.side==EES_SideType_close_ovn_long) ||
+					  (ord.side==EES_SideType_open_long||ord.side==EES_SideType_close_today_short||ord.side==EES_SideType_close_ovn_short) && (side==EES_SideType_open_short||side==EES_SideType_close_today_long||side==EES_SideType_close_ovn_long) )
 		   )
 		{
-			if ( ((side==EES_SideType_open_long || side==EES_SideType_close_today_short) && (price+DOUBLE_CHECH_PRECISION)>=ord.price) ||
-				 ((side==EES_SideType_open_short || side==EES_SideType_close_today_long) && (price-DOUBLE_CHECH_PRECISION)<=ord.price) )
+			if ( ((side==EES_SideType_open_long || side==EES_SideType_close_today_short || side==EES_SideType_close_ovn_short) && (price+DOUBLE_CHECH_PRECISION)>=ord.price) ||
+				 ((side==EES_SideType_open_short || side==EES_SideType_close_today_long || side==EES_SideType_close_ovn_long) && (price-DOUBLE_CHECH_PRECISION)<=ord.price) )
 			{
 				ret = false;
 				char time[80];

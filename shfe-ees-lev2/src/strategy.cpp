@@ -318,10 +318,10 @@ bool Strategy::Freeze(unsigned short sig_openclose, unsigned short int sig_act, 
 		position_.frozen_open_short += updated_vol;
 	} 
 
-	if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
+	if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::buy){
 		position_.frozen_close_short += updated_vol;
 	}
-	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
+	else if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::sell){
 		position_.frozen_close_long += updated_vol;
 	}
 
@@ -338,7 +338,9 @@ int Strategy::GetVol(const signal_t &sig)
 	int32_t vol = 0;
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		vol = sig.open_volume;
-	} else if (sig.sig_openclose == alloc_position_effect_t::close_){
+	} 
+	else if (sig.sig_openclose == alloc_position_effect_t::close_ || sig.sig_openclose == alloc_position_effect_t::close_yesterday)
+	{
 		vol = sig.close_volume;
 	} else{ clog_error("[%s] PlaceOrder: do support sig_openclose value:%d;", module_name_,
 				sig.sig_openclose); }
@@ -359,13 +361,15 @@ int Strategy::GetAvailableVol(int sig_id, unsigned short sig_openclose, unsigned
 		if (position_.frozen_open_short==0){
 			updated_vol = GetMaxPosition() - position_.cur_short + position_.cur_long;
 		} 
-	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
+	} 
+	else if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::buy)
+	{
 		if (position_.frozen_close_short==0){
 			updated_vol = GetMaxPosition()+ position_.cur_short - position_.cur_long;
 			if (updated_vol >  position_.cur_short) updated_vol =  position_.cur_short;
 		} 
 	}
-	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
+	else if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::sell){
 		if (position_.frozen_close_long==0){
 			updated_vol = GetMaxPosition() + position_.cur_long - position_.cur_short;
 			if (updated_vol >  position_.cur_long) updated_vol =  position_.cur_long;
@@ -402,12 +406,13 @@ bool Strategy::Deferred(int sig_id, unsigned short sig_openclose, unsigned short
 		if (position_.frozen_open_short==0){
 			result = false;
 		} else { result = true; }
-	} else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::buy){
+	}
+	else if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday)&& sig_act==signal_act_t::buy){
 		if (position_.frozen_close_short==0){
 			result = false;
 		} else { result = true; }
 	}
-	else if (sig_openclose==alloc_position_effect_t::close_&& sig_act==signal_act_t::sell){
+	else if( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::sell){
 		if (position_.frozen_close_long==0){
 			result = false;
 		} else { result = true; }
@@ -464,7 +469,9 @@ void Strategy::Push(const signal_t &sig)
 	// 从pending队列中撤单 done
 	if (sig.sig_openclose == alloc_position_effect_t::open_){
 		sigrpt_table_[cursor_].order_volume = sig.open_volume;
-	}else if (sig.sig_openclose == alloc_position_effect_t::close_){
+	}
+	else if (sig.sig_openclose == alloc_position_effect_t::close_ || sig.sig_openclose == alloc_position_effect_t::close_yesterday)
+	{
 		sigrpt_table_[cursor_].order_volume = sig.close_volume;
 	}
 
@@ -582,11 +589,11 @@ void Strategy::UpdatePosition(int32_t lastqty, if_sig_state_t status,
 			position_.cur_short += lastqty;
 			position_.frozen_open_short -= lastqty;
 		}
-		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
+		else if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::buy){
 			position_.cur_short -= lastqty;
 			position_.frozen_close_short -= lastqty;
 		}
-		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
+		else if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::sell){
 			position_.cur_long -= lastqty;
 			position_.frozen_close_long -= lastqty;
 		}
@@ -603,10 +610,11 @@ void Strategy::UpdatePosition(int32_t lastqty, if_sig_state_t status,
 			else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
 				position_.frozen_open_short = 0;
 			}
-			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
+			else if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::buy){
 				position_.frozen_close_short = 0;
 			}
-			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
+			else if ( (sig_openclose==alloc_position_effect_t::close_ || sig_openclose==alloc_position_effect_t::close_yesterday) && sig_act==signal_act_t::sell)
+			{
 				position_.frozen_close_long = 0;
 			}
 		}

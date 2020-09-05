@@ -71,20 +71,32 @@ class EESFieldConverter
 				new_order_.m_Price = sig.buy_price;
 				new_order_.m_Side = EES_SideType_open_long;
 			}
-			if (sig.sig_act == signal_act_t::buy &&
-				sig.sig_openclose == alloc_position_effect_t::close_){
-				new_order_.m_Price = sig.buy_price;
-				new_order_.m_Side = EES_SideType_close_today_short;
-			}
 			if (sig.sig_act == signal_act_t::sell &&
 				sig.sig_openclose == alloc_position_effect_t::open_	){
 				new_order_.m_Price = sig.sell_price;
 				new_order_.m_Side = EES_SideType_open_short;
 			}
+			
+			if (sig.sig_act == signal_act_t::buy &&
+				sig.sig_openclose == alloc_position_effect_t::close_){
+				new_order_.m_Price = sig.buy_price;
+				new_order_.m_Side = EES_SideType_close_today_short;
+			}
+			if (sig.sig_act == signal_act_t::buy &&
+				sig.sig_openclose == alloc_position_effect_t::close_yesterday){
+				new_order_.m_Price = sig.buy_price;
+				new_order_.m_Side = EES_SideType_close_ovn_short;
+			}
+
 			if (sig.sig_act == signal_act_t::sell &&
 				sig.sig_openclose == alloc_position_effect_t::close_){
 				new_order_.m_Price = sig.sell_price;
 				new_order_.m_Side = EES_SideType_close_today_long;
+			}
+			if (sig.sig_act == signal_act_t::sell &&
+				sig.sig_openclose == alloc_position_effect_t::close_yesterday){
+				new_order_.m_Price = sig.sell_price;
+				new_order_.m_Side = EES_SideType_close_ovn_long;
 			}
 			
 			return &new_order_;

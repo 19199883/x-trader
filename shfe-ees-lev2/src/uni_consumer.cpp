@@ -594,11 +594,15 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		CThostFtdcDepthMarketDataField* data = l1_md_producer_->GetLastDataForIllegaluser(ord->m_Symbol);
 		while(true){
 			if(EES_SideType_open_long==ord->m_Side ||
-				EES_SideType_close_today_short==ord->m_Side){
+				EES_SideType_close_today_short==ord->m_Side ||
+				EES_SideType_close_ovn_short==ord->m_Side)
+			{
 				ord->m_Price = data->UpperLimitPrice;// uppet limit
 			}
 			else if(EES_SideType_open_short==ord->m_Side ||
-					EES_SideType_close_today_long==ord->m_Side){
+					EES_SideType_close_today_long==ord->m_Side ||
+					EES_SideType_close_ovn_long==ord->m_Side)
+			{
 				ord->m_Price = data->LowerLimitPrice;// lowerest limit
 			}
 			tunn_rpt_producer_->ReqOrderInsert(ord);
