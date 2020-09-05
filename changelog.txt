@@ -1,3 +1,9 @@
+2020-09-05:
+shfe-ees-lev2: shfe level2 uses efh3.2.
+
+2020-09-05:
+shfe-ees-lev2, add close_yesterday field.
+
 2020-8-10:
 all projects:修复仓位合约换月时日志输出的格式化语法错误。
 
