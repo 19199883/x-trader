@@ -79,38 +79,40 @@ struct efh3_lev2
 	unsigned int	m_sequence;				///<会话编号
 	char			m_exchange_id;			///<市场  0 表示中金  1表示上期
 	char			m_channel_id;			///<通道编号
-	char			m_symbol_type_flag;		///<合约标志
-	int				m_symbol_code;			///<合约编号
-	char			m_symbol[31];			///<合约
-	char			m_update_time[9];		///<最后更新时间(秒)
-	int				m_millisecond;			///<最后更新时间(毫秒)
-	char			m_quote_flag;			///<行情标志		
+	char			m_symbol[8];			///<合约
+	char			m_update_time_h;		///<最后更新的时间hh
+	char			m_update_time_m;		///<最后更新的时间mm
+	char			m_update_time_s;		///<最后更新的时间ss
+	unsigned short  m_millisecond;		    ///<最后更新的毫秒数        
 
 	double			m_last_px;				///<最新价
-	int				m_last_share;			///<最新总成交量
-	double			m_turnover;				///<成交金额
-	double			m_open_interest;		///<持仓量
-	double			m_bid_1_px;				///<最新买价1档
-	int				m_bid_1_share;			///<最新买量1档
-	double			m_bid_2_px;				///<最新买价2档
-	int				m_bid_2_share;			///<最新买量2档
-	double			m_bid_3_px;				///<最新买价3档
-	int				m_bid_3_share;			///<最新买量3档
-	double			m_bid_4_px;				///<最新买价4档
-	int				m_bid_4_share;			///<最新买量4档
-	double			m_bid_5_px;				///<最新买价5档
-	int				m_bid_5_share;			///<最新买量5档
+	unsigned int	m_last_share;			///<最新成交量
+	double			m_turnover;			///<成交金额
+	double			m_open_interest;			///<持仓量
 
-	double			m_ask_1_px;				///<最新卖价1档
-	int				m_ask_1_share;			///<最新卖量1档
-	double			m_ask_2_px;				///<最新卖价2档
-	int				m_ask_2_share;			///<最新卖量2档
-	double			m_ask_3_px;				///<最新卖价3档
-	int				m_ask_3_share;			///<最新卖量3档
-	double			m_ask_4_px;				///<最新卖价4档
-	int				m_ask_4_share;			///<最新卖量4档
-	double			m_ask_5_px;				///<最新卖价5档
-	int				m_ask_5_share;			///<最新卖量5档
+	double			m_bid_1_px;				///<买一价
+	unsigned int	m_bid_1_share;			///<买一量
+	double			m_bid_2_px;				///<买二价
+	unsigned int	m_bid_2_share;			///<买二量
+	double			m_bid_3_px;				///<买三价
+	unsigned int	m_bid_3_share;			///<买三量
+	double			m_bid_4_px;				///<买四价
+	unsigned int	m_bid_4_share;			///<买四量
+	double			m_bid_5_px;				///<买五价
+	unsigned int	m_bid_5_share;			///<买五量
+                         
+	double			m_ask_1_px;				///<卖一价
+	unsigned int	m_ask_1_share;			///<卖一量
+	double			m_ask_2_px;				///<卖二价
+	unsigned int	m_ask_2_share;			///<卖二量
+	double			m_ask_3_px;				///<卖三价
+	unsigned int	m_ask_3_share;			///<卖三量
+	double			m_ask_4_px;				///<卖四价
+	unsigned int	m_ask_4_share;			///<卖四量
+	double			m_ask_5_px;				///<卖五价
+	unsigned int	m_ask_5_share;			///<卖五量
+
+	char            m_reserve;  			///<保留字段
 };
 
 
@@ -162,41 +164,39 @@ class EfhLev2Producer
 				"efh3_lev2 "				
 				"InstrumentID:%s; "
 				"m_sequence:%u; "
-				"UpdateTime[9]:%s; "
-				"UpdateMillisec:%d; "
+				"UpdateTime:%hhu:%hhu:%hhu; "
+				"UpdateMillisec:%hu; "
 				"timestamp:%lld"
-				"m_symbol_code:%d; "
 				"LastPrice:%.4f; "												
-				"Volume:%d; "
+				"m_last_share:%u; "
 				"Turnover:%.4f; "								
 				"m_open_interest:%.4f; "
 				"BidPrice1:%.4f; "
-				"BidVolume1:%d; "
+				"BidVolume1:%u; "
 				"AskPrice1:%.4f; "
-				"AskVolume1:%d; "
+				"AskVolume1:%u; "
 				"BidPrice2:%.4f; "
-				"BidVolume2:%d; "
+				"BidVolume2:%u; "
 				"AskPrice2:%.4f; "
-				"AskVolume2:%d; "
+				"AskVolume2:%u; "
 				"BidPrice3:%.4f; "
-				"BidVolume3:%d; "
+				"BidVolume3:%u; "
 				"AskPrice3:%.4f; "
-				"AskVolume3:%d; "
+				"AskVolume3:%u; "
 				"BidPrice4:%.4f; "
-				"BidVolume4:%d; "
+				"BidVolume4:%u; "
 				"AskPrice4:%.4f; "
-				"AskVolume4:%d; "
+				"AskVolume4:%u; "
 				"BidPrice5:%.4f; "
-				"BidVolume5:%d; "
+				"BidVolume5:%u; "
 				"AskPrice5:%.4f; "
-				"AskVolume5:%d; "
+				"AskVolume5:%u; "
 				,
 				source.m_symbol,
 				source.m_sequence,
-				source.m_update_time,
+				source.m_update_time_h, source.m_update_time_m, source.m_update_time_s,
 				source.m_millisecond,
 				(int64_t)(high_resolution_clock::now().time_since_epoch().count()),
-				source.m_symbol_code,
 				source.m_last_px,															
 				source.m_last_share,
 				source.m_turnover,				

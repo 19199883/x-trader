@@ -43,10 +43,16 @@ void MYQuoteData::CopyLev1ToLev2(CThostFtdcDepthMarketDataField* my_data, efh3_l
 		my_data->LastPrice =	InvalidToZeroD(efh_data->m_last_px);															
 		my_data->Volume =					   efh_data->m_last_share;
 		my_data->Turnover =     InvalidToZeroD(efh_data->m_turnover);				
-		strcpy(my_data->UpdateTime,efh_data->m_update_time);
+		// TODO: 
+		memset(my_data->UpdateTime, 0, sizeof(my_data->UpdateTime));
+		sprintf (my_data->UpdateTime, 
+					"%hhu:%hhu:%hhu", 
+					efh_data->m_update_time_h,
+					efh_data->m_update_time_m,
+					efh_data->m_update_time_s);
 		my_data->UpdateMillisec = efh_data->m_millisecond;
+
 		my_data->OpenInterest = InvalidToZeroD(efh_data->m_open_interest);	
-		// my_datalev2_data_ = efh_data->m_symbol_code;
 		my_data->BidPrice1 =    InvalidToZeroD(efh_data->m_bid_1_px);
 		my_data->BidPrice2 =    InvalidToZeroD(efh_data->m_bid_2_px);
 		my_data->BidPrice3 =    InvalidToZeroD(efh_data->m_bid_3_px);
