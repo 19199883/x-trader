@@ -1,5 +1,6 @@
 2020-09-05:
-shfe-ees-lev2: shfe level2 uses efh3.2.
+1. shfe-ees-lev2: shfe level2 uses efh3.2.
+2. Add the node IneEfhLev2 in x-trader.config.
 
 2020-09-05:
 shfe-ees-lev2, add close_yesterday field.
