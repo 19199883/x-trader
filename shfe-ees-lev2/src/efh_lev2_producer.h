@@ -14,6 +14,7 @@
 #include <ctime>
 #include <ratio>
 #include <ctime>
+#include <mutex>          // std::mutex, std::lock_guard
 
 
 using namespace std::chrono;
@@ -228,12 +229,20 @@ class EfhLev2Producer
 
 
 		///////////////// market data bu socket udp multicast  //////
+		////////////// the following is for SHFE ////////////
 		/// \brief 组播实例初始化
 		bool sock_init();
 		/// \brief 组播实例关闭
 		bool sock_close();
+
+		////////////// the following is for INEE ////////////
+		/// \brief 组播实例初始化
+		bool sock_init_Ine();
+		/// \brief 组播实例关闭
+		bool sock_close_Ine();
 		
 	private:
+		////////////////// the following is for SHFE ///////
 		/// \brief 组播数收发信号的线程函数(linux 版)
 		static void* socket_server_event_thread(void* ptr_param);			
 
@@ -247,6 +256,23 @@ class EfhLev2Producer
 
 		bool					m_thrade_quit_flag;		///< 信号检测线程退出标志		
 		MY_SOCKET				m_sock;					///< 套接口
+
+
+		////////////////// the following is for INE ///////
+		/// \brief 组播数收发信号的线程函数(linux 版)
+		static void* socket_server_event_thread_Ine(void* ptr_param);			
+
+		/// \brief 组播数收发信号的处理函数
+		void* on_socket_server_event_thread_Ine();
+
+		/// \brief 启动组播信号处理线程
+		bool start_server_event_thread_Ine();										
+		/// \brief 停止组播信号处理线程
+		bool stop_server_event_thread_Ine();	
+
+		bool					m_thrade_quit_flag_Ine;		///< 信号检测线程退出标志		
+		MY_SOCKET				m_sock_Ine;					///< 套接口
+
 		///////////////// end market data bu socket udp multicast  //////
 		//
 		
@@ -285,6 +311,12 @@ class EfhLev2Producer
 		char	m_local_ip[MAX_IP_LEN];			///< 组播本机地址
 		int		m_local_port;					///< 组播本机端口
 
+		char	m_Ine_remote_ip[MAX_IP_LEN];		///< 组播行情远端地址
+		int		m_Ine_remote_port;					///< 组播行情远端端口
+		char	m_Ine_local_ip[MAX_IP_LEN];			///< 组播本机地址
+		int		m_Ine_local_port;					///< 组播本机端口
+
+		std::mutex m_mtx;
 };
 
 #endif
