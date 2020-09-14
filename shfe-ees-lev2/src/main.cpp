@@ -68,7 +68,7 @@ int main(/*int argc, const char **argv*/)
 	sigaction(SIGUSR2, &SIGINT_act, NULL);
 
 	// version
-	clog_warning("version: shfe-lev2-hzp-md-09-06"); 
+	clog_warning("version: shfe-lev2-hzp-20200909"); 
 	clog_warning("max contract count:%d",MAX_CONTRACT_COUNT ); 
 
 	struct vrt_queue  *queue;

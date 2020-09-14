@@ -46,7 +46,7 @@ void MYQuoteData::CopyLev1ToLev2(CThostFtdcDepthMarketDataField* my_data, efh3_l
 		// TODO: 
 		memset(my_data->UpdateTime, 0, sizeof(my_data->UpdateTime));
 		sprintf (my_data->UpdateTime, 
-					"%hhu:%hhu:%hhu", 
+					"%02hhu:%02hhu:%02hhu", 
 					efh_data->m_update_time_h,
 					efh_data->m_update_time_m,
 					efh_data->m_update_time_s);
