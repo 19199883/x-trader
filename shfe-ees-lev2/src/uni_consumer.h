@@ -58,9 +58,14 @@ class EESFieldConverter
 		{
 			strncpy(new_order_.m_Symbol, sig.symbol, sizeof(EES_Symbol));
 			new_order_.m_ClientOrderToken = localorderid; 
-			if(new_order_.m_Symbol[0]=='s' && new_order_.m_Symbol[1]=='c'){
+			if( (new_order_.m_Symbol[0]=='s' && new_order_.m_Symbol[1]=='c') ||
+				(new_order_.m_Symbol[0]=='n' && new_order_.m_Symbol[1]=='r') ||
+				(new_order_.m_Symbol[0]=='l' && new_order_.m_Symbol[1]=='u') )
+			{
 				new_order_.m_Exchange = EES_ExchangeID_ine;
-			}else{
+			}
+			else
+			{
 				new_order_.m_Exchange = EES_ExchangeID_shfe;
 			}
 			new_order_.m_Qty = vol;

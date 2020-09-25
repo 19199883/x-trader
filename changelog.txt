@@ -1,3 +1,6 @@
+2020-09-25:
+shfe-ees-lev2:增加nr，lu品种
+
 2020-09-05:
 1. shfe-ees-lev2: shfe level2 uses efh3.2.
 2. Add the node IneEfhLev2 in x-trader.config.
