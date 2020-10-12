@@ -1,3 +1,6 @@
+2020-10-12:
+x-dce: upgrade x-One to V2.1.22.0_API.
+
 2020-09-25:
 shfe-ees-lev2:增加nr，lu品种
 
