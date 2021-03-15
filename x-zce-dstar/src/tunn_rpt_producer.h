@@ -82,18 +82,9 @@ class TunnRptProducer: public ITapTradeAPINotify
 		 */
 		virtual void TAP_CDECL OnConnect();
 
-		/**
-		 * @brief    系统登录过程回调。
-		 * @details  此函数为Login()登录函数的回调，调用Login()成功后建立了链路连接，
-		 * 然后API将向服务器发送登录认证信息，
-		 *           登录期间的数据发送情况和登录的回馈信息传递到此回调函数中。
-		 * @param[in] errorCode 返回错误码,0表示成功。
-		 * @param[in] loginRspInfo 登陆应答信息，如果errorCode!=0，则loginRspInfo=NULL。
-		 * @attention    该回调返回成功，说明用户登录成功。但是不代表API准备完毕。
-		 * @ingroup G_T_Login
-		 */
-		virtual void TAP_CDECL OnRspLogin(TAPIINT32 errorCode, 
-					const TapAPITradeLoginRspInfo *loginRspInfo);
+
+		///登录请求响应,错误码为0说明用户登录成功。
+		virtual void OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp);
 
 		/**
 		 * @brief    通知用户API准备就绪。
@@ -442,7 +433,7 @@ private:
 	// udp order operation
 #ifdef UPD_ORDER_OPERATION
 	int udp_sequence_;
-	TAPIUINT64 m_UdpCertCode;
+	DstarApiRspLoginField m_LoginInfo;
 	int			m_udpFd;
     struct sockaddr_in udpserver_;
 #else

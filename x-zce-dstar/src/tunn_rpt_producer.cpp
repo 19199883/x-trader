@@ -218,27 +218,27 @@ void TunnRptProducer::OnConnect()
     clog_warning("[%s] OnConnect.", module_name_);
 }
 
-void TunnRptProducer::OnRspLogin(TAPIINT32 errorCode, const TapAPITradeLoginRspInfo* loginRspInfo)
+// ok
+void TunnRptProducer:::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
 {
-    clog_warning("[%s] OnRspLogin: errorCode: %d, %s",
-        module_name_,
-		errorCode, 
-		ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
+	m_LoginInfo = *pLoginRsp;
+	clog_warning("[%s] OnRspLogin: errorCode: %d, %s",
+		module_name_,
+		m_LoginInfo.ErrorCode, 
+		ESUNNYDatatypeFormater::ToString(m_LoginInfo).c_str());
 	fflush (Log::fp);
 
-	// TODO: coding
-	if(0 != errorCode)
+	if(0 != m_LoginInfo.ErrorCode)
 	{
 		clog_error("[%s] OnRspLogin: errorCode: %d, %s",
 			module_name_,
-			errorCode, 
-			ESUNNYDatatypeFormater::ToString(loginRspInfo).c_str());
+			m_LoginInfo.ErrorCode, 
+			ESUNNYDatatypeFormater::ToString(m_LoginInfo).c_str());
 		fflush (Log::fp);
 	}
 	else
 	{
 #ifdef UPD_ORDER_OPERATION
-		m_UdpCertCode = loginRspInfo->UdpCertCode;
 		AuthUdpServer();
 #endif
 	}
@@ -508,20 +508,23 @@ int32_t TunnRptProducer::Push()
 }
 
 #ifdef UPD_ORDER_OPERATION
-// TODO: coding for udp version
+// coding for udp version
 void TunnRptProducer::AuthUdpServer()
 {
 	m_udpFd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
-    char sendbuf[sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpAuthReq)];
-    TapAPIUdpHead* pHead = (TapAPIUdpHead*) sendbuf;
-    pHead->PackageFlag = UDP_Package_Flag;
-    pHead->ProtocolCode = CMD_UDPAuth_Req;
-    pHead->Sequence = InitUdpSequence();
-    pHead->Version = 1;
-    TapAPIUdpAuthReq* pAuth = (TapAPIUdpAuthReq*)(sendbuf + sizeof (TapAPIUdpHead));
-    pAuth->AuthCode = m_UdpCertCode;
-    strncpy(pAuth->UserNo, config_.userid.c_str(), sizeof (pAuth->UserNo) - 1);
+    char sendbuf[sizeof(DstarApiHead) + sizeof(DstarApiReqUdpAuthField)];
+    DstarApiHead* pHead = (DstarApiHead*)sendbuf;
+	pHead->FrameFlag = DSTAR_API_HEAD_FLAG;
+	pHead->ProtocolCode = CMD_API_Req_UdpAuth;
+	pHead->Version = DSTAR_API_PROTOCOL_VERSION;
+	pHead->FieldCount = 1;
+	pHead->FieldSize = sizeof(DstarApiReqUdpAuthField);
+
+	DstarApiReqUdpAuthField *req = (DstarApiReqUdpAuthField *) &sendbuf[sizeof(DstarApiHead)];
+	req->AccountIndex = m_LoginInfo.AccountIndex;
+	req->UdpAuthCode =	m_LoginInfo.UdpAuthCode;
+	req->ReqIdMode =	DSTAR_API_REQIDMODE_NOCHECK;
 
 	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
@@ -539,6 +542,8 @@ void TunnRptProducer::AuthUdpServer()
 						(struct sockaddr*)&udpserver_, 
 						&len) != -1)
         {
+
+	// TODO: here
             TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
 			clog_info("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
         }
