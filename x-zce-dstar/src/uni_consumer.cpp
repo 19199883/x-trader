@@ -372,16 +372,23 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 {
 	clog_debug("[%s] [ProcSigs] sig_cnt: %d; ", module_name_, sig_cnt);
 
-	for (int i = 0; i < sig_cnt; i++){
-		if (sigs[i].sig_act == signal_act_t::cancel){
+	for (int i = 0; i < sig_cnt; i++)
+	{
+		if (sigs[i].sig_act == signal_act_t::cancel)
+		{
 			CancelOrder(strategy, sigs[i]);
-		}else{
+		}
+		else
+		{
 			signal_t &sig = sigs[i];
 			strategy.Push(sig);
-			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act)){
-				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
+			if(strategy.Deferred(sig.sig_id, sig.sig_openclose, sig.sig_act))
+			{
+				for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++)
+				{
 					int32_t sig_id = pending_signals_[sig.st_id][i];
-					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL){
+					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL)
+					{
 						pending_signals_[sig.st_id][i] = sig.sig_id;
 						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
 									module_name_,sig.st_id,pending_signals_[sig.st_id][i],i);
@@ -391,7 +398,8 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 				if(i == MAX_PENDING_SIGNAL_COUNT){
 					clog_error("[%s] pending_signals_ beyond;", module_name_);
 				}
-			} else { PlaceOrder(strategy, sigs[i]); }
+			} 
+			else { PlaceOrder(strategy, sigs[i]); }
 		}
 	} // end for (int i = 0; i < sig_cnt; i++)
 }
@@ -463,16 +471,12 @@ void UniConsumer::CancelOrder(Strategy &strategy, signal_t &sig)
 
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 
-	// TODO: coding for udp version
 	// TODO: debug on 2019032
-#ifdef UPD_ORDER_OPERATION
-	char* deleteOrderBuf = ESUNNYPacker::DeleteUdpOrderRequest(rptforcancel.OrderNo);
-	int rtn = this->tunn_rpt_producer_->CancelUdpOrder(deleteOrderBuf);
-#else
-	int rtn = this->tunn_rpt_producer_->ReqOrderAction(
-				rptforcancel.ServerFlag, 
+	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
+	char* deleteOrderBuf = ESUNNYPacker::DeleteUdpOrderRequest(
+				localorderid,
 				rptforcancel.OrderNo);
-#endif
+	int rtn = this->tunn_rpt_producer_->CancelUdpOrder(deleteOrderBuf);
 	if(rtn != 0)
 	{
 		clog_error("[%s] CancelOrder - return:%d, strategy id:%d, sig_id:%d, orig_sig_id:%d, "
@@ -535,13 +539,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 				ord->PositionEffect);
 	if(result)
 	{
-		// TODO: coding for udp version
-#ifdef UPD_ORDER_OPERATION
-		int rtn = tunn_rpt_producer_->InsertUdpOrder(ordBuf);
-#else
-		int rtn = tunn_rpt_producer_->ReqOrderInsert(localorderid, &session_id, ord);
-#endif
-
+		int rtn = tunn_rpt_producer_->InsertUdpOrder(ordBuf,sig.symbol);
 		if(rtn != 0)
 		{ // feed rejeted info
 			TunnRpt rpt;

@@ -38,15 +38,22 @@ void ESUNNYPacker::InitNewUdpOrder(const char *account, char *upperchannel)
 }
 
 // TODO: to here
-char* ESUNNYPacker::DeleteUdpOrderRequest(const char *orderNo)
+char* ESUNNYPacker::DeleteUdpOrderRequest(
+			long localorderid, 
+			const char *orderNo)
 {
-    TapAPIUdpOrderDeleteReq* pDeleteOrder = (TapAPIUdpOrderDeleteReq*)(ESUNNYPacker::delete_udporder_ + sizeof(TapAPIUdpHead));
+    DstarApiReqOrderDeleteField* req = (DstarApiReqOrderDeleteField*)(
+				ESUNNYPacker::delete_udporder_ + sizeof(DstarApiHead));
+	req->ClientReqId = localorderid;
+	strncpy(req->OrderNo, orderNo, sizeof(DstarApiOrderNoType) - 1);
+
+	// TODO: here
 	strcpy(pDeleteOrder->OrderNo, orderNo);
 
 	return ESUNNYPacker::delete_udporder_;
 }
 
-	// TODO: to here
+	// ok
 char* ESUNNYPacker::UdpOrderRequest(
 			const signal_t& sig,
 			long localorderid,

@@ -587,34 +587,30 @@ void TunnRptProducer::AuthUdpServer()
 	}
 }
 
-// coding for udp version
 int TunnRptProducer::InitUdpSequence()
 {
 	udp_sequence_ = 1;
 	return udp_sequence_;
 }
 
-// coding for udp version
 int TunnRptProducer::NewUdpSequence()
 {
 	udp_sequence_++;
 	return udp_sequence_;
 }
 
-// TODO: to here
-int TunnRptProducer::InsertUdpOrder(char *sendbuf)
+// ok
+int TunnRptProducer::InsertUdpOrder(char *sendbuf, const char* contract)
 {
-    TapAPIUdpOrderInsertReq* req = (TapAPIUdpOrderInsertReq*)(
-				sendbuf + sizeof(TapAPIUdpHead));
+    DstarApiReqOrderInsertField * req = (DstarApiReqOrderInsertField*)(
+				sendbuf + sizeof(DstarApiHead));
 	//席位信息中的席位索引,填0不指定席位，由交易服务轮询席位
 	req->SeatIndex = m_Seat.SeatIndex;   
 	req->AccountIndex = m_LoginInfo.AccountIndex; 
 	req->UdpAuthCode = m_LoginInfo.UdpAuthCode;   
+	req->ContractIndex = contracts_map_[contract];
+	req->Reference = NewUdpSequence();     //要求 >=0
 
-
-    TapAPIUdpHead* pHead = (TapAPIUdpHead*)udporder;
-    pHead->Sequence = NewUdpSequence();
-    
 	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
 					udporder, 
@@ -632,11 +628,17 @@ int TunnRptProducer::InsertUdpOrder(char *sendbuf)
 	return 0;
 }
 
-// TODO: coding for udp version
-int TunnRptProducer::CancelUdpOrder(char *deleteudporder)
+
+int TunnRptProducer::CancelUdpOrder(char *sendbuf)
 {
-    TapAPIUdpHead* pHead = (TapAPIUdpHead*)deleteudporder;
-    pHead->Sequence = NewUdpSequence();
+	DstarApiReqOrderDeleteField *req = (DstarApiReqOrderDeleteField *)(
+				sendbuf + sizeof(DstarApiHead));
+	req->AccountIndex = m_LoginInfo.AccountIndex;
+	req->UdpAuthCode = m_LoginInfo.UdpAuthCode;
+	req->SeatIndex = m_Seat.SeatIndex ;     //0从报单席位撤单,非0从指定席位撤单
+	req->Reference = NewUdpSequence();
+
+
     
 	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 

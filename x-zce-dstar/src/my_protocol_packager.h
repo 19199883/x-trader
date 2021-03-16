@@ -18,7 +18,7 @@ public:
 			const signal_t& sig,
 			long localorderid,
 			int32_t vol);
-	static char* DeleteUdpOrderRequest(const char *orderNo);
+	static char* DeleteUdpOrderRequest(long localorderid, const char *orderNo);
 
 	// TODO: coding for udp version
 	static void InitDeleteUdpOrder();
