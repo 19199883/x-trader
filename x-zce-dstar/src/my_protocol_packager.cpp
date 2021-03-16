@@ -4,32 +4,32 @@
 #include "vrt_value_obj.h"
 
 
-// TODO: coding for udp version
-#ifdef UPD_ORDER_OPERATION
-	char ESUNNYPacker::new_udporder_[UDP_ORDER_INSERT_LEN] = {};
-	char ESUNNYPacker::delete_udporder_[UDP_ORDER_DELETE_LEN] = {};
-#else
-	TapAPINewOrder ESUNNYPacker::new_order_;
-#endif
+char ESUNNYPacker::new_udporder_[UDP_ORDER_INSERT_LEN] = {};
+char ESUNNYPacker::delete_udporder_[UDP_ORDER_DELETE_LEN] = {};
 
-// TODO: coding for udp version
-#ifdef UPD_ORDER_OPERATION
+// ok
 void ESUNNYPacker::InitDeleteUdpOrder()
 {
-    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ESUNNYPacker::delete_udporder_;
-    pHead->PackageFlag = UDP_Package_Flag;
-    pHead->ProtocolCode = CMD_UDPOrderDelete_Req;
-    pHead->Version = 1;
+    DstarApiHead * head = (DstarApiHead *)ESUNNYPacker::delete_udporder_;
+	head->FrameFlag = DSTAR_API_HEAD_FLAG;
+	head->FieldCount = 1;
+	head->FieldSize = sizeof(DstarApiReqOrderDeleteField);
+	head->ProtocolCode = CMD_API_Req_OrderDelete;
+	head->Version = DSTAR_API_PROTOCOL_VERSION;				
+
 }
 
 // TODO: coding for udp version
 void ESUNNYPacker::InitNewUdpOrder(const char *account, char *upperchannel)
 {
-    TapAPIUdpHead* pHead = (TapAPIUdpHead*) ESUNNYPacker::new_udporder_;
-    pHead->PackageFlag = UDP_Package_Flag;
-    pHead->ProtocolCode = CMD_UDPOrderInsert_Req;
-    pHead->Version = 1;
+    DstarApiHead * head = (DstarApiHead *)ESUNNYPacker::new_udporder_;
+	head->FrameFlag = DSTAR_API_HEAD_FLAG;
+	head->FieldCount = 1;
+	head->FieldSize = sizeof(DstarApiReqOrderInsertField);
+	head->ProtocolCode = CMD_API_Req_OrderInsert;
+	head->Version = DSTAR_API_PROTOCOL_VERSION;
 
+	// TODO: to here
     TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udporder_ + sizeof(TapAPIUdpHead));
     strcpy(pOrder->AccountNo, account);
     pOrder->OrderType = TAPI_ORDER_TYPE_LIMIT;

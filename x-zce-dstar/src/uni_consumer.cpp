@@ -46,17 +46,6 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
-#if FIND_STRATEGIES == 1
-	unordered_multimap 
-	clog_warning("[%s] method for finding strategies by contract:unordered_multimap", module_name_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-	memset(stra_idx_table_, -1, sizeof(stra_idx_table_));
-	memset(cont_straidx_map_table_, -1, sizeof(cont_straidx_map_table_));
-	clog_warning("[%s] method for finding strategies by contract:two-dimensional array ", module_name_);
-#endif	
-
 #if FIND_STRATEGIES == 3 // strcmp
 	clog_warning("[%s] method for finding strategies by contract:strcmp", module_name_);
 #endif
@@ -183,15 +172,6 @@ void UniConsumer::GetKeys(const char* contract, int &key1, int &key2)
 	key2 = atoi(contract +i);   
 }
 
-#if FIND_STRATEGIES== 2 // two-dimensional array
-int32_t UniConsumer::GetEmptyNode()
-{
-	for(int i=0; i < STRA_TABLE_SIZE; i++){
-		if(stra_idx_table_[i][0] < 0) return i;
-	}
-}
-#endif
-
 void UniConsumer::CreateStrategies()
 {
 	strategy_counter_ = 0;
@@ -204,28 +184,6 @@ void UniConsumer::CreateStrategies()
 		FILE *log_file = strategy.get_log_file();
 		WriteLogTitle(log_file);
 		WriteStrategyLog(strategy);
-
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-		// only support one contract for one strategy
-		cont_straidx_map_table_.emplace(setting.config.symbols[0].name, strategy_counter_);
-#endif
-
-#if FIND_STRATEGIES == 2 // two-dimensional array
-		int key1 = 0;
-		int key2 = 0;
-		GetKeys(setting.config.symbols[0].name,key1,key2);
-		int32_t cur_node = -1;
-		if (cont_straidx_map_table_[key1][key2] < 0){
-			cur_node = GetEmptyNode();
-			cont_straidx_map_table_[key1][key2] = cur_node;
-		} else { cur_node = cont_straidx_map_table_[key1][key2]; }
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] < 0){
-				stra_idx_table_[cur_node][i] = strategy_counter_;
-				break;
-			}
-		}
-#endif
 
 		clog_warning("[%s] [CreateStrategies] id:%d; contract: %s; maxvol: %d; so:%s ", 
 					module_name_, stra_table_[strategy_counter_].GetId(),
@@ -312,45 +270,6 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 #endif
 	clog_debug("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
 		md->ContractID, md->TimeStamp);
-		
-#if FIND_STRATEGIES == 1 //unordered_multimap  
-	auto range = cont_straidx_map_table_.equal_range(md->Contract);
-	for_each (
-		range.first,
-		range.second,
-		[=](std::unordered_multimap<std::string, int32_t>::value_type& x){
-			int sig_cnt = 0;
-			Strategy &strategy = stra_table_[x.second];
-			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-			// strategy log
-			WriteStrategyLog(strategy);
-			
-			ProcSigs(strategy, sig_cnt, sig_buffer_);
-		}
-	);
-#endif
-
-#if FIND_STRATEGIES == 2 //  two-dimensional array
-	int32_t key1,key2;
-	int32_t sig_cnt = 0;
-	GetKeys(md->Contract,key1,key2);
-	int32_t cur_node = cont_straidx_map_table_[key1][key2]; 
-	if (cur_node >= 0){
-		for(int i=0; i < STRA_TABLE_SIZE; i++){
-			if(stra_idx_table_[cur_node][i] >= 0){
-				int32_t stra_idx = stra_idx_table_[cur_node][i];
-				Strategy &strategy = stra_table_[stra_idx];
-				strategy.FeedMd(md, &sig_cnt, sig_buffer_);
-
-				// strategy log
-				WriteStrategyLog(strategy);
-			
-				ProcSigs(strategy, sig_cnt, sig_buffer_);
-			} else { break; }
-		}
-	}
-#endif
 
 #if FIND_STRATEGIES == 3 // strcmp
 	for(int i = 0; i < strategy_counter_; i++){ 
@@ -602,8 +521,14 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	const char *account = tunn_rpt_producer_->GetAccount();
 	// TODO: coding for udp version
 #ifdef UPD_ORDER_OPERATION
-	char* ordBuf = ESUNNYPacker::UdpOrderRequest(sig, account, localorderid, updated_vol);
-    TapAPIUdpOrderInsertReq* ord = (TapAPIUdpOrderInsertReq*) (ordBuf + sizeof(TapAPIUdpHead));
+	// TODO: here
+	char* ordBuf = ESUNNYPacker::UdpOrderRequest(
+				sig, 
+				account, 
+				localorderid, 
+				updated_vol);
+    TapAPIUdpOrderInsertReq* ord = (TapAPIUdpOrderInsertReq*)(
+				ordBuf + sizeof(TapAPIUdpHead));
 	bool result = compliance_.TryReqOrderInsert(
 				counter,
 				sig.symbol, 
@@ -611,7 +536,10 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 				ord->OrderSide, 
 				ord->PositionEffect);
 #else
-	TapAPINewOrder* ord = ESUNNYPacker::OrderRequest(sig, account, localorderid, updated_vol);
+	TapAPINewOrder* ord = ESUNNYPacker::OrderRequest(sig, 
+				account, 
+				localorderid, 
+				updated_vol);
 	TAPIUINT32 session_id;
 	bool result = compliance_.TryReqOrderInsert(
 				counter,

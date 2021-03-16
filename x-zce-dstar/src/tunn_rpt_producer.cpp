@@ -219,18 +219,24 @@ void TunnRptProducer::OnConnect()
 }
 
 // ok
-void TunnRptProducer(const DstarApiRspUdpAuthField *p)
+void TunnRptProducer::OnRspUdpAuth(const DstarApiRspUdpAuthField *p)
 {
 	clog_warning("[%s] %s",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(p).c_str());
 
-	fflush (Log::fp);
-
 	if (p->ErrorCode == 0)
 	{
 		// m_bUdpAuth = true;
 	}
+	else
+	{
+		clog_error("[%s] udpauth failed, %s",
+			module_name_,
+			ESUNNYDatatypeFormater::ToString(p).c_str());
+	}
+
+	fflush (Log::fp);
 }
 
 // ok
@@ -527,6 +533,8 @@ int32_t TunnRptProducer::Push()
 // ok
 void TunnRptProducer::AuthUdpServer()
 {
+	InitUdpSequence();
+
 	m_udpFd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     char sendbuf[sizeof(DstarApiHead) + sizeof(DstarApiReqUdpAuthField)];
@@ -557,21 +565,22 @@ void TunnRptProducer::AuthUdpServer()
 	}
 }
 
-// TODO: coding for udp version
+// coding for udp version
 int TunnRptProducer::InitUdpSequence()
 {
 	udp_sequence_ = 1;
 	return udp_sequence_;
 }
 
-// TODO: coding for udp version
+// coding for udp version
 int TunnRptProducer::NewUdpSequence()
 {
 	udp_sequence_++;
 	return udp_sequence_;
 }
 
-// TODO: coding for udp version
+// coding for udp version
+// TODO: to here
 int TunnRptProducer::InsertUdpOrder(char *udporder)
 {
     TapAPIUdpHead* pHead = (TapAPIUdpHead*)udporder;
@@ -585,18 +594,11 @@ int TunnRptProducer::InsertUdpOrder(char *udporder)
 					(struct sockaddr*)&udpserver_, 
 					len) != -1)
     {
-        char recvBuf[2048];
-        if (recvfrom(m_udpFd, 
-						recvBuf, 
-						sizeof (recvBuf), 
-						0, 
-						(struct sockaddr*)&udpserver_, 
-						&len) != -1)
-        {
-            TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
-			clog_info("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
-        }
     }
+	else
+	{
+		clog_error("[%s] InsertUdpOrder send failed!", module_name_); 
+	}
 
 	return 0;
 }

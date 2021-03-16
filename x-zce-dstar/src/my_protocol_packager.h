@@ -7,15 +7,13 @@
 
 #define EXCHANGE_NO "ZCE"
 
-//#ifdef UPD_ORDER_OPERATION
-	#define UDP_ORDER_INSERT_LEN sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderInsertReq)
-	#define UDP_ORDER_DELETE_LEN sizeof (TapAPIUdpHead) + sizeof (TapAPIUdpOrderDeleteReq)
-//#endif
+	#define UDP_ORDER_INSERT_LEN sizeof(DstarApiHead) + sizeof(DstarApiReqOrderInsertField)
+	#define UDP_ORDER_DELETE_LEN sizeof(DstarApiHead) + sizeof(DstarApiReqOrderDeleteField)
 
 class ESUNNYPacker
 {
 public:
-	// TODO: coding for udp version
+	// TODO: to here
 //#ifdef UPD_ORDER_OPERATION
 	static char* UdpOrderRequest(
 			const signal_t& sig,
