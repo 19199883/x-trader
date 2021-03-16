@@ -219,6 +219,21 @@ void TunnRptProducer::OnConnect()
 }
 
 // ok
+void TunnRptProducer(const DstarApiRspUdpAuthField *p)
+{
+	clog_warning("[%s] %s",
+		module_name_,
+		ESUNNYDatatypeFormater::ToString(p).c_str());
+
+	fflush (Log::fp);
+
+	if (p->ErrorCode == 0)
+	{
+		// m_bUdpAuth = true;
+	}
+}
+
+// ok
 void TunnRptProducer:::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
 {
 	m_LoginInfo = *pLoginRsp;
@@ -304,7 +319,7 @@ void TunnRptProducer::End()
 	{ 
 		if (api_) 
 		{
-			FreeTapTradeAPI(api_);
+			FreeDstarTradeApi(api_);
 			api_ = NULL;
 		}
 		ended_ = true;
@@ -509,6 +524,7 @@ int32_t TunnRptProducer::Push()
 
 #ifdef UPD_ORDER_OPERATION
 // coding for udp version
+// ok
 void TunnRptProducer::AuthUdpServer()
 {
 	m_udpFd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -534,20 +550,11 @@ void TunnRptProducer::AuthUdpServer()
 					(struct sockaddr*)&udpserver_, 
 					len) != -1)
     {
-        char recvBuf[2048];
-        if (recvfrom(m_udpFd, 
-						recvBuf, 
-						sizeof(recvBuf), 
-						0, 
-						(struct sockaddr*)&udpserver_, 
-						&len) != -1)
-        {
-
-	// TODO: here
-            TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
-			clog_info("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
-        }
     }
+	else
+	{
+		clog_error("[%s] UdpAuth send failed!", module_name_); 
+	}
 }
 
 // TODO: coding for udp version

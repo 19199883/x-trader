@@ -22,7 +22,9 @@ public:
 	static std::string ToString(const TapAPIOrderCancelReq *pdata);
 
 	// 所有响应消息的格式化
-	static std::string ToString(const TapAPITradeLoginRspInfo *pdata);
+	static std::string ToString(const DstarApiRspLoginField *pLoginRsp);
+	static std::string ToString(const DstarApiRspUdpAuthField *p);
+
 	static std::string ToString(const TapAPIExchangeInfo *pdata);
 	static std::string ToString(const TapAPICommodityInfo *pdata);
 	static std::string ToString(const TapAPITradeContractInfo *pdata);

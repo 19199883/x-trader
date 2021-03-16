@@ -164,46 +164,55 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPIOrderCancelReq* p)
     return buf;
 }
 
-std::string ESUNNYDatatypeFormater::ToString(const TapAPITradeLoginRspInfo* p)
+// ok
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspLoginField *p)
 {
     char buf[1024];
-    if (p) {
-        snprintf(buf, sizeof(buf), "structName=TapAPITradeLoginRspInfo "
-            "UserNo=%s "
-            "UserType=%d "
-            "UserName=%s "
-            "QuoteTempPassword=%s "
-            "ReservedInfo=%s "
-            "LastLoginIP=%s "
-            "LastLoginProt=%u "
-            "LastLoginTime=%s "
-            "LastLogoutTime=%s "
-            "TradeDate=%s "
-            "LastSettleTime=%s "
-            "StartTime=%s "
-            "InitTime=%s "
-			"AuthType=%c"
-			"AuthDate=%s"
-			"UdpCertCode=%llu",
-            p->UserNo,                         ///< 用户编号
-            p->UserType,                       ///< 用户类型
-            p->UserName,                       ///< 用户名
-            p->QuoteTempPassword,              ///< 行情临时密码
-            p->ReservedInfo,                   ///< 预留信息
-            p->LastLoginIP,                    ///< 上次登录IP
-            p->LastLoginPort,                  ///< 上次登录端口
-            p->LastLoginTime,                  ///< 上次登录时间
-            p->LastLogoutTime,                 ///< 上次退出时间
-            p->TradeDate,                      ///< 当前交易日期
-            p->LastSettleTime,                 ///< 上次结算时间
-            p->StartTime,                      ///< 系统启动时间
-            p->InitTime,                        ///< 系统初始化时间
-			p->AuthType,
-			p->AuthDate,
-			p->UdpCertCode
-            );
-    } else {
-        snprintf(buf, sizeof(buf), "structName=TapAPITradeLoginRspInfo <null>");
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiRspLoginField "
+				" user:%s "
+				"index:%u "
+				"error:%u "
+				"authcode:%u "
+				"TradeDate=%s\n",
+				p->AccountNo, 
+				p->AccountIndex, 
+				p->ErrorCode, 
+				p->UdpAuthCode,
+				p->TradeDate);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=TradeDate <null>");
+    }
+
+    return buf;
+}
+
+// ok
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspUdpAuthField *p)
+{
+    char buf[1024];
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiRspUdpAuthField "
+				"AccountIndex:%d "
+				"UdpAuthCode:%u "
+				"ErrorCode:%u " 
+				"ReqIdMode:%hhu\n",
+				p>AccountIndex, 
+				p>UdpAuthCode, 
+				p>ErrorCode,
+				p>ReqIdMode);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=DstarApiRspUdpAuthField <null>");
     }
 
     return buf;
