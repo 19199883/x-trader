@@ -205,10 +205,10 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspUdpAuthField *p)
 				"UdpAuthCode:%u "
 				"ErrorCode:%u " 
 				"ReqIdMode:%hhu\n",
-				p>AccountIndex, 
-				p>UdpAuthCode, 
-				p>ErrorCode,
-				p>ReqIdMode);
+				p->AccountIndex, 
+				p->UdpAuthCode, 
+				p->ErrorCode,
+				p->ReqIdMode);
     } 
 	else 
 	{
@@ -217,6 +217,61 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspUdpAuthField *p)
 
     return buf;
 }
+
+
+// ok
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiContractField *p)
+{
+    char buf[1024];
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiContractField "
+				"ExchangeId:%c "
+				"CommodityType:%c "
+				"ContractIndex:%u " 
+				"ContractSize:%d"
+				"ContractNo:%s \n" ,
+				p->ExchangeId, 
+				p->CommodityType, 
+				p->ContractIndex,
+				p->ContractSize,
+				p->ContractNo);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=DstarApiContractField <null>");
+    }
+
+    return buf;
+}
+
+
+// ok
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiSeatField *p)
+{
+    char buf[1024];
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiSeatField "
+				"SeatIndex:%hhu "
+				"SeatNo:%s "
+				"Exchange:%c \n" ,
+				p->SeatIndex, 
+				p->SeatNo, 
+				p->Exchange);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=DstarApiSeatField <null>");
+    }
+
+    return buf;
+}
+///////////////////////////////
 
 std::string ESUNNYDatatypeFormater::ToString(const TapAPIExchangeInfo* p)
 {

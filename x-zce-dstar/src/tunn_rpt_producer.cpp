@@ -240,8 +240,23 @@ void TunnRptProducer::OnRspUdpAuth(const DstarApiRspUdpAuthField *p)
 }
 
 // ok
+void TunnRptProducer::OnRspContract(const DstarApiContractField *pContract)
+{
+	clog_warning("[%s] ",
+		module_name_,
+		ESUNNYDatatypeFormater::ToString(pContract).c_str());
+	fflush (Log::fp);
+
+	contracts_map_[pContract->ContractNo] = pContract->ContractIndex;
+}
+
+// ok
 void TunnRptProducer::OnRspSeat(const DstarApiSeatField* pSeat)
 {
+	clog_warning("[%s] ",
+		module_name_,
+		ESUNNYDatatypeFormater::ToString(pSeat).c_str());
+	fflush (Log::fp);
 	m_Seat= *pSeat; 
 }
 

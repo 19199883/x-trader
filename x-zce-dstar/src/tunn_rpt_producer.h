@@ -55,25 +55,11 @@ class TunnRptProducer: public ITapTradeAPINotify
 		~TunnRptProducer();
 
 		// udp order operation
-#ifdef UPD_ORDER_OPERATION
 		void AuthUdpServer();
 		int InitUdpSequence();
 		int NewUdpSequence();
 		int InsertUdpOrder(char *udporder);
 		int CancelUdpOrder(char *deleteudporder);
-#else
-		/*
-		 * things relating to esunny Api
-		 */
-		/*
-		 * localorderid:新委托单的LocalOrderID
-		 */
-		int ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session_id, TapAPINewOrder *p);
-		/*
-		 * counter:要撤单的委托单的counter of LocalOrderID
-		 */
-		int ReqOrderAction(TAPICHAR serverflag, const char* orderno);
-#endif
 
 
 		/**
@@ -89,6 +75,9 @@ class TunnRptProducer: public ITapTradeAPINotify
 		 virtual void OnRspUdpAuth(const DstarApiRspUdpAuthField *pRspUdpAuth);
 		 ///席位信息响应
 		 virtual void OnRspSeat(const DstarApiSeatField* pSeat);
+
+		 ///合约信息响应
+		 virtual void OnRspContract(const DstarApiContractField *pContract);
 
 
 		virtual void TAP_CDECL OnAPIReady();
@@ -209,6 +198,7 @@ private:
 	int udp_sequence_;
 	DstarApiRspLoginField m_LoginInfo;
 	DstarApiSeatField m_Seat;
+	unordered_map<std::string,unsigned int> contracts_map_;
 
 	int			m_udpFd;
     struct sockaddr_in udpserver_;
