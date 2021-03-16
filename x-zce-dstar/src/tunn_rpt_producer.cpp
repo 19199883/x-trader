@@ -240,7 +240,14 @@ void TunnRptProducer::OnRspUdpAuth(const DstarApiRspUdpAuthField *p)
 }
 
 // ok
-void TunnRptProducer:::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
+void TunnRptProducer::OnRspSeat(const DstarApiSeatField* pSeat)
+{
+	m_Seat= *pSeat; 
+}
+
+
+// ok
+void TunnRptProducer::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
 {
 	m_LoginInfo = *pLoginRsp;
 	clog_warning("[%s] OnRspLogin: errorCode: %d, %s",
@@ -579,10 +586,17 @@ int TunnRptProducer::NewUdpSequence()
 	return udp_sequence_;
 }
 
-// coding for udp version
 // TODO: to here
-int TunnRptProducer::InsertUdpOrder(char *udporder)
+int TunnRptProducer::InsertUdpOrder(char *sendbuf)
 {
+    TapAPIUdpOrderInsertReq* req = (TapAPIUdpOrderInsertReq*)(
+				sendbuf + sizeof(TapAPIUdpHead));
+	//席位信息中的席位索引,填0不指定席位，由交易服务轮询席位
+	req->SeatIndex = m_Seat.SeatIndex;   
+	req->AccountIndex = m_LoginInfo.AccountIndex; 
+	req->UdpAuthCode = m_LoginInfo.UdpAuthCode;   
+
+
     TapAPIUdpHead* pHead = (TapAPIUdpHead*)udporder;
     pHead->Sequence = NewUdpSequence();
     

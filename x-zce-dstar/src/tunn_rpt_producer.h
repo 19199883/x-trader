@@ -85,9 +85,11 @@ class TunnRptProducer: public ITapTradeAPINotify
 
 		///登录请求响应,错误码为0说明用户登录成功。
 		virtual void OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp);
-		
 		///UDP认证请求响应,错误码为0说明认证成功。
 		 virtual void OnRspUdpAuth(const DstarApiRspUdpAuthField *pRspUdpAuth);
+		 ///席位信息响应
+		 virtual void OnRspSeat(const DstarApiSeatField* pSeat);
+
 
 		virtual void TAP_CDECL OnAPIReady();
 
@@ -204,22 +206,16 @@ private:
 	IPAndPortStr ParseIPAndPortStr(const std::string &addr_cfg);
 
 	// udp order operation
-#ifdef UPD_ORDER_OPERATION
 	int udp_sequence_;
 	DstarApiRspLoginField m_LoginInfo;
+	DstarApiSeatField m_Seat;
+
 	int			m_udpFd;
     struct sockaddr_in udpserver_;
-#else
 	/*
 	 * key:session_id; value:counter of LocalOrderID
 	 */
 	unordered_map<TAPIUINT32,long > session_localorderid_map_;
-
-	/*
-	 * 撤单请求，避免每次初始化
-	 */
-	TapAPIOrderCancelReq cancel_req_;
-#endif
 };
 
 #endif

@@ -519,8 +519,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	const char *account = tunn_rpt_producer_->GetAccount();
-	// TODO: coding for udp version
-#ifdef UPD_ORDER_OPERATION
 	// TODO: here
 	char* ordBuf = ESUNNYPacker::UdpOrderRequest(
 				sig, 
@@ -535,19 +533,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 				ord->OrderPrice,
 				ord->OrderSide, 
 				ord->PositionEffect);
-#else
-	TapAPINewOrder* ord = ESUNNYPacker::OrderRequest(sig, 
-				account, 
-				localorderid, 
-				updated_vol);
-	TAPIUINT32 session_id;
-	bool result = compliance_.TryReqOrderInsert(
-				counter,
-				sig.symbol, 
-				ord->OrderPrice,
-				ord->OrderSide, 
-				ord->PositionEffect);
-#endif
 	if(result)
 	{
 		// TODO: coding for udp version

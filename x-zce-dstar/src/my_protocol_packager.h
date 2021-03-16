@@ -13,11 +13,9 @@
 class ESUNNYPacker
 {
 public:
-	// TODO: to here
-//#ifdef UPD_ORDER_OPERATION
+	// ok
 	static char* UdpOrderRequest(
 			const signal_t& sig,
-			const char *account,
 			long localorderid,
 			int32_t vol);
 	static char* DeleteUdpOrderRequest(const char *orderNo);
@@ -25,22 +23,15 @@ public:
 	// TODO: coding for udp version
 	static void InitDeleteUdpOrder();
 	static void InitNewUdpOrder(const char *account, char *upperchannel);
-//#else
     static void InitNewOrder(const char *account);
 
 	static TapAPINewOrder* OrderRequest(const signal_t& sig,const char *account,
 			long localorderid,int32_t vol);
-//#endif
 
 private:
 	
-	// TODO: coding for udp version
-//#ifdef UPD_ORDER_OPERATION
 	static char new_udporder_[UDP_ORDER_INSERT_LEN];
 	static char delete_udporder_[UDP_ORDER_DELETE_LEN];
-//#else
-	static TapAPINewOrder new_order_;
-//#endif
 };
 
 #endif // MY_PROTOCOL_Packer_H_

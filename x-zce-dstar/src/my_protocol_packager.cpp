@@ -19,7 +19,7 @@ void ESUNNYPacker::InitDeleteUdpOrder()
 
 }
 
-// TODO: coding for udp version
+// ok
 void ESUNNYPacker::InitNewUdpOrder(const char *account, char *upperchannel)
 {
     DstarApiHead * head = (DstarApiHead *)ESUNNYPacker::new_udporder_;
@@ -29,15 +29,15 @@ void ESUNNYPacker::InitNewUdpOrder(const char *account, char *upperchannel)
 	head->ProtocolCode = CMD_API_Req_OrderInsert;
 	head->Version = DSTAR_API_PROTOCOL_VERSION;
 
-	// TODO: to here
-    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udporder_ + sizeof(TapAPIUdpHead));
-    strcpy(pOrder->AccountNo, account);
-    pOrder->OrderType = TAPI_ORDER_TYPE_LIMIT;
-    pOrder->TimeInForce = TAPI_ORDER_TIMEINFORCE_GFD;
-    pOrder->HedgeFlag = TAPI_HEDGEFLAG_T;
-    strcpy(pOrder->UpperChannelNo, upperchannel);
+    DstarApiReqOrderInsertField* req = (DstarApiReqOrderInsertField *)(
+				ESUNNYPacker::new_udporder_ + sizeof(DstarApiHead));
+	req->Hedge = DSTAR_API_HEDGE_SPECULATE;
+	req->OrderType = DSTAR_API_ORDERTYPE_LIMIT;
+	req->ValidType = DSTAR_API_VALID_GFD;
+	req->MinQty = 0;
 }
-	// TODO: coding for udp version
+
+// TODO: to here
 char* ESUNNYPacker::DeleteUdpOrderRequest(const char *orderNo)
 {
     TapAPIUdpOrderDeleteReq* pDeleteOrder = (TapAPIUdpOrderDeleteReq*)(ESUNNYPacker::delete_udporder_ + sizeof(TapAPIUdpHead));
@@ -46,27 +46,26 @@ char* ESUNNYPacker::DeleteUdpOrderRequest(const char *orderNo)
 	return ESUNNYPacker::delete_udporder_;
 }
 
-	// TODO: coding for udp version
+	// TODO: to here
 char* ESUNNYPacker::UdpOrderRequest(
 			const signal_t& sig,
-			const char *account,
 			long localorderid,
 			int32_t vol)
 {
-    TapAPIUdpOrderInsertReq* pOrder = (TapAPIUdpOrderInsertReq*) (ESUNNYPacker::new_udporder_ + sizeof(TapAPIUdpHead));
+    DstarApiReqOrderInsertField* req = (DstarApiReqOrderInsertField*)(
+				ESUNNYPacker::new_udporder_ + sizeof(DstarApiHead));
 
-	sprintf(pOrder->ClientOrderNo, "%d", localorderid);
-	// contract
-	strcpy(pOrder->Contract, sig.symbol);
-	// side
-	if (sig.sig_act==signal_act_t::buy){
-		pOrder->OrderPrice = sig.buy_price;
-		pOrder->OrderSide = TAPI_SIDE_BUY;
+	sprintf(req->ClientReqId, "%u", localorderid);
+	strcpy(req->ContractNo, sig.symbol);
+	if (sig.sig_act==signal_act_t::buy)
+	{
+		req->OrderPrice  = sig.buy_price;
+		req->Direct = DSTAR_API_DIRECT_BUY;
 	} 
 	else if (sig.sig_act==signal_act_t::sell)
 	{
-		pOrder->OrderPrice = sig.sell_price;
-		pOrder->OrderSide = TAPI_SIDE_SELL;
+		req->OrderPrice = sig.sell_price;
+		req->Direct = DSTAR_API_DIRECT_SELL;
 	} 
 	else
 	{
@@ -74,14 +73,13 @@ char* ESUNNYPacker::UdpOrderRequest(
 			sig.sig_act, 
 			sig.sig_id); 
 	}
-	// position effect
 	if (sig.sig_openclose == alloc_position_effect_t::open_)
 	{
-		pOrder->PositionEffect = TAPI_PositionEffect_OPEN;
+		req->Offset = DSTAR_API_OFFSET_OPEN;
 	} 
 	else if (sig.sig_openclose == alloc_position_effect_t::close_)
 	{
-		pOrder->PositionEffect = TAPI_PositionEffect_COVER;
+		req->Offset = DSTAR_API_OFFSET_CLOSE;
 	}
 	else
 	{
@@ -89,8 +87,7 @@ char* ESUNNYPacker::UdpOrderRequest(
 			sig.sig_openclose, 
 			sig.sig_id); 
 	}
-	// volume
-    pOrder->OrderQty = vol;
+    req->OrderQty = vol;
 	
 	return ESUNNYPacker::new_udporder_;
 }
