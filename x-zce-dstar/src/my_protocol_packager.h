@@ -1,9 +1,8 @@
 ﻿#ifndef MY_PROTOCOL_PACKAGER_H_
 #define MY_PROTOCOL_PACKAGER_H_
 
-#include "TapTradeAPIDataType.h"
+#include "DstarTradeApiDataType.h"
 #include "signal.h"
-#include "EsUdpDataType.h"
 
 #define EXCHANGE_NO "ZCE"
 

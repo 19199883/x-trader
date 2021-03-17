@@ -189,6 +189,29 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiOrderField *p)
     return buf;
 }
 
+// ok 
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqUdpAuthField *p)
+{
+    char buf[1024];
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiReqUdpAuthField "
+				"AccountIndex:%hu "
+				"UdpAuthCode:%u "
+				"ReqIdMode:%hhu \n" ,
+				p->AccountIndex, 
+				p->UdpAuthCode,
+				p->ReqIdMode);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=DstarApiReqUdpAuthField <null>");
+    }
+
+    return buf;
+}
 
 // ok
 std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqOfferInsertField *p)

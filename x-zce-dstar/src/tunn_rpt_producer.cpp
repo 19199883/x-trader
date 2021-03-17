@@ -465,6 +465,10 @@ void TunnRptProducer::AuthUdpServer()
 	req->UdpAuthCode =	m_LoginInfo.UdpAuthCode;
 	req->ReqIdMode =	DSTAR_API_REQIDMODE_NOCHECK;
 
+	clog_warning("[%s] UdpAuth %s", 
+				module_name_,
+				ESUNNYDatatypeFormater::ToString(req).c_str()); 
+
 	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
 					sendbuf, 
