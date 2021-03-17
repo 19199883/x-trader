@@ -5,7 +5,9 @@
 #ifndef DSTARTRADEAPISTRUCT_H
 #define DSTARTRADEAPISTRUCT_H
 
+#include "DstarTradeApiError.h"
 #include "DstarTradeApiDataType.h"
+#include "DstarTradeApiStruct.h"
 
 
 #pragma pack(push, 1)
