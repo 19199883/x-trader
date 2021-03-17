@@ -18,15 +18,16 @@ public:
 			const signal_t& sig,
 			long localorderid,
 			int32_t vol);
-	static char* DeleteUdpOrderRequest(long localorderid, const char *orderNo);
+
+	static char* DeleteUdpOrderRequest(
+				long localorderid, 
+				const char *orderNo,
+				const char *systemNo);
 
 	// TODO: coding for udp version
 	static void InitDeleteUdpOrder();
 	static void InitNewUdpOrder(const char *account, char *upperchannel);
     static void InitNewOrder(const char *account);
-
-	static TapAPINewOrder* OrderRequest(const signal_t& sig,const char *account,
-			long localorderid,int32_t vol);
 
 private:
 	

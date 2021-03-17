@@ -174,9 +174,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspLoginField *p)
 				sizeof(buf), 
 				"structName=DstarApiRspLoginField "
 				" user:%s "
-				"index:%u "
-				"error:%u "
-				"authcode:%u "
+				"AccountIndex:%hu "
+				"ErrorCode:%u "
+				"UdpAuthCode:%u "
 				"TradeDate=%s\n",
 				p->AccountNo, 
 				p->AccountIndex, 
@@ -201,7 +201,7 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspUdpAuthField *p)
         snprintf(buf, 
 				sizeof(buf), 
 				"structName=DstarApiRspUdpAuthField "
-				"AccountIndex:%d "
+				"AccountIndex:%hu "
 				"UdpAuthCode:%u "
 				"ErrorCode:%u " 
 				"ReqIdMode:%hhu\n",
@@ -267,6 +267,150 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiSeatField *p)
 	else 
 	{
         snprintf(buf, sizeof(buf), "structName=DstarApiSeatField <null>");
+    }
+
+    return buf;
+}
+
+
+// ok
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspOrderInsertField *p)
+{
+    char buf[1024];
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiSeatField "
+				"SeatIndex:%hhu "
+				"AccountNo:%s "
+				"ClientReqId:%u " 
+				"Reference:%d "
+				"MaxClientReqId:%u "
+				"OrderNo:%s "
+				"ErrCode:%u \n" ,
+				p->SeatIndex, 
+				p->AccountNo, 
+				p->ClientReqId,
+				p->Reference,
+				p->MaxClientReqId,
+				p->OrderNo,
+				p->ErrCode);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=DstarApiSeatField <null>");
+    }
+
+    return buf;
+}
+
+
+// ok
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiOrderField *p)
+{
+    char buf[1024];
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiSeatField "
+				"MatchQty:%u "
+				"ErrCode:%u "
+				"OrderLocalNo:%s "
+				"SystemNo:%s "
+				"Reference:%d "
+				"OrderState:%c "
+				"SeatIndex:%hhu "
+				"AccountNo:%s "
+				"OrderNo:%s \n" ,
+				p->MatchQty, 
+				p->ErrCode,
+				p->OrderLocalNo,
+				p->SystemNo,
+				p->Reference,
+				p->OrderState,
+				p->SeatIndex, 
+				p->AccountNo, 
+				p->OrderNo);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=DstarApiOrderField <null>");
+    }
+
+    return buf;
+}
+
+
+// ok
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqOfferInsertField *p)
+{
+    char buf[1024];
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiReqOfferInsertField "
+				"BuyOffset:%c "
+				"SellOffset:%c "
+				"AccountIndex:%hu "
+				"ClientReqId:%u "
+				"ContractIndex:%u "
+				"ContractNo:%s "
+				"OrderQty:%c "
+				"BuyPrice:%f "
+				"SellPrice:%f "
+				"SeatIndex:%hhu "
+				"Reference:%d "
+				"UdpAuthCode:%u \n" ,
+				p->BuyOffset,
+				p->SellOffset,
+				p->AccountIndex, 
+				p->ClientReqId, 
+				p->ContractIndex, 
+				p->ContractNo, 
+				p->OrderQty, 
+				p->BuyPrice, 
+				p->SellPrice, 
+				p->SeatIndex, 
+				p->Reference, 
+				p->UdpAuthCode);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=DstarApiReqOfferInsertField <null>");
+    }
+
+    return buf;
+}
+
+
+
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqOrderDeleteField *p)
+{
+    char buf[1024];
+    if (p) 
+	{
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiReqOrderDeleteField "
+				"AccountIndex:%hu "
+				"ClientReqId:%u "
+				"SeatIndex:%hhu "
+				"Reference:%d "
+				"UdpAuthCode:%u "
+				"OrderNo:%s \n" ,
+				p->AccountIndex, 
+				p->ClientReqId, 
+				p->SeatIndex, 
+				p->Reference, 
+				p->UdpAuthCode,
+				p->OrderNo);
+    } 
+	else 
+	{
+        snprintf(buf, sizeof(buf), "structName=DstarApiReqOrderDeleteField <null>");
     }
 
     return buf;
@@ -634,7 +778,7 @@ std::string ESUNNYDatatypeFormater::ToString(const TapAPISubmitUserLoginRspInfo 
     if (pp) {
         snprintf(buf, sizeof(buf), "structName=TapAPISubmitUserLoginRspInfo"
             "UserNo=%s "
-            "ErrorCode=%d "
+            "ErrorCode=%u "
             "ErrorText=%s ",
             pp->UserNo, 
             pp->ErrorCode,

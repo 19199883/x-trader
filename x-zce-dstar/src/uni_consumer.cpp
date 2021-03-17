@@ -303,21 +303,32 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt* rpt = tunn_rpt_producer_->GetRpt(index);
 	int32_t strategy_id = tunn_rpt_producer_->GetStrategyID(*rpt);
 
-	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; OrderStatus:%c; MatchedAmount:%u;"
-				" ErrorID:%u ", module_name_, index, rpt->LocalOrderID, 
-				rpt->OrderStatus, rpt->MatchedAmount, rpt->ErrorID);
+	clog_info("[%s] [ProcTunnRpt] index: %d; LocalOrderID: %ld; "
+				"OrderStatus:%c; MatchedAmount:%u;"
+				" ErrorID:%u ",
+				module_name_, 
+				index, 
+				rpt->LocalOrderID, 
+				rpt->OrderStatus, 
+				rpt->MatchedAmount, 
+				rpt->ErrorID);
 
 	int32_t counter = tunn_rpt_producer_->GetCounterByLocalOrderID(rpt->LocalOrderID);
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
-	if(IsEmptyString(rptforcancel.OrderNo)){
-		rptforcancel.ServerFlag = rpt->ServerFlag;
-		strcpy(rptforcancel.OrderNo, rpt->OrderNo);
-	}
-	clog_info("[%s] ProcTunnRpt:counter=%d,ServerFlag=%c,OrderNo=%s", 
-		module_name_, counter, rptforcancel.ServerFlag, rptforcancel.OrderNo);
+	rptforcancel.ServerFlag = rpt->ServerFlag;
+	strcpy(rptforcancel.OrderNo, rpt->OrderNo);
+	strcpy(rptforcancel.SystemNo, rpt->SystemNo);
+	clog_info("[%s] ProcTunnRpt:counter=%d,ServerFlag=%c,OrderNo=%s,"
+				"SystemNo=%s", 
+		module_name_, 
+		counter, 
+		rptforcancel.ServerFlag, 
+		rptforcancel.OrderNo,
+		rptforcancel.SystemNo);
 	
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
+	// TODO: here
 	if (rpt->OrderStatus == TAPI_ORDER_STATE_CANCELED ||
 			rpt->OrderStatus == TAPI_ORDER_STATE_LEFTDELETED){
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
@@ -471,11 +482,12 @@ void UniConsumer::CancelOrder(Strategy &strategy, signal_t &sig)
 
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 
-	// TODO: debug on 2019032
+	// TODO: to here
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	char* deleteOrderBuf = ESUNNYPacker::DeleteUdpOrderRequest(
 				localorderid,
-				rptforcancel.OrderNo);
+				rptforcancel.OrderNo,
+				rptforcancel.SystemNo);
 	int rtn = this->tunn_rpt_producer_->CancelUdpOrder(deleteOrderBuf);
 	if(rtn != 0)
 	{

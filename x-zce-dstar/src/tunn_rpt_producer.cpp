@@ -15,19 +15,6 @@
 
 using namespace std::chrono;
 
-static std::string ReadAuthCode()
-{
-    char l[1024];
-    std::string auth_code;
-    ifstream auth_cfg("auth_code.dat");
-    while (auth_cfg.getline(l, 1023)) 
-	{
-        auth_code.append(l);
-    }
-
-    return auth_code;
-}
-
 IPAndPortNum TunnRptProducer::ParseIPAndPortNum(const std::string &addr_cfg)
 {   
     //format: udp://192.168.60.23:7120   or  tcp://192.168.60.23:7120
@@ -53,27 +40,19 @@ IPAndPortNum TunnRptProducer::ParseIPAndPortNum(const std::string &addr_cfg)
 
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer")
-#ifdef UPD_ORDER_OPERATION
 	 , m_UdpCertCode(0),
      m_udpFd(-1)
-#endif
 {
 	ended_ = false;
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 	
 	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
-    clog_warning("[%s] TapTradeAPIVersion:%s", module_name_, GetTapTradeAPIVersion());
+    clog_warning("[%s] TapTradeAPIVersion:%s", module_name_, GetApiVersion());
 
 	this->ParseConfig();
 
-	// TODO: coding for udp
-#ifdef UPD_ORDER_OPERATION
 	ESUNNYPacker::InitNewUdpOrder(GetAccount(), this->config_.UpperChannel);
 	ESUNNYPacker::InitDeleteUdpOrder();
-#else
-	ESUNNYPacker::InitNewOrder(GetAccount());
-    memset(&cancel_req_, 0, sizeof(cancel_req_));
-#endif
 
 	struct vrt_producer  *producer = vrt_producer_new("tunnrpt_producer", 1, queue);
 	this->producer_ = producer;
@@ -107,25 +86,33 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	}
 
 	// address for front machine
-	m_pApi->RegisterSpi(this);
-	m_pApi->RegisterFrontAddress(ip_port.first.c_str(), ip_port.second);
+	api_->RegisterSpi(this);
+	api_->RegisterFrontAddress(ip_port.first.c_str(), ip_port.second);
 	char log_path[] = "./";
-	m_pApi->SetApiLogPath(log_path);
+	api_->SetApiLogPath(log_path);
 	
 	DstarApiReqLoginField loginReq;
     memset(&loginReq, 0, sizeof(loginReq));
-	strncpy(loginReq.AccountNo, config_.userid.c_str(), sizeof(DstarApiAccountNoType) - 1);
-	strncpy(loginReq.Password, config_.password.c_str(), sizeof(DstarApiPasswdType) - 1);
-	strncpy(loginReq.AppId, this->appid_, sizeof(DstarApiAppIdType) - 1);
-	strncpy(loginReq.LicenseNo, this->authcode_, sizeof(DstarApiLicenseNoType) - 1);
-	api->SetLoginInfo(&loginReq);
-	m_pApi->SetCpuId(0, -1);
-	m_pApi->SetSubscribeStartId(-1);
+	strncpy(loginReq.AccountNo, 
+				config_.userid.c_str(), 
+				sizeof(DstarApiAccountNoType) - 1);
+	strncpy(loginReq.Password, 
+				config_.password.c_str(), 
+				sizeof(DstarApiPasswdType) - 1);
+	strncpy(loginReq.AppId, 
+				this->appid_, 
+				sizeof(DstarApiAppIdType) - 1);
+	strncpy(loginReq.LicenseNo, 
+				this->authcode_, 
+				sizeof(DstarApiLicenseNoType) - 1);
+	api_->SetLoginInfo(&loginReq);
+	api_->SetCpuId(0, -1);
+	api_->SetSubscribeStartId(-1);
 
 	char systeminfo[1024] = {0};
 	int nLen = 1024;
 	unsigned int nVersion = 0;
-	int ret = api->GetSystemInfo(systeminfo, &nLen, &nVersion);
+	int ret = api_->GetSystemInfo(systeminfo, &nLen, &nVersion);
 	clog_warning("[%s] GetSystemInfo, ret:%d, len:%d, version:%d\n", 
 				module_name_,
 				ret, 
@@ -133,15 +120,21 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 				nVersion);
 
 	DstarApiSubmitInfoField pSubmitInfo = {0};
-	strncpy(pSubmitInfo.AccountNo, config_.userid.c_str(), sizeof(DstarApiAccountNoType) - 1);
+	strncpy(pSubmitInfo.AccountNo, 
+				config_.userid.c_str(), 
+				sizeof(DstarApiAccountNoType) - 1);
 	pSubmitInfo.AuthType = DSTAR_API_AUTHTYPE_DIRECT;
 	pSubmitInfo.AuthKeyVersion = nVersion;
 	memcpy(pSubmitInfo.SystemInfo, systeminfo, nLen);
-	strncpy(pSubmitInfo.LicenseNo, this->authcode_, sizeof(DstarApiLicenseNoType) - 1);
-	strncpy(pSubmitInfo.ClientAppId, this->appid_, sizeof(DstarApiAppIdType) - 1);
-	api->SetSubmitInfo(&pSubmitInfo);
+	strncpy(pSubmitInfo.LicenseNo, 
+				this->authcode_, 
+				sizeof(DstarApiLicenseNoType) - 1);
+	strncpy(pSubmitInfo.ClientAppId, 
+				this->appid_, 
+				sizeof(DstarApiAppIdType) - 1);
+	api_->SetSubmitInfo(&pSubmitInfo);
 
-	if (api->Init(DSTAR_API_INIT_QUERY) < 0)
+	if (api_->Init(DSTAR_API_INIT_QUERY) < 0)
 	{
 		clog_error("[%s] udp client init failed.", module_name_);
 	}
@@ -182,8 +175,6 @@ void TunnRptProducer::ParseConfig()
 		strcpy(this->appid_, tunn_node->Attribute("appid"));
 		strcpy(this->authcode_, tunn_node->Attribute("authcode"));
 
-		// TODO: coding for udp config
-#ifdef UPD_ORDER_OPERATION
 		strcpy(this->config_.udpserverip, tunn_node->Attribute("udpserverip"));
 		this->config_.udpserverport = atoi(tunn_node->Attribute("udpserverport"));
 		strcpy(this->config_.UpperChannel, tunn_node->Attribute("upperchannel"));
@@ -197,7 +188,6 @@ void TunnRptProducer::ParseConfig()
 					this->config_.udpserverip,
 					this->config_.udpserverport,
 					this->config_.UpperChannel);
-#endif
 
 		clog_warning("[%s] tunn config:address:%s; brokerid:%s; userid:%s; password:%s; " ,
 					module_name_, 
@@ -242,17 +232,32 @@ void TunnRptProducer::OnRspUdpAuth(const DstarApiRspUdpAuthField *p)
 // ok
 void TunnRptProducer::OnRspContract(const DstarApiContractField *pContract)
 {
+	// TODO: 观看合约索引的内容
 	clog_warning("[%s] ",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(pContract).c_str());
 	fflush (Log::fp);
 
-	contracts_map_[pContract->ContractNo] = pContract->ContractIndex;
+	if(strlen(pContract->ContractNo) > 6)
+	{
+		clog_warning("[%s] discard contract: %s", 
+					module_name_,
+					pContract->ContractNo);
+	}
+	else
+	{
+		clog_info("[%s] add contract: %s", 
+					module_name_,
+					pContract->ContractNo);
+		contracts_map_[pContract->ContractNo] = pContract->ContractIndex;
+	}
 }
 
 // ok
 void TunnRptProducer::OnRspSeat(const DstarApiSeatField* pSeat)
 {
+	// TODO: 观看席位
+	//
 	clog_warning("[%s] ",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(pSeat).c_str());
@@ -281,10 +286,39 @@ void TunnRptProducer::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
 	}
 	else
 	{
-#ifdef UPD_ORDER_OPERATION
 		AuthUdpServer();
-#endif
 	}
+}
+
+// ok
+void TunnRptProducer::OnRspOrderInsert(const DstarApiRspOrderInsertField *pOrderInsert)
+{
+	clog_info("[%s]  %s",
+		module_name_,
+		ESUNNYDatatypeFormater::ToString(pOrder).c_str());
+
+	if(0 != pOrder->ErrorCode)
+	{
+		clog_error("[%s]  %s",
+			module_name_,
+			ESUNNYDatatypeFormater::ToString(pOrder).c_str());
+
+		int32_t cursor = Push();
+		struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
+		tunnrpt.LocalOrderID	= pOrder->Reference;
+		strcpy(tunnrpt.OrderNo, pOrder->OrderNo);
+		tunnrpt.ErrorID			= pOrder->ErrorCode;
+		tunnrpt.OrderStatus		= DSTAR_API_STATUS_FAIL;
+
+		struct vrt_value  *vvalue;
+		struct vrt_hybrid_value  *ivalue;
+		vrt_producer_claim(producer_, &vvalue);
+		ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+		ivalue->index = cursor;
+		ivalue->data = TUNN_RPT;
+		vrt_producer_publish(producer_);
+	}
+	else { }
 }
 
 void TunnRptProducer::OnAPIReady()
@@ -357,65 +391,34 @@ void TunnRptProducer::End()
 	fflush (Log::fp);
 }
 
-void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
+// ok 
+void TunnRptProducer::OnRtnOrder(const DstarApiOrderField *pOrder)
 {
     clog_info("[%s] OnRtnOrder:%s",
 				module_name_, 
-				ESUNNYDatatypeFormater::ToString(info).c_str());
+				ESUNNYDatatypeFormater::ToString(pOrder).c_str());
 
 	if (ended_) return;
 
-	// TODO: udp version need not session
-#ifdef UPD_ORDER_OPERATION
-	// TODO: note that udp version how to get local order id
-	long localorderid = atol(info->OrderInfo->ClientOrderNo);
-#else
-	bool session_found = false;
-	while(!session_found)
-	{
-		{
-			std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
-			auto it = session_localorderid_map_.find(info->SessionID);
-			if(it == session_localorderid_map_.end())
-			{
-				// api_->InsertOrder函数返回，有时会后于OnRtnOrder到达
-				session_found = false;
-			}
-			else
-			{
-				session_found = true;
-			}
-		}
-
-		if (!session_found)
-		{
-			clog_error("[%s] can not find localorderid by session:%u,err:%u",module_name_, 
-				info->SessionID,info->ErrorCode);
-			std::this_thread::sleep_for (std::chrono::milliseconds(5));
-		}
-	}
-	long localorderid = session_localorderid_map_[info->SessionID];
-#endif
-
 	int32_t cursor = Push();
 	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
-	tunnrpt.SessionID = info->SessionID;
-	tunnrpt.LocalOrderID = localorderid;
-	tunnrpt.ServerFlag = info->OrderInfo->ServerFlag;
-	strcpy(tunnrpt.OrderNo,info->OrderInfo->OrderNo);
+	tunnrpt.LocalOrderID = pOrder->Reference;
+	strcpy(tunnrpt.OrderNo, pOrder->OrderNo);
+	strcpy(tunnrpt.SystemNo, pOrder->SystemNo);
 
-	if (info->OrderInfo->OrderState==TAPI_ORDER_STATE_SUBMIT ||
-		info->OrderInfo->OrderState==TAPI_ORDER_STATE_QUEUED ||
-		info->OrderInfo->OrderState==TAPI_ORDER_STATE_CANCELING
+	if (info->OrderInfo->OrderState==DSTAR_API_STATUS_QUEUE ||
+		info->OrderInfo->OrderState==DSTAR_API_STATUS_APPLY ||
+		info->OrderInfo->OrderState==DSTAR_API_STATUS_SUSPENDED
 		) 
 	{// discard these reports
 		return;
 	}
 
-	tunnrpt.MatchedAmount = info->OrderInfo->OrderMatchQty;
+	// TODO: 确认是累计成交量还是当前成交量
+	tunnrpt.MatchedAmount = pOrder->MatchQty;
 	tunnrpt.OrderMatchPrice = info->OrderInfo->OrderMatchPrice;
-	tunnrpt.ErrorID = info->OrderInfo->ErrorCode;
-	tunnrpt.OrderStatus = info->OrderInfo->OrderState;
+	tunnrpt.ErrorID = pOrder->ErrorCode;
+	tunnrpt.OrderStatus = pOrder->OrderState;
 
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
@@ -425,18 +428,13 @@ void TunnRptProducer::OnRtnOrder(const TapAPIOrderInfoNotice* info)
 	ivalue->data = TUNN_RPT;
 	vrt_producer_publish(producer_);
 
-	if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL ||
-		tunnrpt.ErrorID != TAPIERROR_SUCCEED)
+	if(tunnrpt.OrderState==DSTAR_API_STATUS_FAIL ||
+		tunnrpt.ErrorCode != DSTAR_API_ERR_SUCCESS)
 	{
 		clog_error("[%s] OnRtnOrder:%s",
 					module_name_, 
-					ESUNNYDatatypeFormater::ToString(info).c_str());
+					ESUNNYDatatypeFormater::ToString(pOrder).c_str());
 	}
-
-	clog_info("[%s] cursor:%d,OnRtnOrder:%s",
-				module_name_,
-				cursor, 
-				ESUNNYDatatypeFormater::ToString(info).c_str());
 }
 
 // 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.
@@ -550,13 +548,10 @@ int32_t TunnRptProducer::Push()
 	return cursor;
 }
 
-#ifdef UPD_ORDER_OPERATION
 // coding for udp version
 // ok
 void TunnRptProducer::AuthUdpServer()
 {
-	InitUdpSequence();
-
 	m_udpFd = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     char sendbuf[sizeof(DstarApiHead) + sizeof(DstarApiReqUdpAuthField)];
@@ -587,18 +582,6 @@ void TunnRptProducer::AuthUdpServer()
 	}
 }
 
-int TunnRptProducer::InitUdpSequence()
-{
-	udp_sequence_ = 1;
-	return udp_sequence_;
-}
-
-int TunnRptProducer::NewUdpSequence()
-{
-	udp_sequence_++;
-	return udp_sequence_;
-}
-
 // ok
 int TunnRptProducer::InsertUdpOrder(char *sendbuf, const char* contract)
 {
@@ -608,8 +591,13 @@ int TunnRptProducer::InsertUdpOrder(char *sendbuf, const char* contract)
 	req->SeatIndex = m_Seat.SeatIndex;   
 	req->AccountIndex = m_LoginInfo.AccountIndex; 
 	req->UdpAuthCode = m_LoginInfo.UdpAuthCode;   
+	// TODO: 看看合约索引到底是何物
 	req->ContractIndex = contracts_map_[contract];
-	req->Reference = NewUdpSequence();     //要求 >=0
+	req->Reference = req->ClientReqId;     //要求 >=0
+
+	clog_info("[%s] %s", 
+				module_name_,
+				ESUNNYDatatypeFormater::ToString(req).c_str()); 
 
 	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
@@ -629,6 +617,7 @@ int TunnRptProducer::InsertUdpOrder(char *sendbuf, const char* contract)
 }
 
 
+// ok
 int TunnRptProducer::CancelUdpOrder(char *sendbuf)
 {
 	DstarApiReqOrderDeleteField *req = (DstarApiReqOrderDeleteField *)(
@@ -636,121 +625,25 @@ int TunnRptProducer::CancelUdpOrder(char *sendbuf)
 	req->AccountIndex = m_LoginInfo.AccountIndex;
 	req->UdpAuthCode = m_LoginInfo.UdpAuthCode;
 	req->SeatIndex = m_Seat.SeatIndex ;     //0从报单席位撤单,非0从指定席位撤单
-	req->Reference = NewUdpSequence();
+	req->Reference = req->ClientReqId;
 
+	clog_info("[%s] %s", 
+				module_name_,
+				ESUNNYDatatypeFormater::ToString(req).c_str()); 
 
-    
 	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
-					deleteudporder, 
-					UDP_ORDER_DELETE_LEN, 
-					0, 
-					(struct sockaddr*)&udpserver_, 
-					len) != -1)
+				deleteudporder, 
+				UDP_ORDER_DELETE_LEN, 
+				0, 
+				(struct sockaddr*)&udpserver_, 
+				len) != -1)
     {
-        char recvBuf[2048];
-        if (recvfrom(m_udpFd, 
-						recvBuf, 
-						sizeof (recvBuf), 
-						0, 
-						(struct sockaddr*)&udpserver_, 
-						&len) != -1)
-        {
-            TapAPIUdpHead* pHead = (TapAPIUdpHead*) recvBuf;
-			clog_info("[%s] ProtocolCode: %hu;", module_name_, pHead->ProtocolCode);
-        }
     }
+	else
+	{
+		clog_error("[%s] CancelUdpOrder send failed!", module_name_); 
+	}
 
 	return 0;
 }
-#else
-
-int TunnRptProducer::ReqOrderInsert(int32_t localorderid,TAPIUINT32 *session, TapAPINewOrder *p)
-{
-#ifdef LATENCY_MEASURE
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-	clog_info("[%s] ReqInsertOrder-:%s", module_name_, ESUNNYDatatypeFormater::ToString(p).c_str());
-	int ret = api_->InsertOrder(session,p);
-	{
-		std::lock_guard<std::mutex> lck (mtx_session_localorderid_);
-		session_localorderid_map_[*session] = localorderid;
-	}
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] ReqOrderInsert latency:%d us", 
-					module_name_,latency); 
-#endif
-	if (ret != 0){
-		//因为穿透版，权限问题采集信息不全，临时方案 
-		if(TAPIERROR_API_NotReady == ret) ret = 0;
-
-		clog_error("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
-				module_name_,ret, *session,localorderid);
-	}
-	else 
-	{
-		clog_info("[%s] ReqInsertOrder - return:%d, session_id:%u,localorderid:%d",
-				module_name_,
-				ret, 
-				*session,
-				localorderid);
-	}
-
-	return ret;
-}
-
-// TODO: coding for udp version
-//
-
-int TunnRptProducer::ReqOrderAction(TAPICHAR serverflag, const char* orderno)
-{
-#ifdef LATENCY_MEASURE
-	high_resolution_clock::time_point t0 = high_resolution_clock::now();
-#endif
-	TAPIUINT32 sessionID;
-    cancel_req_.ServerFlag = serverflag;
-    strcpy(cancel_req_.OrderNo, orderno);
-
-	clog_info("[%s] ReqOrderAction-:%s", 
-				module_name_, 
-				ESUNNYDatatypeFormater::ToString(&cancel_req_).c_str());
-
-	clog_info("[%s]before ReqOrderAction", module_name_);
-
-	int ret = api_->CancelOrder(&sessionID, &cancel_req_);
-
-	clog_info("[%s]after ReqOrderAction", module_name_);
-
-#ifdef LATENCY_MEASURE
-		high_resolution_clock::time_point t1 = high_resolution_clock::now();
-		int latency = (t1.time_since_epoch().count() - t0.time_since_epoch().count()) / 1000;	
-		clog_warning("[%s] ReqOrderAction latency:%d us", 
-					module_name_,latency); 
-#endif
-
-	if (ret != 0)
-	{
-		clog_error("[%s] CancelOrder - return:%d, session_id:%u, "
-			"server flag:%c,order no:%s", 
-			module_name_,
-			ret,
-			sessionID,
-			cancel_req_.ServerFlag,
-			cancel_req_.OrderNo);
-	} 
-	else 
-	{
-		clog_info("[%s] CancelOrder - return:%d, session_id:%u, "
-			"server flag:%c,order no:%s", 
-			module_name_,
-			ret,
-			sessionID,
-			cancel_req_.ServerFlag,
-			cancel_req_.OrderNo);
-	}
-
-	return ret;
-}
-#endif

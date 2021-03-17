@@ -36,6 +36,7 @@ struct Tunnconfig
 	char UpperChannel[30];
 };
 
+// TODO: here
 struct TunnRpt
 {
 	TAPIUINT32			    SessionID;
@@ -46,6 +47,7 @@ struct TunnRpt
 	TAPIUINT32			    ErrorID;            ///< 错误ID
 	TAPICHAR				ServerFlag;			///< 服务器标识
 	TAPISTR_20				OrderNo;			///< 委托编码
+	DstarApiSystemNoType    SystemNo;       // 系统号
 };
 
 class TunnRptProducer: public ITapTradeAPINotify
@@ -79,6 +81,11 @@ class TunnRptProducer: public ITapTradeAPINotify
 		 ///合约信息响应
 		 virtual void OnRspContract(const DstarApiContractField *pContract);
 
+		 ///报单应答
+		 virtual void OnRspOrderInsert(const DstarApiRspOrderInsertField *pOrderInsert);
+
+		 ///委托通知 (撤单失败时返回委托通知,委托状态不变,包含撤单失败的错误码)
+		virtual void OnRtnOrder(const DstarApiOrderField *pOrder);
 
 		virtual void TAP_CDECL OnAPIReady();
 
@@ -108,7 +115,6 @@ class TunnRptProducer: public ITapTradeAPINotify
 
 		virtual void TAP_CDECL OnRtnContract(const TapAPITradeContractInfo *info);
 
-		virtual void TAP_CDECL OnRtnOrder(const TapAPIOrderInfoNotice *info);
 
 		virtual void TAP_CDECL OnRspOrderAction(TAPIUINT32 sessionID, 
 					TAPIUINT32 errorCode, const TapAPIOrderActionRsp *info);
