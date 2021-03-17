@@ -203,11 +203,6 @@ void TunnRptProducer::ParseConfig()
 
 }
 
-void TunnRptProducer::OnConnect()
-{
-    clog_warning("[%s] OnConnect.", module_name_);
-}
-
 // ok
 void TunnRptProducer::OnRspUdpAuth(const DstarApiRspUdpAuthField *p)
 {
@@ -265,6 +260,14 @@ void TunnRptProducer::OnRspSeat(const DstarApiSeatField* pSeat)
 	m_Seat= *pSeat; 
 }
 
+// ok
+void TunnRptProducer::OnRspOrderDelete(const DstarApiRspOrderDeleteField *pOrderDelete)
+{
+	clog_warning("[%s] OnRspOrderDelete:%s",
+		module_name_,
+		ESUNNYDatatypeFormater::ToString(
+			(DstarApiRspOrderInsertField*)pOrderDelete).c_str());
+}
 
 // ok
 void TunnRptProducer::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
@@ -291,6 +294,8 @@ void TunnRptProducer::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
 }
 
 // ok
+// 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.
+// log this info only to see whether this method will be invoked.
 void TunnRptProducer::OnRspOrderInsert(const DstarApiRspOrderInsertField *pOrderInsert)
 {
 	clog_info("[%s]  %s",
@@ -321,59 +326,24 @@ void TunnRptProducer::OnRspOrderInsert(const DstarApiRspOrderInsertField *pOrder
 	else { }
 }
 
-void TunnRptProducer::OnAPIReady()
+// ok
+void TunnRptProducer::OnApiReady(const DstarApiSerialIdType nSerialId)
 {
-    clog_warning("[%s] OnAPIReady",module_name_);	
+    clog_warning("[%s] OnAPIReady nSerialId: %llu",module_name_, nSerialId);	
 }
 
-void TunnRptProducer::OnDisconnect(TAPIINT32 reasonCode)
+// ok
+void TunnRptProducer::OnFrontDisconnected()
 {
-    clog_error("[%s] OnDisconnect, reasonCode:%d", module_name_, reasonCode);
+    clog_error("[%s] OnFrontDisconnected. ", module_name_);
 }
 
-void TunnRptProducer::OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode)
+// ok
+void TunnRptProducer::OnRspError(DstarApiErrorCodeType nErrorCode);
 {
-    clog_warning("[%s] OnRspChangePassword.", module_name_);
+    clog_error("[%s] OnRspError: %u. ", module_name_, nErrorCode);
 }
 
-void TunnRptProducer::OnRspSetReservedInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			const TAPISTR_50 info)
-{
-    clog_warning("[%s] OnRspSetReservedInfo.", module_name_);
-}
-
-void TunnRptProducer::OnRspQryAccount(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPIAccountInfo* info)
-{
-    clog_info("[%s] OnRspQryAccount.", module_name_);
-}
-
-void TunnRptProducer::OnRspQryFund(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPIFundData* info) { }
-
-void TunnRptProducer::OnRtnFund(const TapAPIFundData* info) { }
-
-void TunnRptProducer::OnRspQryExchange(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPIExchangeInfo* info) { }
-
-void TunnRptProducer::OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPICommodityInfo* info) { }
-
-void TunnRptProducer::OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
-			TAPIYNFLAG isLast, const TapAPITradeContractInfo* info)
-{
-    clog_warning("[%s] OnRspQryContract: sessionID:%u, errorCode:%d, isLast:%c, %s",
-        module_name_,
-		sessionID, 
-		errorCode, 
-		isLast, 
-		ESUNNYDatatypeFormater::ToString(info).c_str());
-}
-
-void TunnRptProducer::OnRtnContract(const TapAPITradeContractInfo* info)
-{
-    clog_warning("[%s] OnRtnContract.", module_name_);
-}
 
 void TunnRptProducer::End()
 {
@@ -435,77 +405,6 @@ void TunnRptProducer::OnRtnOrder(const DstarApiOrderField *pOrder)
 					module_name_, 
 					ESUNNYDatatypeFormater::ToString(pOrder).c_str());
 	}
-}
-
-// 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.
-// log this info only to see whether this method will be invoked.
-void TunnRptProducer::OnRspOrderAction(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
-			const TapAPIOrderActionRsp* info)
-{
-    clog_info("[%s] OnRspOrderAction:sessionID:%u,errorCode:%d, %s", 
-				module_name_,
-				sessionID, 
-				errorCode, 
-				ESUNNYDatatypeFormater::ToString(info).c_str());
-}
-
-void TunnRptProducer::OnRspQryOrder(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPIOrderInfo* info)
-{
-}
-
-void TunnRptProducer::OnRspQryOrderProcess(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast,
-    const TapAPIOrderInfo* info)
-{
-}
-
-void TunnRptProducer::OnRspQryFill(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
-			TAPIYNFLAG isLast, const TapAPIFillInfo* info) { }
-
-// discard this info
-void TunnRptProducer::OnRtnFill(const TapAPIFillInfo* info) { }
-
-void TunnRptProducer::OnRspQryPosition(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast,
-    const TapAPIPositionInfo* info) { }
-
-void TunnRptProducer::OnRtnPosition(const TapAPIPositionInfo* info) { }
-
-void TunnRptProducer::OnRspQryClose(TAPIUINT32 sessionID, TAPIINT32 errorCode, 
-			TAPIYNFLAG isLast, const TapAPICloseInfo* info) { }
-
-void TunnRptProducer::OnRtnClose(const TapAPICloseInfo* info) { }
-
-void TunnRptProducer::OnRtnPositionProfit(const TapAPIPositionProfitNotice* info) { }
-
-void TunnRptProducer::OnRspQryDeepQuote(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast,
-    const TapAPIDeepQuoteQryRsp* info) { }
-
-void TunnRptProducer::OnRspQryExchangeStateInfo(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-			TAPIYNFLAG isLast, const TapAPIExchangeStateInfo* info) {
-}
-
-void TunnRptProducer::OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotice* info)
-{
-}
-
-void TunnRptProducer::OnRspSubmitUserLoginInfo(TAPIUINT32 sessionID, 
-			TAPIINT32 errorCode, 
-			TAPIYNFLAG isLast, 
-			const TapAPISubmitUserLoginRspInfo * info)
-{
-    clog_warning("[%s] OnRspSubmitUserLoginInfo before.", module_name_);
-	fflush (Log::fp);
-
-
-    clog_warning("[%s] OnRspSubmitUserLoginInfo: errorCode: %d, %s",
-				module_name_,
-				errorCode, 
-				ESUNNYDatatypeFormater::ToString(info).c_str());
-    clog_warning("[%s] OnRspSubmitUserLoginInfo end.", module_name_);
-	fflush (Log::fp);
 }
 
 long TunnRptProducer::NewLocalOrderID(int32_t strategyid)

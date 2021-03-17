@@ -28,18 +28,8 @@ public:
 	static std::string ToString(const DstarApiSeatField *p);
 	static std::string ToString(const DstarApiRspOrderInsertField *p);
 	static std::string ToString(const DstarApiOrderField *p);
-
-	static std::string ToString(const TapAPIExchangeInfo *pdata);
-	static std::string ToString(const TapAPICommodityInfo *pdata);
-	static std::string ToString(const TapAPITradeContractInfo *pdata);
-	static std::string ToString(const TapAPIOrderInfoNotice *pdata);
-	static std::string ToString(const TapAPIOrderActionRsp *pdata);
-	static std::string ToString(const TapAPIOrderInfo *pdata);
-	static std::string ToString(const TapAPIFillInfo *pdata);
-	static std::string ToString(const TapAPIPositionInfo *pdata);
-	static std::string ToString(const TapAPIExchangeStateInfo *pdata);
-	static std::string ToString(const TapAPIExchangeStateInfoNotice *pdata);
-	static std::string ToString(const TapAPISubmitUserLoginRspInfo *pp);
+	static std::string ToString(const DstarApiReqOfferInsertField *p);
+	static std::string ToString(const DstarApiReqOrderDeleteField *p);
 
 private:
 	ESUNNYDatatypeFormater() { }

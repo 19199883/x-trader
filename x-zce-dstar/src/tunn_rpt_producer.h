@@ -9,9 +9,11 @@
 #include <string>
 #include <unordered_map>
 #include "vrt_value_obj.h"
-#include "TapTradeAPI.h"
-#include "TapTradeAPIDataType.h"
-#include "EsUdpDataType.h"
+#include "DstarTradeApiError.h"
+#include "DstarTradeApiDataType.h"
+#include "DstarTradeApiStruct.h"
+#include "DstarTradeApi.h"
+#include "UdpClient.h"
 
 #define CANCELLED_FROM_PENDING 99999999
 
@@ -39,18 +41,16 @@ struct Tunnconfig
 // TODO: here
 struct TunnRpt
 {
-	TAPIUINT32			    SessionID;
 	long				    LocalOrderID;       ///< 本地委托号
 	TAPIOrderStateType	    OrderStatus;        ///< 委托状态
 	TAPIUINT32		        MatchedAmount;      ///< 成交数量
 	TAPIREAL64				OrderMatchPrice;				///< 成交价1
 	TAPIUINT32			    ErrorID;            ///< 错误ID
-	TAPICHAR				ServerFlag;			///< 服务器标识
 	TAPISTR_20				OrderNo;			///< 委托编码
 	DstarApiSystemNoType    SystemNo;       // 系统号
 };
 
-class TunnRptProducer: public ITapTradeAPINotify
+class TunnRptProducer: public IDstarTradeSpi
 {
 	public:
 		TunnRptProducer(struct vrt_queue  *queue);
@@ -87,77 +87,51 @@ class TunnRptProducer: public ITapTradeAPINotify
 		 ///委托通知 (撤单失败时返回委托通知,委托状态不变,包含撤单失败的错误码)
 		virtual void OnRtnOrder(const DstarApiOrderField *pOrder);
 
-		virtual void TAP_CDECL OnAPIReady();
+		///客户端与通知接口通信连接断开
+		virtual void OnFrontDisconnected();
 
-		virtual void TAP_CDECL OnDisconnect(TAPIINT32 reasonCode);
+		///错误应答
+		virtual void OnRspError(DstarApiErrorCodeType nErrorCode);
 
-		virtual void TAP_CDECL OnRspChangePassword(TAPIUINT32 sessionID, TAPIINT32 errorCode);
+	   ///持仓快照响应
+	   virtual void OnRspPosition(const DstarApiPositionField *pPosition){};
 
-		virtual void TAP_CDECL OnRspSetReservedInfo(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, const TAPISTR_50 info);
+	   ///资金快照响应
+	   virtual void OnRspFund(const DstarApiFundField *pFund){};
 
-		virtual void TAP_CDECL OnRspQryAccount(TAPIUINT32 sessionID, TAPIUINT32 errorCode,
-					TAPIYNFLAG isLast, const TapAPIAccountInfo *info);
+	   ///报价响应
+	   virtual void OnRspOffer(const DstarApiOfferField *pOffer){};
 
-		virtual void TAP_CDECL OnRspQryFund(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-					TAPIYNFLAG isLast, const TapAPIFundData *info);
+	   ///成交响应
+	   virtual void OnRspMatch(const DstarApiMatchField *pTrade){};
 
-		virtual void TAP_CDECL OnRtnFund(const TapAPIFundData *info);
+	   ///出入金响应
+	   virtual void OnRspCashInOut(const DstarApiCashInOutField *pCashInOut){};
 
-		virtual void TAP_CDECL OnRspQryExchange(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIExchangeInfo *info);
+	   ///API准备就绪,只有用户收到此就绪通知时才能进行后续的操作
+	   virtual void OnApiReady(const DstarApiSerialIdType nSerialId);
 
-		virtual void TAP_CDECL OnRspQryCommodity(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-					TAPIYNFLAG isLast, const TapAPICommodityInfo *info);
+	   ///撤单应答
+	   virtual void OnRspOrderDelete(const DstarApiRspOrderDeleteField *pOrderDelete);
 
-		virtual void TAP_CDECL OnRspQryContract(TAPIUINT32 sessionID, TAPIINT32 errorCode,
-					TAPIYNFLAG isLast, const TapAPITradeContractInfo *info);
+	   ///报价应答
+	   virtual void OnRspOfferInsert(const DstarApiRspOfferInsertField *pOfferInsert)
+	   {};
 
-		virtual void TAP_CDECL OnRtnContract(const TapAPITradeContractInfo *info);
+	   ///最新请求号应答
+	   virtual void OnRspLastReqId(const DstaApiRspLastReqIdField *pLastReqId){};
 
+	   ///成交通知
+	   virtual void OnRtnMatch(const DstarApiMatchField *pTrade){};
 
-		virtual void TAP_CDECL OnRspOrderAction(TAPIUINT32 sessionID, 
-					TAPIUINT32 errorCode, const TapAPIOrderActionRsp *info);
-		virtual void TAP_CDECL OnRspQryOrder(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIOrderInfo *info);
-		virtual void TAP_CDECL OnRspQryOrderProcess(TAPIUINT32 sessionID, 
-					TAPIINT32 errorCode, TAPIYNFLAG isLast,
-			const TapAPIOrderInfo *info);
-		virtual void TAP_CDECL OnRspQryFill(TAPIUINT32 sessionID, 
-					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIFillInfo *info);
+	   ///出入金通知
+	   virtual void OnRtnCashInOut(const DstarApiCashInOutField *pCashInOut){};
 
-		virtual void TAP_CDECL OnRtnFill(const TapAPIFillInfo *info);
-		virtual void TAP_CDECL OnRspQryPosition(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, TAPIYNFLAG isLast,
-			const TapAPIPositionInfo *info);
-		virtual void TAP_CDECL OnRtnPosition(const TapAPIPositionInfo *info);
-		virtual void TAP_CDECL OnRspQryClose(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPICloseInfo *info);
-		virtual void TAP_CDECL OnRtnClose(const TapAPICloseInfo *info);
-		virtual void TAP_CDECL OnRtnPositionProfit(const TapAPIPositionProfitNotice *info);
-		virtual void TAP_CDECL OnRspQryDeepQuote(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, TAPIYNFLAG isLast,
-			const TapAPIDeepQuoteQryRsp *info);
-
-		virtual void TAP_CDECL OnRspQryExchangeStateInfo(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, TAPIYNFLAG isLast,
-			const TapAPIExchangeStateInfo * info);
-		virtual void TAP_CDECL OnRtnExchangeStateInfo(const TapAPIExchangeStateInfoNotice * info);
-
-		virtual void TAP_CDECL OnRtnReqQuoteNotice(const TapAPIReqQuoteNotice *info) {}
-		virtual void TAP_CDECL OnRspUpperChannelInfo(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIUpperChannelInfo * info) {}
-		virtual void TAP_CDECL OnRspAccountRentInfo(TAPIUINT32 sessionID,
-					TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIAccountRentInfo * info) {};
-		virtual void TAP_CDECL OnRspSubmitUserLoginInfo(TAPIUINT32 sessionID, 
-					TAPIINT32 errorCode, TAPIYNFLAG isLast, 
-					const TapAPISubmitUserLoginRspInfo * info);
-
-	virtual void TAP_CDECL OnRspQryBill(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIBillQryRsp *info){};
-
-    virtual void TAP_CDECL OnRspQryAccountStorage(TAPIUINT32 sessionID, TAPIINT32 errorCode, TAPIYNFLAG isLast, const TapAPIAccountStorageInfo* info) {};
-
-    virtual void TAP_CDECL OnRtnAccountStorage(const TapAPIAccountStorageInfo* info){};
+	   ///报价通知
+	   virtual void OnRtnOffer(const DstarApiOfferField *pOffer){};
+	           
+	   ///询价通知
+	   virtual void OnRtnEnquiry(const DstarApiEnquiryField *pEnquiry){};
 
 		/*
 		 * things relating to x-trader internal logic
