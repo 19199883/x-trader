@@ -66,12 +66,16 @@ int Compliance::GetCancelTimes(const char* contract)
 
 }
 
-bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
-			double price, TAPISideType side,TAPIPositionEffectType offset)
+bool Compliance::TryReqOrderInsert(
+			int ord_counter, 
+			const char * contract,
+			double price, 
+			DstarApiDirectType side,
+			DstarApiOffsetType offset)
 {
     bool ret = true;
 
-	if(offset==TAPI_PositionEffect_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_))
+	if(offset==DSTAR_API_OFFSET_OPEN && (GetCancelTimes(contract) >= cancel_upper_limit_))
 	{
 		char time[80];
 		get_curtime(time,sizeof(time));
@@ -89,8 +93,8 @@ bool Compliance::TryReqOrderInsert(int ord_counter, const char * contract,
 		if (!ord.valid) continue;
 
 		if (strcmp(ord.contract, contract)==0 && side != ord.side){
-			if ((side == TAPI_SIDE_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
-				(side != TAPI_SIDE_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price))
+			if ((side == DSTAR_API_DIRECT_BUY && (price + DOUBLE_CHECH_PRECISION) >= ord.price) || 
+				(side != DSTAR_API_DIRECT_BUY && (price - DOUBLE_CHECH_PRECISION) <= ord.price))
 			{
 				ret = false;
 

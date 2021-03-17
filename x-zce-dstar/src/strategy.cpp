@@ -561,45 +561,67 @@ bool Strategy::HasFrozenPosition()
 void Strategy::UpdatePosition(int32_t lastqty,const TunnRpt& rpt, unsigned short sig_openclose, 
 			unsigned short int sig_act)
 {
-	if (lastqty > 0){
-		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
+	if (lastqty > 0)
+	{
+		if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy)
+		{
 			position_.cur_long += lastqty;
 			position_.frozen_open_long -= lastqty;
-		}else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
+		}
+		else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell)
+		{
 			position_.cur_short += lastqty;
 			position_.frozen_open_short -= lastqty;
-		}else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
+		}else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy)
+		{
 			position_.cur_short -= lastqty;
 			position_.frozen_close_short -= lastqty;
-		}else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
+		}
+		else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell)
+		{
 			position_.cur_long -= lastqty;
 			position_.frozen_close_long -= lastqty;
 		}
 	} //end if (rpt.MatchedAmount > 0)
 
 	// 从pending队列中撤单 
-	if (rpt.ErrorID != CANCELLED_FROM_PENDING){
-		if(rpt.OrderStatus==TAPI_ORDER_STATE_CANCELED ||
-			rpt.OrderStatus==TAPI_ORDER_STATE_LEFTDELETED ||
-			rpt.OrderStatus==TAPI_ORDER_STATE_FAIL){ // 释放冻结仓位
-			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy){
+	if (rpt.ErrorID != CANCELLED_FROM_PENDING)
+	{
+		if(rpt.OrderStatus==DSTAR_API_STATUS_Delete ||
+			rpt.OrderStatus==DSTAR_API_STATUS_LEFTDelete ||
+			rpt.OrderStatus==DSTAR_API_STATUS_FAIL)
+		{ // 释放冻结仓位
+			if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::buy)
+			{
 				position_.frozen_open_long = 0;
-			}else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell){
+			}
+			else if (sig_openclose==alloc_position_effect_t::open_ && sig_act==signal_act_t::sell)
+			{
 				position_.frozen_open_short = 0;
-			}else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy){
+			}
+			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::buy)
+			{
 				position_.frozen_close_short = 0;
-			}else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell){
+			}
+			else if (sig_openclose==alloc_position_effect_t::close_ && sig_act==signal_act_t::sell)
+			{
 				position_.frozen_close_long = 0;
 			}
 		}
 	}
 
-	clog_debug("[%s] UpdatePosition: strategy id:%d; current long:%d; current short:%d;"
+	clog_debug("[%s] UpdatePosition: strategy id:%d; current long:%d; "
+				"current short:%d;"
 				"frozen_close_long:%d; frozen_close_short:%d; frozen_open_long:%d;"
 				"frozen_open_short:%d; ",
-				module_name_, setting_.config.st_id, position_.cur_long, position_.cur_short,
-				position_.frozen_close_long, position_.frozen_close_short,
-				position_.frozen_open_long, position_.frozen_open_short);
+				module_name_, 
+				setting_.config.st_id, 
+				position_.cur_long, 
+				position_.cur_short,
+				position_.frozen_close_long, 
+				position_.frozen_close_short,
+				position_.frozen_open_long, 
+				position_.frozen_open_short);
 }
 
 void Strategy::FillPositionRpt(position_t &pos)
@@ -616,30 +638,44 @@ void Strategy::UpdateSigrptByTunnrpt(int32_t lastqty,signal_resp_t& sigrpt,const
 		sigrpt.acc_volume += lastqty;
 	}
 	
-	if (tunnrpt.OrderStatus==TAPI_ORDER_STATE_CANCELED ||
-		tunnrpt.OrderStatus==TAPI_ORDER_STATE_LEFTDELETED){
+	if (tunnrpt.OrderStatus==DSTAR_API_STATUS_Delete ||
+		tunnrpt.OrderStatus==DSTAR_API_STATUS_LEFTDelete)
+	{
 		sigrpt.killed = sigrpt.order_volume - sigrpt.acc_volume;
-	}else{ sigrpt.killed = 0; }
+	}
+	else
+	{ sigrpt.killed = 0; }
 
-	if (tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL){
+	if (tunnrpt.OrderStatus==DSTAR_API_STATUS_FAIL)
+	{
 		sigrpt.error_no = tunnrpt.ErrorID;
 		sigrpt.rejected = sigrpt.order_volume;
 	}
 	else sigrpt.rejected = 0; 
 
-
-	if (tunnrpt.OrderStatus==TAPI_ORDER_STATE_CANCELED ||
-		tunnrpt.OrderStatus==TAPI_ORDER_STATE_LEFTDELETED){
+	if (tunnrpt.OrderStatus==DSTAR_API_STATUS_Delete ||
+		tunnrpt.OrderStatus==DSTAR_API_STATUS_LEFTDelete)
+	{
 		sigrpt.status = if_sig_state_t::SIG_STATUS_CANCEL;
-	}else if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_FINISHED){
+	}
+	else if(tunnrpt.OrderStatus==DSTAR_API_STATUS_FILL)
+	{
 		sigrpt.status = if_sig_state_t::SIG_STATUS_SUCCESS;
-	}else if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_PARTFINISHED){
+	}
+	else if(tunnrpt.OrderStatus==DSTAR_API_STATUS_PARTFILL)
+	{
 		sigrpt.status = if_sig_state_t::SIG_STATUS_PARTED;
-	}else if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_FAIL){
+	}
+	else if(tunnrpt.OrderStatus==DSTAR_API_STATUS_FAIL)
+	{
 		sigrpt.status = if_sig_state_t::SIG_STATUS_REJECTED;
-	}else if(tunnrpt.OrderStatus==TAPI_ORDER_STATE_ACCEPT){
+	}
+	else if(tunnrpt.OrderStatus==DSTAR_API_STATUS_ACCEPT)
+	{
 		sigrpt.status = if_sig_state_t::SIG_STATUS_ENTRUSTED;
-	}else{
+	}
+	else
+	{
 		clog_error("[%s] unexpected status:%d", tunnrpt.OrderStatus);
 	}
 }

@@ -38,16 +38,15 @@ struct Tunnconfig
 	char UpperChannel[30];
 };
 
-// TODO: here
 struct TunnRpt
 {
-	long				    LocalOrderID;       ///< 本地委托号
-	TAPIOrderStateType	    OrderStatus;        ///< 委托状态
-	TAPIUINT32		        MatchedAmount;      ///< 成交数量
-	TAPIREAL64				OrderMatchPrice;				///< 成交价1
-	TAPIUINT32			    ErrorID;            ///< 错误ID
-	TAPISTR_20				OrderNo;			///< 委托编码
-	DstarApiSystemNoType    SystemNo;       // 系统号
+	long						LocalOrderID;       ///< 本地委托号
+	DstarApiOrderStateType	    OrderStatus;        ///< 委托状态
+	DstarApiQuantityType        MatchedAmount;      ///< 成交数量
+	DstarApiPriceType			OrderMatchPrice;				///< 成交价1
+	DstarApiErrorCodeType	    ErrorID;            ///< 错误ID
+	DstarApiOrderNoType			OrderNo;			///< 委托编码
+	DstarApiSystemNoType		SystemNo;       // 系统号
 };
 
 class TunnRptProducer: public IDstarTradeSpi
@@ -62,13 +61,6 @@ class TunnRptProducer: public IDstarTradeSpi
 		int NewUdpSequence();
 		int InsertUdpOrder(char *udporder);
 		int CancelUdpOrder(char *deleteudporder);
-
-
-		/**
-		 * @brief 连接成功回调通知
-		 * @ingroup G_T_Login
-		 */
-		virtual void TAP_CDECL OnConnect();
 
 
 		///登录请求响应,错误码为0说明用户登录成功。
@@ -182,10 +174,6 @@ private:
 
 	int			m_udpFd;
     struct sockaddr_in udpserver_;
-	/*
-	 * key:session_id; value:counter of LocalOrderID
-	 */
-	unordered_map<TAPIUINT32,long > session_localorderid_map_;
 };
 
 #endif

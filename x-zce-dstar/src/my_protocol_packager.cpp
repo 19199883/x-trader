@@ -61,7 +61,7 @@ char* ESUNNYPacker::UdpOrderRequest(
     DstarApiReqOrderInsertField* req = (DstarApiReqOrderInsertField*)(
 				ESUNNYPacker::new_udporder_ + sizeof(DstarApiHead));
 
-	sprintf(req->ClientReqId, "%u", localorderid);
+	req->ClientReqId = localorderid;
 	strcpy(req->ContractNo, sig.symbol);
 	if (sig.sig_act==signal_act_t::buy)
 	{

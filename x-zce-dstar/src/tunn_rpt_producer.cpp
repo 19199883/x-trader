@@ -73,7 +73,6 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 	IPAndPortNum ip_port = ParseIPAndPortNum(config_.address);
 	//创建API
 	// create esunny object
-    TAPIINT32 result;
     api_ = CreateDstarTradeApi();
     if (!api_) 
 	{

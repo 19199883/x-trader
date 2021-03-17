@@ -20,10 +20,13 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 	legal_ = check_lic();
 	clog_error("[%s] legal_:%d", module_name_, legal_);
 	char cmd[1024];
-	if(!legal_){
+	if(!legal_)
+	{
 		sprintf(cmd, "echo illegal > ~/$(whoami)_zce.log");
 		system(cmd);
-	}else{
+	}
+	else
+	{
 		sprintf(cmd, "echo legal > ~/$(whoami)_zce.log");
 		system(cmd);
 	}
@@ -46,9 +49,7 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 	log_write_count_ = 0;
 	log_w_ = vector<strat_out_log>(MAX_LINES_FOR_LOG);
 
-#if FIND_STRATEGIES == 3 // strcmp
 	clog_warning("[%s] method for finding strategies by contract:strcmp", module_name_);
-#endif
 
 	clog_warning("[%s] STRA_TABLE_SIZE: %d;", module_name_, MAX_STRATEGY_COUNT);
 
@@ -57,11 +58,16 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 
 	(this->consumer_ = vrt_consumer_new(module_name_, queue));
 	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
-	if(strcmp(config_.yield, "threaded") == 0){
+	if(strcmp(config_.yield, "threaded") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_threaded();
-	}else if(strcmp(config_.yield, "spin") == 0){
+	}
+	else if(strcmp(config_.yield, "spin") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_spin_wait();
-	}else if(strcmp(config_.yield, "hybrid") == 0){
+	}
+	else if(strcmp(config_.yield, "hybrid") == 0)
+	{
 		this->consumer_->yield = vrt_yield_strategy_hybrid();
 	}
 
@@ -73,10 +79,13 @@ UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer,
 	pos_calc *calc = pos_calc::instance();
 	list<string> stras;
 	calc->get_stras(stras);
-	for (string stra : stras){
+	for (string stra : stras)
+	{
 		bool online = false;
-		for (auto sett : strategy_settings_){  
-			if (sett.file == stra){
+		for (auto sett : strategy_settings_){
+
+			if (sett.file == stra)
+			{
 				online = true;
 				break;
 			}
@@ -103,14 +112,21 @@ void UniConsumer::ParseConfig()
 	
 	// yield strategy
     TiXmlElement *comp_node = root->FirstChildElement("Disruptor");
-	if (comp_node != NULL){
+	if (comp_node != NULL)
+	{
 		strcpy(config_.yield, comp_node->Attribute("yield"));
-	} else { clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); }
+	}
+	else 
+	{
+		clog_error("[%s] x-trader.config error: Disruptor node missing.", module_name_); 
+	}
 
     TiXmlElement *strategies_ele = root->FirstChildElement("strategies");
-	if (strategies_ele != 0){
+	if (strategies_ele != 0)
+	{
 		TiXmlElement *strategy_ele = strategies_ele->FirstChildElement();
-		while (strategy_ele != 0){
+		while (strategy_ele != 0)
+		{
 			StrategySetting strategy_setting = this->CreateStrategySetting(strategy_ele);
 			this->strategy_settings_.push_back(strategy_setting);
 			strategy_ele = strategy_ele->NextSiblingElement();			
@@ -141,7 +157,8 @@ StrategySetting UniConsumer::CreateStrategySetting(const TiXmlElement *ele)
 
 	int counter = 0;
 	const TiXmlElement* symbol_ele = ele->FirstChildElement();		
-	while (symbol_ele != 0)	{		
+	while (symbol_ele != 0)	
+	{		
 		symbol_t &tmp = setting.config.symbols[counter];
 
 		symbol_ele->QueryIntAttribute("max_pos", &tmp.max_pos);
@@ -209,10 +226,13 @@ void UniConsumer::Start()
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
-		   (rc = vrt_consumer_next(consumer_, &vvalue)) != VRT_QUEUE_EOF) {
-		if (rc == 0) {
+		   (rc = vrt_consumer_next(consumer_, &vvalue)) != VRT_QUEUE_EOF)
+	{
+		if (rc == 0) 
+		{
 			struct vrt_hybrid_value *ivalue = cork_container_of(vvalue, struct vrt_hybrid_value, parent);
-			switch (ivalue->data){
+			switch (ivalue->data)
+			{
 				case L1_MD:
 					myquotedata.ProcL1MdData(ivalue->index);
 					break;
@@ -229,7 +249,8 @@ void UniConsumer::Start()
 		}
 	} // end while (running_ &&
 
-	if (rc == VRT_QUEUE_EOF) {
+	if (rc == VRT_QUEUE_EOF) 
+	{
 		clog_warning("[%s] [start] rev EOF.", module_name_);
 	}
 	clog_warning("[%s] [start] exit.", module_name_);
@@ -247,11 +268,13 @@ void UniConsumer::Stop()
 		running_ = false;
 		thread_log_ ->join();
 		FlushStrategyLog();
-		for(int i=0; i<strategy_counter_; i++){
+		for(int i=0; i<strategy_counter_; i++)
+		{
 			stra_table_[i].End();
 		}
 
-		if (pproxy_ != NULL){
+		if (pproxy_ != NULL)
+		{
 			pproxy_->DeleteLoadLibraryProxy();
 			pproxy_ = NULL;
 		}
@@ -268,14 +291,17 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t0 = high_resolution_clock::now();
 #endif
-	clog_debug("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", module_name_, 
-		md->ContractID, md->TimeStamp);
+	clog_debug("[test] proc [%s] [ProcL2QuoteSnapshot] contract:%s, time:%s", 
+				module_name_, 
+				md->ContractID, 
+				md->TimeStamp);
 
-#if FIND_STRATEGIES == 3 // strcmp
-	for(int i = 0; i < strategy_counter_; i++){ 
+	for(int i = 0; i < strategy_counter_; i++)
+	{ 
 		int sig_cnt = 0;
 		Strategy &strategy = stra_table_[i];
-		if (strcmp(strategy.GetContract(), md->ContractID) == 0){
+		if (strcmp(strategy.GetContract(), md->ContractID) == 0)
+		{
 			strategy.FeedMd(md, &sig_cnt, sig_buffer_);
 
 			// strategy log
@@ -284,7 +310,6 @@ void UniConsumer::ProcL2QuoteSnapshot(ZCEL2QuotSnapshotField_MY* md)
 			ProcSigs(strategy, sig_cnt, sig_buffer_);
 		}
 	}
-#endif
 
 #ifdef LATENCY_MEASURE
 		high_resolution_clock::time_point t1 = high_resolution_clock::now();
@@ -315,7 +340,6 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 
 	int32_t counter = tunn_rpt_producer_->GetCounterByLocalOrderID(rpt->LocalOrderID);
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
-	rptforcancel.ServerFlag = rpt->ServerFlag;
 	strcpy(rptforcancel.OrderNo, rpt->OrderNo);
 	strcpy(rptforcancel.SystemNo, rpt->SystemNo);
 	clog_info("[%s] ProcTunnRpt:counter=%d,ServerFlag=%c,OrderNo=%s,"
@@ -328,16 +352,17 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	
 	Strategy& strategy = stra_table_[straid_straidx_map_table_[strategy_id]];
 
-	// TODO: here
-	if (rpt->OrderStatus == TAPI_ORDER_STATE_CANCELED ||
-			rpt->OrderStatus == TAPI_ORDER_STATE_LEFTDELETED){
+	if (rpt->OrderStatus == DSTAR_API_STATUS_Delete ||
+			rpt->OrderStatus == DSTAR_API_STATUS_LEFTDelete)
+	{
 		compliance_.AccumulateCancelTimes(strategy.GetContract());
 	}
 
-	if (rpt->OrderStatus==TAPI_ORDER_STATE_FINISHED ||
-			rpt->OrderStatus==TAPI_ORDER_STATE_CANCELED ||
-			rpt->OrderStatus==TAPI_ORDER_STATE_LEFTDELETED ||
-			rpt->OrderStatus==TAPI_ORDER_STATE_FAIL){
+	if (rpt->OrderStatus==DSTAR_API_STATUS_FILL ||
+			rpt->OrderStatus==DSTAR_API_STATUS_FAIL ||
+			rpt->OrderStatus==DSTAR_API_STATUS_Delete ||
+			rpt->OrderStatus==DSTAR_API_STATUS_LEFTDelete)
+	{
 		int32_t counter = strategy.GetCounterByLocalOrderID(rpt->LocalOrderID);
 		compliance_.End(counter);
 	}
@@ -349,22 +374,38 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	WriteStrategyLog(strategy);
 
 	// 虑当pending信号都处理了，如何标志
-	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
+	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++)
+	{
 		int32_t st_id = strategy.GetId();
 		int32_t sig_id = pending_signals_[st_id][i];
-		if(sig_id < 0){ // hit tail
+		if(sig_id < 0)
+		{ // hit tail
 			break;
-		}else if(sig_id != INVALID_PENDING_SIGNAL){
+		}
+		else if(sig_id != INVALID_PENDING_SIGNAL)
+		{
 			signal_t *sig = strategy.GetSignalBySigID(sig_id);
-			if(!strategy.Deferred(sig->sig_id, sig->sig_openclose, sig->sig_act)){
+			if(!strategy.Deferred(sig->sig_id, sig->sig_openclose, sig->sig_act))
+			{
 				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				PlaceOrder(strategy, *sig);
-				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; exchange:%d; "
-							 "symbol:%s; open_volume:%d; buy_price:%f; close_volume:%d; "
+				 clog_info("[%s] deffered signal: strategy id:%d; sig_id:%d; "
+							 "exchange:%d; "
+							 "symbol:%s; open_volume:%d; buy_price:%f; "
+							 "close_volume:%d; "
 							 "sell_price:%f; sig_act:%d; sig_openclose:%d;index:%d ",
-					module_name_, sig->st_id, sig->sig_id,
-					sig->exchange, sig->symbol, sig->open_volume, sig->buy_price,
-					sig->close_volume, sig->sell_price, sig->sig_act, sig->sig_openclose,i); 
+					module_name_, 
+					sig->st_id, 
+					sig->sig_id,
+					sig->exchange, 
+					sig->symbol, 
+					sig->open_volume, 
+					sig->buy_price,
+					sig->close_volume, 
+					sig->sell_price, 
+					sig->sig_act, 
+					sig->sig_openclose,
+					i); 
 				 break;
 			}
 		} // if(pending_signals_[st_id][i] >= 0)
@@ -401,8 +442,12 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 					if(sig_id < 0 || sig_id == INVALID_PENDING_SIGNAL)
 					{
 						pending_signals_[sig.st_id][i] = sig.sig_id;
-						clog_info("[%s] pending_signals_ push strategy id:%d; sig id;%d;index:%d", 
-									module_name_,sig.st_id,pending_signals_[sig.st_id][i],i);
+						clog_info("[%s] pending_signals_ push strategy id:%d; "
+									"sig id;%d;index:%d", 
+									module_name_,
+									sig.st_id,
+									pending_signals_[sig.st_id][i],
+									i);
 						break;
 					}
 				}
@@ -418,24 +463,35 @@ void UniConsumer::ProcSigs(Strategy &strategy, int32_t sig_cnt, signal_t *sigs)
 bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 {
 	bool cancelled = false;
-	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++){
+	for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++)
+	{
     	int32_t st_id = strategy.GetId();
 		int32_t sig_id = pending_signals_[st_id][i];
-    	if(sig_id < 0){ // 尾部了
+    	if(sig_id < 0)
+		{ // 尾部了
 			break;
-		}else if(sig_id != INVALID_PENDING_SIGNAL){
-			if(ori_sigid == sig_id){
+		}
+		else if(sig_id != INVALID_PENDING_SIGNAL)
+		{
+			if(ori_sigid == sig_id)
+			{
 				pending_signals_[st_id][i] = INVALID_PENDING_SIGNAL;
 				cancelled = true;
-				clog_info("[%s] CancelPendingSig remove pending signal: strategy id:%d;"
-							"sig_id:%d;index:%d", module_name_, st_id, sig_id, i);
+				clog_info("[%s] CancelPendingSig remove pending "
+							"signal: strategy id:%d;"
+							"sig_id:%d;index:%d", 
+							module_name_, 
+							st_id, 
+							sig_id, 
+							i);
 
 				break;
 			}
 		}
 	} // end for(int i=0; i < MAX_PENDING_SIGNAL_COUNT; i++)
 
-	if(cancelled){
+	if(cancelled)
+	{
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
@@ -443,7 +499,7 @@ bool UniConsumer::CancelPendingSig(Strategy &strategy, int32_t ori_sigid)
 		// 从pending队列中撤单
 		rpt.ErrorID = CANCELLED_FROM_PENDING;   
 
-		rpt.OrderStatus = TAPI_ORDER_STATE_CANCELED;   
+		rpt.OrderStatus = DSTAR_API_STATUS_Delete;   
 		int32_t sigidx = strategy.GetSignalIdxBySigId(ori_sigid);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
 
@@ -482,7 +538,6 @@ void UniConsumer::CancelOrder(Strategy &strategy, signal_t &sig)
 
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 
-	// TODO: to here
 	long localorderid = tunn_rpt_producer_->NewLocalOrderID(strategy.GetId());
 	char* deleteOrderBuf = ESUNNYPacker::DeleteUdpOrderRequest(
 				localorderid,
@@ -491,7 +546,8 @@ void UniConsumer::CancelOrder(Strategy &strategy, signal_t &sig)
 	int rtn = this->tunn_rpt_producer_->CancelUdpOrder(deleteOrderBuf);
 	if(rtn != 0)
 	{
-		clog_error("[%s] CancelOrder - return:%d, strategy id:%d, sig_id:%d, orig_sig_id:%d, "
+		clog_error("[%s] CancelOrder - return:%d, strategy id:%d, "
+					"sig_id:%d, orig_sig_id:%d, "
 				   "ori_localorderid:%d", 
 				   module_name_, 
 				   rtn, 
@@ -502,7 +558,8 @@ void UniConsumer::CancelOrder(Strategy &strategy, signal_t &sig)
 
 #ifdef LATENCY_MEASURE
 		int latency = perf_ctx::calcu_latency(sig.st_id, sig.sig_id);
-        if(latency > 0) clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
+        if(latency > 0) 
+		  clog_warning("[%s] cancel latency:%d us", module_name_, latency); 
 #endif
 }
 
@@ -521,7 +578,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		int sig_cnt = 0;
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
-		rpt.OrderStatus = TAPI_ORDER_STATE_FAIL; 
+		rpt.OrderStatus = DSTAR_API_STATUS_FAIL; 
 		rpt.ErrorID = -1; 
 		int32_t sigidx = strategy.GetSignalIdxBySigId(sig.sig_id);
 		strategy.FeedTunnRpt(sigidx, rpt, &sig_cnt, sig_buffer_);
@@ -535,7 +592,6 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 
 	int32_t counter = strategy.GetCounterByLocalOrderID(localorderid);
 	const char *account = tunn_rpt_producer_->GetAccount();
-	// TODO: here
 	char* ordBuf = ESUNNYPacker::UdpOrderRequest(
 				sig, 
 				account, 
@@ -557,7 +613,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 			TunnRpt rpt;
 			memset(&rpt, 0, sizeof(rpt));
 			rpt.LocalOrderID = localorderid;
-			rpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
+			rpt.OrderStatus = DSTAR_API_STATUS_FAIL;
 			rpt.ErrorID = rtn;
 
 			compliance_.End(counter);
@@ -598,7 +654,7 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 		TunnRpt rpt;
 		memset(&rpt, 0, sizeof(rpt));
 		rpt.LocalOrderID = localorderid;
-		rpt.OrderStatus = TAPI_ORDER_STATE_FAIL;
+		rpt.OrderStatus = DSTAR_API_STATUS_FAIL;
 		rpt.ErrorID = 5;
 		int sig_cnt = 0;
 		int32_t sigidx = strategy.GetSignalIdxByLocalOrdId(rpt.LocalOrderID);
@@ -620,12 +676,14 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 // 遍历策略，将缓存日志写到文件中
 void UniConsumer::FlushStrategyLog()
 {
-	for(int i = 0; i < strategy_counter_; i++){ 
+	for(int i = 0; i < strategy_counter_; i++)
+	{ 
 		Strategy &strategy = stra_table_[i];
 		pfDayLogFile_ = strategy.get_log_file();
 		strategy.get_log(log_w_, log_write_count_);
 
-		for(int i = 0; i < log_write_count_; i++){
+		for(int i = 0; i < log_write_count_; i++)								
+		{
 			WriteOne(pfDayLogFile_, log_w_.data()+i);
 		}
 	} // end for(int i = 0; i < strategy_counter_; i++) 
