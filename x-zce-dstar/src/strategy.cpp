@@ -525,7 +525,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 	}
 
 	// 使MatchedAmount为最后一次的成交量
-	int32_t lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
+	int32_t lastqty = rpt.MatchedAmount;
 	// update strategy's position
 	UpdatePosition(lastqty,rpt, sig.sig_openclose, sig.sig_act);
 	// fill signal position report by tunnel report
