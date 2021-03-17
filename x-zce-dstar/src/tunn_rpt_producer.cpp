@@ -9,9 +9,9 @@
 #include <tinystr.h>
 #include "esunny_data_formater.h"
 #include "my_protocol_packager.h"
-#include "TapAPIError.h"
-#include "TapTradeAPI.h"
-#include "TapDataCollectAPI.h"
+#include "DstarTradeApiError.h"
+#include "DstarTradeApiDataType.h"
+#include "DstarTradeApiStruct.h"
 
 using namespace std::chrono;
 
@@ -39,15 +39,13 @@ IPAndPortNum TunnRptProducer::ParseIPAndPortNum(const std::string &addr_cfg)
 }
 
 TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
-: module_name_("TunnRptProducer")
-	 , m_UdpCertCode(0),
+: module_name_("TunnRptProducer"),
      m_udpFd(-1)
 {
 	ended_ = false;
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 	
 	clog_warning("[%s] RPT_BUFFER_SIZE: %d;", module_name_, RPT_BUFFER_SIZE);
-    clog_warning("[%s] TapTradeAPIVersion:%s", module_name_, GetApiVersion());
 
 	this->ParseConfig();
 
@@ -81,12 +79,13 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
     }
 	else
 	{
-        clog_error("[%s] CreateTapTradeAPI suceeded.", module_name_);
+        clog_warning("[%s] CreateTapTradeAPI suceeded.", module_name_);
 	}
+    clog_warning("[%s] TapTradeAPIVersion:%s", module_name_, api_->GetApiVersion());
 
 	// address for front machine
 	api_->RegisterSpi(this);
-	api_->RegisterFrontAddress(ip_port.first.c_str(), ip_port.second);
+	api_->RegisterFrontAddress((char*)ip_port.first.c_str(), ip_port.second);
 	char log_path[] = "./";
 	api_->SetApiLogPath(log_path);
 	

@@ -10,6 +10,7 @@
 
 #include <string>
 #include "DstarTradeApiDataType.h"
+#include "DstarTradeApiStruct.h"
 
 // ESUNNY结构的格式化信息接口，仅有静态函数，无对象实例
 class ESUNNYDatatypeFormater

@@ -13,7 +13,6 @@
 #include "DstarTradeApiDataType.h"
 #include "DstarTradeApiStruct.h"
 #include "DstarTradeApi.h"
-#include "UdpClient.h"
 
 #define CANCELLED_FROM_PENDING 99999999
 

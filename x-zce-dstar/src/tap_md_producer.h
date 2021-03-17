@@ -10,8 +10,6 @@
 #include <tinystr.h>
 #include "TapQuoteAPI.h"
 #include "quote_cmn_utility.h"
-#include "quote_datatype_tap.h"
-#include "quote_datatype_czce_level2.h"
 #include "ZceLevel2ApiStruct.h"
 
 /*

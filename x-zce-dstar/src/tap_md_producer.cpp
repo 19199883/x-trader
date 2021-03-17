@@ -4,9 +4,10 @@
 #include <iostream>
 #include "tap_md_producer.h"
 #include "TapQuoteAPI.h"
-#include "TapTradeAPIDataType.h"
 #include "perfctx.h"
-#include "TapAPIError.h"
+#include "DstarTradeApiError.h"
+#include "DstarTradeApiDataType.h"
+#include "DstarTradeApiStruct.h"
 
 using namespace std::placeholders;
 using namespace std;
