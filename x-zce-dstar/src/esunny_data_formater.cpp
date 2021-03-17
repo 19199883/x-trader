@@ -214,42 +214,48 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqUdpAuthField *p)
 }
 
 // ok
-std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqOfferInsertField *p)
+std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqOrderInsertField *p)
 {
     char buf[1024];
     if (p) 
 	{
         snprintf(buf, 
 				sizeof(buf), 
-				"structName=DstarApiReqOfferInsertField "
-				"BuyOffset:%c "
-				"SellOffset:%c "
+				"structName=DstarApiReqOrderInsertField "
+				"Direct:%c "
+				"Offset:%c "
+				"Hedge:%c "
+				"OrderType:%c "
+				"ValidType:%c "
+				"SeatIndex:%hhu "
 				"AccountIndex:%hu "
-				"ClientReqId:%u "
 				"ContractIndex:%u "
 				"ContractNo:%s "
 				"OrderQty:%c "
-				"BuyPrice:%f "
-				"SellPrice:%f "
-				"SeatIndex:%hhu "
+				"MinQty:%c "
+				"OrderPrice:%f "
+				"ClientReqId:%u "
 				"Reference:%d "
 				"UdpAuthCode:%u \n" ,
-				p->BuyOffset,
-				p->SellOffset,
+				p->Direct,
+				p->Offset,
+				p->Hedge,
+				p->OrderType,
+				p->ValidType,
+				p->SeatIndex, 
 				p->AccountIndex, 
-				p->ClientReqId, 
 				p->ContractIndex, 
 				p->ContractNo, 
 				p->OrderQty, 
-				p->BuyPrice, 
-				p->SellPrice, 
-				p->SeatIndex, 
+				p->MinQty, 
+				p->OrderPrice, 
+				p->ClientReqId, 
 				p->Reference, 
 				p->UdpAuthCode);
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiReqOfferInsertField <null>");
+        snprintf(buf, sizeof(buf), "structName=DstarApiReqOrderInsertField <null>");
     }
 
     return buf;

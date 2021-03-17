@@ -274,7 +274,7 @@ void TunnRptProducer::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
 	clog_warning("[%s] OnRspLogin: errorCode: %d, %s",
 		module_name_,
 		m_LoginInfo.ErrorCode, 
-		ESUNNYDatatypeFormater::ToString(m_LoginInfo).c_str());
+		ESUNNYDatatypeFormater::ToString(&m_LoginInfo).c_str());
 	fflush (Log::fp);
 
 	if(0 != m_LoginInfo.ErrorCode)
@@ -282,7 +282,7 @@ void TunnRptProducer::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
 		clog_error("[%s] OnRspLogin: errorCode: %d, %s",
 			module_name_,
 			m_LoginInfo.ErrorCode, 
-			ESUNNYDatatypeFormater::ToString(m_LoginInfo).c_str());
+			ESUNNYDatatypeFormater::ToString(&m_LoginInfo).c_str());
 		fflush (Log::fp);
 	}
 	else
@@ -294,13 +294,13 @@ void TunnRptProducer::OnRspUserLogin(const DstarApiRspLoginField *pLoginRsp)
 // ok
 // 该接口目前没有用到，所有操作结果通过OnRtnOrder返回.
 // log this info only to see whether this method will be invoked.
-void TunnRptProducer::OnRspOrderInsert(const DstarApiRspOrderInsertField *pOrderInsert)
+void TunnRptProducer::OnRspOrderInsert(const DstarApiRspOrderInsertField *pOrder)
 {
 	clog_info("[%s]  %s",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(pOrder).c_str());
 
-	if(0 != pOrder->ErrorCode)
+	if(0 != pOrder->ErrCode)
 	{
 		clog_error("[%s]  %s",
 			module_name_,
@@ -310,7 +310,7 @@ void TunnRptProducer::OnRspOrderInsert(const DstarApiRspOrderInsertField *pOrder
 		struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
 		tunnrpt.LocalOrderID	= pOrder->Reference;
 		strcpy(tunnrpt.OrderNo, pOrder->OrderNo);
-		tunnrpt.ErrorID			= pOrder->ErrorCode;
+		tunnrpt.ErrorID			= pOrder->ErrCode;
 		tunnrpt.OrderStatus		= DSTAR_API_STATUS_FAIL;
 
 		struct vrt_value  *vvalue;
@@ -337,7 +337,7 @@ void TunnRptProducer::OnFrontDisconnected()
 }
 
 // ok
-void TunnRptProducer::OnRspError(DstarApiErrorCodeType nErrorCode);
+void TunnRptProducer::OnRspError(DstarApiErrorCodeType nErrorCode)
 {
     clog_error("[%s] OnRspError: %u. ", module_name_, nErrorCode);
 }
@@ -360,6 +360,53 @@ void TunnRptProducer::End()
 }
 
 // ok 
+// OnRspOrder如何被调用
+void TunnRptProducer::OnRspOrder(const DstarApiOrderField *pOrder)
+{
+    clog_info("[%s] OnRspOrder:%s",
+				module_name_, 
+				ESUNNYDatatypeFormater::ToString(pOrder).c_str());
+
+	if (ended_) return;
+
+	int32_t cursor = Push();
+	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
+	tunnrpt.LocalOrderID = pOrder->Reference;
+	strcpy(tunnrpt.OrderNo, pOrder->OrderNo);
+	// strcpy(tunnrpt.SystemNo, pOrder->SystemNo);
+
+	if (pOrder->OrderState==DSTAR_API_STATUS_QUEUE ||
+		pOrder->OrderState==DSTAR_API_STATUS_APPLY ||
+		pOrder->OrderState==DSTAR_API_STATUS_SUSPENDED
+		) 
+	{// discard these reports
+		return;
+	}
+
+	// TODO: 确认是累计成交量还是当前成交量
+	tunnrpt.MatchedAmount = pOrder->MatchQty;
+	//tunnrpt.OrderMatchPrice = info->OrderInfo->OrderMatchPrice;
+	tunnrpt.ErrorID = pOrder->ErrCode;
+	tunnrpt.OrderStatus = pOrder->OrderState;
+
+	struct vrt_value  *vvalue;
+	struct vrt_hybrid_value  *ivalue;
+	vrt_producer_claim(producer_, &vvalue);
+	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue->index = cursor;
+	ivalue->data = TUNN_RPT;
+	vrt_producer_publish(producer_);
+
+	if(tunnrpt.OrderStatus==DSTAR_API_STATUS_FAIL ||
+		tunnrpt.ErrorID != DSTAR_API_ERR_SUCCESS)
+	{
+		clog_error("[%s] OnRspOrder:%s",
+					module_name_, 
+					ESUNNYDatatypeFormater::ToString(pOrder).c_str());
+	}
+}
+
+// ok 
 void TunnRptProducer::OnRtnOrder(const DstarApiOrderField *pOrder)
 {
     clog_info("[%s] OnRtnOrder:%s",
@@ -372,11 +419,11 @@ void TunnRptProducer::OnRtnOrder(const DstarApiOrderField *pOrder)
 	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
 	tunnrpt.LocalOrderID = pOrder->Reference;
 	strcpy(tunnrpt.OrderNo, pOrder->OrderNo);
-	strcpy(tunnrpt.SystemNo, pOrder->SystemNo);
+	// strcpy(tunnrpt.SystemNo, pOrder->SystemNo);
 
-	if (info->OrderInfo->OrderState==DSTAR_API_STATUS_QUEUE ||
-		info->OrderInfo->OrderState==DSTAR_API_STATUS_APPLY ||
-		info->OrderInfo->OrderState==DSTAR_API_STATUS_SUSPENDED
+	if (pOrder->OrderState==DSTAR_API_STATUS_QUEUE ||
+		pOrder->OrderState==DSTAR_API_STATUS_APPLY ||
+		pOrder->OrderState==DSTAR_API_STATUS_SUSPENDED
 		) 
 	{// discard these reports
 		return;
@@ -384,8 +431,8 @@ void TunnRptProducer::OnRtnOrder(const DstarApiOrderField *pOrder)
 
 	// TODO: 确认是累计成交量还是当前成交量
 	tunnrpt.MatchedAmount = pOrder->MatchQty;
-	tunnrpt.OrderMatchPrice = info->OrderInfo->OrderMatchPrice;
-	tunnrpt.ErrorID = pOrder->ErrorCode;
+	//tunnrpt.OrderMatchPrice = info->OrderInfo->OrderMatchPrice;
+	tunnrpt.ErrorID = pOrder->ErrCode;
 	tunnrpt.OrderStatus = pOrder->OrderState;
 
 	struct vrt_value  *vvalue;
@@ -396,8 +443,8 @@ void TunnRptProducer::OnRtnOrder(const DstarApiOrderField *pOrder)
 	ivalue->data = TUNN_RPT;
 	vrt_producer_publish(producer_);
 
-	if(tunnrpt.OrderState==DSTAR_API_STATUS_FAIL ||
-		tunnrpt.ErrorCode != DSTAR_API_ERR_SUCCESS)
+	if(tunnrpt.OrderStatus==DSTAR_API_STATUS_FAIL ||
+		tunnrpt.ErrorID != DSTAR_API_ERR_SUCCESS)
 	{
 		clog_error("[%s] OnRtnOrder:%s",
 					module_name_, 
@@ -502,7 +549,7 @@ int TunnRptProducer::InsertUdpOrder(char *sendbuf, const char* contract)
 
 	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
-					udporder, 
+					sendbuf, 
 					UDP_ORDER_INSERT_LEN, 
 					0, 
 					(struct sockaddr*)&udpserver_, 
@@ -534,7 +581,7 @@ int TunnRptProducer::CancelUdpOrder(char *sendbuf)
 
 	socklen_t len = sizeof (udpserver_);
     if (sendto(m_udpFd, 
-				deleteudporder, 
+				sendbuf, 
 				UDP_ORDER_DELETE_LEN, 
 				0, 
 				(struct sockaddr*)&udpserver_, 

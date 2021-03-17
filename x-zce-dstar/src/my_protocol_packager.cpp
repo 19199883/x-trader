@@ -47,7 +47,7 @@ char* ESUNNYPacker::DeleteUdpOrderRequest(
 				ESUNNYPacker::delete_udporder_ + sizeof(DstarApiHead));
 	req->ClientReqId = localorderid;
 	strcpy(req->OrderNo, orderNo);
-	strcpy(req->SystemNo, systemNo);
+	// strcpy(req->SystemNo, systemNo);
 
 	return ESUNNYPacker::delete_udporder_;
 }

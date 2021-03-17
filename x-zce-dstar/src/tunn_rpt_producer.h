@@ -58,7 +58,7 @@ class TunnRptProducer: public IDstarTradeSpi
 		void AuthUdpServer();
 		int InitUdpSequence();
 		int NewUdpSequence();
-		int InsertUdpOrder(char *udporder);
+		int InsertUdpOrder(char *udporder, const char* contract);
 		int CancelUdpOrder(char *deleteudporder);
 
 
@@ -74,6 +74,9 @@ class TunnRptProducer: public IDstarTradeSpi
 
 		 ///报单应答
 		 virtual void OnRspOrderInsert(const DstarApiRspOrderInsertField *pOrderInsert);
+
+		 ///委托响应
+		 virtual void OnRspOrder(const DstarApiOrderField *pOrder);
 
 		 ///委托通知 (撤单失败时返回委托通知,委托状态不变,包含撤单失败的错误码)
 		virtual void OnRtnOrder(const DstarApiOrderField *pOrder);
@@ -124,6 +127,9 @@ class TunnRptProducer: public IDstarTradeSpi
 	   ///询价通知
 	   virtual void OnRtnEnquiry(const DstarApiEnquiryField *pEnquiry){};
 
+	   ///提交信息响应
+	   virtual void OnRspSubmitInfo(const DstarApiRspSubmitInfoField *pRspSubmitInfo){};
+	   
 		/*
 		 * things relating to x-trader internal logic
 		 */

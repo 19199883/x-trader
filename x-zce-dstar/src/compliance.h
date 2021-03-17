@@ -28,7 +28,7 @@ class Compliance
 		bool TryReqOrderInsert(int ord_counter, 
 					const char * contract, 
 					double price,
-					DstarTradeApiDataType side,
+					DstarApiDirectType side,
 					DstarApiOffsetType offset);
 
 		void End(int ord_counter);

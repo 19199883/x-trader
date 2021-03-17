@@ -23,7 +23,7 @@ public:
 	static std::string ToString(const DstarApiSeatField *p);
 	static std::string ToString(const DstarApiRspOrderInsertField *p);
 	static std::string ToString(const DstarApiOrderField *p);
-	static std::string ToString(const DstarApiReqOfferInsertField *p);
+	static std::string ToString(const DstarApiReqOrderInsertField *p);
 	static std::string ToString(const DstarApiReqOrderDeleteField *p);
 	static std::string ToString(const DstarApiReqUdpAuthField *p);
 

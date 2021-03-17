@@ -2,6 +2,7 @@
 #define MY_PROTOCOL_PACKAGER_H_
 
 #include "DstarTradeApiDataType.h"
+#include "DstarTradeApiStruct.h"
 #include "signal.h"
 
 #define EXCHANGE_NO "ZCE"

@@ -5,9 +5,9 @@
 #include "tap_md_producer.h"
 #include "TapQuoteAPI.h"
 #include "perfctx.h"
-#include "DstarTradeApiError.h"
-#include "DstarTradeApiDataType.h"
-#include "DstarTradeApiStruct.h"
+#include "TapAPIError.h"
+#include "TapQuoteAPIDataType.h"
+#include "ZceLevel2ApiStruct.h"
 
 using namespace std::placeholders;
 using namespace std;

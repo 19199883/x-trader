@@ -342,11 +342,10 @@ void UniConsumer::ProcTunnRpt(int32_t index)
 	TunnRpt &rptforcancel = tunnrpt_table_[counter];
 	strcpy(rptforcancel.OrderNo, rpt->OrderNo);
 	strcpy(rptforcancel.SystemNo, rpt->SystemNo);
-	clog_info("[%s] ProcTunnRpt:counter=%d,ServerFlag=%c,OrderNo=%s,"
+	clog_info("[%s] ProcTunnRpt:counter=%d,SOrderNo=%s,"
 				"SystemNo=%s", 
 		module_name_, 
 		counter, 
-		rptforcancel.ServerFlag, 
 		rptforcancel.OrderNo,
 		rptforcancel.SystemNo);
 	
@@ -594,17 +593,16 @@ void UniConsumer::PlaceOrder(Strategy &strategy,const signal_t &sig)
 	const char *account = tunn_rpt_producer_->GetAccount();
 	char* ordBuf = ESUNNYPacker::UdpOrderRequest(
 				sig, 
-				account, 
 				localorderid, 
 				updated_vol);
-    TapAPIUdpOrderInsertReq* ord = (TapAPIUdpOrderInsertReq*)(
-				ordBuf + sizeof(TapAPIUdpHead));
+    DstarApiReqOrderInsertField* ord = (DstarApiReqOrderInsertField*)(
+				ordBuf + sizeof(DstarApiHead));
 	bool result = compliance_.TryReqOrderInsert(
 				counter,
 				sig.symbol, 
 				ord->OrderPrice,
-				ord->OrderSide, 
-				ord->PositionEffect);
+				ord->Direct, 
+				ord->Offset);
 	if(result)
 	{
 		int rtn = tunn_rpt_producer_->InsertUdpOrder(ordBuf,sig.symbol);
