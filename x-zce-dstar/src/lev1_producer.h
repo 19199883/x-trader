@@ -1,5 +1,4 @@
-#ifndef __FULLDEPTHMD_PRODUCER_H__
-#define __FULLDEPTHMD_PRODUCER_H__
+#pragma once
 
 #include <functional>
 #include <array>
@@ -73,51 +72,57 @@ enum SOCKET_EVENT
 #define QUOTE_FLAG_SUMMARY		4
 
 
-#pragma pack(push, 1)
-
-struct efh3_lev2
+///深度市场行情（一档行情结构）
+struct Lev1MarketData
 {
-	unsigned int	m_sequence;				///<会话编号
-	char			m_exchange_id;			///<市场  0 表示中金  1表示上期
-	char			m_channel_id;			///<通道编号
-	char			m_symbol[8];			///<合约
-	char			m_update_time_h;		///<最后更新的时间hh
-	char			m_update_time_m;		///<最后更新的时间mm
-	char			m_update_time_s;		///<最后更新的时间ss
-	unsigned short  m_millisecond;		    ///<最后更新的毫秒数        
-
-	double			m_last_px;				///<最新价
-	unsigned int	m_last_share;			///<最新成交量
-	double			m_turnover;			///<成交金额
-	double			m_open_interest;			///<持仓量
-
-	double			m_bid_1_px;				///<买一价
-	unsigned int	m_bid_1_share;			///<买一量
-	double			m_bid_2_px;				///<买二价
-	unsigned int	m_bid_2_share;			///<买二量
-	double			m_bid_3_px;				///<买三价
-	unsigned int	m_bid_3_share;			///<买三量
-	double			m_bid_4_px;				///<买四价
-	unsigned int	m_bid_4_share;			///<买四量
-	double			m_bid_5_px;				///<买五价
-	unsigned int	m_bid_5_share;			///<买五量
-                         
-	double			m_ask_1_px;				///<卖一价
-	unsigned int	m_ask_1_share;			///<卖一量
-	double			m_ask_2_px;				///<卖二价
-	unsigned int	m_ask_2_share;			///<卖二量
-	double			m_ask_3_px;				///<卖三价
-	unsigned int	m_ask_3_share;			///<卖三量
-	double			m_ask_4_px;				///<卖四价
-	unsigned int	m_ask_4_share;			///<卖四量
-	double			m_ask_5_px;				///<卖五价
-	unsigned int	m_ask_5_share;			///<卖五量
-
-	char            m_reserve;  			///<保留字段
+    ///交易日
+    char TradingDay[9];
+    ///最新价
+    double LastPrice;
+    ///昨结算
+    double PreSettlementPrice;
+    ///昨收盘
+    double PreClosePrice;
+    ///昨持仓量
+    double PreOpenInterest;
+    ///今开盘
+    double OpenPrice;
+    ///最高价
+    double HighestPrice;
+    ///最低价
+    double LowestPrice;
+    ///数量
+    int Volume;
+    ///成交金额
+    double Turnover;
+    ///持仓量
+    double OpenInterest;
+    ///今收盘
+    double ClosePrice;
+    ///今结算
+    double SettlementPrice;
+    ///涨停板价
+    double UpperLimitPrice;
+    ///跌停板价
+    double LowerLimitPrice;
+    ///最后修改时间
+    char UpdateTime[9];
+    ///最后修改毫秒
+    int UpdateMillisec;
+    ///合约代码
+    char InstrumentID[31];
+    ///申买价一
+    double BidPrice1;
+    ///申买量一
+    int BidVolume1;
+    ///申卖价一
+    double AskPrice1;
+    ///申卖量一
+    int AskVolume1;
 };
 
-
 #pragma pack(pop)
+
 ////////////////////////////////end market data by socket udp multicast
 
 /*
@@ -127,7 +132,7 @@ struct efh3_lev2
 
 using namespace std;
 
-struct EfhLev2Config 
+struct Lev1Config 
 {
 	char	m_remote_ip[MAX_IP_LEN];		///< 组播行情远端地址
 	int		m_remote_port;					///< 组播行情远端端口
@@ -138,13 +143,13 @@ struct EfhLev2Config
 	char yield[20]; // disruptor yield strategy
 };
 
-class EfhLev2Producer 
+class Lev1Producer 
 {
 	public:
-		EfhLev2Producer(struct vrt_queue  *queue);
-		~EfhLev2Producer();
+		Lev1Producer(struct vrt_queue  *queue);
+		~Lev1Producer();
 
-		efh3_lev2* GetData(int32_t index);
+		Lev1MarketData* GetData(int32_t index);
 		void Start();
 		void End();
 		/*
@@ -152,81 +157,63 @@ class EfhLev2Producer
 		 */
 		bool IsDominant(const char *contract);
 
-		void on_receive_quote(efh3_lev2* data, int32_t index);
+		void on_receive_quote(Lev1MarketData* data, int32_t index);
 
 		/*
 		 * 对source指定的行情数据进行格式化后存储到dest
 		 */
-		static char* Format(efh3_lev2 &source, char *dest)
+		static char* Format(Lev1MarketData *source,char *dest)
 		{
-			//long timestamp = ;
-			
-			sprintf (dest,
-				"efh3_lev2 "				
+				sprintf (dest,
+				"Lev1MarketData "
 				"InstrumentID:%s; "
-				"m_sequence:%u; "
-				"UpdateTime:%hhu:%hhu:%hhu; "
-				"UpdateMillisec:%hu; "
-				"timestamp:%lld"
-				"LastPrice:%.4f; "												
-				"m_last_share:%u; "
-				"Turnover:%.4f; "								
-				"m_open_interest:%.4f; "
+				"UpdateTime[9]:%s; "
+				"UpdateMillisec:%d; "
+				"TradingDay:%s; "
+				"LastPrice:%.4f; "
+				"PreSettlementPrice:%.4f; "
+				"PreClosePrice:%.4f; "
+				"PreOpenInterest:%.4f; "
+				"OpenPrice:%.4f; "
+				"HighestPrice:%.4f; "
+				"LowestPrice:%.4f; "
+				"Volume:%d; "
+				"Turnover:%.4f; "
+				"OpenInterest:%.4f; "
+				"ClosePrice:%.4f; "
+				"SettlementPrice:%.4f; "
+				"UpperLimitPrice:%.4f; "
+				"LowerLimitPrice:%.4f; "
 				"BidPrice1:%.4f; "
-				"BidVolume1:%u; "
+				"BidVolume1:%d; "
 				"AskPrice1:%.4f; "
-				"AskVolume1:%u; "
-				"BidPrice2:%.4f; "
-				"BidVolume2:%u; "
-				"AskPrice2:%.4f; "
-				"AskVolume2:%u; "
-				"BidPrice3:%.4f; "
-				"BidVolume3:%u; "
-				"AskPrice3:%.4f; "
-				"AskVolume3:%u; "
-				"BidPrice4:%.4f; "
-				"BidVolume4:%u; "
-				"AskPrice4:%.4f; "
-				"AskVolume4:%u; "
-				"BidPrice5:%.4f; "
-				"BidVolume5:%u; "
-				"AskPrice5:%.4f; "
-				"AskVolume5:%u; "
-				,
-				source.m_symbol,
-				source.m_sequence,
-				source.m_update_time_h, source.m_update_time_m, source.m_update_time_s,
-				source.m_millisecond,
-				(int64_t)(high_resolution_clock::now().time_since_epoch().count()),
-				source.m_last_px,															
-				source.m_last_share,
-				source.m_turnover,				
-				source.m_open_interest,
-				source.m_bid_1_px,
-				source.m_bid_1_share,
-				source.m_ask_1_px,
-				source.m_ask_1_share,
-				source.m_bid_2_px,
-				source.m_bid_2_share,
-				source.m_ask_2_px,
-				source.m_ask_2_share,
-				source.m_bid_3_px,
-				source.m_bid_3_share,
-				source.m_ask_3_px,
-				source.m_ask_3_share,
-				source.m_bid_4_px,
-				source.m_bid_4_share,
-				source.m_ask_4_px,
-				source.m_ask_4_share,
-				source.m_bid_5_px,
-				source.m_bid_5_share,
-				source.m_ask_5_px,
-				source.m_ask_5_share
-					);
+				"AskVolume1:%d; ",
+				source.InstrumentID,
+				source.UpdateTime,
+				source.UpdateMillisec,
+				source.TradingDay,
+				InvalidToZeroD(source.LastPrice),
+				InvalidToZeroD(source.PreSettlementPrice),
+				InvalidToZeroD(source. PreClosePrice),
+				InvalidToZeroD(source.PreOpenInterest),
+				InvalidToZeroD(source.OpenPrice),
+				InvalidToZeroD(source. HighestPrice),
+				InvalidToZeroD(source. LowestPrice),
+				source.Volume,
+				InvalidToZeroD(source.Turnover),
+				InvalidToZeroD(source.OpenInterest),
+				source.ClosePrice,
+				source.SettlementPrice,
+				InvalidToZeroD(source.UpperLimitPrice),
+				InvalidToZeroD(source.LowerLimitPrice),
+				InvalidToZeroD(source.BidPrice1),
+				source.BidVolume1,
+				InvalidToZeroD(source.AskPrice1),
+				source.AskVolume1);
 
 			return dest;
+		
 		}
-
 
 		///////////////// market data bu socket udp multicast  //////
 		////////////// the following is for SHFE ////////////
@@ -319,4 +306,3 @@ class EfhLev2Producer
 		std::mutex m_mtx;
 };
 
-#endif
