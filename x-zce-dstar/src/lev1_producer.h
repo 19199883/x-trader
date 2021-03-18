@@ -128,7 +128,7 @@ struct Lev1MarketData
 /*
  * 缓存的最大的行情数量
  */
-#define FULL_DEPTH_MD_BUFFER_SIZE 32768 
+#define DATA_BUFFER_SIZE 32768 
 
 using namespace std;
 
@@ -222,11 +222,6 @@ class Lev1Producer
 		/// \brief 组播实例关闭
 		bool sock_close();
 
-		////////////// the following is for INEE ////////////
-		/// \brief 组播实例初始化
-		bool sock_init_Ine();
-		/// \brief 组播实例关闭
-		bool sock_close_Ine();
 		
 	private:
 		////////////////// the following is for SHFE ///////
@@ -243,19 +238,6 @@ class Lev1Producer
 
 		bool					m_thrade_quit_flag;		///< 信号检测线程退出标志		
 		MY_SOCKET				m_sock;					///< 套接口
-
-
-		////////////////// the following is for INE ///////
-		/// \brief 组播数收发信号的线程函数(linux 版)
-		static void* socket_server_event_thread_Ine(void* ptr_param);			
-
-		/// \brief 组播数收发信号的处理函数
-		void* on_socket_server_event_thread_Ine();
-
-		/// \brief 启动组播信号处理线程
-		bool start_server_event_thread_Ine();										
-		/// \brief 停止组播信号处理线程
-		bool stop_server_event_thread_Ine();	
 
 		bool					m_thrade_quit_flag_Ine;		///< 信号检测线程退出标志		
 		MY_SOCKET				m_sock_Ine;					///< 套接口
@@ -278,7 +260,7 @@ class Lev1Producer
 		 */
 		int32_t Push();
 		struct vrt_producer  *producer_;
-		efh3_lev2 shfemarketdata_buffer_[FULL_DEPTH_MD_BUFFER_SIZE];
+		Lev1MarketData data_buffer_[DATA_BUFFER_SIZE];
 		bool ended_;
 
 		/*
@@ -289,7 +271,7 @@ class Lev1Producer
 		/*
 		 * 配置相关
 		 */
-		EfhLev2Config config_;
+		Lev1Config config_;
 		void ParseConfig();
 
 	private:
@@ -297,11 +279,6 @@ class Lev1Producer
 		int		m_remote_port;					///< 组播行情远端端口
 		char	m_local_ip[MAX_IP_LEN];			///< 组播本机地址
 		int		m_local_port;					///< 组播本机端口
-
-		char	m_Ine_remote_ip[MAX_IP_LEN];		///< 组播行情远端地址
-		int		m_Ine_remote_port;					///< 组播行情远端端口
-		char	m_Ine_local_ip[MAX_IP_LEN];			///< 组播本机地址
-		int		m_Ine_local_port;					///< 组播本机端口
 
 		std::mutex m_mtx;
 };
