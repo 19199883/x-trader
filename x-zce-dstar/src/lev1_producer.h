@@ -79,6 +79,9 @@ enum SOCKET_EVENT
 #pragma pack(push)
 #pragma pack(1)
 
+/*
+ * 消息类型( ( MsgType) 定义
+ */
 enum MsgType
 {
 	//合约索引信息消息
@@ -111,21 +114,56 @@ struct MessageHead
 };
 
 /*
+ * 行情数据传输协议为二进制协议，采用网络字节序的
+ * 大端存储方式。
+ *
+ * TODO:考虑是否需要大小端转换
+ * ref: https://www.zhihu.com/question/19953760
+ *
  * 每一个数据包(Package)可能包含多个消息(Message)。消息
  * 的个数在包头(Package Head)中定义。包头中的包
  * 长度(Package Length)不包括包头的长度。包头中消息
  * 类型(Message Type)定义了消息的类型。
  * 消息长度包括消息头的长度
  * 
- * 注意：MsgCnt可能比实际的消息个数多 1，
- * 所以要同时判断消息个数和报文实际长度。 。
+ * 注意：MsgCnt可能比实际的消息个数多1，
+ * 所以要同时判断消息个数和报文实际长度。
  *
  */
 struct PackageHead
 {
-	uint8_t MsgType; // 1 消息类型
-	uint8_t MsgCnt;	 //	1 消息个数
-	uint16_t PkgLen  //	2 数据包长度
+	uint8_t MsgType; // 消息类型
+	uint8_t MsgCnt;	 //	消息个数
+	uint16_t PkgLen  //	数据包长度
+};
+
+/*
+ * * TODO：如何确认所有的索引信息都接收完毕
+ * * 一种方法：从接收索引是0的单腿合约开始计时，
+ *  等待1分30秒，即可认为接收完毕
+ *
+ * * 合约索引信息消息
+ * * 第一个Msg中包含有交易日信息
+ * * 后续msg不包含交易日信息  
+ * * 单腿合约和组合合约分别从 0 开始编号
+ * * 合约索引消息定时发送，一分钟内所有的合约索引发送一次
+ * * 合约信息建议更新至集合竞价阶段，确保获取最新的合约信息 
+ * */
+struct IndexMsgType
+{
+	uint32_t TradeDate;		//	交易日, 如  20200101
+	uint8_t Type;			//	合约类型,0:单腿,1:组合
+	uint16_t Index;			//	合约索引
+
+	//	第一个Msg中包含有交易日信息: char MsgLen-9 
+	//	合约编码，
+	//	后续msg不包含交易日信息: char MsgLen-5 
+	//	合约编码，
+	//
+	//	例如期货 AP005，
+	//	期权 CF007C10000，
+	//	组合SPD-AP005/AP007 ，IPS-SF010/SM010
+	char InstrumentId[50]; 
 };
 
 #pragma pack(pop)
