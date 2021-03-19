@@ -382,7 +382,10 @@ void* Lev1Producer::on_socket_server_event_thread()
 					break;
 
 				case MESSAGE_SINGLE_COMMODITY:
-					ProcSCMsg(packageBody);
+					int32_t next_index = Push();
+					line = data_buffer_ + next_index;
+					ProcSCMsg(packageBody, line);
+					on_receive_quote(line, next_index);
 					break;
 
 				case MESSAGE_COMBINE_TYPE:
@@ -407,16 +410,6 @@ void* Lev1Producer::on_socket_server_event_thread()
 			}
 
 
-			// TODO: here - process package header
-			int32_t next_index = Push();
-			line = data_buffer_ + next_index;
-			memcpy(line, 
-					&rev_buffer, 
-					sizeof(Lev1MarketData ));
-
-			on_receive_quote(
-					(Lev1MarketData*)line, 
-					next_index);
 		}	
 
 		//检测线程退出信号
