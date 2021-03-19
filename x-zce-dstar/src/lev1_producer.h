@@ -166,6 +166,62 @@ struct IndexMsgType
 	char InstrumentId[50]; 
 };
 
+
+/*
+ * 单腿行情报文由多个Item组成，每个Item 
+ * 长度4字节。最多包含18个Item。
+ * 例如,报价精度=100,OpenPrice=13787,
+ * 实际的 OpenPrice=137.87
+ * 
+ * Single Contract Msg First Item Type
+*/
+struct SCMsg1stItemType
+{
+	uint16_t Decimal;	// 报价精度
+	uint16_t Index;		// 合约索引
+};
+
+/*
+ * 单腿合约报文中Item Index 具体含义如下
+ */
+enum SCMsgItemIndexType
+{
+	InstrumentIndex = 0,  //  合约索引
+	OpenPrice		= 1,  //  开盘价
+	HighPrice		= 2,  //  最高价
+	LowPrice		= 3,  //  最低价
+	LastPrice		= 4,  //  最新价
+	BidPrice		= 5,  //  买价
+	AskPrice		= 6,  //  卖价
+	BidLot			= 7,  //  买量
+	AskLot			= 8,  //  卖量
+	Volume			= 9,  //  成交量
+	OpenInterest	= 10, //  持仓量
+	DeriveBidPrice	= 11, //  组合买入价		
+	DeriveAskPrice	= 12, //  组合卖出价
+	DeriveBidLot	= 13, //  组合买入数量
+	DeriveAskLot	= 14, //  组合卖出数量
+	AvgPrice		= 15, //  均价
+	UpdateTime		= 16, //  更新时间
+	Clear			= 17, // 结算价
+};
+
+/*
+ * 第二个Item开始，需要按照bit位解析，
+ * 解析4字节中具体bit位表示的含义，
+ * 后续以B(31-0)表示，如 B31表示第31 位，
+ * 从0计数。
+ * 
+ * B31 是符号位，0表示正数，1表示负数。
+ * B30-B26 是 Item Index，说明该 Item 代表的具体内容。
+ * B25-B0 是对应的具体值。
+ */
+struct SCMsgContentItemType
+{
+	uint32_t Content;	
+};
+
+
 #pragma pack(pop)
 
 
