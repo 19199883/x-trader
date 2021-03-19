@@ -130,6 +130,7 @@ struct MessageHead
  * 所以要同时判断消息个数和报文实际长度。
  *
  */
+#define PACKAGE_HEAD_LEN 4
 struct PackageHead
 {
 	uint8_t MsgType; // 消息类型
@@ -214,7 +215,8 @@ enum SCMsgItemIndexType
  * 
  * B31 是符号位，0表示正数，1表示负数。
  * B30-B26 是 Item Index，说明该 Item 代表的具体内容。
- * B25-B0 是对应的具体值。
+ * B25-B0 是对应的具体值。TODO: 观察该值是字符串形式
+ * 还是其他的
  */
 struct SCMsgContentItemType
 {

@@ -336,18 +336,15 @@ void* Lev1Producer::socket_server_event_thread(void* ptr_param)
 	}
 
 	return ptr_this->on_socket_server_event_thread();
-
 }
 
 void* Lev1Producer::on_socket_server_event_thread()
 {
-	// TODO: here
-	
 	int n_rcved = -1;
-	int buffer_size = sizeof(Lev1MarketData);
 	Lev1MarketData* line = NULL;
 	socklen_t len = sizeof(sockaddr_in);
-	Lev1MarketData rev_buffer;
+	char rev_buffer[102400]; // 100K
+	int buffer_size = sizeof(rev_buffer);
 
 	struct sockaddr_in muticast_addr;
 	memset(&muticast_addr, 0, sizeof(muticast_addr));
@@ -373,12 +370,53 @@ void* Lev1Producer::on_socket_server_event_thread()
 		}					
 		else
 		{
+			// TODO:
+			PackageHead packageHead;
+			ProcPackageHead(rev_buffer, &packageHead);
+
+			char packageBody = rev_buffer + PACKAGE_HEAD_LEN;
+			switch (packageHead.MsgType)
+			{
+				case MESSAGE_INSTRUMENT_INDEX:
+					ProcIdxMsg(packageBody);
+					break;
+
+				case MESSAGE_SINGLE_COMMODITY:
+					ProcSCMsg(packageBody);
+					break;
+
+				case MESSAGE_COMBINE_TYPE:
+					clog_info("[%s] rev MESSAGE_COMBINE_TYPE	 message.", module_name_);
+					break;
+
+				case MESSAGE_BULLETINE:
+					clog_info("[%s] rev MESSAGE_BULLETINE message.", module_name_);
+					break;
+
+				case MESSAGE_MARKET_MAKER_QUOT:
+					clog_info("[%s] rev MESSAGE_MARKET_MAKER_QUOT message.", module_name_);
+					break;
+
+				case MESSAGE_TESTATUS:
+					clog_info("[%s] rev MESSAGE_TESTATUS message.", module_name_);
+					break;
+
+				default:
+					clog_error("[%s] undefined message type %u", module_name_, packageHead.MsgType);
+					break;
+			}
+
+
 			// TODO: here - process package header
 			int32_t next_index = Push();
 			line = data_buffer_ + next_index;
-			memcpy(line, &rev_buffer, sizeof(Lev1MarketData ));
+			memcpy(line, 
+					&rev_buffer, 
+					sizeof(Lev1MarketData ));
 
-			on_receive_quote((Lev1MarketData*)line, next_index);
+			on_receive_quote(
+					(Lev1MarketData*)line, 
+					next_index);
 		}	
 
 		//检测线程退出信号
