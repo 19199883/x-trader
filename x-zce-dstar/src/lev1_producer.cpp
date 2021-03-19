@@ -28,7 +28,7 @@ using std::stringstream;
 using namespace std::placeholders;
 using namespace std;
 
-Lev1Producer::Lev1Producer(struct vrt_queue  *queue)
+Lev1Producer::Lev1Producer(struct vrt_queue *queue)
 :module_name_("Lev1Producer")
 {
 	m_sock = MY_SOCKET_DEFAULT;
@@ -41,14 +41,21 @@ Lev1Producer::Lev1Producer(struct vrt_queue  *queue)
 	ParseConfig();
 	
 	// init dominant contracts
-	memset(dominant_contracts_, 0, sizeof(dominant_contracts_));
+	memset(dominant_contracts_, 
+				0, 
+				sizeof(dominant_contracts_));
 	dominant_contract_count_ = LoadDominantContracts(
 				config_.contracts_file, 
 				dominant_contracts_);
 
 	// disruptor
-	this->producer_ = vrt_producer_new("efh_lev2_producer", 1, queue);
-	clog_warning("[%s] yield:%s", module_name_, config_.yield); 
+	this->producer_ = vrt_producer_new(
+				"efh_lev2_producer", 
+				1, 
+				queue);
+	clog_warning("[%s] yield:%s", 
+				module_name_, 
+				config_.yield); 
 	if(strcmp(config_.yield, "threaded") == 0)
 	{
 		producer_ ->yield = vrt_yield_strategy_threaded();
@@ -75,28 +82,36 @@ void Lev1Producer::ParseConfig()
     TiXmlElement *RootElement = config.RootElement();    
 
 	// yield strategy
-    TiXmlElement *disruptor_node = RootElement->FirstChildElement("Disruptor");
+    TiXmlElement *disruptor_node = 
+		RootElement->FirstChildElement("Disruptor");
 	if (disruptor_node != NULL)
 	{
 		strcpy(config_.yield, disruptor_node->Attribute("yield"));
 	}
 	else 
 	{ 
-		clog_error("[%s] x-shmd.config error: Disruptor node missing.", module_name_); 
+		clog_error("[%s] x-shmd.config error: "
+					"Disruptor node missing.", 
+					module_name_); 
 	}
 
 	// contracts file
-    TiXmlElement *contracts_file_node = RootElement->FirstChildElement("Subscription");
+    TiXmlElement *contracts_file_node = 
+		RootElement->FirstChildElement("Subscription");
 	if (contracts_file_node != NULL)
 	{
-		strcpy(config_.contracts_file, contracts_file_node->Attribute("contracts"));
+		strcpy(config_.contracts_file, 
+					contracts_file_node->Attribute("contracts"));
 	}
 	else 
 	{ 
-		clog_error("[%s] x-shmd.config error: Subscription node missing.", module_name_); 
+		clog_error("[%s] x-shmd.config error: Subscription"
+					"node missing.", 
+					module_name_); 
 	}
 
-    TiXmlElement *efhLev2  = RootElement->FirstChildElement("EfhLev2");
+    TiXmlElement *efhLev2  = 
+		RootElement->FirstChildElement("EfhLev2");
 	strcpy(m_remote_ip, efhLev2->Attribute("remote_ip"));
 	int remote_port = 0;
 	efhLev2->QueryIntAttribute("remote_port", &remote_port);
@@ -116,11 +131,13 @@ int Lev1Producer::InitMDApi()
 	int err = sock_init();
 	if(!err)
 	{
-		clog_warning("[%s] Lev1Producerinit failed.", module_name_);
+		clog_warning("[%s] Lev1Producerinit failed.", 
+					module_name_);
 	}
 	else
 	{
-		clog_warning("[%s] Lev1Producer init is successful.", module_name_);
+		clog_warning("[%s] Lev1Producer init is successful.", 
+					module_name_);
 	}
 
 	return err;
@@ -131,17 +148,19 @@ void Lev1Producer::on_receive_quote(Lev1MarketData* data, int32_t index)
 	struct vrt_value  *vvalue;
 	struct vrt_hybrid_value  *ivalue;
 	vrt_producer_claim(producer_, &vvalue);
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
+	ivalue = cork_container_of (vvalue, 
+				struct vrt_hybrid_value, 
+				parent);
 	ivalue->index = index;
-	ivalue->data = LEV1;
+	ivalue->data = L1_MD;
 	vrt_producer_publish(producer_);
 }
 
 void Lev1Producer::End()
 {
-	if(!ended_){
+	if(!ended_)
+	{
 		ended_ = true;
-
 		sock_close();
 
 		vrt_producer_eof(producer_);
@@ -152,19 +171,19 @@ void Lev1Producer::End()
 
 int32_t Lev1Producer::Push()
 {
-	static int32_t shfemarketdata_cursor = DATA_BUFFER_SIZE - 1;
-	shfemarketdata_cursor++;
-	if (shfemarketdata_cursor % DATA_BUFFER_SIZE == 0)
+	static int32_t data_cursor = DATA_BUFFER_SIZE - 1;
+	data_cursor++;
+	if (ata_cursor % DATA_BUFFER_SIZE == 0)
 	{
-		shfemarketdata_cursor = 0;
+		data_cursor = 0;
 	}
 
-	return shfemarketdata_cursor;
+	return data_cursor;
 }
 
 Lev1MarketData* Lev1Producer::GetData(int32_t index)
 {
-	return &shfemarketdata_buffer_[index];
+	return &data_buffer_[index];
 }
 
 bool Lev1Producer::IsDominant(const char *contract)
@@ -203,7 +222,9 @@ bool Lev1Producer::sock_init()
 		int opt_val = 0;
 		socklen_t opt_len = sizeof(opt_val);
 		getsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
-		clog_warning("[%s] get default SO_RCVBUF option: %d.", module_name_, opt_val);
+		clog_warning("[%s] get default SO_RCVBUF option: %d.", 
+					module_name_, 
+					opt_val);
 
 		int receive_buf_size  = RCV_BUF_SIZE;	
 		if (setsockopt(m_sock, 
@@ -212,7 +233,8 @@ bool Lev1Producer::sock_init()
 						(const char*)&receive_buf_size, 
 						sizeof(receive_buf_size)) != 0)
 		{
-			clog_warning("[%s] it is failed to set SO_RCVBUF option: %d.", 
+			clog_warning("[%s] it is failed to set "
+						"SO_RCVBUF option: %d.", 
 						module_name_, 
 						receive_buf_size);
 			//throw CONST_ERROR_SOCK;
@@ -220,7 +242,9 @@ bool Lev1Producer::sock_init()
 		opt_val = 0;
 		opt_len = sizeof(opt_val);
 		getsockopt(m_sock, SOL_SOCKET, SO_RCVBUF, &opt_val, &opt_len);
-		clog_warning("[%s] get SO_RCVBUF option: %d.", module_name_, opt_val);
+		clog_warning("[%s] get SO_RCVBUF option: %d.", 
+					module_name_, 
+					opt_val);
 
 		//socket可以重新使用一个本地地址
 		int flag=1;
@@ -262,7 +286,8 @@ bool Lev1Producer::sock_init()
 		}
 
 		struct ip_mreq mreq;
-		mreq.imr_multiaddr.s_addr = inet_addr(m_remote_ip);	//multicast group ip
+		//multicast group ip
+		mreq.imr_multiaddr.s_addr = inet_addr(m_remote_ip);	
 		mreq.imr_interface.s_addr = inet_addr(m_local_ip);
 
 		if (setsockopt(m_sock, 
@@ -304,7 +329,6 @@ bool Lev1Producer::sock_close()
 
 void* Lev1Producer::socket_server_event_thread(void* ptr_param)	
 {
-
 	Lev1Producer* ptr_this = (Lev1Producer*) ptr_param;
 	if (NULL == ptr_this)
 	{
@@ -317,29 +341,29 @@ void* Lev1Producer::socket_server_event_thread(void* ptr_param)
 
 void* Lev1Producer::on_socket_server_event_thread()
 {
+	// TODO: here
+	
 	int n_rcved = -1;
-	int buffer_size = sizeof(efh3_lev2);
-	efh3_lev2* line = NULL;
+	int buffer_size = sizeof(Lev1MarketData);
+	Lev1MarketData* line = NULL;
 	socklen_t len = sizeof(sockaddr_in);
-	efh3_lev2 rev_buffer;
+	Lev1MarketData rev_buffer;
 
 	struct sockaddr_in muticast_addr;
-
 	memset(&muticast_addr, 0, sizeof(muticast_addr));
 	muticast_addr.sin_family = AF_INET;
 	muticast_addr.sin_addr.s_addr = inet_addr(m_remote_ip);	
 	muticast_addr.sin_port = htons(m_remote_port);
 
-	while (true)
+	while(true)
 	{
-
 		n_rcved = recvfrom(m_sock, 
 					&rev_buffer, 
 					buffer_size, 
 					0, 
 					(struct sockaddr*)&muticast_addr, 
 					&len);
-		if ( n_rcved < 0) 
+		if(n_rcved < 0) 
 		{
 			continue;
 		} 
@@ -349,14 +373,12 @@ void* Lev1Producer::on_socket_server_event_thread()
 		}					
 		else
 		{
-			// lock
-			std::lock_guard<std::mutex> lck (m_mtx);
-
+			// TODO: here - process package header
 			int32_t next_index = Push();
-			line = shfemarketdata_buffer_ + next_index;
-			memcpy(line, &rev_buffer, sizeof(efh3_lev2 ));
+			line = data_buffer_ + next_index;
+			memcpy(line, &rev_buffer, sizeof(Lev1MarketData ));
 
-			on_receive_quote((efh3_lev2*)line, next_index);
+			on_receive_quote((Lev1MarketData*)line, next_index);
 		}	
 
 		//检测线程退出信号
@@ -381,8 +403,9 @@ bool Lev1Producer::start_server_event_thread()
 	///<设置线程可分离
 	pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_DETACHED);		
 
-	///<设置线程的继承策略和参数来自于schedpolicy 与 schedparam中属性中显示设置
-	//pthread_attr_setinheritsched(&thread_attr, PTHREAD_EXPLICIT_SCHED);		
+	///<设置线程的继承策略和参数来自于schedpolicy 
+	//与 schedparam中属性中显示设置
+	//pthread_attr_setinheritsched(&thread_attr,PTHREAD_EXPLICIT_SCHED);		
 	///<设置线程的与系统中所有线程进行竞争
 	//pthread_attr_setscope(&thread_attr, PTHREAD_SCOPE_SYSTEM);				
 

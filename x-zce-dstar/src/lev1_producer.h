@@ -1,5 +1,11 @@
 #pragma once
 
+/*
+ * reference doc: zce一档组播行情接入说明.pdf
+ *
+ *
+ */
+
 #include <functional>
 #include <array>
 #include <string>
@@ -13,7 +19,6 @@
 #include <ctime>
 #include <ratio>
 #include <ctime>
-#include <mutex>          // std::mutex, std::lock_guard
 
 
 using namespace std::chrono;
@@ -71,6 +76,60 @@ enum SOCKET_EVENT
 
 #define QUOTE_FLAG_SUMMARY		4
 
+#pragma pack(push)
+#pragma pack(1)
+
+enum MsgType
+{
+	//合约索引信息消息
+	MESSAGE_INSTRUMENT_INDEX	=	0x05,	
+
+	//单腿行情消息
+	MESSAGE_SINGLE_COMMODITY	=	0x10,	
+
+	//组合行情消息
+	MESSAGE_COMBINE_TYPE		=	0x11,	
+
+	//广播消息
+	MESSAGE_BULLETINE			=	0x12,	
+
+	// 做市商报价消息
+	MESSAGE_MARKET_MAKER_QUOT	=	0x13,	
+
+	//交易系统状态消息
+	MESSAGE_TESTATUS			=	0x14,	
+};
+
+
+/*
+ *	消息头
+ *	MsgLen 包含消息头本身的长度
+ */
+struct MessageHead
+{
+	uint16_t MsgLen;	// 消息长度
+};
+
+/*
+ * 每一个数据包(Package)可能包含多个消息(Message)。消息
+ * 的个数在包头(Package Head)中定义。包头中的包
+ * 长度(Package Length)不包括包头的长度。包头中消息
+ * 类型(Message Type)定义了消息的类型。
+ * 消息长度包括消息头的长度
+ * 
+ * 注意：MsgCnt可能比实际的消息个数多 1，
+ * 所以要同时判断消息个数和报文实际长度。 。
+ *
+ */
+struct PackageHead
+{
+	uint8_t MsgType; // 1 消息类型
+	uint8_t MsgCnt;	 //	1 消息个数
+	uint16_t PkgLen  //	2 数据包长度
+};
+
+#pragma pack(pop)
+
 
 ///深度市场行情（一档行情结构）
 struct Lev1MarketData
@@ -121,7 +180,6 @@ struct Lev1MarketData
     int AskVolume1;
 };
 
-#pragma pack(pop)
 
 ////////////////////////////////end market data by socket udp multicast
 
@@ -279,7 +337,5 @@ class Lev1Producer
 		int		m_remote_port;					///< 组播行情远端端口
 		char	m_local_ip[MAX_IP_LEN];			///< 组播本机地址
 		int		m_local_port;					///< 组播本机端口
-
-		std::mutex m_mtx;
 };
 

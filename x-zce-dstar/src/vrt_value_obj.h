@@ -4,9 +4,6 @@
 #include <stdio.h>
 #include <pthread.h>
 
-// 如果定义了，则使用UDP下单操作；否则使用TCP下单操作
-#define UPD_ORDER_OPERATION
-
 //#define LATENCY_MEASURE
 // 行情持久化开关
 //#define PERSISTENCE_ENABLED
@@ -15,9 +12,6 @@
 #define SERVER_NAME  "zztest3"
 
 #define CLOG_CHANNEL  "x-trader"
-// 通过合约查找订阅该合约行情的方法:
-// 1: unordered_multimap  
-// 2: two-dimensional array
 // 3: strcmp
 #define FIND_STRATEGIES 3
 
@@ -27,7 +21,7 @@
 #ifdef PERSISTENCE_ENABLED 
 	#define MAX_CONTRACT_COUNT 1000
 #else
-	#define MAX_CONTRACT_COUNT 25
+	#define MAX_CONTRACT_COUNT 500
 #endif
 
 
