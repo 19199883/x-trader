@@ -378,14 +378,11 @@ void* Lev1Producer::on_socket_server_event_thread()
 			switch (packageHead.MsgType)
 			{
 				case MESSAGE_INSTRUMENT_INDEX:
-					ProcIdxMsg(packageBody);
+					ProcIdxMsgs(packageBody);
 					break;
 
 				case MESSAGE_SINGLE_COMMODITY:
-					int32_t next_index = Push();
-					line = data_buffer_ + next_index;
-					ProcSCMsg(packageBody, line);
-					on_receive_quote(line, next_index);
+					ProcSCMsgs(packageBody, line);
 					break;
 
 				case MESSAGE_COMBINE_TYPE:
@@ -533,6 +530,10 @@ void Proc1stIdxMsgBody(char* msgBodyBuf,
 // ok
 void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 {
+	// TODO:从第一个索引单腿合约开始，直到
+	// 下一次收到该合约开始，表示完成索引接收
+	
+	
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
 	char *msgBuf = packageBodyBuf;
@@ -568,9 +569,48 @@ void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 }
 
 
-void ProcSCMsg(PackageHead *packageHead,
-			char *packageBodyBuf, 
-			Lev1MarketData *lev1Data)
+void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 {
-	// TODO:
+	// message head		
+	MessageHead msgHead;
+	uint16_t* pMsgHead = (uint16_t*)msgBuf;
+	msgHead.MsgLen = ntohs(*pMsgHead); 
+	// TODO: log msgHead
+
+	char *msgBodyBuf = msgBuf + MSG_HEAD_LEN; 
+	// first item
+	SCMsg1stItemType firstItem;
+
+	uint16_t* pDecimal = (uint16_t*)(msgBodyBuf);
+	firstItem.Decimal = ntohs(*pDecimal); 
+	msgBodyBuf += sizeof(firstItem->Decimal);
+
+	uint16_t* pIndex = (uint16_t*)(msgBodyBuf);
+	firstItem.Index = ntohs(*pIndex); 
+	msgBodyBuf += sizeof(firstItem->Index);
+	
+	// others items
+}
+
+// ok
+void ProcSCMsgs(PackageHead *packageHead,
+			char *packageBodyBuf)
+{
+	int msgCnt = 0;
+	int curPackageBodyLen = 0;
+	char *msgBuf = packageBodyBuf;
+	for(msgCnt >= packageHead->MsgCnt ||
+		curPackageBodyLen >= packageHead->PkgLen)
+	{
+		int32_t next_index = Push();
+		Lev1MarketData *lev1Data = data_buffer_ + next_index;
+		ProcSCMsg(msgBuf, lev1Data );
+		on_receive_quote(lev1Data, next_index);
+
+		// TODO: log single contract msg
+
+		msgBuf += msgHead.MsgLen
+		msgCnt++:
+		curPackageBodyLen += msgHead.MsgLen;
+	}
 }
