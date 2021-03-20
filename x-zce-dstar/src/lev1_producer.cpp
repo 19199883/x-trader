@@ -369,7 +369,6 @@ void* Lev1Producer::on_socket_server_event_thread()
 		}					
 		else
 		{
-			// TODO:
 			PackageHead packageHead;
 			ProcPackageHead(rev_buffer, &packageHead);
 
@@ -385,23 +384,30 @@ void* Lev1Producer::on_socket_server_event_thread()
 					break;
 
 				case MsgType::MESSAGE_COMBINE_TYPE:
-					clog_info("[%s] rev MESSAGE_COMBINE_TYPE	 message.", module_name_);
+					clog_info("[%s] rev MESSAGE_COMBINE_TYPE message.",
+								module_name_);
 					break;
 
 				case MsgType::MESSAGE_BULLETINE:
-					clog_info("[%s] rev MESSAGE_BULLETINE message.", module_name_);
+					clog_info("[%s] rev MESSAGE_BULLETINE message.", 
+								module_name_);
 					break;
 
 				case MsgType::MESSAGE_MARKET_MAKER_QUOT:
-					clog_info("[%s] rev MESSAGE_MARKET_MAKER_QUOT message.", module_name_);
+					clog_info("[%s] rev MESSAGE_MARKET_MAKER_QUOT"
+								"message.",
+								module_name_);
 					break;
 
 				case MsgType::MESSAGE_TESTATUS:
-					clog_info("[%s] rev MESSAGE_TESTATUS message.", module_name_);
+					clog_info("[%s] rev MESSAGE_TESTATUS message.",
+								module_name_);
 					break;
 
 				default:
-					clog_error("[%s] undefined message type %u", module_name_, packageHead.MsgType);
+					clog_error("[%s] undefined message type %hhu", 
+								module_name_, 
+								packageHead.MsgType);
 					break;
 			}
 

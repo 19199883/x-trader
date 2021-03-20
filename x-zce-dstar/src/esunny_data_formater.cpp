@@ -20,7 +20,7 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspLoginField *p)
         snprintf(buf, 
 				sizeof(buf), 
 				"structName=DstarApiRspLoginField "
-				" user:%s "
+				"AccountNo:%s "
 				"AccountIndex:%hu "
 				"ErrorCode:%u "
 				"UdpAuthCode:%u "
@@ -59,7 +59,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspUdpAuthField *p)
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiRspUdpAuthField <null>");
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiRspUdpAuthField <null>");
     }
 
     return buf;
@@ -88,7 +90,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiContractField *p)
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiContractField <null>");
+        snprintf(buf, 
+					sizeof(buf), 
+					"structName=DstarApiContractField <null>");
     }
 
     return buf;
@@ -113,7 +117,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiSeatField *p)
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiSeatField <null>");
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiSeatField <null>");
     }
 
     return buf;
@@ -146,7 +152,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspOrderInsertField *
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiSeatField <null>");
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiSeatField <null>");
     }
 
     return buf;
@@ -183,7 +191,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiOrderField *p)
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiOrderField <null>");
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiOrderField <null>");
     }
 
     return buf;
@@ -207,7 +217,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqUdpAuthField *p)
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiReqUdpAuthField <null>");
+        snprintf(buf, 
+					sizeof(buf), 
+					"structName=DstarApiReqUdpAuthField <null>");
     }
 
     return buf;
@@ -231,8 +243,8 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqOrderInsertField *
 				"AccountIndex:%hu "
 				"ContractIndex:%u "
 				"ContractNo:%s "
-				"OrderQty:%c "
-				"MinQty:%c "
+				"OrderQty:%u "
+				"MinQty:%u "
 				"OrderPrice:%f "
 				"ClientReqId:%u "
 				"Reference:%d "
@@ -255,7 +267,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqOrderInsertField *
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiReqOrderInsertField <null>");
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiReqOrderInsertField <null>");
     }
 
     return buf;
@@ -284,7 +298,9 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiReqOrderDeleteField *
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=DstarApiReqOrderDeleteField <null>");
+        snprintf(buf, 
+				sizeof(buf), 
+				"structName=DstarApiReqOrderDeleteField <null>");
     }
 
     return buf;
