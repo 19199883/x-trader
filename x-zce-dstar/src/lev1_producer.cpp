@@ -29,7 +29,7 @@ using namespace std::placeholders;
 using namespace std;
 
 Lev1Producer::Lev1Producer(struct vrt_queue *queue)
-:module_name_("Lev1Producer")
+: module_name_("Lev1Producer")
 {
 	m_sock = MY_SOCKET_DEFAULT;
 
@@ -310,7 +310,6 @@ bool Lev1Producer::sock_init()
 
 	return b_ret;
 }
-
 
 bool Lev1Producer::sock_close()
 {
@@ -695,9 +694,6 @@ void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 				// TODO: log
 				break;
 		}
-
-
-
 
 		msgBodyBuf += MSG_ITEM_LEN;
 	}
