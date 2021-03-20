@@ -483,6 +483,8 @@ void ProcPackageHead(char *packageBuf,
 
 	uint16_t* pPkgLen = (uint16_t*)(packageBuf+2);
 	packageHead->PkgLen  = ntohs(*pPkgLen ); 
+
+	packageHead->Print();
 }
 
 void ProcComIdxMsgBody(char* msgBodyBuf, 

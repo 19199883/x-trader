@@ -135,9 +135,24 @@ struct MessageHead
 #define PACKAGE_HEAD_LEN 4
 struct PackageHead
 {
-	uint8_t MsgType; // 消息类型
-	uint8_t MsgCnt;	 //	消息个数
-	uint16_t PkgLen  //	数据包长度
+	public:
+		void Print()
+		{
+			clog_warning("[%s] PackageHead:"
+						"MsgType: %hhu;", 
+						"MsgCnt: %hhu;", 
+						"PkgLen: %hu;", 
+						module_name_, 
+						this->MsgType,
+						this->MsgCnt,
+						this->PkgLen);
+
+		}
+
+		uint8_t MsgType;  // 消息类型
+		uint8_t MsgCnt;	  //	消息个数
+		uint16_t PkgLen;  //	数据包长度
+
 };
 
 /*
