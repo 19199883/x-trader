@@ -19,7 +19,7 @@
 #include <ctime>
 #include <ratio>
 #include <ctime>
-
+#include <arpa/inet.h> 
 
 using namespace std::chrono;
 
@@ -306,6 +306,21 @@ class Lev1Producer
 		Lev1MarketData* GetData(int32_t index);
 		void Start();
 		void End();
+
+		void ProcPackageHead(char *package, 
+					PackageHead *packageHead);
+
+		/*
+		 *
+		 */
+		void ProcIdxMsg(char *packageBody);
+
+		/*
+		 *
+		 */
+		void ProcSCMsg(char *packageBody, 
+					Lev1MarketData lev1Data);
+
 		/*
 		 * check whether the given contract is dominant.
 		 */

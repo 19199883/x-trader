@@ -473,3 +473,28 @@ bool Lev1Producer::stop_server_event_thread()
 	return true;
 }
 
+/////////////////////////////////
+//////////// process package ////
+/////////////////////////////////
+
+
+void ProcPackageHead(char *package, 
+			PackageHead *packageHead)
+{
+	// TODO:
+	packageHead->MsgType = (uint8_t)package[0];
+	packageHead->MsgCnt  = (uint8_t)package[1];
+
+	uint16_t* pPkgLen = (uint16_t*)(package+2);
+	packageHead->PkgLen  = ntohs(*pPkgLen ); 
+}
+
+void ProcIdxMsg(char *packageBody)
+{
+	// TODO:
+}
+
+void ProcSCMsg(char *packageBody, Lev1MarketData lev1Data)
+{
+	// TODO:
+}
