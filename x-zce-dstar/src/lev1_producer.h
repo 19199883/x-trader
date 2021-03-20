@@ -112,7 +112,17 @@ enum class MsgType
 #define MSG_ITEM_LEN 4
 struct MessageHead
 {
-	uint16_t MsgLen;	// 消息长度
+	public:
+		void Print()
+		{
+			clog_warning("[%s] MessageHead:"
+						"MsgLen: %hu;", 
+						module_name_, 
+						this->MsgLen);
+
+		}
+
+		uint16_t MsgLen;	// 消息长度
 };
 
 /*

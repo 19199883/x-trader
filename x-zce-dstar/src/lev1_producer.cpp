@@ -534,12 +534,11 @@ void Proc1stIdxMsgBody(char* msgBodyBuf,
 				instrumentIdLen);
 }
 
-// ok
+// ok ok
 void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 {
 	// TODO:从第一个索引单腿合约开始，直到
 	// 下一次收到该合约开始，表示完成索引接收
-	
 	
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
@@ -553,7 +552,7 @@ void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 		MessageHead msgHead;
 		uint16_t* pMsgHead = (uint16_t*)msgBuf;
 		msgHead.MsgLen = ntohs(*pMsgHead); 
-		// TODO: log msgHead
+		msgHead.Print();
 
 		if(0 == msgCnt)
 		{
@@ -567,7 +566,6 @@ void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 						&idxMsg,
 						msgHead.MsgLen - 5);
 		}
-		// TODO: log idxmsg
 
 		msgBuf += msgHead.MsgLen
 		msgCnt++:
