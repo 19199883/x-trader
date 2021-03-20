@@ -82,7 +82,7 @@ enum SOCKET_EVENT
 /*
  * 消息类型( ( MsgType) 定义
  */
-enum MsgType
+enum class MsgType
 {
 	//合约索引信息消息
 	MESSAGE_INSTRUMENT_INDEX	=	0x05,	
@@ -109,6 +109,7 @@ enum MsgType
  *	MsgLen 包含消息头本身的长度
  */
 #define MSG_HEAD_LEN 2
+#define MSG_ITEM_LEN 4
 struct MessageHead
 {
 	uint16_t MsgLen;	// 消息长度
@@ -186,26 +187,26 @@ struct SCMsg1stItemType
 /*
  * 单腿合约报文中Item Index 具体含义如下
  */
-enum SCMsgItemIndexType
+enum class SCMsgItemIndexType
 {
-	InstrumentIndex = 0,  //  合约索引
-	OpenPrice		= 1,  //  开盘价
-	HighPrice		= 2,  //  最高价
-	LowPrice		= 3,  //  最低价
-	LastPrice		= 4,  //  最新价
-	BidPrice		= 5,  //  买价
-	AskPrice		= 6,  //  卖价
-	BidLot			= 7,  //  买量
-	AskLot			= 8,  //  卖量
-	Volume			= 9,  //  成交量
-	OpenInterest	= 10, //  持仓量
-	DeriveBidPrice	= 11, //  组合买入价		
-	DeriveAskPrice	= 12, //  组合卖出价
-	DeriveBidLot	= 13, //  组合买入数量
-	DeriveAskLot	= 14, //  组合卖出数量
-	AvgPrice		= 15, //  均价
-	UpdateTime		= 16, //  更新时间
-	Clear			= 17, // 结算价
+	INSTRUMENTINDEX = 0,  //  合约索引
+	OPENPRICE		= 1,  //  开盘价
+	HIGHPRICE		= 2,  //  最高价
+	LOWPRICE		= 3,  //  最低价
+	LASTPRICE		= 4,  //  最新价
+	BIDPRICE		= 5,  //  买价
+	ASKPRICE		= 6,  //  卖价
+	BIDLOT			= 7,  //  买量
+	ASKLOT			= 8,  //  卖量
+	VOLUME			= 9,  //  成交量
+	OPENINTEREST	= 10, //  持仓量
+	DERIVEBIDPRICE	= 11, //  组合买入价		
+	DERIVEASKPRICE	= 12, //  组合卖出价
+	DERIVEBIDLOT	= 13, //  组合买入数量
+	DERIVEASKLOT	= 14, //  组合卖出数量
+	AVGPRICE		= 15, //  均价
+	UPDATETIME		= 16, //  更新时间
+	CLEAR			= 17, // 结算价
 };
 
 /*
@@ -231,6 +232,7 @@ struct SCMsgContentItemType
 ///深度市场行情（一档行情结构）
 struct Lev1MarketData
 {
+	uint16_t InstrumentIndex;
     ///交易日
     char TradingDay[9];
     ///最新价
@@ -262,7 +264,7 @@ struct Lev1MarketData
     ///跌停板价
     double LowerLimitPrice;
     ///最后修改时间
-    char UpdateTime[9];
+    uint16_t UpdateTime;
     ///最后修改毫秒
     int UpdateMillisec;
     ///合约代码
@@ -275,6 +277,8 @@ struct Lev1MarketData
     double AskPrice1;
     ///申卖量一
     int AskVolume1;
+	// 均价
+    double AvgPrice;
 };
 
 

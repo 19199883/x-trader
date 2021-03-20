@@ -377,27 +377,27 @@ void* Lev1Producer::on_socket_server_event_thread()
 			char packageBody = rev_buffer + PACKAGE_HEAD_LEN;
 			switch (packageHead.MsgType)
 			{
-				case MESSAGE_INSTRUMENT_INDEX:
+				case MsgType::MESSAGE_INSTRUMENT_INDEX:
 					ProcIdxMsgs(packageBody);
 					break;
 
-				case MESSAGE_SINGLE_COMMODITY:
+				case MsgType::MESSAGE_SINGLE_COMMODITY:
 					ProcSCMsgs(packageBody, line);
 					break;
 
-				case MESSAGE_COMBINE_TYPE:
+				case MsgType::MESSAGE_COMBINE_TYPE:
 					clog_info("[%s] rev MESSAGE_COMBINE_TYPE	 message.", module_name_);
 					break;
 
-				case MESSAGE_BULLETINE:
+				case MsgType::MESSAGE_BULLETINE:
 					clog_info("[%s] rev MESSAGE_BULLETINE message.", module_name_);
 					break;
 
-				case MESSAGE_MARKET_MAKER_QUOT:
+				case MsgType::MESSAGE_MARKET_MAKER_QUOT:
 					clog_info("[%s] rev MESSAGE_MARKET_MAKER_QUOT message.", module_name_);
 					break;
 
-				case MESSAGE_TESTATUS:
+				case MsgType::MESSAGE_TESTATUS:
 					clog_info("[%s] rev MESSAGE_TESTATUS message.", module_name_);
 					break;
 
@@ -537,8 +537,8 @@ void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
 	char *msgBuf = packageBodyBuf;
-	for(msgCnt >= packageHead->MsgCnt ||
-		curPackageBodyLen >= packageHead->PkgLen)
+	while(msgCnt<packageHead->MsgCnt ||
+		curPackageBodyLen<packageHead->PkgLen)
 	{
 		IndexMsgType idxMsg;
 
@@ -580,16 +580,127 @@ void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 	char *msgBodyBuf = msgBuf + MSG_HEAD_LEN; 
 	// first item
 	SCMsg1stItemType firstItem;
-
 	uint16_t* pDecimal = (uint16_t*)(msgBodyBuf);
 	firstItem.Decimal = ntohs(*pDecimal); 
 	msgBodyBuf += sizeof(firstItem->Decimal);
-
 	uint16_t* pIndex = (uint16_t*)(msgBodyBuf);
 	firstItem.Index = ntohs(*pIndex); 
 	msgBodyBuf += sizeof(firstItem->Index);
 	
 	// others items
+	int itemCnt = (msgHead.MsgLen-MSG_HEAD_LEN)/MSG_ITEM_LEN;
+	for(int i=0; i<itemCnt-1; i++) // skip first item
+	{
+		// TODO:
+		uint32_t itemValueBuf = ((uint32_t*)msgBodyBuf)[0];
+
+		// Sign
+		int sign = itemValueBuf >> 31;
+		signValue = 1;
+		if(0 == sign)
+		{
+			signValue = +1;
+		}
+		else if(1 == sign)
+		{
+			signValue = -1;
+		}
+
+		// item index
+		uint16_t itemIndex = (itemValueBuf & 0x7FFFFFFF) >> 26;
+		// value
+		// TODO: need to see define.
+		uint16_t value = itemValueBuf & 0x3FFFFFF;
+		switch (itemIndex)
+		{
+			case SCMsgItemIndexType::INSTRUMENTINDEX:
+				lev1Data->InstrumentIndex = value;
+				break;
+
+			case SCMsgItemIndexType::OPENPRICE:
+				lev1Data->OpenPrice = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			case SCMsgItemIndexType::HIGHPRICE:
+				lev1Data->HighestPrice = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			case SCMsgItemIndexType::LOWPRICE:
+				lev1Data->LowestPrice = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			case SCMsgItemIndexType::LASTPRICE:
+				lev1Data->LastPrice = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			case SCMsgItemIndexType::BIDPRICE:
+				lev1Data->BidPrice1 = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			case SCMsgItemIndexType::ASKPRICE:
+				lev1Data->AskPrice1 = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			case SCMsgItemIndexType::BIDLOT:
+				lev1Data->BidVolume1 = value * signValue;
+				break;
+
+			case SCMsgItemIndexType::ASKLOT:
+				lev1Data->AskVolume1 = value * signValue;
+				break;
+
+			case SCMsgItemIndexType::VOLUME:
+				lev1Data->Volume = value * signValue;
+				break;
+
+			case SCMsgItemIndexType::OPENINTEREST:
+				lev1Data->OpenInterest = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			case SCMsgItemIndexType::DERIVEBIDPRICE:
+				break;
+
+			case SCMsgItemIndexType::DERIVEASKPRICE:
+				break;
+
+			case SCMsgItemIndexType::DERIVEBIDLOT:
+				break;
+
+			case SCMsgItemIndexType::DERIVEASKLOT:
+				break;
+
+			case SCMsgItemIndexType::AVGPRICE:
+				lev1Data->AvgPrice = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			case SCMsgItemIndexType::UPDATETIME:
+				// TODO: to see value detail
+				lev1Data->UpdateTime = value * signValue;
+				break;
+
+			case SCMsgItemIndexType::CLEAR:
+				lev1Data->SettlementPrice = 
+					(double)value/(double)firstItem.Decimal*signValue ;
+				break;
+
+			default:
+				// TODO: log
+				break;
+		}
+
+
+
+
+		msgBodyBuf += MSG_ITEM_LEN;
+	}
 }
 
 // ok
@@ -599,8 +710,8 @@ void ProcSCMsgs(PackageHead *packageHead,
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
 	char *msgBuf = packageBodyBuf;
-	for(msgCnt >= packageHead->MsgCnt ||
-		curPackageBodyLen >= packageHead->PkgLen)
+	while(msgCnt<packageHead->MsgCnt ||
+		curPackageBodyLen<packageHead->PkgLen)
 	{
 		int32_t next_index = Push();
 		Lev1MarketData *lev1Data = data_buffer_ + next_index;
