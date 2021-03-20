@@ -489,45 +489,79 @@ void ProcPackageHead(char *packageBuf,
 	packageHead->PkgLen  = ntohs(*pPkgLen ); 
 }
 
-void ProcCommonIdxMsgBody(char* msgBodyBuf) 
+void ProcComIdxMsgBody(char* msgBodyBuf, 
+			IndexMsgType *idxMsg,
+			int instrumentIdLen) 
 {
-	char* msgBodyBuf = msgBuf + MSG_HEAD_LEN;
+	char *fieldBuf = msgBodyBuf;
+
+	// Type
+	uint8_t* pType	= (uint8_t*)fieldBuf;
+	idxMsg->Type	= *pType; 
+	fieldBuf += sizeof(idxMsg->Type);
+
+	// Index 
+	uint16_t* pIndex = (uint16_t*)fieldBuf;
+	idxMsg->Index = ntohs(*pIndex); 
+	fieldBuf += sizeof(idxMsg->Index);
+
+	// InstrumentId 
+	memset(idxMsg->InstrumentId, 
+				0, 
+				sizeof(idxMsg->InstrumentId));
+	char* pInstrumentId = (char*)fieldBuf;
+	strncpy(idxMsg->InstrumentId, 
+				pInstrumentId, 
+				instrumentIdLen); 
 }
 
-void Proc1stIdxMsgBody( char* msgBodyBuf)
+// ok
+void Proc1stIdxMsgBody(char* msgBodyBuf, 
+			IndexMsgType *idxMsg,
+			int instrumentIdLen)
 {
-	IndexMsgType idxMsg;
-
 	// TradeData
+	uint32_t* pTradeDate = (uint32_t*)msgBodyBuf;
+	idxMsg->TradeData = ntohl(*pTradeDate); 
 	
 	// other fields
-	ProcCommonIdxMsgBody(msgBodyBuf + sizeof(idxMsg.TradeDate)) 
+	ProcComIdxMsgBody(msgBodyBuf + sizeof(idxMsg->TradeDate),
+				idxMsg,
+				instrumentIdLen);
 }
 
-void ProcIdxMsgs(PackageHead *packageHead,char *packageBodyBuf)
+// ok
+void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 {
-	// TODO:
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
 	char *msgBuf = packageBodyBuf;
 	for(msgCnt >= packageHead->MsgCnt ||
 		curPackageBodyLen >= packageHead->PkgLen)
 	{
+		IndexMsgType idxMsg;
+
 		// message head		
 		MessageHead msgHead;
 		uint16_t* pMsgHead = (uint16_t*)msgBuf;
 		msgHead.MsgLen = ntohs(*pMsgHead); 
+		// TODO: log msgHead
 
 		if(0 == msgCnt)
 		{
-			Proc1stIdxMsgBody(msgBuf+MSG_HEAD_LEN);
+			Proc1stIdxMsgBody(msgBuf+MSG_HEAD_LEN, 
+						&idxMsg,
+						msgHead.MsgLen - 9);
 		}
 		else
 		{
-			ProcComIdxMsgBody(msgBuf+MSG_HEAD_LEN);
+			ProcComIdxMsgBody(msgBuf+MSG_HEAD_LEN, 
+						&idxMsg,
+						msgHead.MsgLen - 5);
 		}
-		msgBuf += msgHead.MsgLen
+		// TODO: log idxmsg
 
+		msgBuf += msgHead.MsgLen
 		msgCnt++:
 		curPackageBodyLen += msgHead.MsgLen;
 	}
