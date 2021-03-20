@@ -478,23 +478,65 @@ bool Lev1Producer::stop_server_event_thread()
 /////////////////////////////////
 
 
-void ProcPackageHead(char *package, 
+void ProcPackageHead(char *packageBuf, 
 			PackageHead *packageHead)
 {
 	// TODO:
-	packageHead->MsgType = (uint8_t)package[0];
-	packageHead->MsgCnt  = (uint8_t)package[1];
+	packageHead->MsgType = (uint8_t)packageBuf[0];
+	packageHead->MsgCnt  = (uint8_t)packageBuf[1];
 
-	uint16_t* pPkgLen = (uint16_t*)(package+2);
+	uint16_t* pPkgLen = (uint16_t*)(packageBuf+2);
 	packageHead->PkgLen  = ntohs(*pPkgLen ); 
 }
 
-void ProcIdxMsg(char *packageBody)
+void ProcCommonIdxMsgBody(char* msgBodyBuf) 
 {
-	// TODO:
+	char* msgBodyBuf = msgBuf + MSG_HEAD_LEN;
 }
 
-void ProcSCMsg(char *packageBody, Lev1MarketData lev1Data)
+void Proc1stIdxMsgBody( char* msgBodyBuf)
+{
+	IndexMsgType idxMsg;
+
+	// TradeData
+	
+	// other fields
+	ProcCommonIdxMsgBody(msgBodyBuf + sizeof(idxMsg.TradeDate)) 
+}
+
+void ProcIdxMsgs(PackageHead *packageHead,char *packageBodyBuf)
+{
+	// TODO:
+	int msgCnt = 0;
+	int curPackageBodyLen = 0;
+	char *msgBuf = packageBodyBuf;
+	for(msgCnt >= packageHead->MsgCnt ||
+		curPackageBodyLen >= packageHead->PkgLen)
+	{
+		// message head		
+		MessageHead msgHead;
+		uint16_t* pMsgHead = (uint16_t*)msgBuf;
+		msgHead.MsgLen = ntohs(*pMsgHead); 
+
+		if(0 == msgCnt)
+		{
+			Proc1stIdxMsgBody(msgBuf+MSG_HEAD_LEN);
+		}
+		else
+		{
+			ProcComIdxMsgBody(msgBuf+MSG_HEAD_LEN);
+		}
+		msgBuf += msgHead.MsgLen
+
+		msgCnt++:
+		curPackageBodyLen += msgHead.MsgLen;
+	}
+}
+
+
+void ProcSCMsg(PackageHead *packageHead,
+			char *packageBodyBuf, 
+			Lev1MarketData *lev1Data)
 {
 	// TODO:
 }

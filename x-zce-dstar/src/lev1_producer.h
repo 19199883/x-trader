@@ -108,6 +108,7 @@ enum MsgType
  *	消息头
  *	MsgLen 包含消息头本身的长度
  */
+#define MSG_HEAD_LEN 2
 struct MessageHead
 {
 	uint16_t MsgLen;	// 消息长度
@@ -307,19 +308,24 @@ class Lev1Producer
 		void Start();
 		void End();
 
-		void ProcPackageHead(char *package, 
+		void ProcPackageHead(
+					char *packageBuf, 
 					PackageHead *packageHead);
 
 		/*
 		 *
 		 */
-		void ProcIdxMsg(char *packageBody);
+		void ProcIdxMsgs(
+					PackageHead *packageHead,
+					char *packageBodyBuf);
 
 		/*
 		 *
 		 */
-		void ProcSCMsg(char *packageBody, 
-					Lev1MarketData lev1Data);
+		void ProcSCMsgs(
+					PackageHead *packageHead
+					char *packageBodyBuf, 
+					Lev1MarketData *lev1Data);
 
 		/*
 		 * check whether the given contract is dominant.
