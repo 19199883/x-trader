@@ -411,7 +411,6 @@ void* Lev1Producer::on_socket_server_event_thread()
 					break;
 			}
 
-
 		}	
 
 		//检测线程退出信号
@@ -479,11 +478,10 @@ bool Lev1Producer::stop_server_event_thread()
 //////////// process package ////
 /////////////////////////////////
 
-
+// ok ok
 void ProcPackageHead(char *packageBuf, 
 			PackageHead *packageHead)
 {
-	// TODO:
 	packageHead->MsgType = (uint8_t)packageBuf[0];
 	packageHead->MsgCnt  = (uint8_t)packageBuf[1];
 
@@ -493,6 +491,7 @@ void ProcPackageHead(char *packageBuf,
 	packageHead->Print();
 }
 
+// ok ok
 void ProcComIdxMsgBody(char* msgBodyBuf, 
 			IndexMsgType *idxMsg,
 			int instrumentIdLen) 
@@ -517,9 +516,11 @@ void ProcComIdxMsgBody(char* msgBodyBuf,
 	strncpy(idxMsg->InstrumentId, 
 				pInstrumentId, 
 				instrumentIdLen); 
+
+	idxMsg->Print();
 }
 
-// ok
+// ok ok
 void Proc1stIdxMsgBody(char* msgBodyBuf, 
 			IndexMsgType *idxMsg,
 			int instrumentIdLen)
@@ -532,6 +533,8 @@ void Proc1stIdxMsgBody(char* msgBodyBuf,
 	ProcComIdxMsgBody(msgBodyBuf + sizeof(idxMsg->TradeDate),
 				idxMsg,
 				instrumentIdLen);
+
+	idxMsg->Print();
 }
 
 // ok ok
@@ -574,13 +577,14 @@ void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 }
 
 
+// ok ok
 void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 {
 	// message head		
 	MessageHead msgHead;
 	uint16_t* pMsgHead = (uint16_t*)msgBuf;
 	msgHead.MsgLen = ntohs(*pMsgHead); 
-	// TODO: log msgHead
+	msgHead.Print();
 
 	char *msgBodyBuf = msgBuf + MSG_HEAD_LEN; 
 	// first item
@@ -590,13 +594,13 @@ void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 	msgBodyBuf += sizeof(firstItem->Decimal);
 	uint16_t* pIndex = (uint16_t*)(msgBodyBuf);
 	firstItem.Index = ntohs(*pIndex); 
+	firstItem.Print();
 	msgBodyBuf += sizeof(firstItem->Index);
 	
 	// others items
 	int itemCnt = (msgHead.MsgLen-MSG_HEAD_LEN)/MSG_ITEM_LEN;
 	for(int i=0; i<itemCnt-1; i++) // skip first item
 	{
-		// TODO:
 		uint32_t itemValueBuf = ((uint32_t*)msgBodyBuf)[0];
 
 		// Sign
@@ -612,10 +616,10 @@ void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 		}
 
 		// item index
-		uint16_t itemIndex = (itemValueBuf & 0x7FFFFFFF) >> 26;
+		uint32_t itemIndex = (itemValueBuf & 0x7FFFFFFF) >> 26;
 		// value
 		// TODO: need to see define.
-		uint16_t value = itemValueBuf & 0x3FFFFFF;
+		uint32_t value = itemValueBuf & 0x3FFFFFF;
 		switch (itemIndex)
 		{
 			case SCMsgItemIndexType::INSTRUMENTINDEX:
@@ -705,7 +709,7 @@ void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 	}
 }
 
-// ok
+// ok ok
 void ProcSCMsgs(PackageHead *packageHead,
 			char *packageBodyBuf)
 {
@@ -717,10 +721,8 @@ void ProcSCMsgs(PackageHead *packageHead,
 	{
 		int32_t next_index = Push();
 		Lev1MarketData *lev1Data = data_buffer_ + next_index;
-		ProcSCMsg(msgBuf, lev1Data );
+		ProcSCMsg(msgBuf, lev1Data);
 		on_receive_quote(lev1Data, next_index);
-
-		// TODO: log single contract msg
 
 		msgBuf += msgHead.MsgLen
 		msgCnt++:

@@ -179,19 +179,35 @@ struct PackageHead
  * */
 struct IndexMsgType
 {
-	uint32_t TradeDate;		//	交易日, 如  20200101
-	uint8_t Type;			//	合约类型,0:单腿,1:组合
-	uint16_t Index;			//	合约索引
+	public:
+		void Print()
+		{
+			clog_warning("[%s] IndexMsgType:"
+						"TradeDate: %u;" 
+						"Type: %hhu;" 
+						"Index: %hu;", 
+						"InstrumentId: %s;", 
+						module_name_, 
+						this->TradeDate, 
+						this->Type, 
+						this->Index,
+						this->InstrumentId);
 
-	//	第一个Msg中包含有交易日信息: char MsgLen-9 
-	//	合约编码，
-	//	后续msg不包含交易日信息: char MsgLen-5 
-	//	合约编码，
-	//
-	//	例如期货 AP005，
-	//	期权 CF007C10000，
-	//	组合SPD-AP005/AP007 ，IPS-SF010/SM010
-	char InstrumentId[50]; 
+		}
+
+		uint32_t TradeDate;		//	交易日, 如  20200101
+		uint8_t Type;			//	合约类型,0:单腿,1:组合
+		uint16_t Index;			//	合约索引
+
+		//	第一个Msg中包含有交易日信息: char MsgLen-9 
+		//	合约编码，
+		//	后续msg不包含交易日信息: char MsgLen-5 
+		//	合约编码，
+		//
+		//	例如期货 AP005，
+		//	期权 CF007C10000，
+		//	组合SPD-AP005/AP007 ，IPS-SF010/SM010
+		char InstrumentId[50]; 
 };
 
 
@@ -205,8 +221,21 @@ struct IndexMsgType
 */
 struct SCMsg1stItemType
 {
-	uint16_t Decimal;	// 报价精度
-	uint16_t Index;		// 合约索引
+	public:
+		void Print()
+		{
+			clog_warning("[%s] IndexMsgType:"
+						"Decimal: %hu;", 
+						"Index: %hu;", 
+						module_name_, 
+						this->Decimal, 
+						this->Index);
+
+		}
+
+
+		uint16_t Decimal;	// 报价精度
+		uint16_t Index;		// 合约索引
 };
 
 /*
