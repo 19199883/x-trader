@@ -624,6 +624,8 @@ void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 		{
 			case SCMsgItemIndexType::INSTRUMENTINDEX:
 				lev1Data->InstrumentIndex = value;
+				// TODO:
+				// srcpy(lev1Data->InstrumentId,) ;
 				break;
 
 			case SCMsgItemIndexType::OPENPRICE:

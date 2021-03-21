@@ -6,20 +6,25 @@
 
 using std::chrono::system_clock;
 
-MdHelper::MdHelper(L2MDProducer *l2_md_producer, TapMDProducer *l1_md_producer)
-: l2_md_producer_(l2_md_producer), l1_md_producer_(l1_md_producer), 
+MdHelper::MdHelper(L2MDProducer *l2_producer, 
+			Lev1Producer *l1_producer)
+: l2_md_producer_(l2_producer), 
+	l1_md_producer_(l1_producer), 
   module_name_("MdHelper")
 {
-	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",module_name_,L1_DOMINANT_MD_BUFFER_SIZE);
-	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
-		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		strcpy(tmp.Contract.Commodity.CommodityNo, "");
-		strcpy(tmp.Contract.ContractNo1, "");
+	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",
+				module_name_,
+				L1_DOMINANT_MD_BUFFER_SIZE);
+	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++)
+	{
+		Lev1MarketData &tmp = md_buffer_[i];
+		strcpy(tmp.InstrumentID, "");
 	}
 
 
 #ifdef PERSISTENCE_ENABLED 
-    p_md_save_ = new QuoteDataSave<ZCEL2QuotSnapshotField_MY>("czce_level2", 
+    p_md_save_ = new QuoteDataSave<ZCEL2QuotSnapshotField_MY>(
+				"czce_level2", 
 		CZCE_LEVEL2_QUOTE_TYPE);
 #endif
 }
@@ -30,12 +35,13 @@ MdHelper::~MdHelper()
     if (p_md_save_) delete p_md_save_;
 #endif
 
-	clog_warning("[%s] ~MdHelper invoked.", module_name_);
+	clog_warning("[%s] ~MdHelper invoked.", 
+				module_name_);
 }
 
 void MdHelper::ProcL2Data(int32_t index)
 {
-	TapAPIQuoteWhole* l1_md = NULL;
+	Lev1MarketData* l1_md = NULL;
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
 	// discard option
@@ -45,7 +51,8 @@ void MdHelper::ProcL2Data(int32_t index)
 	}
 
 	bool dominant = l2_md_producer_->IsDominant(md->instrument);
-	clog_info("[test] StdQuote5 rev [%s]dominant:%d contract:%s, time:%s %d", 
+	clog_info("[test] StdQuote5 rev [%s]dominant:%d "
+				"contract:%s, time:%s %d", 
 				module_name_, 
 				dominant, 
 				md->instrument, 
@@ -55,113 +62,171 @@ void MdHelper::ProcL2Data(int32_t index)
 	// 抛弃非主力合约
 	if(!dominant) return;
 
-	clog_info("[test] ProcL2Data StdQuote5 contract:%s, idx:%d, turnover:%f", md->instrument,index,md->turnover);
+	clog_info("[test] ProcL2Data StdQuote5 "
+				"contract:%s, idx:%d, turnover:%f", 
+				md->instrument,
+				index,
+				md->turnover);
 
-	l1_md =  GetData(md->instrument); // md->instrument, e.g. SR1801
-	if(NULL != l1_md){
-		clog_info("[test] [%s] ProcL2Data L1 contract:%s%s, time:%s, turnover:%f", module_name_, 
-			l1_md->Contract.Commodity.CommodityNo, l1_md->Contract.ContractNo1, l1_md->DateTimeStamp, l1_md->QTotalTurnover);
+	// md->instrument, e.g. SR1801
+	l1_md =  GetData(md->instrument); 
+	if(NULL != l1_md)
+	{
+		l1_md->Print();
 
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
 
-		clog_info("[test] ProcL2Data send [%s] contract:%s, time:%s", module_name_, 
-				target_data_.ContractID, target_data_.TimeStamp);
+		clog_info("[test] ProcL2Data send [%s] "
+				"contract:%s, time:%s", 
+				module_name_, 
+				target_data_.ContractID, 
+				target_data_.TimeStamp);
 
 #ifdef PERSISTENCE_ENABLED 
 		timeval t;
 		gettimeofday(&t, NULL);
-		p_md_save_->OnQuoteData(t.tv_sec * 1000000 + t.tv_usec, &target_data_);
+		p_md_save_->OnQuoteData(
+					t.tv_sec * 1000000 + t.tv_usec, 
+					&target_data_);
 #endif
 	}
 	else
 	{
-		clog_error("[%s] ProcL2Data: %s; L1 is null.", module_name_, md->instrument);
+		clog_error("[%s] ProcL2Data: %s; L1 is null.", 
+					module_name_, 
+					md->instrument);
 	}
 }
 
-void MdHelper::Convert(const StdQuote5 &other, TapAPIQuoteWhole *tap_data,
-	ZCEL2QuotSnapshotField_MY &data)
+void MdHelper::Convert(const StdQuote5 &other, 
+			Lev1MarketData *lev1Data,
+			ZCEL2QuotSnapshotField_MY &data)
 {
-	if(tap_data != NULL){ // contents from level1 
-		data.PreSettle = InvalidToZeroD(tap_data->QPreSettlePrice);	/*前结算价格*/
-		data.PreClose = InvalidToZeroD(tap_data->QPreClosingPrice);	/*前收盘价格*/
-		data.PreOpenInterest = (int)tap_data->QPrePositionQty;		/*previous days's positions */
-		data.OpenPrice = InvalidToZeroD(tap_data->QOpeningPrice);	/*开盘价*/
-		data.HighPrice = InvalidToZeroD(tap_data->QHighPrice);	    /*最高价*/
-		data.LowPrice = InvalidToZeroD(tap_data->QLowPrice);	        /*最低价*/
-		data.ClosePrice = InvalidToZeroD(tap_data->QClosingPrice);	    /*收盘价*/
-		data.SettlePrice = InvalidToZeroD(tap_data->QSettlePrice);	/*结算价*/
-		data.HighLimit = InvalidToZeroD(tap_data->QLimitUpPrice);	/*涨停板*/
-		data.LowLimit = InvalidToZeroD(tap_data->QLimitDownPrice);	/*跌停板*/
-		data.LifeHigh = InvalidToZeroD(tap_data->QHisHighPrice);	/*历史最高成交价格*/
-		data.LifeLow = InvalidToZeroD(tap_data->QHisLowPrice);	/*历史最低成交价格*/
-		data.AveragePrice = InvalidToZeroD(tap_data->QAveragePrice);	/*均价*/
-		data.OpenInterest = (int)tap_data->QPositionQty;	/*持仓量*/
-		strcpy(data.ContractID, tap_data->Contract.Commodity.CommodityNo);		/*合约编码*/
-		strcpy(data.ContractID + 2, tap_data->Contract.ContractNo1);		/*合约编码*/
+	if(lev1Data != NULL)
+	{ // contents from level1 
+		data.PreSettle = 0.0;
+		data.PreClose = 0.0;
+		data.PreOpenInterest = 0.0;
+		/*开盘价*/
+		data.OpenPrice = InvalidToZeroD(lev1Data->OpenPrice);	
+		/*最高价*/
+		data.HighPrice = InvalidToZeroD(lev1Data->HighestPrice);	    
+		/*最低价*/
+		data.LowPrice = InvalidToZeroD(lev1Data->LowestPrice); 
+		/*收盘价*/
+		data.ClosePrice = 0.0;;	    
+		/*结算价*/
+		data.SettlePrice = InvalidToZeroD(lev1Data->SettlementPrice);	
+		/*涨停板*/
+		data.HighLimit = 0.0;	
+		/*跌停板*/
+		data.LowLimit = 0.0;	
+		/*历史最高成交价格*/
+		data.LifeHigh = 0.0;	
+		/*历史最低成交价格*/
+		data.LifeLow = 0.0;	
+		/*均价*/
+		data.AveragePrice = InvalidToZeroD(lev1Data->AvgPrice);	
+		/*持仓量*/
+		data.OpenInterest = (int)lev1Data->OpenInterest;	
+		/*合约编码*/
+		strcpy(data.ContractID, lev1Data->InstrumentID);		
 	}
 	 
 	//时间：如2014-02-03 13:23:45   
 	system_clock::time_point today = system_clock::now();
 	std::time_t tt = system_clock::to_time_t ( today );
-	strftime(data.TimeStamp, sizeof(data.TimeStamp), "%Y-%m-%d %H:%M:%S",localtime(&tt));
-	strcpy(data.TimeStamp+11,other.updateTime);
+	strftime(data.TimeStamp, 
+				sizeof(data.TimeStamp), 
+				"%Y-%m-%d %H:%M:%S",localtime(&tt));
+	strcpy(data.TimeStamp+11,
+				other.updateTime);
 	strcpy(data.TimeStamp+19,".");
-	sprintf(data.TimeStamp+20,"%03d", 0/*other.updateMS*/); // 策略需要该时间字段.因当前行情的updateMS存储的是递增的值（不是时间的毫秒部分），故使用0代替
+	// 策略需要该时间字段.因当前行情的updateMS存储的是递增的值
+	// （不是时间的毫秒部分），故使用0代替
+	sprintf(data.TimeStamp+20,"%03d", 0/*other.updateMS*/); 
 
 	data.TotalBidLot = (int)other.buyv;	/*委买总量*/
 	data.TotalAskLot = (int)other.sellv;	/*委卖总量*/
 
-	// 
-	data.SettlePrice = other.turnover; // SettlePrice暂时存储成交金额(StdQuote5.turnover)（黄志平用）
+	// SettlePrice暂时存储成交金额(StdQuote5.turnover)（黄志平用）
+	data.SettlePrice = other.turnover; 
 	data.TotalVolume = other.volume;
-	data.ContractIDType = 0;			/*合约类型 0->目前应该为0， 扩充：0:期货,1:期权,2:组合*/
-	data.LastPrice = InvalidToZeroD(other.price);		/*最新价*/
-	data.BidPrice[0] = InvalidToZeroD(other.bidPrice1);     /*买入价格 下标从0开始*/
-	data.BidPrice[1] = InvalidToZeroD(other.bidPrice2);     /*买入价格 下标从0开始*/
-	data.BidPrice[2] = InvalidToZeroD(other.bidPrice3);     /*买入价格 下标从0开始*/
-	data.BidPrice[3] = InvalidToZeroD(other.bidPrice4);     /*买入价格 下标从0开始*/	
-	data.BidPrice[4] = InvalidToZeroD(other.bidPrice5);     /*买入价格 下标从0开始*/
+	/*合约类型 0->目前应该为0， 扩充：0:期货,1:期权,2:组合*/
+	data.ContractIDType = 0;			
+	/*最新价*/
+	data.LastPrice = InvalidToZeroD(other.price);		
+	/*买入价格 下标从0开始*/
+	data.BidPrice[0] = InvalidToZeroD(other.bidPrice1);     
+	/*买入价格 下标从0开始*/
+	data.BidPrice[1] = InvalidToZeroD(other.bidPrice2);     
+	/*买入价格 下标从0开始*/
+	data.BidPrice[2] = InvalidToZeroD(other.bidPrice3);     
+	/*买入价格 下标从0开始*/	
+	data.BidPrice[3] = InvalidToZeroD(other.bidPrice4);     
+	/*买入价格 下标从0开始*/
+	data.BidPrice[4] = InvalidToZeroD(other.bidPrice5);     
 
-	data.AskPrice[0] = InvalidToZeroD(other.askPrice1);     /*卖出价 下标从0开始*/
-	data.AskPrice[1] = InvalidToZeroD(other.askPrice2);     /*卖出价 下标从0开始*/
-	data.AskPrice[2] = InvalidToZeroD(other.askPrice3);     /*卖出价 下标从0开始*/
-	data.AskPrice[3] = InvalidToZeroD(other.askPrice4);     /*卖出价 下标从0开始*/
-	data.AskPrice[4] = InvalidToZeroD(other.askPrice5);     /*卖出价 下标从0开始*/
-	data.BidLot[0] = other.bidVolume1;          /*买入数量 下标从0开始*/
-	data.BidLot[1] = other.bidVolume2;          /*买入数量 下标从0开始*/
-	data.BidLot[2] = other.bidVolume3;          /*买入数量 下标从0开始*/
-	data.BidLot[3] = other.bidVolume4;          /*买入数量 下标从0开始*/
-	data.BidLot[4] = other.bidVolume5;          /*买入数量 下标从0开始*/
+	/*卖出价 下标从0开始*/
+	data.AskPrice[0] = InvalidToZeroD(other.askPrice1);     
+	/*卖出价 下标从0开始*/
+	data.AskPrice[1] = InvalidToZeroD(other.askPrice2);     
+	/*卖出价 下标从0开始*/
+	data.AskPrice[2] = InvalidToZeroD(other.askPrice3);     
+	/*卖出价 下标从0开始*/
+	data.AskPrice[3] = InvalidToZeroD(other.askPrice4);     
+	/*卖出价 下标从0开始*/
+	data.AskPrice[4] = InvalidToZeroD(other.askPrice5);     
+	/*买入数量 下标从0开始*/
+	data.BidLot[0] = other.bidVolume1;          
+	/*买入数量 下标从0开始*/
+	data.BidLot[1] = other.bidVolume2;          
+	/*买入数量 下标从0开始*/
+	data.BidLot[2] = other.bidVolume3;          
+	/*买入数量 下标从0开始*/
+	data.BidLot[3] = other.bidVolume4;          
+	/*买入数量 下标从0开始*/
+	data.BidLot[4] = other.bidVolume5;          
 
-	data.AskLot[0] = other.askVolume1;          /*卖出数量 下标从0开始*/
-	data.AskLot[1] = other.askVolume2;          /*卖出数量 下标从0开始*/
-	data.AskLot[2] = other.askVolume3;          /*卖出数量 下标从0开始*/
-	data.AskLot[3] = other.askVolume4;          /*卖出数量 下标从0开始*/
-	data.AskLot[4] = other.askVolume5;          /*卖出数量 下标从0开始*/
+	/*卖出数量 下标从0开始*/
+	data.AskLot[0] = other.askVolume1;          
+	/*卖出数量 下标从0开始*/
+	data.AskLot[1] = other.askVolume2;          
+	/*卖出数量 下标从0开始*/
+	data.AskLot[2] = other.askVolume3;          
+	/*卖出数量 下标从0开始*/
+	data.AskLot[3] = other.askVolume4;          
+	/*卖出数量 下标从0开始*/
+	data.AskLot[4] = other.askVolume5;          
 }
 
-void MdHelper::SetQuoteDataHandler(std::function<void(ZCEL2QuotSnapshotField_MY*)> quote_handler)
+void MdHelper::SetQuoteDataHandler(
+			std::function<void(ZCEL2QuotSnapshotField_MY*)> quote_handler)
 {
-	clog_warning("[%s] SetQuoteDataHandler invoked.", module_name_);
+	clog_warning("[%s] SetQuoteDataHandler invoked.", 
+				module_name_);
 	mymd_handler_= quote_handler;
 }
 
 void MdHelper::ProcL1MdData(int32_t index)
 {
-	TapAPIQuoteWhole *new_l1_md =  l1_md_producer_->GetData(index);
+	TapAPIQuoteWhole *new_l1_md =  
+		l1_md_producer_->GetData(index);
 
 	TapAPIQuoteWhole *old_l1_md = NULL;
-	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
+	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++)
+	{
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(IsEmptyString(tmp.Contract.ContractNo1)){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		if(IsEmptyString(tmp.Contract.ContractNo1))
+		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			old_l1_md = &tmp; 
 			break;
 		}
 
 		if(strcmp(new_l1_md->Contract.Commodity.CommodityNo, tmp.Contract.Commodity.CommodityNo) == 0 &&
-			strcmp(new_l1_md->Contract.ContractNo1, tmp.Contract.ContractNo1) == 0){ // contract: e.g. SR1801
+			strcmp(new_l1_md->Contract.ContractNo1, tmp.Contract.ContractNo1) == 0)
+		{ // contract: e.g. SR1801
 			old_l1_md = &tmp; 
 			break;
 		}
@@ -179,9 +244,11 @@ TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
 {
 	TapAPIQuoteWhole* data = NULL;
 
-	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++){
+	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++)
+	{
 		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(IsEmptyString(tmp.Contract.ContractNo1)){ // 空字符串表示已到了缓存中第一个未使用的缓存项
+		if(IsEmptyString(tmp.Contract.ContractNo1))
+		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}
 

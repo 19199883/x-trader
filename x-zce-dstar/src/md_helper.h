@@ -7,7 +7,7 @@
 #include <string>
 #include <functional>   // std::bind
 #include "l2md_producer.h"
-#include "tap_md_producer.h"
+#include "lev1_producer.h"
 #include "vrt_value_obj.h"
 #include "quote_cmn_save.h"
 #include "quote_cmn_utility.h"
@@ -26,32 +26,34 @@ class MdHelper
 {
 	public:
 
-		MdHelper(L2MDProducer* l2_md_producer, TapMDProducer *l1_md_producer);
+		MdHelper(L2MDProducer* l2_md_producer, 
+				Lev1Producer *lev1Producer);
 		~MdHelper();
 
-		void SetQuoteDataHandler(std::function<void(ZCEL2QuotSnapshotField_MY*)> quote_handler);
+		void SetQuoteDataHandler(
+					std::function<void(ZCEL2QuotSnapshotField_MY*)> quote_handler);
 		void ProcL1MdData(int32_t index);
 		void ProcL2Data(int32_t index);
+
 	private:
 		// 禁止拷贝和赋值
 		MdHelper(const MdHelper & other);
 		MdHelper operator=(const MdHelper & other);
 	
-		void Convert(const StdQuote5 &other,TapAPIQuoteWhole *tap_data,
-			ZCEL2QuotSnapshotField_MY &data);
+		void Convert(const StdQuote5 &lev2Data,
+					Lev1MarketData *lev1Data,
+					ZCEL2QuotSnapshotField_MY &myData);
 		ZCEL2QuotSnapshotField_MY target_data_;
 	
 		std::string ToString(const ZCEL2QuotSnapshotField_MY* p);
 
 	    L2MDProducer* l2_md_producer_;
-		TapMDProducer * l1_md_producer_;
+		Lev1Producer * l1_md_producer_;
 		/*
-		 * contract: 要获取行情的合约, SR1801
 		 * 获取指定合约最新的一档行情。
-		 * contract: e.g. SR1801
 		 */
-		TapAPIQuoteWhole* GetData(const char *contract);
-		TapAPIQuoteWhole md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
+		Lev1MarketData* GetData(const char *contract);
+		Lev1MarketData md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
 	
 	private:
 		const char *module_name_;  

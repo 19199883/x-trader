@@ -286,53 +286,89 @@ struct SCMsgContentItemType
 ///深度市场行情（一档行情结构）
 struct Lev1MarketData
 {
-	uint16_t InstrumentIndex;
-    ///交易日
-    char TradingDay[9];
-    ///最新价
-    double LastPrice;
-    ///昨结算
-    double PreSettlementPrice;
-    ///昨收盘
-    double PreClosePrice;
-    ///昨持仓量
-    double PreOpenInterest;
-    ///今开盘
-    double OpenPrice;
-    ///最高价
-    double HighestPrice;
-    ///最低价
-    double LowestPrice;
-    ///数量
-    int Volume;
-    ///成交金额
-    double Turnover;
-    ///持仓量
-    double OpenInterest;
-    ///今收盘
-    double ClosePrice;
-    ///今结算
-    double SettlementPrice;
-    ///涨停板价
-    double UpperLimitPrice;
-    ///跌停板价
-    double LowerLimitPrice;
-    ///最后修改时间
-    uint16_t UpdateTime;
-    ///最后修改毫秒
-    int UpdateMillisec;
-    ///合约代码
-    char InstrumentID[31];
-    ///申买价一
-    double BidPrice1;
-    ///申买量一
-    int BidVolume1;
-    ///申卖价一
-    double AskPrice1;
-    ///申卖量一
-    int AskVolume1;
-	// 均价
-    double AvgPrice;
+	public:
+		void Print()
+		{
+			clog_info("%s Lev1MarketData "
+					"InstrumentID:%s; "
+					"UpdateTime[9]:%s; "
+					"UpdateMillisec:%d; "
+					"TradingDay:%s; "
+					"LastPrice:%.4f; "
+					"PreSettlementPrice:%.4f; "
+					"PreClosePrice:%.4f; "
+					"PreOpenInterest:%.4f; "
+					"OpenPrice:%.4f; "
+					"HighestPrice:%.4f; "
+					"LowestPrice:%.4f; "
+					"Volume:%d; "
+					"Turnover:%.4f; "
+					"OpenInterest:%.4f; "
+					"ClosePrice:%.4f; "
+					"SettlementPrice:%.4f; "
+					"UpperLimitPrice:%.4f; "
+					"LowerLimitPrice:%.4f; "
+					"BidPrice1:%.4f; "
+					"BidVolume1:%d; "
+					"AskPrice1:%.4f; "
+					"AskVolume1:%d; ",
+					module_name_,
+					source.InstrumentID,
+					source.UpdateTime,
+					source.UpdateMillisec,
+					source.TradingDay,
+					InvalidToZeroD(source.LastPrice),
+					InvalidToZeroD(source.PreSettlementPrice),
+					InvalidToZeroD(source. PreClosePrice),
+					InvalidToZeroD(source.PreOpenInterest),
+					InvalidToZeroD(source.OpenPrice),
+					InvalidToZeroD(source. HighestPrice),
+					InvalidToZeroD(source. LowestPrice),
+					source.Volume,
+					InvalidToZeroD(source.Turnover),
+					InvalidToZeroD(source.OpenInterest),
+					source.ClosePrice,
+					source.SettlementPrice,
+					InvalidToZeroD(source.UpperLimitPrice),
+					InvalidToZeroD(source.LowerLimitPrice),
+					InvalidToZeroD(source.BidPrice1),
+					source.BidVolume1,
+					InvalidToZeroD(source.AskPrice1),
+					source.AskVolume1);
+		}
+
+
+		uint16_t InstrumentIndex;
+		///最新价
+		double LastPrice;
+		///今开盘
+		double OpenPrice;
+		///最高价
+		double HighestPrice;
+		///最低价
+		double LowestPrice;
+		///数量
+		int Volume;
+		///持仓量
+		double OpenInterest;
+		///今结算
+		double SettlementPrice;
+		///最后修改时间
+		uint16_t UpdateTime;
+		///最后修改毫秒
+		int UpdateMillisec;
+		///合约代码
+		char InstrumentID[31];
+		///申买价一
+		double BidPrice1;
+		///申买量一
+		int BidVolume1;
+		///申卖价一
+		double AskPrice1;
+		///申卖量一
+		int AskVolume1;
+		// 均价
+		double AvgPrice;
 };
 
 
@@ -392,61 +428,6 @@ class Lev1Producer
 
 		void on_receive_quote(Lev1MarketData* data, int32_t index);
 
-		/*
-		 * 对source指定的行情数据进行格式化后存储到dest
-		 */
-		static char* Format(Lev1MarketData *source,char *dest)
-		{
-				sprintf (dest,
-				"Lev1MarketData "
-				"InstrumentID:%s; "
-				"UpdateTime[9]:%s; "
-				"UpdateMillisec:%d; "
-				"TradingDay:%s; "
-				"LastPrice:%.4f; "
-				"PreSettlementPrice:%.4f; "
-				"PreClosePrice:%.4f; "
-				"PreOpenInterest:%.4f; "
-				"OpenPrice:%.4f; "
-				"HighestPrice:%.4f; "
-				"LowestPrice:%.4f; "
-				"Volume:%d; "
-				"Turnover:%.4f; "
-				"OpenInterest:%.4f; "
-				"ClosePrice:%.4f; "
-				"SettlementPrice:%.4f; "
-				"UpperLimitPrice:%.4f; "
-				"LowerLimitPrice:%.4f; "
-				"BidPrice1:%.4f; "
-				"BidVolume1:%d; "
-				"AskPrice1:%.4f; "
-				"AskVolume1:%d; ",
-				source.InstrumentID,
-				source.UpdateTime,
-				source.UpdateMillisec,
-				source.TradingDay,
-				InvalidToZeroD(source.LastPrice),
-				InvalidToZeroD(source.PreSettlementPrice),
-				InvalidToZeroD(source. PreClosePrice),
-				InvalidToZeroD(source.PreOpenInterest),
-				InvalidToZeroD(source.OpenPrice),
-				InvalidToZeroD(source. HighestPrice),
-				InvalidToZeroD(source. LowestPrice),
-				source.Volume,
-				InvalidToZeroD(source.Turnover),
-				InvalidToZeroD(source.OpenInterest),
-				source.ClosePrice,
-				source.SettlementPrice,
-				InvalidToZeroD(source.UpperLimitPrice),
-				InvalidToZeroD(source.LowerLimitPrice),
-				InvalidToZeroD(source.BidPrice1),
-				source.BidVolume1,
-				InvalidToZeroD(source.AskPrice1),
-				source.AskVolume1);
-
-			return dest;
-		
-		}
 
 		///////////////// market data bu socket udp multicast  //////
 		////////////// the following is for SHFE ////////////
