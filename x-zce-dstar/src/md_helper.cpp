@@ -211,22 +211,20 @@ void MdHelper::SetQuoteDataHandler(
 
 void MdHelper::ProcL1MdData(int32_t index)
 {
-	TapAPIQuoteWhole *new_l1_md =  
-		l1_md_producer_->GetData(index);
+	Lev1MarketData *new_l1_md = l1_md_producer_->GetData(index);
 
-	TapAPIQuoteWhole *old_l1_md = NULL;
+	Lev1MarketData *old_l1_md = NULL;
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++)
 	{
-		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(IsEmptyString(tmp.Contract.ContractNo1))
+		Lev1MarketData &tmp = md_buffer_[i];
+		if(IsEmptyString(tmp.InstrumentID))
 		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			old_l1_md = &tmp; 
 			break;
 		}
 
-		if(strcmp(new_l1_md->Contract.Commodity.CommodityNo, tmp.Contract.Commodity.CommodityNo) == 0 &&
-			strcmp(new_l1_md->Contract.ContractNo1, tmp.Contract.ContractNo1) == 0)
-		{ // contract: e.g. SR1801
+		if( strcmp(new_l1_md->InstrumentID, tmp.InstrumentID) == 0)
+		{ // TODO: see contract value
 			old_l1_md = &tmp; 
 			break;
 		}
@@ -234,20 +232,19 @@ void MdHelper::ProcL1MdData(int32_t index)
 
 	*old_l1_md = *new_l1_md;
 
-		clog_info("[%s] ProcL1MdData invoked. contract:%s%s", 
+		clog_info("[%s] ProcL1MdData invoked. contract:%s", 
 					module_name_, 
-					new_l1_md->Contract.ContractNo1,
-					new_l1_md->Contract.Commodity.CommodityNo);
+					new_l1_md->InstrumentID);
 }
 
-TapAPIQuoteWhole* MdHelper::GetData(const char *contract)
+Lev1MarketData* MdHelper::GetData(const char *contract)
 {
-	TapAPIQuoteWhole* data = NULL;
+	Lev1MarketData* data = NULL;
 
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++)
 	{
-		TapAPIQuoteWhole &tmp = md_buffer_[i];
-		if(IsEmptyString(tmp.Contract.ContractNo1))
+		Lev1MarketData &tmp = md_buffer_[i];
+		if(IsEmptyString(tmp.InstrumentID))
 		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}
