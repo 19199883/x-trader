@@ -237,6 +237,9 @@ void MdHelper::ProcL1MdData(int32_t index)
 					new_l1_md->InstrumentID);
 }
 
+/*
+ *  contract: e.g. SR1801
+ */
 Lev1MarketData* MdHelper::GetData(const char *contract)
 {
 	Lev1MarketData* data = NULL;
@@ -249,9 +252,7 @@ Lev1MarketData* MdHelper::GetData(const char *contract)
 			break;
 		}
 
-		if(IsEqualSize4(contract, 
-						tmp.Contract.Commodity.CommodityNo, 
-						tmp.Contract.ContractNo1))
+		if(IsSize3EqualSize4(tmp.InstrumentID, contract))
 		{ // contract: e.g. SR1801
 			data = &tmp; 
 			break;

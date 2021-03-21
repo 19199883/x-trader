@@ -55,7 +55,8 @@ int32_t LoadDominantContracts(string file, char buffer[][10])
 		size_t start_pos = 0;
 		size_t end_pos = 0;
 		string contr = "";
-		while ((end_pos=contrs.find(" ",start_pos)) != string::npos){
+		while ((end_pos=contrs.find(" ",start_pos)) != string::npos)
+		{
 			contr = contrs.substr (start_pos, end_pos-start_pos);
 			strcpy(buffer[count], contr.c_str());
 			clog_warning("LoadDominantContracts:dominant contract:%s",contr.c_str());
@@ -64,7 +65,10 @@ int32_t LoadDominantContracts(string file, char buffer[][10])
 			count++;
 		}
 	}
-	else { clog_error("LoadDominantContracts: can't open: %s", file.c_str()); }
+	else 
+	{ 
+		clog_error("LoadDominantContracts: can't open: %s", file.c_str()); 
+	}
 
 	return count;
 }
@@ -89,8 +93,10 @@ bool IsDominantImp(const char* contract, char buffer[][10],
 {
 	bool is_dominant = false;
 
-	for(int i = 0; i < buffer_size; i++){
-		if(IsEqual(buffer[i], contract)){
+	for(int i = 0; i < buffer_size; i++)
+	{
+		if(IsSize3EqualSize4(buffer[i], contract))
+		{
 			is_dominant = true;
 			break;
 		}
@@ -99,34 +105,18 @@ bool IsDominantImp(const char* contract, char buffer[][10],
 	return is_dominant;
 }
 
-bool IsEqualSize3(const char *contract, const char*commodity_no, const char* contract_no)
-{
-	// contract:e.g. SR801
-	if(strncmp(contract, commodity_no, 2) == 0 && strncmp(contract+2, contract_no, 3) == 0){
-		return true;
-	}else{
-		return false;
-	}
-}
 
-bool IsEqualSize4(const char *contract, const char*commodity_no, const char* contract_no)
-{
-	// contract:e.g. SR1801
-	if(strncmp(contract, commodity_no, 2) == 0 && 
-		strncmp(contract + 3, contract_no, 3) == 0){
-		return true;
-	}else{
-		return false;
-	}
-}
-
-bool IsEqual(const char *contract_size3, const char* contract_size4)
+bool IsESize3qualSize4(const char *contract_size3, 
+			const char* contract_size4)
 {
 	// contract:e.g. SR1801
 	if(strncmp(contract_size3, contract_size4, 2) == 0 && 
-		strncmp(contract_size3 + 2, contract_size4 + 3, 3) == 0){
+		strncmp(contract_size3 + 2, contract_size4 + 3, 3) == 0)
+	{
 		return true;
-	}else{
+	}
+	else
+	{
 		return false;
 	}
 }

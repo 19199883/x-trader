@@ -358,6 +358,7 @@ struct Lev1MarketData
 		///最后修改毫秒
 		int UpdateMillisec;
 		///合约代码
+		// TODO: see its value is SR802 or SR1801
 		char InstrumentID[31];
 		///申买价一
 		double BidPrice1;
