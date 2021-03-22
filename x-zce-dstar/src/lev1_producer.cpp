@@ -536,12 +536,14 @@ void Lev1Producer::Proc1stIdxMsgBody(char* msgBodyBuf,
 }
 
 // ok ok
+// 如何从头到尾完整接收单腿合约的索引信息:
+// 方案：
+//		从第一个索引单腿合约开始，直到
+//		下一次收到该合约开始，表示完成索引接收
 void Lev1Producer::ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 {
 	if(this->idxMsgFinshed) return;
 
-	// TODO:从第一个索引单腿合约开始，直到
-	// 下一次收到该合约开始，表示完成索引接收
 	
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
