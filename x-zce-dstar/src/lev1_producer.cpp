@@ -531,8 +531,6 @@ void Lev1Producer::Proc1stIdxMsgBody(char* msgBodyBuf,
 	ProcComIdxMsgBody(msgBodyBuf + sizeof(idxMsg->TradeDate),
 				idxMsg,
 				instrumentIdLen);
-
-	idxMsg->Print();
 }
 
 // ok ok
