@@ -36,7 +36,7 @@ typedef unsigned short      DstarApiFrameSizeType;
 
 // 协议版本号类型
 typedef unsigned char       DstarApiVersionType;
-const DstarApiVersionType   DSTAR_API_PROTOCOL_VERSION      = 0;
+const DstarApiVersionType   DSTAR_API_PROTOCOL_VERSION      = 2;
 
 // 协议类型
 typedef unsigned short      DstarApiProtocolCodeType;
@@ -138,6 +138,9 @@ typedef char                DstarApiContractNoType[16];
 // 合约乘数类型
 typedef int                 DstarApiContractSizeType;
 
+// 合约最小变动价位
+typedef double              DstarApiContractTickSizeType;
+
 // 买卖
 typedef char                DstarApiDirectType;
 const DstarApiDirectType    DSTAR_API_DIRECT_BUY            = 'B';          // 买方向
@@ -210,6 +213,8 @@ typedef unsigned int        DstarApiValidDateType;
 
 // 委托状态
 typedef char                DstarApiOrderStateType;
+
+const DstarApiOrderStateType DSTAR_API_STATUS_RECEIVE       = '0';          // 已接收
 const DstarApiOrderStateType DSTAR_API_STATUS_ACCEPT        = '1';          // 已受理
 const DstarApiOrderStateType DSTAR_API_STATUS_QUEUE         = '2';          // 已排队
 const DstarApiOrderStateType DSTAR_API_STATUS_APPLY         = '3';          // 已申请(行权、弃权、套利等申请成功)

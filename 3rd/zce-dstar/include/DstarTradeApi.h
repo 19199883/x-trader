@@ -35,10 +35,13 @@ public:
     
     ///资金快照响应
     virtual void OnRspFund(const DstarApiFundField *pFund) = 0;
+
+    ///昨持仓快照响应
+    virtual void OnRspPrePosition(const DstarApiPrePositionField *pPrePosition) = 0;
     
-    ///持仓快照响应
+    ///实时持仓快照响应
     virtual void OnRspPosition(const DstarApiPositionField *pPosition) = 0;
-    
+
     ///委托响应
     virtual void OnRspOrder(const DstarApiOrderField *pOrder) = 0;
     

@@ -5,9 +5,8 @@
 #ifndef DSTARTRADEAPISTRUCT_H
 #define DSTARTRADEAPISTRUCT_H
 
-#include "DstarTradeApiError.h"
 #include "DstarTradeApiDataType.h"
-#include "DstarTradeApiStruct.h"
+#include "DstarTradeApiError.h"
 
 
 #pragma pack(push, 1)
@@ -81,6 +80,7 @@ typedef struct DstarApiContractField
     DstarApiContractIndexType              ContractIndex;               // 合约索引
     DstarApiContractSizeType               ContractSize;                // 每手乘数
     DstarApiContractNoType                 ContractNo;                  // 合约编号
+    DstarApiContractTickSizeType           ContractTickSize;            // 最小变动价位
 }DstarApiContractField;
 
 
@@ -102,7 +102,7 @@ typedef struct DstarApiOrderField
     DstarApiAccountNoType                  AccountNo;                   // 账号
     DstarApiOrderLocalNoType               OrderLocalNo;                // 本地号
     DstarApiSystemNoType                   SystemNo;                    // 系统号
-    DstarApiDateTimeType                   InsertTime;                  // 下单时间
+    DstarApiDateTimeType                   UpdateTime;                  // 更新时间
     DstarApiDateTimeType                   ExchInsertTime;              // 交易所下单时间
     DstarApiReferenceType                  Reference;                   // 报单引用(无报单引用时返回-1)
     DstarApiContractNoType                 ContractNo;                  // 合约编号
@@ -149,7 +149,7 @@ typedef struct DstarApiOfferField
     DstarApiOrderLocalNoType               OrderLocalNo;                // 本地号
     DstarApiSystemNoType                   SystemNo;                    // 系统号
     DstarApiSystemNoType                   EnquiryNo;                   // 询价号
-    DstarApiDateTimeType                   InsertTime;                  // 下单时间
+    DstarApiDateTimeType                   UpdateTime;                  // 更新时间
     DstarApiDateTimeType                   ExchInsertTime;              // 交易所下单时间
     DstarApiFundType                       FrozenMargin;                // 冻结保证金
     DstarApiSerialIdType                   SerialId;                    // 流号
@@ -199,20 +199,29 @@ typedef struct DstarApiMatchField
     DstarApiAccountNoType                  AccountNo;                   // 账号
 }DstarApiMatchField;
 
-
-// 持仓数据
-typedef struct DstarApiPositionField
+// 昨持仓数据
+typedef struct DstarApiPrePositionField
 {
     DstarApiAccountNoType                  AccountNo;                   // 账号
     DstarApiContractNoType                 ContractNo;                  // 合约编号
     DstarApiQuantityType                   PreBuyQty;                   // 昨买持仓量
     DstarApiPriceType                      PreBuyAvgPrice;              // 昨买持仓均价
     DstarApiQuantityType                   PreSellQty;                  // 昨卖持仓量
-    DstarApiPriceType                      PreSellAvgPrice;             // 昨买持仓均价
-    DstarApiQuantityType                   BuyQty;                      // 买持仓量
+    DstarApiPriceType                      PreSellAvgPrice;             // 昨卖持仓均价
+
+}DstarApiPrePositionField;
+
+// 实时持仓
+typedef struct DstarApiPositionField
+{
+    DstarApiAccountNoType                  AccountNo;                   // 账号
+    DstarApiContractNoType                 ContractNo;                  // 合约编号
+    DstarApiQuantityType                   PreBuyQty;                   // 昨买持仓量
+    DstarApiQuantityType                   TodayBuyQty;                 // 今买持仓量 (总买持仓量=昨买持仓量+今买持仓量)
     DstarApiPriceType                      BuyAvgPrice;                 // 买持仓均价
-    DstarApiQuantityType                   SellQty;                     // 卖持仓量
-    DstarApiPriceType                      SellAvgPrice;                // 买持仓均价
+    DstarApiQuantityType                   PreSellQty;                  // 昨卖持仓量
+    DstarApiQuantityType                   TodaySellQty;                // 今卖持仓量 (总卖持仓量=昨卖持仓量+今卖持仓量)
+    DstarApiPriceType                      SellAvgPrice;                // 卖持仓均价
     DstarApiSerialIdType                   SerialId;                    // 持仓数据对应流号
 }DstarApiPositionField;
 

@@ -45,6 +45,7 @@ const DstarApiErrorCodeType DSTAR_API_ERR_SEATINDEX         = 20025;    // 非�
 const DstarApiErrorCodeType DSTAR_API_ERR_MAXCNT            = 20026;    // 批量数量超过单笔最大量
 const DstarApiErrorCodeType DSTAR_API_ERR_LICENSENO         = 20027;    // 授权码异常
 const DstarApiErrorCodeType DSTAR_API_ERR_VERSION           = 20028;    // 协议版本不一致
+const DstarApiErrorCodeType DSTAR_API_ERR_DELETED           = 20029;    // 指定委托已撤单
 
 const DstarApiErrorCodeType DSTAR_API_ERR_SEATFREQUENCY     = 30001;    // 席位下单频率超限
 const DstarApiErrorCodeType DSTAR_API_ERR_SENDFAILED        = 30002;    // 发送失败
