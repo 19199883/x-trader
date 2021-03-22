@@ -365,10 +365,6 @@ void* Lev1Producer::on_socket_server_event_thread()
 		}					
 		else
 		{
-			// TODO:
-			clog_info("[%s] rev ...",
-					module_name_);
-
 			PackageHead packageHead;
 			ProcPackageHead(rev_buffer, &packageHead);
 
@@ -704,7 +700,9 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 				break;
 
 			default:
-				// TODO: log
+				clog_error("[%s] itemIndex: %d;", 
+							module_name_, 
+							(int)itemIndex);
 				break;
 		}
 
