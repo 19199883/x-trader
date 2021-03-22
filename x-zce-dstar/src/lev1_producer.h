@@ -117,7 +117,7 @@ struct MessageHead
 		void Print()
 		{
 			clog_warning("[Lev1MarketData] MessageHead:"
-						"MsgLen: %hu;", 
+						"MsgLen: %hu;",
 						this->MsgLen);
 
 		}
@@ -149,8 +149,8 @@ struct PackageHead
 		void Print()
 		{
 			clog_warning("[Lev1MarketData] PackageHead:"
-						"MsgType: %hhu;", 
-						"MsgCnt: %hhu;", 
+						"MsgType: %hhX;" 
+						"MsgCnt: %hhu;" 
 						"PkgLen: %hu;", 
 						this->MsgType,
 						this->MsgCnt,
@@ -183,8 +183,8 @@ struct IndexMsgType
 		{
 			clog_warning("[Lev1MarketData] IndexMsgType:"
 						"TradeDate: %u;" 
-						"Type: %hhu;" 
-						"Index: %hu;", 
+						"Type: %hhX;" 
+						"Index: %hu;" 
 						"InstrumentId: %s;", 
 						this->TradeDate, 
 						this->Type, 
@@ -223,7 +223,7 @@ struct SCMsg1stItemType
 		void Print()
 		{
 			clog_warning("[Lev1MarketData] IndexMsgType:"
-						"Decimal: %hu;", 
+						"Decimal: %hu;" 
 						"Index: %hu;", 
 						this->Decimal, 
 						this->Index);

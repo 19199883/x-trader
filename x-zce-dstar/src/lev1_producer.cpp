@@ -573,14 +573,14 @@ void Lev1Producer::ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 		}
 
 		// 单腿
-		if(0 == idxMsg->Type)
+		if(0 == idxMsg.Type)
 		{	
 			// 判断接收单腿合约的索引消息，是刚开始，还是已经结束
-			if(0 == idxMsg->Index)
+			if(0 == idxMsg.Index)
 			{
-				if(contracts_map_.Empty())
+				if(contracts_map_.empty())
 				{
-					contracts_map_[idxMsg->Index] = idxMsg->InstrumentId;
+					contracts_map_[idxMsg.Index] = idxMsg.InstrumentId;
 				}
 				else
 				{
@@ -592,7 +592,7 @@ void Lev1Producer::ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 						clog_info("[%s] Index: %d; InstrumentId: %s ",
 									module_name_,
 									it->first,
-									it->second);
+									it->second.c_str());
 					}
 					clog_info("[%s] end printing contracts_map_.", module_name_);
 
@@ -601,9 +601,9 @@ void Lev1Producer::ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 			}
 			else
 			{
-				if(!contracts_map_.Empty())
+				if(!contracts_map_.empty())
 				{
-					contracts_map_[idxMsg->Index] = idxMsg->InstrumentId;
+					contracts_map_[idxMsg.Index] = idxMsg.InstrumentId;
 				}
 			}
 		}
