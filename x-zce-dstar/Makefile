@@ -20,7 +20,7 @@ BINPATH:=./bin
 ### 穿透版
 LIBS:=-lpthread  -ldstartradeapi  -ltinyxml -lutils -ldl \
 	  -lbowsprit -lcheck -lclogger -lcork -lvrt -luuid -lboost_filesystem \
-	  -lTapDataCollectAPI -lboost_system
+	  -lboost_system
 
 DEPS:=.depends
 OUT:=x-zce-dstar

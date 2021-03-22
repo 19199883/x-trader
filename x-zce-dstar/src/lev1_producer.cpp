@@ -110,15 +110,15 @@ void Lev1Producer::ParseConfig()
 					module_name_); 
 	}
 
-    TiXmlElement *efhLev2  = 
-		RootElement->FirstChildElement("EfhLev2");
-	strcpy(m_remote_ip, efhLev2->Attribute("remote_ip"));
+    TiXmlElement *lev1  = 
+		RootElement->FirstChildElement("L1Md");
+	strcpy(m_remote_ip, lev1->Attribute("remote_ip"));
 	int remote_port = 0;
-	efhLev2->QueryIntAttribute("remote_port", &remote_port);
+	lev1->QueryIntAttribute("remote_port", &remote_port);
 	this->m_remote_port = remote_port;
-	strcpy(m_local_ip, efhLev2->Attribute("local_ip"));
+	strcpy(m_local_ip, lev1->Attribute("local_ip"));
 	int local_port = 0;
-	 efhLev2->QueryIntAttribute("local_port", &local_port);
+	 lev1->QueryIntAttribute("local_port", &local_port);
 	this->m_local_port = local_port;
 }
 
@@ -128,16 +128,18 @@ Lev1Producer::~Lev1Producer()
 
 int Lev1Producer::InitMDApi()
 {
-	int err = sock_init();
+	bool err = sock_init();
 	if(!err)
 	{
-		clog_warning("[%s] Lev1Producerinit failed.", 
-					module_name_);
+		clog_error("[%s] Lev1Producer init failed, err: %d", 
+					module_name_,
+					(int)err);
 	}
 	else
 	{
-		clog_warning("[%s] Lev1Producer init is successful.", 
-					module_name_);
+		clog_warning("[%s] Lev1Producer init is successful, err: %d", 
+					module_name_,
+					(int)err);
 	}
 
 	return err;
@@ -221,7 +223,7 @@ bool Lev1Producer::sock_init()
 						(const char*)&receive_buf_size, 
 						sizeof(receive_buf_size)) != 0)
 		{
-			clog_warning("[%s] it is failed to set "
+			clog_error("[%s] it is failed to set "
 						"SO_RCVBUF option: %d.", 
 						module_name_, 
 						receive_buf_size);
@@ -242,7 +244,10 @@ bool Lev1Producer::sock_init()
 						(const char*)&flag, 
 						sizeof(flag)) != 0)
 		{
-			throw CONST_ERROR_SOCK;
+			clog_error("[%s] it is failed to set "
+						"SOL_SOCKEToption: %d.", 
+						module_name_);
+			//throw CONST_ERROR_SOCK;
 		}
 
 #ifdef PERSISTENCE_ENABLED 
@@ -292,6 +297,9 @@ bool Lev1Producer::sock_init()
 	}
 	catch(...)
 	{
+		clog_error("[%s] sock_init throw exception.",
+					module_name_);
+
 		close(m_sock);				
 		b_ret = false;
 	}
@@ -357,6 +365,10 @@ void* Lev1Producer::on_socket_server_event_thread()
 		}					
 		else
 		{
+			// TODO:
+			clog_info("[%s] rev ...",
+					module_name_);
+
 			PackageHead packageHead;
 			ProcPackageHead(rev_buffer, &packageHead);
 

@@ -89,6 +89,7 @@ class TunnRptProducer: public IDstarTradeSpi
 
 	   ///持仓快照响应
 	   virtual void OnRspPosition(const DstarApiPositionField *pPosition){};
+	   virtual void OnRspPrePosition(const DstarApiPrePositionField *pPrePosition){}
 
 	   ///资金快照响应
 	   virtual void OnRspFund(const DstarApiFundField *pFund){};

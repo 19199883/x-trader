@@ -224,6 +224,10 @@ void UniConsumer::Start()
 	auto f_md = std::bind(&UniConsumer::ProcL2QuoteSnapshot, this,_1);
 	myquotedata.SetQuoteDataHandler(f_md);
 
+	clog_warning("[%s] Lev1Producer start.", 
+				module_name_);
+	l1_md_producer_->Start();
+
 	int rc = 0;
 	struct vrt_value  *vvalue;
 	while (running_ &&
