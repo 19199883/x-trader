@@ -232,6 +232,10 @@ StdQuote5* L2MDProducer::GetData(int32_t index)
 	return &md_buffer_[index];
 }
 
+/*
+ * contract: SR1802
+ *
+ */ 
 bool L2MDProducer::IsDominant(const char *contract)
 {
 #ifdef PERSISTENCE_ENABLED 

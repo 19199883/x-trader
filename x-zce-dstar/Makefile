@@ -18,7 +18,7 @@ OBJPATH:=./obj
 BINPATH:=./bin
 #
 ### 穿透版
-LIBS:=-lpthread -lTapQuoteAPI -ldstartradeapi  -ltinyxml -lutils -ldl \
+LIBS:=-lpthread  -ldstartradeapi  -ltinyxml -lutils -ldl \
 	  -lbowsprit -lcheck -lclogger -lcork -lvrt -luuid -lboost_filesystem \
 	  -lTapDataCollectAPI -lboost_system
 

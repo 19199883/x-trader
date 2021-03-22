@@ -50,6 +50,7 @@ void MdHelper::ProcL2Data(int32_t index)
 		return;
 	}
 
+	// insrumet: SR1802
 	bool dominant = l2_md_producer_->IsDominant(md->instrument);
 	clog_info("[test] StdQuote5 rev [%s]dominant:%d "
 				"contract:%s, time:%s %d", 

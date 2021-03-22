@@ -12,7 +12,6 @@
 #include <thread>         
 #include <chrono>        
 #include "vrt_value_obj.h"
-#include "quote_datatype_shfe_deep.h"
 #include <tinyxml.h>
 #include <tinystr.h>
 #include <chrono>
@@ -20,6 +19,7 @@
 #include <ratio>
 #include <ctime>
 #include <arpa/inet.h> 
+#include "quote_cmn_utility.h"
 
 using namespace std::chrono;
 
@@ -82,7 +82,7 @@ enum SOCKET_EVENT
 /*
  * 消息类型( ( MsgType) 定义
  */
-enum class MsgType
+enum  MsgType
 {
 	//合约索引信息消息
 	MESSAGE_INSTRUMENT_INDEX	=	0x05,	
@@ -115,9 +115,8 @@ struct MessageHead
 	public:
 		void Print()
 		{
-			clog_warning("[%s] MessageHead:"
+			clog_warning("[Lev1MarketData] MessageHead:"
 						"MsgLen: %hu;", 
-						module_name_, 
 						this->MsgLen);
 
 		}
@@ -148,11 +147,10 @@ struct PackageHead
 	public:
 		void Print()
 		{
-			clog_warning("[%s] PackageHead:"
+			clog_warning("[Lev1MarketData] PackageHead:"
 						"MsgType: %hhu;", 
 						"MsgCnt: %hhu;", 
 						"PkgLen: %hu;", 
-						module_name_, 
 						this->MsgType,
 						this->MsgCnt,
 						this->PkgLen);
@@ -182,12 +180,11 @@ struct IndexMsgType
 	public:
 		void Print()
 		{
-			clog_warning("[%s] IndexMsgType:"
+			clog_warning("[Lev1MarketData] IndexMsgType:"
 						"TradeDate: %u;" 
 						"Type: %hhu;" 
 						"Index: %hu;", 
 						"InstrumentId: %s;", 
-						module_name_, 
 						this->TradeDate, 
 						this->Type, 
 						this->Index,
@@ -224,10 +221,9 @@ struct SCMsg1stItemType
 	public:
 		void Print()
 		{
-			clog_warning("[%s] IndexMsgType:"
+			clog_warning("[Lev1MarketData] IndexMsgType:"
 						"Decimal: %hu;", 
 						"Index: %hu;", 
-						module_name_, 
 						this->Decimal, 
 						this->Index);
 
@@ -241,7 +237,7 @@ struct SCMsg1stItemType
 /*
  * 单腿合约报文中Item Index 具体含义如下
  */
-enum class SCMsgItemIndexType
+enum SCMsgItemIndexType
 {
 	INSTRUMENTINDEX = 0,  //  合约索引
 	OPENPRICE		= 1,  //  开盘价
@@ -289,52 +285,35 @@ struct Lev1MarketData
 	public:
 		void Print()
 		{
-			clog_info("%s Lev1MarketData "
+			clog_info("Lev1MarketData "
+					"InstrumentIndex:%hu; "
 					"InstrumentID:%s; "
 					"UpdateTime[9]:%s; "
-					"UpdateMillisec:%d; "
-					"TradingDay:%s; "
 					"LastPrice:%.4f; "
-					"PreSettlementPrice:%.4f; "
-					"PreClosePrice:%.4f; "
-					"PreOpenInterest:%.4f; "
 					"OpenPrice:%.4f; "
 					"HighestPrice:%.4f; "
 					"LowestPrice:%.4f; "
 					"Volume:%d; "
-					"Turnover:%.4f; "
 					"OpenInterest:%.4f; "
-					"ClosePrice:%.4f; "
 					"SettlementPrice:%.4f; "
-					"UpperLimitPrice:%.4f; "
-					"LowerLimitPrice:%.4f; "
 					"BidPrice1:%.4f; "
 					"BidVolume1:%d; "
 					"AskPrice1:%.4f; "
 					"AskVolume1:%d; ",
-					module_name_,
-					source.InstrumentID,
-					source.UpdateTime,
-					source.UpdateMillisec,
-					source.TradingDay,
-					InvalidToZeroD(source.LastPrice),
-					InvalidToZeroD(source.PreSettlementPrice),
-					InvalidToZeroD(source. PreClosePrice),
-					InvalidToZeroD(source.PreOpenInterest),
-					InvalidToZeroD(source.OpenPrice),
-					InvalidToZeroD(source. HighestPrice),
-					InvalidToZeroD(source. LowestPrice),
-					source.Volume,
-					InvalidToZeroD(source.Turnover),
-					InvalidToZeroD(source.OpenInterest),
-					source.ClosePrice,
-					source.SettlementPrice,
-					InvalidToZeroD(source.UpperLimitPrice),
-					InvalidToZeroD(source.LowerLimitPrice),
-					InvalidToZeroD(source.BidPrice1),
-					source.BidVolume1,
-					InvalidToZeroD(source.AskPrice1),
-					source.AskVolume1);
+					this->InstrumentIndex,
+					this->InstrumentID,
+					this->UpdateTime,
+					InvalidToZeroD(this->LastPrice),
+					InvalidToZeroD(this->OpenPrice),
+					InvalidToZeroD(this-> HighestPrice),
+					InvalidToZeroD(this-> LowestPrice),
+					this->Volume,
+					InvalidToZeroD(this->OpenInterest),
+					this->SettlementPrice,
+					InvalidToZeroD(this->BidPrice1),
+					this->BidVolume1,
+					InvalidToZeroD(this->AskPrice1),
+					this->AskVolume1);
 		}
 
 
@@ -403,29 +382,32 @@ class Lev1Producer
 		void Start();
 		void End();
 
-		void ProcPackageHead(
-					char *packageBuf, 
+		void ProcPackageHead(char *packageBuf, 
 					PackageHead *packageHead);
 
 		/*
 		 *
 		 */
-		void ProcIdxMsgs(
-					PackageHead *packageHead,
+		void ProcIdxMsgs(PackageHead *packageHead,
 					char *packageBodyBuf);
 
 		/*
 		 *
 		 */
-		void ProcSCMsgs(
-					PackageHead *packageHead
-					char *packageBodyBuf, 
-					Lev1MarketData *lev1Data);
+		void ProcSCMsgs(PackageHead *packageHead,
+					char *packageBodyBuf);
 
-		/*
-		 * check whether the given contract is dominant.
-		 */
-		bool IsDominant(const char *contract);
+		void ProcComIdxMsgBody(char* msgBodyBuf, 
+					IndexMsgType *idxMsg,
+					int instrumentIdLen);
+
+		void Proc1stIdxMsgBody(char* msgBodyBuf, 
+					IndexMsgType *idxMsg,
+					int instrumentIdLen);
+
+		void ProcSCMsg(char* msgBuf, 
+					Lev1MarketData *lev1Data,
+					MessageHead *msgHead);
 
 		void on_receive_quote(Lev1MarketData* data, int32_t index);
 
@@ -453,9 +435,6 @@ class Lev1Producer
 
 		bool					m_thrade_quit_flag;		///< 信号检测线程退出标志		
 		MY_SOCKET				m_sock;					///< 套接口
-
-		bool					m_thrade_quit_flag_Ine;		///< 信号检测线程退出标志		
-		MY_SOCKET				m_sock_Ine;					///< 套接口
 
 		///////////////// end market data bu socket udp multicast  //////
 		//

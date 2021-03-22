@@ -11,7 +11,8 @@
 
 using namespace std::placeholders; 
 
-UniConsumer::UniConsumer(struct vrt_queue  *queue, TapMDProducer *l1md_producer, 
+UniConsumer::UniConsumer(struct vrt_queue  *queue, 
+			Lev1Producer *l1md_producer, 
 	L2MDProducer *l2md_producer, TunnRptProducer *tunn_rpt_producer)
 : module_name_("uni_consumer"),running_(true), l1_md_producer_(l1md_producer),
   l2_md_producer_(l2md_producer), tunn_rpt_producer_(tunn_rpt_producer),lock_log_(ATOMIC_FLAG_INIT)

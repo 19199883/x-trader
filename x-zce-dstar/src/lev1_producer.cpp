@@ -173,7 +173,7 @@ int32_t Lev1Producer::Push()
 {
 	static int32_t data_cursor = DATA_BUFFER_SIZE - 1;
 	data_cursor++;
-	if (ata_cursor % DATA_BUFFER_SIZE == 0)
+	if (data_cursor % DATA_BUFFER_SIZE == 0)
 	{
 		data_cursor = 0;
 	}
@@ -186,18 +186,6 @@ Lev1MarketData* Lev1Producer::GetData(int32_t index)
 	return &data_buffer_[index];
 }
 
-bool Lev1Producer::IsDominant(const char *contract)
-{
-#ifdef PERSISTENCE_ENABLED 
-	// 持久化行情时，需要记录所有合约
-	//clog_warning("[%s] return TRUE in IsDominant.",module_name_);
-	return true;
-#else
-	return IsDominantImp((char*)contract, 
-				dominant_contracts_, 
-				dominant_contract_count_);
-#endif
-}
 
 /////////////////////////////////////////////
 // the following is market data from multicast 
@@ -372,15 +360,15 @@ void* Lev1Producer::on_socket_server_event_thread()
 			PackageHead packageHead;
 			ProcPackageHead(rev_buffer, &packageHead);
 
-			char packageBody = rev_buffer + PACKAGE_HEAD_LEN;
+			char *packageBody = rev_buffer + PACKAGE_HEAD_LEN;
 			switch (packageHead.MsgType)
 			{
 				case MsgType::MESSAGE_INSTRUMENT_INDEX:
-					ProcIdxMsgs(packageBody);
+					ProcIdxMsgs(&packageHead, packageBody);
 					break;
 
 				case MsgType::MESSAGE_SINGLE_COMMODITY:
-					ProcSCMsgs(packageBody, line);
+					ProcSCMsgs(&packageHead, packageBody);
 					break;
 
 				case MsgType::MESSAGE_COMBINE_TYPE:
@@ -479,7 +467,7 @@ bool Lev1Producer::stop_server_event_thread()
 /////////////////////////////////
 
 // ok ok
-void ProcPackageHead(char *packageBuf, 
+void Lev1Producer::ProcPackageHead(char *packageBuf, 
 			PackageHead *packageHead)
 {
 	packageHead->MsgType = (uint8_t)packageBuf[0];
@@ -492,7 +480,7 @@ void ProcPackageHead(char *packageBuf,
 }
 
 // ok ok
-void ProcComIdxMsgBody(char* msgBodyBuf, 
+void Lev1Producer::ProcComIdxMsgBody(char* msgBodyBuf, 
 			IndexMsgType *idxMsg,
 			int instrumentIdLen) 
 {
@@ -521,13 +509,13 @@ void ProcComIdxMsgBody(char* msgBodyBuf,
 }
 
 // ok ok
-void Proc1stIdxMsgBody(char* msgBodyBuf, 
+void Lev1Producer::Proc1stIdxMsgBody(char* msgBodyBuf, 
 			IndexMsgType *idxMsg,
 			int instrumentIdLen)
 {
 	// TradeData
 	uint32_t* pTradeDate = (uint32_t*)msgBodyBuf;
-	idxMsg->TradeData = ntohl(*pTradeDate); 
+	idxMsg->TradeDate = ntohl(*pTradeDate); 
 	
 	// other fields
 	ProcComIdxMsgBody(msgBodyBuf + sizeof(idxMsg->TradeDate),
@@ -538,7 +526,7 @@ void Proc1stIdxMsgBody(char* msgBodyBuf,
 }
 
 // ok ok
-void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
+void Lev1Producer::ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 {
 	// TODO:从第一个索引单腿合约开始，直到
 	// 下一次收到该合约开始，表示完成索引接收
@@ -570,42 +558,43 @@ void ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 						msgHead.MsgLen - 5);
 		}
 
-		msgBuf += msgHead.MsgLen
-		msgCnt++:
+		msgBuf += msgHead.MsgLen;
+		msgCnt++;
 		curPackageBodyLen += msgHead.MsgLen;
 	}
 }
 
 
 // ok ok
-void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
+void Lev1Producer::ProcSCMsg(char* msgBuf, 
+			Lev1MarketData *lev1Data,
+			MessageHead *msgHead)
 {
 	// message head		
-	MessageHead msgHead;
 	uint16_t* pMsgHead = (uint16_t*)msgBuf;
-	msgHead.MsgLen = ntohs(*pMsgHead); 
-	msgHead.Print();
+	msgHead->MsgLen = ntohs(*pMsgHead); 
+	msgHead->Print();
 
 	char *msgBodyBuf = msgBuf + MSG_HEAD_LEN; 
 	// first item
 	SCMsg1stItemType firstItem;
 	uint16_t* pDecimal = (uint16_t*)(msgBodyBuf);
 	firstItem.Decimal = ntohs(*pDecimal); 
-	msgBodyBuf += sizeof(firstItem->Decimal);
+	msgBodyBuf += sizeof(firstItem.Decimal);
 	uint16_t* pIndex = (uint16_t*)(msgBodyBuf);
 	firstItem.Index = ntohs(*pIndex); 
 	firstItem.Print();
-	msgBodyBuf += sizeof(firstItem->Index);
+	msgBodyBuf += sizeof(firstItem.Index);
 	
 	// others items
-	int itemCnt = (msgHead.MsgLen-MSG_HEAD_LEN)/MSG_ITEM_LEN;
+	int itemCnt = (msgHead->MsgLen-MSG_HEAD_LEN)/MSG_ITEM_LEN;
 	for(int i=0; i<itemCnt-1; i++) // skip first item
 	{
 		uint32_t itemValueBuf = ((uint32_t*)msgBodyBuf)[0];
 
 		// Sign
 		int sign = itemValueBuf >> 31;
-		signValue = 1;
+		int signValue = 1;
 		if(0 == sign)
 		{
 			signValue = +1;
@@ -712,22 +701,24 @@ void ProcSCMsg(char* msgBuf, Lev1MarketData *lev1Data)
 }
 
 // ok ok
-void ProcSCMsgs(PackageHead *packageHead,
+void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 			char *packageBodyBuf)
 {
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
 	char *msgBuf = packageBodyBuf;
-	while(msgCnt<packageHead->MsgCnt ||
-		curPackageBodyLen<packageHead->PkgLen)
+	while(msgCnt < packageHead->MsgCnt ||
+		curPackageBodyLen < packageHead->PkgLen)
 	{
+		MessageHead msgHead;
+
 		int32_t next_index = Push();
 		Lev1MarketData *lev1Data = data_buffer_ + next_index;
-		ProcSCMsg(msgBuf, lev1Data);
+		ProcSCMsg(msgBuf, lev1Data, &msgHead);
 		on_receive_quote(lev1Data, next_index);
 
-		msgBuf += msgHead.MsgLen
-		msgCnt++:
+		msgBuf += msgHead.MsgLen;
+		msgCnt++;
 		curPackageBodyLen += msgHead.MsgLen;
 	}
 }
