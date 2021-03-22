@@ -31,6 +31,8 @@ using namespace std;
 Lev1Producer::Lev1Producer(struct vrt_queue *queue)
 : module_name_("Lev1Producer")
 {
+	this->idxMsgFinshed = false;
+
 	m_sock = MY_SOCKET_DEFAULT;
 
 	ended_ = false;
@@ -536,6 +538,8 @@ void Lev1Producer::Proc1stIdxMsgBody(char* msgBodyBuf,
 // ok ok
 void Lev1Producer::ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 {
+	if(this->idxMsgFinshed) return;
+
 	// TODO:从第一个索引单腿合约开始，直到
 	// 下一次收到该合约开始，表示完成索引接收
 	
@@ -564,6 +568,42 @@ void Lev1Producer::ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 			ProcComIdxMsgBody(msgBuf+MSG_HEAD_LEN, 
 						&idxMsg,
 						msgHead.MsgLen - 5);
+		}
+
+		// 单腿
+		if(0 == idxMsg->Type)
+		{	
+			// 判断接收单腿合约的索引消息，是刚开始，还是已经结束
+			if(0 == idxMsg->Index)
+			{
+				if(contracts_map_.Empty())
+				{
+					contracts_map_[idxMsg->Index] = idxMsg->InstrumentId;
+				}
+				else
+				{
+					idxMsgFinshed = true;
+
+					clog_info("[%s] begin to print contracts_map_:", module_name_);
+					for ( auto it = contracts_map_.begin(); it != contracts_map_.end(); ++it )
+					{
+						clog_info("[%s] Index: %d; InstrumentId: %s ",
+									module_name_,
+									it->first,
+									it->second);
+					}
+					clog_info("[%s] end printing contracts_map_.", module_name_);
+
+					break;
+				}
+			}
+			else
+			{
+				if(!contracts_map_.Empty())
+				{
+					contracts_map_[idxMsg->Index] = idxMsg->InstrumentId;
+				}
+			}
 		}
 
 		msgBuf += msgHead.MsgLen;
@@ -714,6 +754,8 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 			char *packageBodyBuf)
 {
+	if(!this->idxMsgFinshed) return;
+
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
 	char *msgBuf = packageBodyBuf;

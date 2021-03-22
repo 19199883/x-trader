@@ -226,7 +226,7 @@ void TunnRptProducer::OnRspUdpAuth(const DstarApiRspUdpAuthField *p)
 void TunnRptProducer::OnRspContract(const DstarApiContractField *pContract)
 {
 	// TODO: 观看合约索引的内容
-	clog_warning("[%s] ",
+	clog_warning("[%s] %s",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(pContract).c_str());
 	fflush (Log::fp);
@@ -251,7 +251,7 @@ void TunnRptProducer::OnRspSeat(const DstarApiSeatField* pSeat)
 {
 	// TODO: 观看席位
 	//
-	clog_warning("[%s] ",
+	clog_warning("[%s] %s",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(pSeat).c_str());
 	fflush (Log::fp);

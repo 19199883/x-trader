@@ -19,6 +19,7 @@
 #include <ratio>
 #include <ctime>
 #include <arpa/inet.h> 
+#include <unordered_map>
 #include "quote_cmn_utility.h"
 
 using namespace std::chrono;
@@ -473,5 +474,9 @@ class Lev1Producer
 		int		m_remote_port;					///< 组播行情远端端口
 		char	m_local_ip[MAX_IP_LEN];			///< 组播本机地址
 		int		m_local_port;					///< 组播本机端口
+
+		unordered_map<unsigned int,std::string> contracts_map_;
+		// check if index messages finish receiving.
+		bool idxMsgFinshed;
 };
 
