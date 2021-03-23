@@ -740,7 +740,7 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 				break;
 
 			default:
-				clog_error("[%s] itemIndex: %d;", 
+				clog_error("[%s] ProcSCMsg undifined itemIndex: %d;", 
 							module_name_, 
 							(int)itemIndex);
 				break;
