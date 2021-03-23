@@ -657,6 +657,18 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 		// value
 		// TODO: need to see define.
 		uint32_t value = itemValueBuf & 0x3FFFFFF;
+
+		clog_info("[%s] ProcSCMsg,"
+					"item cnt: %d"
+					"sign: %d; "
+					"itemIndex: %u"
+					"value: %u" ,  
+					module_name_, 
+					i,
+					sign,
+					itemIndex,
+					value);
+
 		switch (itemIndex)
 		{
 			case SCMsgItemIndexType::INSTRUMENTINDEX:
