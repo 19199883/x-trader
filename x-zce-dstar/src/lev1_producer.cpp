@@ -628,6 +628,8 @@ int Lev1Producer::ProcSCMsg(char* msgBuf, MessageHead *msgHead)
 	msgBodyBuf += sizeof(firstItem.Index);
 	
 	Lev1MarketData *lev1Data = &(data_buffer_[firstItem.Index]);
+	lev1Data->InstrumentIndex = firstItem.Index;
+	strcpy(lev1Data->InstrumentID, contracts_map_[firstItem.Index].c_str());
 
 	// others items
 	int itemCnt = (msgHead->MsgLen-MSG_HEAD_LEN)/MSG_ITEM_LEN;
@@ -673,10 +675,6 @@ int Lev1Producer::ProcSCMsg(char* msgBuf, MessageHead *msgHead)
 			case SCMsgItemIndexType::INSTRUMENTINDEX:
 				// TODO: 按B25-B0取值看起来不对，需继续验证。
 				// 暂时用firstItem.Index
-				lev1Data->InstrumentIndex = firstItem.Index;
-				// TODO:
-				strcpy(lev1Data->InstrumentID, 
-					contracts_map_[firstItem.Index].c_str());
 				break;
 
 			case SCMsgItemIndexType::OPENPRICE:
@@ -804,7 +802,7 @@ void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
 	char *msgBuf = packageBodyBuf;
-	while(msgCnt < packageHead->MsgCnt ||
+	while(msgCnt < packageHead->MsgCnt &&
 		curPackageBodyLen < packageHead->PkgLen)
 	{
 		MessageHead msgHead;
