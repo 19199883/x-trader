@@ -638,7 +638,7 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 	int itemCnt = (msgHead->MsgLen-MSG_HEAD_LEN)/MSG_ITEM_LEN;
 	for(int i=0; i<itemCnt-1; i++) // skip first item
 	{
-		uint32_t itemValueBuf = ((uint32_t*)msgBodyBuf)[0];
+		uint32_t itemValueBuf = ntohl(((uint32_t*)msgBodyBuf)[0]);
 
 		// Sign
 		int sign = itemValueBuf >> 31;
