@@ -392,11 +392,15 @@ class Lev1Producer
 					IndexMsgType *idxMsg,
 					int instrumentIdLen);
 
-		void ProcSCMsg(char* msgBuf, 
-					Lev1MarketData *lev1Data,
-					MessageHead *msgHead);
+		/*
+		 *  回值： 合约索引，也是在数据缓存的下标
+		 */
+		int ProcSCMsg(char* msgBuf, MessageHead *msgHead);
 
 		void on_receive_quote(Lev1MarketData* data, int32_t index);
+
+		bool IsValid(Lev1MarketData* data);
+		void Init(Lev1MarketData* data);
 
 
 		///////////////// market data bu socket udp multicast  //////
@@ -439,7 +443,6 @@ class Lev1Producer
 		/*
 		 *disruptor相关
 		 */
-		int32_t Push();
 		struct vrt_producer  *producer_;
 		Lev1MarketData data_buffer_[DATA_BUFFER_SIZE];
 		bool ended_;

@@ -31,6 +31,11 @@ using namespace std;
 Lev1Producer::Lev1Producer(struct vrt_queue *queue)
 : module_name_("Lev1Producer")
 {
+	for(int i=0; i< DATA_BUFFER_SIZE; i++)
+	{
+		Init(&data_buffer_[i]);
+	}
+
 	this->idxMsgFinshed = false;
 
 	m_sock = MY_SOCKET_DEFAULT;
@@ -171,18 +176,6 @@ void Lev1Producer::End()
 		clog_warning("[%s] End exit", module_name_);
 	}
 	fflush (Log::fp);
-}
-
-int32_t Lev1Producer::Push()
-{
-	static int32_t data_cursor = DATA_BUFFER_SIZE - 1;
-	data_cursor++;
-	if (data_cursor % DATA_BUFFER_SIZE == 0)
-	{
-		data_cursor = 0;
-	}
-
-	return data_cursor;
 }
 
 Lev1MarketData* Lev1Producer::GetData(int32_t index)
@@ -614,9 +607,7 @@ void Lev1Producer::ProcIdxMsgs(PackageHead *packageHead, char *packageBodyBuf)
 
 
 // ok ok
-void Lev1Producer::ProcSCMsg(char* msgBuf, 
-			Lev1MarketData *lev1Data,
-			MessageHead *msgHead)
+int Lev1Producer::ProcSCMsg(char* msgBuf, MessageHead *msgHead)
 {
 	clog_info("[%s] ProcSCMsg begin ... ", module_name_);
 
@@ -636,6 +627,8 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 	firstItem.Print();
 	msgBodyBuf += sizeof(firstItem.Index);
 	
+	Lev1MarketData *lev1Data = &(data_buffer_[firstItem.Index]);
+
 	// others items
 	int itemCnt = (msgHead->MsgLen-MSG_HEAD_LEN)/MSG_ITEM_LEN;
 	clog_info("[%s] ProcSCMsg itemCnt:%d ", 
@@ -771,7 +764,34 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 	}
 
 	clog_info("[%s] ProcSCMsg end ... ", module_name_);
+
+	return firstItem.Index;
 }
+
+bool Lev1Producer::IsValid(Lev1MarketData* data)
+{
+	if(data->OpenPrice > 0 &&
+	   data->HighestPrice > 0 &&
+	   data->LowestPrice > 0 &&
+	   data->AvgPrice > 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void Lev1Producer::Init(Lev1MarketData* data)
+{
+	data->OpenPrice = -1;
+	data->HighestPrice = -1;
+	data->LowestPrice = -1;
+	data->SettlementPrice = 0.0;
+	data->AvgPrice = -1;
+}
+
 
 // ok ok
 void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
@@ -789,15 +809,16 @@ void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 	{
 		MessageHead msgHead;
 
-		int32_t next_index = Push();
-		Lev1MarketData *lev1Data = data_buffer_ + next_index;
-
-		ProcSCMsg(msgBuf, lev1Data, &msgHead);
+		int lev1DataIdx = ProcSCMsg(msgBuf, &msgHead);
+		Lev1MarketData *lev1Data = &(data_buffer_[lev1DataIdx]);
 		lev1Data->Print();
 		// TODO: 看是否要缓存一档行情，等字段值都有效后才开始发送
 		// 浮点型 0 的判断
 
-		on_receive_quote(lev1Data, next_index);
+		if(IsValid(lev1Data))
+		{								
+			on_receive_quote(lev1Data, lev1DataIdx);
+		}
 
 		msgBuf += msgHead.MsgLen;
 		msgCnt++;
