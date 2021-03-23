@@ -794,6 +794,8 @@ void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 
 		ProcSCMsg(msgBuf, lev1Data, &msgHead);
 		lev1Data->Print();
+		// TODO: 看是否要缓存一档行情，等字段值都有效后才开始发送
+		// 浮点型 0 的判断
 
 		on_receive_quote(lev1Data, next_index);
 
