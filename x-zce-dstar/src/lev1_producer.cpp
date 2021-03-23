@@ -702,35 +702,35 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 				break;
 
 			case SCMsgItemIndexType::LASTPRICE:
-				lev1Data->LastPrice = 
-					(double)value/(double)firstItem.Decimal*signValue ;
+				//lev1Data->LastPrice = 
+				//	(double)value/(double)firstItem.Decimal*signValue ;
 				break;
 
 			case SCMsgItemIndexType::BIDPRICE:
-				lev1Data->BidPrice1 = 
-					(double)value/(double)firstItem.Decimal*signValue ;
+				//lev1Data->BidPrice1 = 
+				//	(double)value/(double)firstItem.Decimal*signValue ;
 				break;
 
 			case SCMsgItemIndexType::ASKPRICE:
-				lev1Data->AskPrice1 = 
-					(double)value/(double)firstItem.Decimal*signValue ;
+				//lev1Data->AskPrice1 = 
+				//	(double)value/(double)firstItem.Decimal*signValue ;
 				break;
 
 			case SCMsgItemIndexType::BIDLOT:
-				lev1Data->BidVolume1 = value * signValue;
+				//lev1Data->BidVolume1 = value * signValue;
 				break;
 
 			case SCMsgItemIndexType::ASKLOT:
-				lev1Data->AskVolume1 = value * signValue;
+				//lev1Data->AskVolume1 = value * signValue;
 				break;
 
 			case SCMsgItemIndexType::VOLUME:
-				lev1Data->Volume = value * signValue;
+				//lev1Data->Volume = value * signValue;
 				break;
 
 			case SCMsgItemIndexType::OPENINTEREST:
-				lev1Data->OpenInterest = 
-					(double)value/(double)firstItem.Decimal*signValue ;
+				//lev1Data->OpenInterest = 
+				//	(double)value/(double)firstItem.Decimal*signValue ;
 				break;
 
 			case SCMsgItemIndexType::DERIVEBIDPRICE:
@@ -752,7 +752,7 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 
 			case SCMsgItemIndexType::UPDATETIME:
 				// TODO: to see value detail: 135224
-				lev1Data->UpdateTime = value * signValue;
+				//lev1Data->UpdateTime = value * signValue;
 				break;
 
 			case SCMsgItemIndexType::CLEAR:

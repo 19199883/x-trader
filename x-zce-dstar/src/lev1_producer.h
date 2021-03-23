@@ -289,65 +289,51 @@ struct Lev1MarketData
 			clog_info("[Lev1Producer] Lev1MarketData "
 					"InstrumentIndex:%hu; "
 					"InstrumentID:%s; "
-					"UpdateTime:%hu; "
-					"LastPrice:%.4f; "
 					"OpenPrice:%.4f; "
 					"HighestPrice:%.4f; "
 					"LowestPrice:%.4f; "
-					"Volume:%d; "
-					"OpenInterest:%.4f; "
 					"SettlementPrice:%.4f; "
-					"BidPrice1:%.4f; "
-					"BidVolume1:%d; "
-					"AskPrice1:%.4f; "
-					"AskVolume1:%d; ",
+					"AvgPrice:%.4f; ",
 					this->InstrumentIndex,
 					this->InstrumentID,
-					this->UpdateTime,
-					InvalidToZeroD(this->LastPrice),
 					InvalidToZeroD(this->OpenPrice),
 					InvalidToZeroD(this-> HighestPrice),
 					InvalidToZeroD(this-> LowestPrice),
-					this->Volume,
-					InvalidToZeroD(this->OpenInterest),
-					this->SettlementPrice,
-					InvalidToZeroD(this->BidPrice1),
-					this->BidVolume1,
-					InvalidToZeroD(this->AskPrice1),
-					this->AskVolume1);
+					InvalidToZeroD(this->SettlementPrice),
+					InvalidToZeroD(this->AvgPrice));
 		}
 
 
 		uint16_t InstrumentIndex;
-		///最新价
-		double LastPrice;
+		///最新价, unused, use StdQuote5.price
+		///合约代码
+		// SR802 
+		char InstrumentID[31];
+		// double LastPrice;
 		///今开盘
 		double OpenPrice;
 		///最高价
 		double HighestPrice;
 		///最低价
 		double LowestPrice;
-		///数量
-		int Volume;
-		///持仓量
-		double OpenInterest;
+		///数量, unused, use StdQuote5.volume
+		// int Volume;
+		///持仓量, unused, use StdQuote5.openinterest
+		// double OpenInterest;
 		///今结算
 		double SettlementPrice;
-		///最后修改时间
-		uint16_t UpdateTime;
-		///最后修改毫秒
-		int UpdateMillisec;
-		///合约代码
-		// TODO: see its value is SR802 or SR1801
-		char InstrumentID[31];
+		///最后修改时间, unused, use StdQuote5.updateTime
+		// uint16_t UpdateTime; 
+		///最后修改毫秒,  unused, use StdQuote5.updateMS
+		// int UpdateMillisec;
 		///申买价一
-		double BidPrice1;
+		// double BidPrice1;
 		///申买量一
-		int BidVolume1;
+		// int BidVolume1;
 		///申卖价一
-		double AskPrice1;
+		// double AskPrice1;
 		///申卖量一
-		int AskVolume1;
+		// int AskVolume1;
 		// 均价
 		double AvgPrice;
 };

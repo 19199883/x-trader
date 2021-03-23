@@ -122,9 +122,9 @@ void MdHelper::Convert(const StdQuote5 &other,
 		/*结算价*/
 		data.SettlePrice = InvalidToZeroD(lev1Data->SettlementPrice);	
 		/*涨停板*/
-		data.HighLimit = 0.0;	
+		data.HighLimit = other.highlimit;	
 		/*跌停板*/
-		data.LowLimit = 0.0;	
+		data.LowLimit = other.lowlimit;	
 		/*历史最高成交价格*/
 		data.LifeHigh = 0.0;	
 		/*历史最低成交价格*/
@@ -132,7 +132,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 		/*均价*/
 		data.AveragePrice = InvalidToZeroD(lev1Data->AvgPrice);	
 		/*持仓量*/
-		data.OpenInterest = (int)lev1Data->OpenInterest;	
+		data.OpenInterest = other.openinterest;	
 		/*合约编码*/
 		strcpy(data.ContractID, lev1Data->InstrumentID);		
 	}
