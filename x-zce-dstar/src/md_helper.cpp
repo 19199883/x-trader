@@ -104,6 +104,8 @@ void MdHelper::Convert(const StdQuote5 &other,
 			Lev1MarketData *lev1Data,
 			ZCEL2QuotSnapshotField_MY &data)
 {
+	// TODO: 重新整合行情，尽量从五档拿数据
+	
 	if(lev1Data != NULL)
 	{ // contents from level1 
 		data.PreSettle = 0.0;

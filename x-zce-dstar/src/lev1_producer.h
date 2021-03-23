@@ -222,7 +222,7 @@ struct SCMsg1stItemType
 	public:
 		void Print()
 		{
-			clog_warning("[Lev1MarketData] IndexMsgType:"
+			clog_warning("[Lev1MarketData] SCMsg1stItemType:"
 						"Decimal: %hu;" 
 						"Index: %hu;", 
 						this->Decimal, 

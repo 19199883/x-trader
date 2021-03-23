@@ -776,5 +776,12 @@ void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 		msgBuf += msgHead.MsgLen;
 		msgCnt++;
 		curPackageBodyLen += msgHead.MsgLen;
+
+			clog_info("[%s] ProcSCMsgs while: msgCnt++: %d; "
+						"curPackageBodyLen:%d",  
+						module_name_, 
+						msgCnt,
+					curPackageBodyLen);
+
 	}
 }
