@@ -618,6 +618,8 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 			Lev1MarketData *lev1Data,
 			MessageHead *msgHead)
 {
+	clog_info("[%s] ProcSCMsg begin ... ", module_name_);
+
 	// message head		
 	uint16_t* pMsgHead = (uint16_t*)msgBuf;
 	msgHead->MsgLen = ntohs(*pMsgHead); 
@@ -636,6 +638,10 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 	
 	// others items
 	int itemCnt = (msgHead->MsgLen-MSG_HEAD_LEN)/MSG_ITEM_LEN;
+	clog_info("[%s] ProcSCMsg itemCnt:%d ", 
+				module_name_,
+				itemCnt);
+
 	for(int i=0; i<itemCnt-1; i++) // skip first item
 	{
 		uint32_t itemValueBuf = ntohl(((uint32_t*)msgBodyBuf)[0]);
@@ -658,11 +664,11 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 		// TODO: need to see define.
 		uint32_t value = itemValueBuf & 0x3FFFFFF;
 
-		clog_info("[%s] ProcSCMsg,"
-					"item cnt: %d"
+		clog_info("[%s] ProcSCMsg, "
+					"item cnt:%d; "
 					"sign: %d; "
-					"itemIndex: %u"
-					"value: %u" ,  
+					"itemIndex:%u; "
+					"value:%u; " ,  
 					module_name_, 
 					i,
 					sign,
@@ -763,6 +769,8 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 
 		msgBodyBuf += MSG_ITEM_LEN;
 	}
+
+	clog_info("[%s] ProcSCMsg end ... ", module_name_);
 }
 
 // ok ok
@@ -770,6 +778,8 @@ void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 			char *packageBodyBuf)
 {
 	if(!this->idxMsgFinshed) return;
+
+	clog_info("[%s] ProcSCMsgs begin ... ", module_name_);
 
 	int msgCnt = 0;
 	int curPackageBodyLen = 0;
@@ -781,19 +791,26 @@ void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 
 		int32_t next_index = Push();
 		Lev1MarketData *lev1Data = data_buffer_ + next_index;
+
 		ProcSCMsg(msgBuf, lev1Data, &msgHead);
 		lev1Data->Print();
+
 		on_receive_quote(lev1Data, next_index);
 
 		msgBuf += msgHead.MsgLen;
 		msgCnt++;
 		curPackageBodyLen += msgHead.MsgLen;
 
-			clog_info("[%s] ProcSCMsgs while: msgCnt++: %d; "
-						"curPackageBodyLen:%d",  
-						module_name_, 
-						msgCnt,
+		clog_info("[%s] ProcSCMsgs while:" 
+					"msgBuf++:%d; "
+					"msgCnt++:%d; "
+					"curPackageBodyLen:%d",  
+					module_name_, 
+					msgBuf,
+					msgCnt,
 					curPackageBodyLen);
 
 	}
+
+	clog_info("[%s] ProcSCMsgs end. ", module_name_);
 }
