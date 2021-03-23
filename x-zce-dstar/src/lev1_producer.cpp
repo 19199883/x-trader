@@ -660,9 +660,12 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 		switch (itemIndex)
 		{
 			case SCMsgItemIndexType::INSTRUMENTINDEX:
-				lev1Data->InstrumentIndex = value;
+				// TODO: 按B25-B0取值看起来不对，需继续验证。
+				// 暂时用firstItem.Index
+				lev1Data->InstrumentIndex = firstItem.Index;
 				// TODO:
-				// srcpy(lev1Data->InstrumentId,) ;
+				strcpy(lev1Data->InstrumentID, 
+					contracts_map_[firstItem.Index].c_str());
 				break;
 
 			case SCMsgItemIndexType::OPENPRICE:
@@ -730,7 +733,7 @@ void Lev1Producer::ProcSCMsg(char* msgBuf,
 				break;
 
 			case SCMsgItemIndexType::UPDATETIME:
-				// TODO: to see value detail
+				// TODO: to see value detail: 135224
 				lev1Data->UpdateTime = value * signValue;
 				break;
 
@@ -767,6 +770,7 @@ void Lev1Producer::ProcSCMsgs(PackageHead *packageHead,
 		int32_t next_index = Push();
 		Lev1MarketData *lev1Data = data_buffer_ + next_index;
 		ProcSCMsg(msgBuf, lev1Data, &msgHead);
+		lev1Data->Print();
 		on_receive_quote(lev1Data, next_index);
 
 		msgBuf += msgHead.MsgLen;

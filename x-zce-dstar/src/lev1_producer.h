@@ -289,7 +289,7 @@ struct Lev1MarketData
 			clog_info("Lev1MarketData "
 					"InstrumentIndex:%hu; "
 					"InstrumentID:%s; "
-					"UpdateTime[9]:%s; "
+					"UpdateTime:%hu; "
 					"LastPrice:%.4f; "
 					"OpenPrice:%.4f; "
 					"HighestPrice:%.4f; "
