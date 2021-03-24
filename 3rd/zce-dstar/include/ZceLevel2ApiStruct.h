@@ -97,7 +97,7 @@ const ZCEINT4 ZCEErrCode_ReachMaxLoginNum	= 11;	//登录失败，超出最大允
 #pragma pack(push,8)
 struct StdQuote5{
 
-    char instrument[32];
+    char instrument[32]; // SR1801
 
     //char tradingDay[9];
 
