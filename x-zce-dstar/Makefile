@@ -7,9 +7,11 @@ DIST_DIR:=$(TOP)/x-zce-dstar/dist
 
 ### 穿透版
 INCPATH:=-I$(TOP)/3rd/zce-dstar/include -I$(TOP)/3rd/tinyxml/include \
-		 -I$(TOP)/3rd/utils/include  
+		 -I$(TOP)/3rd/utils/include  -I$(TOP)/3rd/ctp/include
+
 LIBPATH:=-L$(TOP)/3rd/boost/lib -L$(TOP)/3rd/zce-dstar/lib \
-		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib
+		 -L$(TOP)/3rd/tinyxml/lib -L$(TOP)/3rd/utils/lib \
+		 -L$(TOP)/3rd/ctp/lib
 
 CPPFLAGS:=-std=c++11 $(INCPATH)
 CFLAGS:=
@@ -20,7 +22,7 @@ BINPATH:=./bin
 ### 穿透版
 LIBS:=-lpthread  -ldstartradeapi  -ltinyxml -lutils -ldl \
 	  -lbowsprit -lcheck -lclogger -lcork -lvrt -luuid -lboost_filesystem \
-	  -lboost_system
+	  -lboost_system -lthostmduserapi_se
 
 DEPS:=.depends
 OUT:=x-zce-dstar
