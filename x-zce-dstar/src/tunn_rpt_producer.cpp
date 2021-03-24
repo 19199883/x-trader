@@ -14,6 +14,7 @@
 #include "DstarTradeApiStruct.h"
 
 using namespace std::chrono;
+using namespace std;
 
 IPAndPortNum TunnRptProducer::ParseIPAndPortNum(const std::string &addr_cfg)
 {   
@@ -42,6 +43,8 @@ TunnRptProducer::TunnRptProducer(struct vrt_queue  *queue)
 : module_name_("TunnRptProducer"),
      m_udpFd(-1)
 {
+	this->InitAllContracts();
+
 	ended_ = false;
 	memset(rpt_buffer_,0,sizeof(rpt_buffer_));
 	
@@ -239,11 +242,32 @@ void TunnRptProducer::OnRspContract(const DstarApiContractField *pContract)
 	}
 	else
 	{
+		this->WriteAllContracts(pContract->ContractNo);
+
 		clog_info("[%s] add contract: %s", 
 					module_name_,
 					pContract->ContractNo);
+
 		contracts_map_[pContract->ContractNo] = pContract->ContractIndex;
 	}
+}
+
+void TunnRptProducer::InitAllContracts()
+{
+	ofstream ofs;
+	ofs.open ("all-contracts.txt", 
+			ofstream::out | ofstream::trunc);
+	ofs.close();
+}
+
+void TunnRptProducer::WriteAllContracts(string contract)
+{
+	ofstream ofs;
+	ofs.open ("all-contracts.txt", 
+			ofstream::out | ofstream::app);
+	ofs << contract;
+	ofs << " ";
+	ofs.close();
 }
 
 // ok
