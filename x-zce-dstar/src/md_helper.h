@@ -13,6 +13,7 @@
 #include "quote_cmn_utility.h"
 #include "quote_datatype_czce_level2.h"
 #include "quote_cmn_save.h"
+#include "ThostFtdcMdApi.h"
 
 #ifdef PERSISTENCE_ENABLED 
 	#define L1_DOMINANT_MD_BUFFER_SIZE 5120
@@ -41,7 +42,7 @@ class MdHelper
 		MdHelper operator=(const MdHelper & other);
 	
 		void Convert(const StdQuote5 &lev2Data,
-					Lev1MarketData *lev1Data,
+					CThostFtdcDepthMarketDataField *lev1Data,
 					ZCEL2QuotSnapshotField_MY &myData);
 		ZCEL2QuotSnapshotField_MY target_data_;
 	
@@ -52,8 +53,8 @@ class MdHelper
 		/*
 		 * 获取指定合约最新的一档行情。
 		 */
-		Lev1MarketData* GetData(const char *contract);
-		Lev1MarketData md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
+		CThostFtdcDepthMarketDataField* GetData(const char *contract);
+		CThostFtdcDepthMarketDataField md_buffer_[L1_DOMINANT_MD_BUFFER_SIZE] ;
 	
 	private:
 		const char *module_name_;  

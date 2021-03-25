@@ -84,10 +84,19 @@ int32_t LoadDominantContracts(string file, char buffer[][10]);
 
 /*
 * check whether the given contract is dominant.
+* contract:SR802, 要判断是否是主力合约的合约
+* buffer: dominant contract list, contract: SR802
+*/
+bool IsDominantSize3Imp(const char* contract, 
+			char buffer[][10], 
+		int32_t buffer_size);
+
+/*
+* check whether the given contract is dominant.
 * contract:SR1802, 要判断是否是主力合约的合约
 * buffer: dominant contract list, contract: SR802
 */
-bool IsDominantImp(const char* contract, 
+bool IsDominantSize4Imp(const char* contract, 
 			char buffer[][10], 
 		int32_t buffer_size);
 

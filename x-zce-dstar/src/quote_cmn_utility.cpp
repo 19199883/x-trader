@@ -74,11 +74,34 @@ int32_t LoadDominantContracts(string file, char buffer[][10])
 }
 
 /*
+ *contract: SR801
+ *buffer[0].contract:SR801
+ *
+ */
+bool IsDominantSize3Imp(const char* contract, char buffer[][10], 
+	int32_t buffer_size)
+{
+	bool is_dominant = false;
+
+	for(int i = 0; i < buffer_size; i++)
+	{
+		if(strcmp(buffer[i], contract) == 0)
+		{
+			is_dominant = true;
+			break;
+		}
+	}
+
+	return is_dominant;
+}
+
+
+/*
  *contract: SR1801
  *buffer[0].contract:SR801
  *
  */
-bool IsDominantImp(const char* contract, char buffer[][10], 
+bool IsDominantSize4Imp(const char* contract, char buffer[][10], 
 	int32_t buffer_size)
 {
 	bool is_dominant = false;

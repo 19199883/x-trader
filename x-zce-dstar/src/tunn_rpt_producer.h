@@ -141,6 +141,9 @@ class TunnRptProducer: public IDstarTradeSpi
 		int32_t GetCounterByLocalOrderID(long local_ord_id);
 		void End();
 
+		void InitAllContracts();
+		void WriteAllContracts(string contract);
+
 private:
     void ParseConfig();
 

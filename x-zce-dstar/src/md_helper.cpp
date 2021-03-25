@@ -7,9 +7,9 @@
 using std::chrono::system_clock;
 
 MdHelper::MdHelper(L2MDProducer *l2_producer, 
-			Lev1Producer *l1_producer)
+				   Lev1Producer *l1_producer)
 : l2_md_producer_(l2_producer), 
-	l1_md_producer_(l1_producer), 
+  l1_md_producer_(l1_producer), 
   module_name_("MdHelper")
 {
 	clog_warning("[%s] L1_DOMINANT_MD_BUFFER_SIZE:%d;",
@@ -17,7 +17,7 @@ MdHelper::MdHelper(L2MDProducer *l2_producer,
 				L1_DOMINANT_MD_BUFFER_SIZE);
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++)
 	{
-		Lev1MarketData &tmp = md_buffer_[i];
+		CThostFtdcDepthMarketDataField &tmp = md_buffer_[i];
 		strcpy(tmp.InstrumentID, "");
 	}
 
@@ -25,7 +25,7 @@ MdHelper::MdHelper(L2MDProducer *l2_producer,
 #ifdef PERSISTENCE_ENABLED 
     p_md_save_ = new QuoteDataSave<ZCEL2QuotSnapshotField_MY>(
 				"czce_level2", 
-		CZCE_LEVEL2_QUOTE_TYPE);
+				CZCE_LEVEL2_QUOTE_TYPE);
 #endif
 }
 
@@ -35,13 +35,12 @@ MdHelper::~MdHelper()
     if (p_md_save_) delete p_md_save_;
 #endif
 
-	clog_warning("[%s] ~MdHelper invoked.", 
-				module_name_);
+	clog_warning("[%s] ~MdHelper invoked.", module_name_);
 }
 
 void MdHelper::ProcL2Data(int32_t index)
 {
-	Lev1MarketData* l1_md = NULL;
+	CThostFtdcDepthMarketDataField* l1_md = NULL;
 
 	StdQuote5* md = l2_md_producer_->GetData(index);
 	// discard option
@@ -73,8 +72,6 @@ void MdHelper::ProcL2Data(int32_t index)
 	l1_md =  GetData(md->instrument); 
 	if(NULL != l1_md)
 	{
-		l1_md->Print();
-
 		Convert(*md, l1_md, target_data_);
 		if (mymd_handler_ != NULL) mymd_handler_(&target_data_);
 
@@ -101,16 +98,19 @@ void MdHelper::ProcL2Data(int32_t index)
 }
 
 void MdHelper::Convert(const StdQuote5 &other, 
-			Lev1MarketData *lev1Data,
+			CThostFtdcDepthMarketDataField *lev1Data,
 			ZCEL2QuotSnapshotField_MY &data)
 {
 	// TODO: 重新整合行情，尽量从五档拿数据
 	
 	if(lev1Data != NULL)
 	{ // contents from level1 
-		data.PreSettle = 0.0;
-		data.PreClose = 0.0;
-		data.PreOpenInterest = 0.0;
+		/* 上次结算价 */
+		data.PreSettle = InvalidToZeroD(lev1Data->PreSettlementPrice);
+		/* 昨收盘 */
+		data.PreClose = InvalidToZeroD(lev1Data->PreClosePrice);
+		/* 昨持仓量 */
+		data.PreOpenInterest = InvalidToZeroD(lev1Data->PreOpenInterest);
 		/*开盘价*/
 		data.OpenPrice = InvalidToZeroD(lev1Data->OpenPrice);	
 		/*最高价*/
@@ -118,7 +118,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 		/*最低价*/
 		data.LowPrice = InvalidToZeroD(lev1Data->LowestPrice); 
 		/*收盘价*/
-		data.ClosePrice = 0.0;;	    
+		data.ClosePrice = InvalidToZeroD(lev1Data->ClosePrice);;	    
 		/*结算价*/
 		data.SettlePrice = InvalidToZeroD(lev1Data->SettlementPrice);	
 		/*涨停板*/
@@ -130,7 +130,7 @@ void MdHelper::Convert(const StdQuote5 &other,
 		/*历史最低成交价格*/
 		data.LifeLow = 0.0;	
 		/*均价*/
-		data.AveragePrice = InvalidToZeroD(lev1Data->AvgPrice);	
+		data.AveragePrice = InvalidToZeroD(lev1Data->AveragePrice);	
 		/*持仓量*/
 		data.OpenInterest = other.openinterest;	
 		/*合约编码*/
@@ -214,21 +214,21 @@ void MdHelper::SetQuoteDataHandler(
 
 void MdHelper::ProcL1MdData(int32_t index)
 {
-	Lev1MarketData *new_l1_md = l1_md_producer_->GetData(index);
+	CThostFtdcDepthMarketDataField *new_l1_md = l1_md_producer_->GetData(index);
 
-	Lev1MarketData *old_l1_md = NULL;
+	CThostFtdcDepthMarketDataField *old_l1_md = NULL;
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++)
 	{
-		Lev1MarketData &tmp = md_buffer_[i];
-		if(IsEmptyString(tmp.InstrumentID))
+		CThostFtdcDepthMarketDataField *tmp = &md_buffer_[i];
+		if(IsEmptyString(tmp->InstrumentID))
 		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
-			old_l1_md = &tmp; 
+			old_l1_md = tmp; 
 			break;
 		}
 
-		if( strcmp(new_l1_md->InstrumentID, tmp.InstrumentID) == 0)
+		if( strcmp(new_l1_md->InstrumentID, tmp->InstrumentID) == 0)
 		{ // TODO: see contract value
-			old_l1_md = &tmp; 
+			old_l1_md = tmp; 
 			break;
 		}
 	}
@@ -243,21 +243,20 @@ void MdHelper::ProcL1MdData(int32_t index)
 /*
  *  contract: e.g. SR1801
  */
-Lev1MarketData* MdHelper::GetData(const char *contract)
+CThostFtdcDepthMarketDataField* MdHelper::GetData(const char *contract)
 {
-	Lev1MarketData* data = NULL;
-
+	CThostFtdcDepthMarketDataField* data = NULL;
 	for(int i = 0; i < L1_DOMINANT_MD_BUFFER_SIZE; i++)
 	{
-		Lev1MarketData &tmp = md_buffer_[i];
-		if(IsEmptyString(tmp.InstrumentID))
+		CThostFtdcDepthMarketDataField *tmp = &md_buffer_[i];
+		if(IsEmptyString(tmp->InstrumentID))
 		{ // 空字符串表示已到了缓存中第一个未使用的缓存项
 			break;
 		}
 
-		if(IsSize3EqualSize4(tmp.InstrumentID, contract))
+		if(IsSize3EqualSize4(tmp->InstrumentID, contract))
 		{ // contract: e.g. SR1801
-			data = &tmp; 
+			data = tmp; 
 			break;
 		}
 	}
