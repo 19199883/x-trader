@@ -391,6 +391,7 @@ void Lev1Producer::ReplaceInvalidValue(CThostFtdcDepthMarketDataField *data)
 
     data->PreDelta = InvalidToZeroD(data->PreDelta);
     data->CurrDelta = InvalidToZeroD(data->CurrDelta);
+    data->CurrDelta = InvalidToZeroD(data->AveragePrice);
 }
 
 void Lev1Producer::End()
