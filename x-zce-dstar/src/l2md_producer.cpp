@@ -180,6 +180,15 @@ void L2MDProducer::RevData()
 		}					
 		else
 		{
+			// discard option
+			if(strlen(line->instrument) > 6)
+			{
+				continue;
+			}
+#ifdef PERSISTENCE_ENABLED 
+		// 用于记录接收多少行情，看哪里有数据丢失
+		clog_warning("l2r");
+#endif
 			on_receive_quote(next_index);
 		}
     } // end while (!ended_) 
@@ -189,6 +198,7 @@ void L2MDProducer::RevData()
 
 void L2MDProducer::on_receive_quote(int32_t index)
 {
+
 		struct vrt_value  *vvalue;
 		struct vrt_hybrid_value  *ivalue;
 		vrt_producer_claim(producer_, &vvalue);
