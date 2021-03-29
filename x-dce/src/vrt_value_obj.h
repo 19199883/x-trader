@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <pthread.h>
 
+// socket RCVBUF size
+#define RCV_BUF_SIZE	212992
 
 /*
 * DCE_DATA_FEED: 大连data feed组播行情
