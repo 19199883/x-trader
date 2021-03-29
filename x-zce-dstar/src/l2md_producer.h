@@ -17,8 +17,6 @@
  */
 #define L2MD_BUFFER_SIZE 8192 
 
-// socket RCVBUF size
-#define RCV_BUF_SIZE	1 * 1024 * 1024
 
 using namespace std;
 

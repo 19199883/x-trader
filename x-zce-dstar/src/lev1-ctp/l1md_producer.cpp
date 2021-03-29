@@ -247,22 +247,25 @@ void Lev1Producer::OnRspUserLogin(
 	string contrs = "";
 	if (is) 
 	{
-		getline(is, contrs);
-		size_t start_pos = 0;
-		size_t end_pos = 0;
-		string contr = "";
-		while ((end_pos=contrs.find(" ",start_pos)) != string::npos)
-		{
-			contr = contrs.substr (start_pos, end_pos-start_pos);
-			pp_instruments_[count] = new char(strlen(contr.c_str())+1);
-			strcpy(pp_instruments_[count],contr.c_str());
+		getline(is, contrs);				
+			
+		char *str = (char*)contrs.c_str();	  
+		 char * pch;		  
+		 pch = strtok (str, " ");
+		 while (pch != NULL)
+		  {			
+			pp_instruments_[count] = new char(strlen(pch)+1);
+			strcpy(pp_instruments_[count], pch);
 			clog_warning("[%s] ThostFtdcMdApi subscribe:%d, %s",
 						module_name_, 
 						count, 
 						pp_instruments_[count]);
-			start_pos = end_pos + 1;
-			count++;
-		}
+					    	
+		    	pch = strtok (NULL, " ");
+		    	count++;
+		  }
+
+
 	}
 	else 
 	{ 
