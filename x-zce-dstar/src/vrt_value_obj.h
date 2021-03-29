@@ -24,6 +24,8 @@
 	#define MAX_CONTRACT_COUNT 500
 #endif
 
+// socket RCVBUF size
+#define RCV_BUF_SIZE	212992
 
 /*
  * 10 power of 2
