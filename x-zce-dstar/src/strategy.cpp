@@ -218,7 +218,7 @@ void Strategy::FeedInitPosition()
 
 void Strategy::FeedMd(ZCEL2QuotSnapshotField_MY* md, int *sig_cnt, signal_t* sigs)
 {
-	clog_debug("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
+	clog_info("[test] proc [%s] [FeedMd] contract:%s, time:%s", module_name_, 
 		md->ContractID, md->TimeStamp);
 #ifdef LATENCY_MEASURE
 	high_resolution_clock::time_point t0 = high_resolution_clock::now();
@@ -504,9 +504,13 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 	signal_t& sig = sig_table_[sigidx];
 
 		clog_info("[%s] FeedTunnRpt:strategy id:%d; sig_id:%d;"
-					"symbol:%s; status:%d; ",
-					module_name_, setting_.config.st_id, 				
-					sigrpt.sig_id, sigrpt.symbol, sigrpt.status);
+					"symbol:%s; status:%d; acc_volume:%d ",
+					module_name_, 
+					setting_.config.st_id, 				
+					sigrpt.sig_id, 
+					sigrpt.symbol, 
+					sigrpt.status,
+					sigrpt.acc_volume);
 
 	if(sigrpt.status == if_sig_state_t::SIG_STATUS_REJECTED ||
 		sigrpt.status == if_sig_state_t::SIG_STATUS_CANCEL ||
@@ -525,7 +529,7 @@ void Strategy::FeedTunnRpt(int32_t sigidx, TunnRpt &rpt, int *sig_cnt, signal_t*
 	}
 
 	// 使MatchedAmount为最后一次的成交量
-	int32_t lastqty = rpt.MatchedAmount;
+	int32_t lastqty = rpt.MatchedAmount - sigrpt.acc_volume;
 	// update strategy's position
 	UpdatePosition(lastqty,rpt, sig.sig_openclose, sig.sig_act);
 	// fill signal position report by tunnel report

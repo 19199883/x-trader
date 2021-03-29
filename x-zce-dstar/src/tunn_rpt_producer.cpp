@@ -207,7 +207,7 @@ void TunnRptProducer::ParseConfig()
 // ok
 void TunnRptProducer::OnRspUdpAuth(const DstarApiRspUdpAuthField *p)
 {
-	clog_warning("[%s] %s",
+	clog_warning("[%s] OnRspUdpAuth %s",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(p).c_str());
 
@@ -229,7 +229,7 @@ void TunnRptProducer::OnRspUdpAuth(const DstarApiRspUdpAuthField *p)
 void TunnRptProducer::OnRspContract(const DstarApiContractField *pContract)
 {
 	// TODO: 观看合约索引的内容
-	clog_warning("[%s] %s",
+	clog_warning("[%s]OnRspContract %s",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(pContract).c_str());
 	fflush (Log::fp);
@@ -275,7 +275,7 @@ void TunnRptProducer::OnRspSeat(const DstarApiSeatField* pSeat)
 {
 	// TODO: 观看席位
 	//
-	clog_warning("[%s] %s",
+	clog_warning("[%s] OnRspSeat %s",
 		module_name_,
 		ESUNNYDatatypeFormater::ToString(pSeat).c_str());
 	fflush (Log::fp);
@@ -385,49 +385,14 @@ void TunnRptProducer::End()
 
 // ok 
 // OnRspOrder如何被调用
+// 委托响应。Api初始化过程中会查询客户委托，返回客户当前所有委托数据。
+// 委托数据中包含冻结保证金数据，该数据是账户实时资金数据
 void TunnRptProducer::OnRspOrder(const DstarApiOrderField *pOrder)
 {
     clog_info("[%s] OnRspOrder:%s",
 				module_name_, 
 				ESUNNYDatatypeFormater::ToString(pOrder).c_str());
 
-	if (ended_) return;
-
-	int32_t cursor = Push();
-	struct TunnRpt &tunnrpt = rpt_buffer_[cursor];
-	tunnrpt.LocalOrderID = pOrder->Reference;
-	strcpy(tunnrpt.OrderNo, pOrder->OrderNo);
-	// strcpy(tunnrpt.SystemNo, pOrder->SystemNo);
-
-	if (pOrder->OrderState==DSTAR_API_STATUS_QUEUE ||
-		pOrder->OrderState==DSTAR_API_STATUS_APPLY ||
-		pOrder->OrderState==DSTAR_API_STATUS_SUSPENDED
-		) 
-	{// discard these reports
-		return;
-	}
-
-	// TODO: 确认是累计成交量还是当前成交量
-	tunnrpt.MatchedAmount = pOrder->MatchQty;
-	//tunnrpt.OrderMatchPrice = info->OrderInfo->OrderMatchPrice;
-	tunnrpt.ErrorID = pOrder->ErrCode;
-	tunnrpt.OrderStatus = pOrder->OrderState;
-
-	struct vrt_value  *vvalue;
-	struct vrt_hybrid_value  *ivalue;
-	vrt_producer_claim(producer_, &vvalue);
-	ivalue = cork_container_of (vvalue, struct vrt_hybrid_value, parent);
-	ivalue->index = cursor;
-	ivalue->data = TUNN_RPT;
-	vrt_producer_publish(producer_);
-
-	if(tunnrpt.OrderStatus==DSTAR_API_STATUS_FAIL ||
-		tunnrpt.ErrorID != DSTAR_API_ERR_SUCCESS)
-	{
-		clog_error("[%s] OnRspOrder:%s",
-					module_name_, 
-					ESUNNYDatatypeFormater::ToString(pOrder).c_str());
-	}
 }
 
 // ok 

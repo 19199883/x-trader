@@ -33,7 +33,7 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspLoginField *p)
     } 
 	else 
 	{
-        snprintf(buf, sizeof(buf), "structName=TradeDate <null>");
+        snprintf(buf, sizeof(buf), "structName=DstarApiRspLoginField <null>");
     }
 
     return buf;
@@ -134,7 +134,7 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspOrderInsertField *
 	{
         snprintf(buf, 
 				sizeof(buf), 
-				"structName=DstarApiSeatField "
+				"structName=DstarApiRspOrderInsertField "
 				"SeatIndex:%hhu "
 				"AccountNo:%s "
 				"ClientReqId:%u " 
@@ -154,7 +154,7 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiRspOrderInsertField *
 	{
         snprintf(buf, 
 				sizeof(buf), 
-				"structName=DstarApiSeatField <null>");
+				"structName=DstarApiRspOrderInsertField <null>");
     }
 
     return buf;
@@ -169,7 +169,7 @@ std::string ESUNNYDatatypeFormater::ToString(const DstarApiOrderField *p)
 	{
         snprintf(buf, 
 				sizeof(buf), 
-				"structName=DstarApiSeatField "
+				"structName=DstarApiOrderField "
 				"MatchQty:%u "
 				"ErrCode:%u "
 				"OrderLocalNo:%s "
