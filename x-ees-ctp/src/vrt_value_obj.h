@@ -49,7 +49,7 @@
 	#define MAX_CONTRACT_COUNT 1024
 #endif
 
-#define	RCV_BUF_SIZE		65535
+#define	RCV_BUF_SIZE		212992
 
 #ifdef __cplusplus
 extern "C" {
